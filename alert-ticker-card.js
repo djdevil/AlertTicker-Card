@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.0.0
+ * AlertTicker Card v1.0.1
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 17 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, and a full visual editor with 4-language support.
@@ -20,7 +20,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.0.0";
+const CARD_VERSION = "1.0.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -244,12 +244,17 @@ class AlertTickerCard extends LitElement {
     this._lastSignature = signature;
     this._activeAlerts = active;
 
-    // Reset cycle index when list changes
-    this._currentIndex = 0;
+    // Clamp index — don't blindly reset to 0 on every state update
+    if (this._currentIndex >= active.length) {
+      this._currentIndex = 0;
+    }
 
-    // Restart the cycle timer with the new list
-    this._stopCycleTimer();
-    this._startCycleTimer();
+    // Never stop/restart the timer on entity updates — that would reset the
+    // 5-second interval before it fires (common with dimmers that push rapid
+    // attribute updates). Instead, start it once if it isn't already running.
+    if (!this._cycleTimer) {
+      this._startCycleTimer();
+    }
 
     this.requestUpdate();
   }
@@ -257,10 +262,12 @@ class AlertTickerCard extends LitElement {
   // ---- Cycle timer ---------------------------------------------------------
 
   _startCycleTimer() {
-    if (this._activeAlerts.length <= 1) return;
+    if (this._cycleTimer) return; // Already running — never start twice
     const interval = ((this._config && this._config.cycle_interval) || 5) * 1000;
     const FOLD_MS = 340;
     this._cycleTimer = setInterval(() => {
+      // Skip tick if there is nothing to cycle
+      if (!this._activeAlerts || this._activeAlerts.length <= 1) return;
       // 1. Fold out
       this._animPhase = "fold-out";
       this.requestUpdate();
@@ -272,6 +279,7 @@ class AlertTickerCard extends LitElement {
         // 3. Done: clear phase
         setTimeout(() => {
           this._animPhase = "";
+          this.requestUpdate();
         }, FOLD_MS);
       }, FOLD_MS);
     }, interval);
