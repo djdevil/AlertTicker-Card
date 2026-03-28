@@ -1,9 +1,10 @@
 /**
  * AlertTicker Card v1.0.0
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
- * Supports 9 visual themes: ticker, emergency, warning, info, success, neon, glass, matrix, minimal
+ * Supports 17 visual themes with per-alert theme assignment, priority ordering,
+ * fold animation cycling, and a full visual editor with 4-language support.
  *
- * Author: AlertTicker Card
+ * Author: djdevil
  * License: MIT
  */
 
@@ -19,7 +20,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.0";
+const CARD_VERSION = "1.0.0";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1649,7 +1650,7 @@ if (!window.customCards.find((c) => c.type === "alert-ticker-card")) {
   window.customCards.push({
     type: "alert-ticker-card",
     name: "AlertTicker Card",
-    description: "Display alerts based on entity states with 9 visual themes",
+    description: "Display alerts based on entity states with 17 visual themes, per-alert theme, fold animation cycling, and a full visual editor.",
     preview: false,
   });
 }

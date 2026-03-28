@@ -8,6 +8,16 @@ A custom Lovelace card to display alerts and notifications based on entity state
 
 ---
 
+![AlertTicker Card](images/logo.png)
+
+---
+
+![Warning and Info themes](images/1.png)
+
+![OK, Style and Multiple Alerts](images/2.png)
+
+---
+
 ## Features at a Glance
 
 | Feature | Details |
@@ -144,7 +154,9 @@ When `show_when_clear: true`:
 
 ### Via HACS (recommended)
 
-1. Open **HACS → Frontend**
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
+
+1. Click the button above **or** open **HACS → Frontend**
 2. Click **⋮ → Custom repositories**
 3. Add `https://github.com/djdevil/AlertTicker-Card` as type **Lovelace**
 4. Find **AlertTicker Card** and click **Download**

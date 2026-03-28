@@ -1,50 +1,51 @@
 ## AlertTicker Card
 
-Custom Lovelace card for Home Assistant to display alerts based on entity states, with 9 visual themes and a full visual editor.
+Custom Lovelace card for Home Assistant to display alerts and notifications based on entity states, with **17 visual themes**, per-alert theme assignment, 3D fold animation cycling, priority ordering, and a complete visual editor in 4 languages.
 
 ### Features
 
-- 9 Visual Themes: Ticker, Emergency, Warning, Info, Success, Neon, Glass, Matrix, Minimal
-- Multiple entities per card, each with a configurable trigger state
-- Custom message per alert
-- Priority system (1=Critical → 4=Low)
-- Automatic cycling between active alerts
-- Full visual editor (no YAML required)
-- Languages: Italian, English
+- **17 Visual Themes** — Critical, Warning, Info, OK/All-Clear, Style categories
+- **Per-alert theme** — each alert has its own independent theme and icon
+- **Multiple entities** per card, each with configurable trigger state and message
+- **Priority system** (1=Critical → 4=Low) with automatic sorting
+- **3D fold animation** when cycling between active alerts
+- **All-clear state** — optional message shown when no alerts are active
+- **Full visual editor** — no YAML required
+- **Languages** — Italian, English, French, German (auto-detected)
+- **HACS compatible** — cache-busting via `import.meta.url`
 
-### Installation
+### Themes
 
-1. Install via HACS
-2. Add the card to your Lovelace dashboard
-3. Configure using the visual editor
+| Category | Themes |
+|----------|--------|
+| Critical | `emergency` 🚨 · `fire` 🔥 · `alarm` 🔴 · `lightning` 🌩️ |
+| Warning  | `warning` ⚠️ · `caution` 🟡 |
+| Info     | `info` ℹ️ · `notification` 🔔 · `aurora` 🌌 |
+| OK       | `success` ✅ · `check` 🟢 · `confetti` 🎉 |
+| Style    | `ticker` 📰 · `neon` ⚡ · `glass` 🔮 · `matrix` 💻 · `minimal` 📋 |
 
 ### Basic Configuration
 
 ```yaml
 type: custom:alert-ticker-card
-theme: emergency
 cycle_interval: 5
+show_when_clear: true
+clear_message: "All systems operational"
+clear_theme: success
 alerts:
   - entity: binary_sensor.power_sensor
     state: "off"
     message: "Power outage detected"
     priority: 1
-  - entity: sensor.coffee_machine
-    state: "empty"
-    message: "Coffee machine is empty"
+    theme: emergency
+  - entity: binary_sensor.garage_door
+    state: "on"
+    message: "Garage door left open"
     priority: 2
+    theme: warning
+  - entity: update.zigbee_bridge
+    state: "on"
+    message: "Firmware update available"
+    priority: 3
+    theme: info
 ```
-
-### Themes
-
-| Theme | Style |
-|-------|-------|
-| `ticker` | Scrolling news ticker bar |
-| `emergency` | Red pulsing critical alert |
-| `warning` | Amber attention card |
-| `info` | Blue informational card |
-| `success` | Green resolved/OK card |
-| `neon` | Cyberpunk glowing card |
-| `glass` | Glassmorphism card |
-| `matrix` | Terminal/hacker style |
-| `minimal` | Clean light-mode card |
