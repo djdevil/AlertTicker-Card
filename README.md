@@ -12,15 +12,13 @@ A custom Lovelace card to display alerts and notifications based on entity state
 
 ![AlertTicker Card](images/logo.png)
 
+![AlertTicker Card demo](images/demo.gif)
+
 ---
 
 ![Warning and Info themes](images/1.png)
 
 ![OK, Style and Multiple Alerts](images/2.png)
-
-> **Tip — add a GIF to show the card live!**
-> Record a short screen capture (e.g. with ShareX, ScreenToGif, or macOS Cmd+Shift+5) showing the fold animation cycling between two active alerts, then save it as `images/demo.gif` and replace this tip with:
-> `![AlertTicker Card demo](images/demo.gif)`
 
 ---
 
