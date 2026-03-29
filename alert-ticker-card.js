@@ -144,6 +144,27 @@ const T = {
     snooze_reset: "Alle fortsetzen",
     alerts_snoozed: "Warnungen pausiert",
   },
+  nl: {
+    alerts: "Meldingen",
+    critical: "Kritiek",
+    warning_label: "Waarschuwing",
+    info_label: "Informatie",
+    success_label: "Opgelost",
+    no_alerts: "Geen actieve meldingen",
+    all_clear: "Alles in orde",
+    priority_short: "P",
+    alert_system: "MELDINGSSYSTEEM",
+    cmd_prefix: "root@ha:~$",
+    cmd_read: "melding --lees",
+    snooze: "Sluimer",
+    snoozed: "Gesluimerd",
+    snooze_1h: "1 uur",
+    snooze_4h: "4 uur",
+    snooze_8h: "8 uur",
+    snooze_24h: "24 uur",
+    snooze_reset: "Alles hervatten",
+    alerts_snoozed: "meldingen gesluimerd",
+  },
 };
 
 // ---------------------------------------------------------------------------

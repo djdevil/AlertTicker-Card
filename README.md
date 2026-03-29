@@ -34,7 +34,7 @@ A custom Lovelace card to display alerts and notifications based on entity state
 | **Numeric conditions** | Trigger on `>`, `<`, `>=`, `<=`, `!=` for sensor values |
 | **Snooze** | Suspend any alert for 1 h / 4 h / 8 h / 24 h — persisted in localStorage |
 | **Visual editor** | Full GUI — no YAML required |
-| **Languages** | Italian, English, French, German |
+| **Languages** | Italian, English, French, German, Dutch |
 | **HACS compatible** | Cache-busting via `import.meta.url` |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
@@ -439,8 +439,9 @@ The card automatically detects the language from your Home Assistant settings (`
 | English | `en` | ✅ default |
 | French | `fr` | — |
 | German | `de` | — |
+| Dutch | `nl` | — |
 
-All UI labels, category names, default messages, and editor strings are fully translated in all four languages. Any unsupported language automatically falls back to English.
+All UI labels, category names, default messages, and editor strings are fully translated in all five languages. Any unsupported language automatically falls back to English.
 
 ---
 
