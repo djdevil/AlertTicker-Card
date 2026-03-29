@@ -160,6 +160,7 @@ const ET = {
     alert_operator: "Condizione",
     alert_state: "Valore",
     alert_state_help: "es. 'on', '80' (numerico con operatore > < >= <=)",
+    current_state: "Stato attuale",
     alert_message: "Messaggio da visualizzare",
     alert_priority: "Priorità",
     alert_theme: "Tema",
@@ -198,6 +199,7 @@ const ET = {
     alert_operator: "Condition",
     alert_state: "Value",
     alert_state_help: "e.g. 'on', '80' (numeric with > < >= <=)",
+    current_state: "Current state",
     alert_message: "Message to display",
     alert_priority: "Priority",
     alert_theme: "Theme",
@@ -236,6 +238,7 @@ const ET = {
     alert_operator: "Condition",
     alert_state: "Valeur",
     alert_state_help: "ex. 'on', '80' (numérique avec > < >= <=)",
+    current_state: "État actuel",
     alert_message: "Message à afficher",
     alert_priority: "Priorité",
     alert_theme: "Thème",
@@ -274,6 +277,7 @@ const ET = {
     alert_operator: "Bedingung",
     alert_state: "Wert",
     alert_state_help: "z.B. 'on', '80' (numerisch mit > < >= <=)",
+    current_state: "Aktueller Zustand",
     alert_message: "Anzuzeigende Nachricht",
     alert_priority: "Priorität",
     alert_theme: "Thema",
@@ -631,6 +635,11 @@ class AlertTickerCardEditor extends LitElement {
                       @change="${(e) => this._alertStateChanged(e.target.value, index)}"
                     ></ha-textfield>
                     <div class="helper-text">${this._t("alert_state_help")}</div>
+                    ${alert.entity && this._hass && this._hass.states[alert.entity]
+                      ? html`<div class="helper-text current-state-hint">
+                          ${this._t("current_state")}: <strong>"${this._hass.states[alert.entity].state}"</strong>
+                        </div>`
+                      : ""}
                   </div>
                 </div>
 
@@ -802,7 +811,7 @@ class AlertTickerCardEditor extends LitElement {
   }
 
   _alertStateChanged(value, index) {
-    this._updateAlert(index, { state: value });
+    this._updateAlert(index, { state: value.trim() });
   }
 
   _alertMessageChanged(value, index) {
@@ -929,6 +938,13 @@ class AlertTickerCardEditor extends LitElement {
         font-size: 0.85rem;
         color: var(--secondary-text-color, #888);
         margin-top: 4px;
+      }
+      .current-state-hint {
+        color: var(--primary-color, #03a9f4);
+        margin-top: 2px;
+      }
+      .current-state-hint strong {
+        font-family: monospace;
       }
 
       /* ---- Alert list ---- */

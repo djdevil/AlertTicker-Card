@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Counter / alert number invisible** — `backdrop-filter: blur(4px)` on the snooze button was blurring the counter text behind it even when the button was `opacity: 0`. Removed `backdrop-filter`; added `pointer-events: none` to the snooze wrap so it never captures mouse events when invisible.
 - **Editor closes when changing priority** (reported in [#1](https://github.com/djdevil/AlertTicker-Card/issues/1)) — The `ha-select` priority dropdown uses `mwc-select` internally. When the dropdown closes after a selection, it fires a `closed` event that bubbled up through the shadow DOM and was caught by HA's outer `mwc-dialog`, closing the card editor. Fixed by adding `@closed="${(e) => e.stopPropagation()}"` on the `ha-select` element.
+- **State value hint in editor** (reported in [#2](https://github.com/djdevil/AlertTicker-Card/issues/2)) — the alert state field now shows the entity's actual current HA state value below the input (e.g. `Current state: "on"`). This prevents the common mistake of entering the UI display label (e.g. "Geöffnet") instead of the real state string ("on"). Also added `.trim()` on the state value to avoid invisible whitespace mismatches.
 
 ---
 
