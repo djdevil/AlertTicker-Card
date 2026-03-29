@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3] - 2026-03-29
+
+### Added
+
+- **5 new spectacular themes** (total now 22):
+  - `nuclear` ☢️ — rotating radiation icon with amber pulsing glow (Critical)
+  - `radar` 🎯 — circular sonar display with sweeping cone + concentric rings (Warning)
+  - `hologram` 🔷 — holographic grid + horizontal scan beam + glitch flicker (Info)
+  - `heartbeat` 💓 — scrolling ECG line + beating pulse ring on icon (OK)
+  - `retro` 📺 — CRT amber phosphor display with scanlines and screen flicker (Style)
+- **Font size increase** for all 22 themes: badge labels 0.65→0.72 rem, message text 0.90→0.98 rem, critical themes 0.95→1.05 rem.
+- **Numeric / comparison conditions** — the `operator` field on each alert now accepts `=` (default, exact match), `!=`, `>`, `<`, `>=`, `<=`. Enables sensors with % or numeric values (e.g. `humidity < 40`, `co2 > 1000`). Visual editor exposes an operator dropdown next to the value field; YAML backward-compatible (omitting `operator` defaults to `=`).
+- **Snooze / suspend alert** — a 💤 button appears on hover over any active alert. Clicking it opens a duration menu (1 h / 4 h / 8 h / 24 h). Snoozed alerts are hidden for the chosen duration without touching the underlying entity. State is persisted to `localStorage` so it survives page reloads. The card restores the alert automatically when the snooze expires, even with no entity state change.
+- **Snoozed indicator + reset button** — when all matching alerts are snoozed the card no longer disappears silently. Instead it shows a minimal dark bar "💤 N alerts snoozed" with a **↩ Resume all** button. Clicking it instantly clears all snooze state and restores the matching alerts. This prevents the confusing scenario where the card vanishes with no indication of why.
+
+### Fixed
+
+- **Counter / alert number invisible** — `backdrop-filter: blur(4px)` on the snooze button was blurring the counter text behind it even when the button was `opacity: 0`. Removed `backdrop-filter`; added `pointer-events: none` to the snooze wrap so it never captures mouse events when invisible.
+- **Editor closes when changing priority** (reported in [#1](https://github.com/djdevil/AlertTicker-Card/issues/1)) — The `ha-select` priority dropdown uses `mwc-select` internally. When the dropdown closes after a selection, it fires a `closed` event that bubbled up through the shadow DOM and was caught by HA's outer `mwc-dialog`, closing the card editor. Fixed by adding `@closed="${(e) => e.stopPropagation()}"` on the `ha-select` element.
+
+---
+
 ## [1.0.1] - 2026-03-29
 
 ### Fixed

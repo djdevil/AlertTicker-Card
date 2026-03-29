@@ -1,8 +1,8 @@
 /**
- * AlertTicker Card v1.0.1
+ * AlertTicker Card v1.0.3
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
- * Supports 17 visual themes with per-alert theme assignment, priority ordering,
- * fold animation cycling, and a full visual editor with 4-language support.
+ * Supports 22 visual themes with per-alert theme assignment, priority ordering,
+ * fold animation cycling, snooze, numeric conditions, and a full visual editor.
  *
  * Author: djdevil
  * License: MIT
@@ -20,7 +20,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.0.1";
+const CARD_VERSION = "1.0.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -48,6 +48,12 @@ const THEME_META = {
   glass:        { icon: "🔮", category: "style"    },
   matrix:       { icon: "💻", category: "style"    },
   minimal:      { icon: "📋", category: "style"    },
+  retro:        { icon: "📺", category: "style"    },
+  // --- New spectacular ---
+  nuclear:      { icon: "☢️", category: "critical" },
+  radar:        { icon: "🎯", category: "warning"  },
+  hologram:     { icon: "🔷", category: "info"     },
+  heartbeat:    { icon: "💓", category: "ok"       },
 };
 
 // ---------------------------------------------------------------------------
@@ -66,6 +72,14 @@ const T = {
     alert_system: "SISTEMA AVVISI",
     cmd_prefix: "root@ha:~$",
     cmd_read: "alert --leggi",
+    snooze: "Sospendi",
+    snoozed: "Sospeso",
+    snooze_1h: "1 ora",
+    snooze_4h: "4 ore",
+    snooze_8h: "8 ore",
+    snooze_24h: "24 ore",
+    snooze_reset: "Riattiva tutti",
+    alerts_snoozed: "avvisi sospesi",
   },
   en: {
     alerts: "Alerts",
@@ -79,6 +93,14 @@ const T = {
     alert_system: "ALERT SYSTEM",
     cmd_prefix: "root@ha:~$",
     cmd_read: "alert --read",
+    snooze: "Snooze",
+    snoozed: "Snoozed",
+    snooze_1h: "1 hour",
+    snooze_4h: "4 hours",
+    snooze_8h: "8 hours",
+    snooze_24h: "24 hours",
+    snooze_reset: "Resume all",
+    alerts_snoozed: "alerts snoozed",
   },
   fr: {
     alerts: "Alertes",
@@ -92,6 +114,14 @@ const T = {
     alert_system: "SYSTÈME D'ALERTE",
     cmd_prefix: "root@ha:~$",
     cmd_read: "alerte --lire",
+    snooze: "Suspendre",
+    snoozed: "Suspendue",
+    snooze_1h: "1 heure",
+    snooze_4h: "4 heures",
+    snooze_8h: "8 heures",
+    snooze_24h: "24 heures",
+    snooze_reset: "Réactiver tout",
+    alerts_snoozed: "alertes suspendues",
   },
   de: {
     alerts: "Warnungen",
@@ -105,6 +135,14 @@ const T = {
     alert_system: "WARNSYSTEM",
     cmd_prefix: "root@ha:~$",
     cmd_read: "alarm --lesen",
+    snooze: "Pausieren",
+    snoozed: "Pausiert",
+    snooze_1h: "1 Stunde",
+    snooze_4h: "4 Stunden",
+    snooze_8h: "8 Stunden",
+    snooze_24h: "24 Stunden",
+    snooze_reset: "Alle fortsetzen",
+    alerts_snoozed: "Warnungen pausiert",
   },
 };
 
@@ -122,6 +160,8 @@ class AlertTickerCard extends LitElement {
       _currentIndex: { type: Number },
       _lang: { type: String },
       _animPhase: { type: String },
+      _snoozeMenuOpen: { type: String },
+      _snoozedCount: { type: Number },
     };
   }
 
@@ -136,6 +176,9 @@ class AlertTickerCard extends LitElement {
     this._cycleTimer = null;
     this._lastSignature = "";
     this._animPhase = "";
+    this._snoozeMenuOpen = null;
+    this._snoozedCount = 0;
+    this._snoozed = new Map(); // snoozeKey → expiry timestamp
   }
 
   // ---- Lovelace card static helpers ----------------------------------------
@@ -224,14 +267,13 @@ class AlertTickerCard extends LitElement {
   _computeActiveAlerts() {
     if (!this._hass || !this._config || !Array.isArray(this._config.alerts)) return;
 
+    let snoozedCount = 0;
     const active = this._config.alerts.filter((alert) => {
       const entityState = this._hass.states[alert.entity];
       if (!entityState) return false;
-      const triggerState = alert.state;
-      if (Array.isArray(triggerState)) {
-        return triggerState.includes(entityState.state);
-      }
-      return entityState.state === String(triggerState);
+      if (!this._matchesState(entityState.state, alert)) return false;
+      if (this._isSnoozed(alert)) { snoozedCount++; return false; }
+      return true;
     });
 
     // Sort by priority (lower number = first; undefined priority goes last)
@@ -239,10 +281,11 @@ class AlertTickerCard extends LitElement {
 
     // Build a lightweight signature to detect changes
     const signature = active.map((a) => `${a.entity}:${a.message}:${a.priority}`).join("|");
-    if (signature === this._lastSignature) return; // No change — skip re-render
+    if (signature === this._lastSignature && snoozedCount === this._snoozedCount) return;
 
     this._lastSignature = signature;
     this._activeAlerts = active;
+    this._snoozedCount = snoozedCount;
 
     // Clamp index — don't blindly reset to 0 on every state update
     if (this._currentIndex >= active.length) {
@@ -292,10 +335,160 @@ class AlertTickerCard extends LitElement {
     }
   }
 
+  // ---- State-matching helper -----------------------------------------------
+
+  /**
+   * Returns true when the entity's state matches the alert's condition.
+   * Supports: exact string/array (=), != > < >= <= with numeric comparison.
+   */
+  _matchesState(entityStateValue, alert) {
+    const trigger = alert.state;
+    const operator = alert.operator || "=";
+
+    // Legacy array form — treated as "is one of" regardless of operator
+    if (Array.isArray(trigger)) {
+      return trigger.map(String).includes(entityStateValue);
+    }
+
+    const triggerStr = String(trigger);
+
+    if (operator === "=" || operator === "==") {
+      return entityStateValue === triggerStr;
+    }
+    if (operator === "!=") {
+      return entityStateValue !== triggerStr;
+    }
+
+    // Numeric comparison
+    const entityNum = parseFloat(entityStateValue);
+    const triggerNum = parseFloat(triggerStr);
+    if (isNaN(entityNum) || isNaN(triggerNum)) return false;
+
+    if (operator === ">")  return entityNum > triggerNum;
+    if (operator === "<")  return entityNum < triggerNum;
+    if (operator === ">=") return entityNum >= triggerNum;
+    if (operator === "<=") return entityNum <= triggerNum;
+
+    return entityStateValue === triggerStr;
+  }
+
+  // ---- Snooze helpers -------------------------------------------------------
+
+  /** Unique key per alert config entry used as snooze map key */
+  _snoozeKey(alert) {
+    return `${alert.entity}||${alert.operator || "="}||${JSON.stringify(alert.state)}`;
+  }
+
+  /** Returns the expiry timestamp if currently snoozed, otherwise 0 */
+  _isSnoozed(alert) {
+    const exp = this._snoozed.get(this._snoozeKey(alert));
+    return exp && exp > Date.now() ? exp : 0;
+  }
+
+  /** Load snooze state from localStorage, discarding expired entries */
+  _loadSnooze() {
+    try {
+      const raw = localStorage.getItem("atc-snooze");
+      if (!raw) return;
+      const obj = JSON.parse(raw);
+      const now = Date.now();
+      this._snoozed = new Map(
+        Object.entries(obj).filter(([, exp]) => exp > now)
+      );
+    } catch (_) {
+      this._snoozed = new Map();
+    }
+  }
+
+  /** Persist snooze state to localStorage */
+  _saveSnooze() {
+    try {
+      localStorage.setItem("atc-snooze", JSON.stringify(Object.fromEntries(this._snoozed)));
+    } catch (_) {}
+  }
+
+  /**
+   * Snooze the given alert for `durationH` hours.
+   * Schedules a re-check at expiry so the card comes back automatically.
+   */
+  _snoozeAlert(alert, durationH) {
+    const expiry = Date.now() + durationH * 3_600_000;
+    this._snoozed.set(this._snoozeKey(alert), expiry);
+    this._saveSnooze();
+    this._snoozeMenuOpen = null;
+    // Re-check at expiry so the alert reappears without needing an entity update
+    setTimeout(() => {
+      this._loadSnooze();
+      this._lastSignature = ""; // force recompute
+      this._computeActiveAlerts();
+    }, durationH * 3_600_000 + 200);
+    this._lastSignature = ""; // force recompute now
+    this._computeActiveAlerts();
+  }
+
+  /** Toggle the snooze duration menu for the given alert */
+  _toggleSnoozeMenu(alert) {
+    const key = this._snoozeKey(alert);
+    this._snoozeMenuOpen = this._snoozeMenuOpen === key ? null : key;
+  }
+
+  /** Render the snooze button + dropdown for the current alert */
+  _renderSnoozeButton(alert) {
+    if (!alert || !alert.entity) return html``;
+    const key = this._snoozeKey(alert);
+    const menuOpen = this._snoozeMenuOpen === key;
+    return html`
+      <div class="atc-snooze-wrap">
+        <button
+          class="atc-snooze-btn"
+          title="${this._t("snooze")}"
+          @click="${(e) => { e.stopPropagation(); this._toggleSnoozeMenu(alert); }}"
+        >💤</button>
+        ${menuOpen ? html`
+          <div class="atc-snooze-menu">
+            <div class="atc-snooze-label">${this._t("snooze")}</div>
+            ${[[1, "snooze_1h"], [4, "snooze_4h"], [8, "snooze_8h"], [24, "snooze_24h"]].map(
+              ([h, key]) => html`
+                <button class="atc-snooze-option" @click="${() => this._snoozeAlert(alert, h)}">
+                  ${this._t(key)}
+                </button>
+              `
+            )}
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }
+
+  /** Clear all snooze state and immediately reshow matching alerts */
+  _resetSnooze() {
+    this._snoozed.clear();
+    try { localStorage.removeItem("atc-snooze"); } catch (_) {}
+    this._snoozeMenuOpen = null;
+    this._lastSignature = ""; // force full recompute
+    this._computeActiveAlerts();
+  }
+
+  /** Minimal bar shown when all matching alerts are snoozed */
+  _renderSnoozedIndicator() {
+    return html`
+      <ha-card class="at-card atc-snoozed-bar">
+        <div class="atc-snoozed-inner">
+          <span class="atc-snoozed-icon">💤</span>
+          <span class="atc-snoozed-text">${this._snoozedCount} ${this._t("alerts_snoozed")}</span>
+          <button class="atc-snoozed-reset" @click="${() => this._resetSnooze()}">
+            ↩ ${this._t("snooze_reset")}
+          </button>
+        </div>
+      </ha-card>
+    `;
+  }
+
   // ---- LitElement lifecycle ------------------------------------------------
 
   connectedCallback() {
     super.connectedCallback();
+    this._loadSnooze();
     this._startCycleTimer();
   }
 
@@ -702,6 +895,109 @@ class AlertTickerCard extends LitElement {
     `;
   }
 
+  /** NUCLEAR — rotating radiation symbol, amber glow, critical */
+  _renderNuclear(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert.theme);
+    return html`
+      <ha-card class="at-nuclear">
+        <div class="nc-bg"></div>
+        <div class="nc-icon">${icon}</div>
+        <div class="nc-content">
+          <div class="nc-badge">${label}</div>
+          <div class="nc-title">${alert.message}</div>
+        </div>
+        <div class="nc-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** RADAR — sweeping sonar cone + concentric rings, warning */
+  _renderRadar(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert.theme);
+    return html`
+      <ha-card class="at-radar">
+        <div class="rd-display">
+          <div class="rd-r rd-r1"></div>
+          <div class="rd-r rd-r2"></div>
+          <div class="rd-r rd-r3"></div>
+          <div class="rd-sweep"></div>
+          <div class="rd-center"></div>
+        </div>
+        <div class="rd-icon">${icon}</div>
+        <div class="rd-content">
+          <div class="rd-badge">${label}</div>
+          <div class="rd-title">${alert.message}</div>
+        </div>
+        <div class="rd-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** HOLOGRAM — holographic grid + scanning line + glitch, info */
+  _renderHologram(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert.theme);
+    return html`
+      <ha-card class="at-hologram">
+        <div class="hg-grid"></div>
+        <div class="hg-scan"></div>
+        <div class="hg-icon-wrap">${icon}</div>
+        <div class="hg-content">
+          <div class="hg-badge">${label}</div>
+          <div class="hg-title">${alert.message}</div>
+        </div>
+        <div class="hg-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** HEARTBEAT — scrolling ECG line + pulse ring, ok */
+  _renderHeartbeat(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert.theme);
+    return html`
+      <ha-card class="at-heartbeat">
+        <div class="hb-ecg">
+          <svg viewBox="0 0 400 30" preserveAspectRatio="none">
+            <polyline class="hb-line"
+              points="0,15 30,15 42,3 54,27 66,15 96,15 108,3 120,27 132,15 200,15
+                      200,15 230,15 242,3 254,27 266,15 296,15 308,3 320,27 332,15 400,15"/>
+          </svg>
+        </div>
+        <div class="hb-icon-wrap">${icon}</div>
+        <div class="hb-content">
+          <div class="hb-badge">${label}</div>
+          <div class="hb-title">${alert.message}</div>
+        </div>
+        <div class="hb-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** RETRO — CRT amber phosphor display with scanlines, style */
+  _renderRetro(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert.theme);
+    return html`
+      <ha-card class="at-retro">
+        <div class="rt-scanlines"></div>
+        <div class="rt-icon">${icon}</div>
+        <div class="rt-content">
+          <div class="rt-badge">${label}</div>
+          <div class="rt-title">${alert.message}</div>
+        </div>
+        <div class="rt-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
   /**
    * Dispatch to a theme renderer by name, passing the alert object.
    */
@@ -724,6 +1020,11 @@ class AlertTickerCard extends LitElement {
       case "glass":        return this._renderGlass(alert);
       case "matrix":       return this._renderMatrix(alert);
       case "minimal":      return this._renderMinimal(alert);
+      case "nuclear":      return this._renderNuclear(alert);
+      case "radar":        return this._renderRadar(alert);
+      case "hologram":     return this._renderHologram(alert);
+      case "heartbeat":    return this._renderHeartbeat(alert);
+      case "retro":        return this._renderRetro(alert);
       default:             return this._renderEmergency(alert);
     }
   }
@@ -735,6 +1036,10 @@ class AlertTickerCard extends LitElement {
 
     // No active alerts
     if (this._activeAlerts.length === 0) {
+      // Some alerts match but are snoozed — show a minimal indicator with reset button
+      if (this._snoozedCount > 0) {
+        return this._renderSnoozedIndicator();
+      }
       if (this._config.show_when_clear) {
         // Build a virtual "all clear" alert and render it with the chosen clear theme
         const clearAlert = {
@@ -752,9 +1057,18 @@ class AlertTickerCard extends LitElement {
     // Use the current alert's own theme, wrapped with fold animation
     const current = this._current;
     const inner = this._renderForTheme(current.theme || "emergency", current);
+    const snoozeBtn = this._renderSnoozeButton(current);
+
     // Ticker has its own scroll animation — skip fold wrapper
-    if ((current.theme || "").toLowerCase() === "ticker") return inner;
-    return html`<div class="at-fold-wrapper ${this._animPhase}">${inner}</div>`;
+    if ((current.theme || "").toLowerCase() === "ticker") {
+      return html`<div class="atc-snooze-host">${inner}${snoozeBtn}</div>`;
+    }
+    return html`
+      <div class="atc-snooze-host">
+        <div class="at-fold-wrapper ${this._animPhase}">${inner}</div>
+        ${snoozeBtn}
+      </div>
+    `;
   }
 
   // ---- Styles -------------------------------------------------------------
@@ -1636,6 +1950,353 @@ class AlertTickerCard extends LitElement {
       .cf-title { font-size: 0.9rem; font-weight: 600; color: #e8f5e9; position: relative; }
       .cf-content { flex: 1; min-width: 0; position: relative; }
       .cf-right { flex-shrink: 0; position: relative; }
+
+      /* -----------------------------------------------------------------------
+       * GLOBAL FONT SIZE REFINEMENT (all themes — overrides per-theme values)
+       * --------------------------------------------------------------------- */
+      .em-badge,.fi-badge,.al-badge,.lt-badge,.nc-badge { font-size: 0.72rem; }
+      .wn-badge,.ca-badge,.rd-badge { font-size: 0.72rem; }
+      .in-badge,.no-badge,.au-badge,.hg-badge { font-size: 0.72rem; }
+      .su-badge,.ck-badge,.cf-badge,.hb-badge { font-size: 0.72rem; }
+      .ne-badge,.gl-badge,.mn-badge,.rt-badge { font-size: 0.72rem; }
+      .mx-header { font-size: 0.72rem; }
+
+      .em-title,.fi-title,.al-title,.lt-title,.nc-title { font-size: 1.05rem; }
+      .wn-title,.ca-title,.rd-title { font-size: 0.98rem; }
+      .in-title,.no-title,.au-title,.hg-title { font-size: 0.98rem; }
+      .su-title,.ck-title,.cf-title,.hb-title { font-size: 0.98rem; }
+      .ne-title,.gl-title,.mn-title,.rt-title { font-size: 0.98rem; }
+      .mx-msg  { font-size: 0.96rem; }
+      .mx-prompt { font-size: 0.88rem; }
+
+      /* -----------------------------------------------------------------------
+       * NUCLEAR — rotating ☢ icon, amber glow, critical
+       * --------------------------------------------------------------------- */
+      .at-nuclear {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: radial-gradient(ellipse at center, #0f0d00, #060500);
+        border: 2px solid #f9a825; border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: ncGlow 2.5s ease-in-out infinite;
+      }
+      @keyframes ncGlow {
+        0%,100% { box-shadow: 0 0 22px rgba(249,168,37,0.35); border-color: #f9a825; }
+        50%      { box-shadow: 0 0 52px rgba(249,168,37,0.7);  border-color: #ffca28; }
+      }
+      .nc-bg {
+        position: absolute; inset: 0; border-radius: inherit;
+        background: radial-gradient(ellipse 55% 55% at 50% 50%,
+          rgba(249,168,37,0.12) 0%, transparent 70%);
+        animation: ncPulse 2.5s ease-in-out infinite; pointer-events: none;
+      }
+      @keyframes ncPulse { 0%,100%{ opacity:0.45; } 50%{ opacity:1; } }
+      .nc-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        animation: ncSpin 7s linear infinite;
+        filter: drop-shadow(0 0 10px #f9a825);
+      }
+      @keyframes ncSpin { to { transform: rotate(360deg); } }
+      .nc-content { flex: 1; min-width: 0; position: relative; }
+      .nc-right { flex-shrink: 0; position: relative; }
+
+      /* -----------------------------------------------------------------------
+       * RADAR — sonar sweep with concentric rings, warning
+       * --------------------------------------------------------------------- */
+      .at-radar {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 16px 14px 16px;
+        background: #000f08; border: 1px solid rgba(0,230,118,0.35); border-radius: 12px;
+        position: relative; overflow: hidden;
+        box-shadow: inset 0 0 30px rgba(0,230,118,0.04);
+      }
+      /* Circular radar display on the right */
+      .rd-display {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        width: 72px; height: 72px; border-radius: 50%;
+        border: 1px solid rgba(0,230,118,0.25);
+        pointer-events: none; overflow: hidden;
+      }
+      .rd-r {
+        position: absolute; top: 50%; left: 50%; border-radius: 50%;
+        border: 1px solid rgba(0,230,118,0.2);
+        transform: translate(-50%,-50%);
+      }
+      .rd-r1 { width: 100%; height: 100%; }
+      .rd-r2 { width: 66%; height: 66%; border-color: rgba(0,230,118,0.25); }
+      .rd-r3 { width: 33%; height: 33%; border-color: rgba(0,230,118,0.3); }
+      /* Sweeping cone */
+      .rd-sweep {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: conic-gradient(rgba(0,230,118,0.55) 0deg, transparent 80deg);
+        animation: rdSweep 3s linear infinite;
+        border-radius: 50%;
+      }
+      @keyframes rdSweep { to { transform: rotate(360deg); } }
+      /* Center blip */
+      .rd-center {
+        position: absolute; top: 50%; left: 50%;
+        width: 5px; height: 5px; background: #00e676; border-radius: 50%;
+        transform: translate(-50%,-50%);
+        box-shadow: 0 0 8px #00e676;
+      }
+      .rd-icon {
+        font-size: 1.8rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 6px #00e676);
+        animation: rdPing 3s ease-in-out infinite;
+      }
+      @keyframes rdPing {
+        0%,85%,100% { filter: drop-shadow(0 0 4px #00e676); }
+        90%          { filter: drop-shadow(0 0 14px #00e676) brightness(1.6); }
+      }
+      .rd-content { flex: 1; min-width: 0; padding-right: 86px; }
+      .rd-right { flex-shrink: 0; position: absolute; right: 92px; top: 50%; transform: translateY(-50%); }
+
+      /* -----------------------------------------------------------------------
+       * HOLOGRAM — blue holographic grid + scan + glitch flicker, info
+       * --------------------------------------------------------------------- */
+      .at-hologram {
+        display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+        background: #000d1a; border: 1px solid rgba(0,200,255,0.4); border-radius: 12px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 22px rgba(0,200,255,0.1), inset 0 0 30px rgba(0,200,255,0.04);
+      }
+      .hg-grid {
+        position: absolute; inset: 0; border-radius: inherit;
+        background-image:
+          linear-gradient(rgba(0,200,255,0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0,200,255,0.06) 1px, transparent 1px);
+        background-size: 22px 22px;
+        pointer-events: none;
+      }
+      .hg-scan {
+        position: absolute; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, transparent, rgba(0,200,255,0.85), transparent);
+        pointer-events: none;
+        animation: hgScan 2.8s ease-in-out infinite;
+      }
+      @keyframes hgScan {
+        0%   { top: -3px; opacity: 0; }
+        8%   { opacity: 1; }
+        92%  { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+      }
+      .hg-icon-wrap {
+        width: 44px; height: 44px; background: rgba(0,200,255,0.1);
+        border: 1px solid rgba(0,200,255,0.45); border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 8px rgba(0,200,255,0.5));
+        animation: hgFlicker 5s step-end infinite;
+      }
+      @keyframes hgFlicker {
+        0%,91%,100%{ opacity:1; }
+        92%{ opacity:0.3; }
+        93%{ opacity:1; }
+        95%{ opacity:0.5; }
+        96%{ opacity:1; }
+      }
+      .hg-badge { text-shadow: 0 0 8px rgba(0,200,255,0.7); color: #00c8ff !important; }
+      .hg-title { color: #b3ecff; position: relative; }
+      .hg-content { flex: 1; min-width: 0; position: relative; }
+      .hg-right { flex-shrink: 0; position: relative; }
+
+      /* -----------------------------------------------------------------------
+       * HEARTBEAT — scrolling ECG + pulse ring on icon, ok
+       * --------------------------------------------------------------------- */
+      .at-heartbeat {
+        display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+        background: linear-gradient(135deg, #001008, #001e10);
+        border: 1px solid rgba(0,200,83,0.35); border-radius: 12px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 18px rgba(0,200,83,0.12);
+      }
+      .hb-ecg {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 28px;
+        opacity: 0.45; overflow: hidden; pointer-events: none;
+      }
+      .hb-ecg svg { width: 200%; height: 100%; animation: hbScroll 2.2s linear infinite; }
+      @keyframes hbScroll { to { transform: translateX(-50%); } }
+      .hb-line { stroke: #00c853; stroke-width: 1.5; fill: none; filter: drop-shadow(0 0 3px #00c853); }
+      .hb-icon-wrap {
+        width: 46px; height: 46px; background: rgba(0,200,83,0.12);
+        border: 2px solid rgba(0,200,83,0.45); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem; flex-shrink: 0; position: relative;
+        animation: hbBeat 1.1s ease-in-out infinite;
+      }
+      @keyframes hbBeat {
+        0%,100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(0,200,83,0.4); }
+        15%      { transform: scale(1.14); box-shadow: 0 0 0 0   rgba(0,200,83,0.5); }
+        30%      { transform: scale(1);    box-shadow: 0 0 0 10px rgba(0,200,83,0);  }
+      }
+      .hb-content { flex: 1; min-width: 0; position: relative; }
+      .hb-right { flex-shrink: 0; position: relative; }
+
+      /* -----------------------------------------------------------------------
+       * RETRO — amber CRT phosphor with scanlines + flicker, style
+       * --------------------------------------------------------------------- */
+      .at-retro {
+        display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+        background: #080600;
+        border: 2px solid #e65100; border-radius: 8px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 22px rgba(230,81,0,0.28), inset 0 0 40px rgba(230,81,0,0.05);
+        font-family: 'Courier New', Courier, monospace;
+        animation: rtGlow 4s ease-in-out infinite;
+      }
+      @keyframes rtGlow {
+        0%,100%{ box-shadow: 0 0 18px rgba(230,81,0,0.25); }
+        50%    { box-shadow: 0 0 36px rgba(230,81,0,0.5); }
+      }
+      .rt-scanlines {
+        position: absolute; inset: 0; border-radius: inherit;
+        background: repeating-linear-gradient(
+          0deg, transparent, transparent 2px,
+          rgba(0,0,0,0.22) 2px, rgba(0,0,0,0.22) 4px
+        );
+        pointer-events: none;
+        animation: rtFlicker 9s step-end infinite;
+      }
+      @keyframes rtFlicker {
+        0%,92%,100%{ opacity:1; }
+        93%{ opacity:0.4; }
+        94%{ opacity:1; }
+        96%{ opacity:0.7; }
+        97%{ opacity:1; }
+      }
+      .rt-icon {
+        font-size: 1.8rem; flex-shrink: 0; position: relative;
+        filter: sepia(1) saturate(4) hue-rotate(-15deg) drop-shadow(0 0 7px #ff8f00);
+      }
+      .rt-badge { color: #ff8f00 !important; text-shadow: 0 0 7px #ff8f00; letter-spacing: 3px !important; }
+      .rt-title { color: #ffe0b2 !important; text-shadow: 0 0 4px rgba(255,143,0,0.45); }
+      .rt-content { flex: 1; min-width: 0; position: relative; }
+      .rt-right { flex-shrink: 0; position: relative; }
+
+      /* -----------------------------------------------------------------------
+       * SNOOZE HOST + BUTTON + MENU
+       * --------------------------------------------------------------------- */
+      .atc-snooze-host {
+        position: relative;
+        display: block;
+      }
+      .atc-snooze-wrap {
+        position: absolute;
+        top: 7px;
+        right: 7px;
+        z-index: 10;
+        pointer-events: none; /* invisible until card is hovered */
+      }
+      .atc-snooze-host:hover .atc-snooze-wrap {
+        pointer-events: auto;
+      }
+      .atc-snooze-btn {
+        background: rgba(0, 0, 0, 0.45);
+        border: none;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.18s;
+        /* NO backdrop-filter — it blurs content behind even at opacity:0 */
+        padding: 0;
+        line-height: 1;
+      }
+      .atc-snooze-host:hover .atc-snooze-btn {
+        opacity: 0.65;
+      }
+      .atc-snooze-btn:hover {
+        opacity: 1 !important;
+        background: rgba(0, 0, 0, 0.65);
+      }
+      .atc-snooze-menu {
+        position: absolute;
+        top: 32px;
+        right: 0;
+        z-index: 20;
+        background: #1a1a2e;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        padding: 8px 6px 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 110px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      }
+      .atc-snooze-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.35);
+        padding: 0 6px 4px;
+      }
+      .atc-snooze-option {
+        background: rgba(255, 255, 255, 0.06);
+        border: none;
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.85);
+        padding: 6px 10px;
+        cursor: pointer;
+        font-size: 0.82rem;
+        text-align: left;
+        transition: background 0.12s;
+        white-space: nowrap;
+      }
+      .atc-snooze-option:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      /* -----------------------------------------------------------------------
+       * SNOOZED INDICATOR BAR (shown when all matching alerts are snoozed)
+       * --------------------------------------------------------------------- */
+      .atc-snoozed-bar {
+        background: rgba(30, 30, 50, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+      }
+      .atc-snoozed-inner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        min-height: 36px;
+      }
+      .atc-snoozed-icon {
+        font-size: 1rem;
+        flex-shrink: 0;
+        opacity: 0.7;
+      }
+      .atc-snoozed-text {
+        flex: 1;
+        font-size: 0.80rem;
+        color: rgba(255, 255, 255, 0.50);
+        font-style: italic;
+        letter-spacing: 0.3px;
+      }
+      .atc-snoozed-reset {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.70);
+        cursor: pointer;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        padding: 4px 10px;
+        transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
+      }
+      .atc-snoozed-reset:hover {
+        background: rgba(255, 200, 80, 0.20);
+        border-color: rgba(255, 200, 80, 0.45);
+        color: #ffd060;
+      }
     `;
   }
 }
@@ -1658,7 +2319,7 @@ if (!window.customCards.find((c) => c.type === "alert-ticker-card")) {
   window.customCards.push({
     type: "alert-ticker-card",
     name: "AlertTicker Card",
-    description: "Display alerts based on entity states with 17 visual themes, per-alert theme, fold animation cycling, and a full visual editor.",
+    description: "Display alerts based on entity states with 22 visual themes, snooze, numeric conditions, fold animation cycling, and a full visual editor.",
     preview: false,
   });
 }

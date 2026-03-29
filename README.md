@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **17 visual themes** with per-alert theme assignment, 3D fold animation cycling, priority ordering, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **22 visual themes** with per-alert theme assignment, 3D fold animation cycling, numeric conditions, snooze, priority ordering, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)  [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
@@ -18,17 +18,23 @@ A custom Lovelace card to display alerts and notifications based on entity state
 
 ![OK, Style and Multiple Alerts](images/2.png)
 
+> **Tip — add a GIF to show the card live!**
+> Record a short screen capture (e.g. with ShareX, ScreenToGif, or macOS Cmd+Shift+5) showing the fold animation cycling between two active alerts, then save it as `images/demo.gif` and replace this tip with:
+> `![AlertTicker Card demo](images/demo.gif)`
+
 ---
 
 ## Features at a Glance
 
 | Feature | Details |
 |---------|---------|
-| **Themes** | 17 visual themes grouped by category |
+| **Themes** | **22** visual themes in 5 categories |
 | **Per-alert theme** | Each alert has its own independent theme |
 | **Multiple entities** | Unlimited alerts per card |
 | **Priority system** | 4 levels — Critical, Warning, Info, Low |
 | **Fold animation** | 3D page-turn transition when cycling alerts |
+| **Numeric conditions** | Trigger on `>`, `<`, `>=`, `<=`, `!=` for sensor values |
+| **Snooze** | Suspend any alert for 1 h / 4 h / 8 h / 24 h — persisted in localStorage |
 | **Visual editor** | Full GUI — no YAML required |
 | **Languages** | Italian, English, French, German |
 | **HACS compatible** | Cache-busting via `import.meta.url` |
@@ -48,6 +54,7 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `fire` | 🔥 | Deep orange card with flame flicker animation |
 | `alarm` | 🔴 | Black card with rapid red strobe effect |
 | `lightning` | 🌩️ | Dark purple card with electric glow and lightning flash |
+| `nuclear` | ☢️ | Dark amber card with slowly rotating radiation symbol and radial glow pulse |
 
 ### ⚠️ Warning
 
@@ -55,6 +62,7 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 |-------|------|-------------|
 | `warning` | ⚠️ | Dark amber card with orange left border and pulsing dot |
 | `caution` | 🟡 | Black/yellow card with diagonal stripe bar and blinking dot |
+| `radar` | 🎯 | Dark green card with circular sonar display, sweeping cone and concentric rings |
 
 ### ℹ️ Info
 
@@ -63,6 +71,7 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `info` | ℹ️ | Dark blue card with blue left border and circular icon wrap |
 | `notification` | 🔔 | Deep navy card with blue app-icon bubble and pulsing red badge |
 | `aurora` | 🌌 | Dark card with shifting aurora gradient background |
+| `hologram` | 🔷 | Holographic card with grid lines, horizontal scan beam and glitch flicker |
 
 ### ✅ OK / All Clear
 
@@ -71,6 +80,7 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `success` | ✅ | Dark green card with green left border |
 | `check` | 🟢 | Dark green card with pulsing ring around icon |
 | `confetti` | 🎉 | Dark green card with floating coloured particles |
+| `heartbeat` | 💓 | Dark card with scrolling ECG line at the bottom and beating pulse ring |
 
 ### 🎨 Style
 
@@ -81,6 +91,7 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `glass` | 🔮 | Glassmorphism card with purple/pink gradient and frosted border |
 | `matrix` | 💻 | Terminal-style green-on-black monospace card with blinking cursor |
 | `minimal` | 📋 | Clean light card with dynamic accent left border |
+| `retro` | 📺 | CRT amber phosphor card with scanlines, screen flicker and warm glow |
 
 > **Note:** The `clear_theme` (all-clear state) only accepts `success`, `check`, or `confetti`.
 
@@ -90,13 +101,14 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 
 ### Alert lifecycle
 
-1. You configure one or more **alerts**, each linked to an entity + trigger state
-2. When an entity reaches its trigger state, the alert becomes **active**
+1. You configure one or more **alerts**, each linked to an entity + condition (`operator` + `state`)
+2. When an entity matches the condition, the alert becomes **active**
 3. Active alerts are **sorted by priority** (1=most critical)
 4. The card **displays** the highest-priority active alert
 5. If multiple alerts are active, it **auto-cycles** through them with a 3D fold transition
-6. When no alerts are active and `show_when_clear: true`, the card shows the **all-clear message**
-7. When no alerts are active and `show_when_clear: false`, the **card hides itself** completely
+6. You can **snooze** any alert for 1–24 hours by hovering and clicking 💤
+7. When no alerts are active and `show_when_clear: true`, the card shows the **all-clear message**
+8. When no alerts are active and `show_when_clear: false`, the **card hides itself** completely
 
 ### Per-alert theme
 
@@ -110,11 +122,11 @@ They all coexist on the same card and cycle between each other automatically.
 ### Theme → icon coherence
 
 When you select a theme in the editor, the icon is automatically set to the theme's default:
-- `emergency` → 🚨, `fire` → 🔥, `alarm` → 🔴, `lightning` → 🌩️
-- `warning` → ⚠️, `caution` → 🟡
-- `info` → ℹ️, `notification` → 🔔, `aurora` → 🌌
-- `success` → ✅, `check` → 🟢, `confetti` → 🎉
-- `ticker` → 📰, `neon` → ⚡, `glass` → 🔮, `matrix` → 💻, `minimal` → 📋
+- `emergency` → 🚨, `fire` → 🔥, `alarm` → 🔴, `lightning` → 🌩️, `nuclear` → ☢️
+- `warning` → ⚠️, `caution` → 🟡, `radar` → 🎯
+- `info` → ℹ️, `notification` → 🔔, `aurora` → 🌌, `hologram` → 🔷
+- `success` → ✅, `check` → 🟢, `confetti` → 🎉, `heartbeat` → 💓
+- `ticker` → 📰, `neon` → ⚡, `glass` → 🔮, `matrix` → 💻, `minimal` → 📋, `retro` → 📺
 
 You can override any icon with a custom emoji in the `icon` field.
 
@@ -141,6 +153,42 @@ When multiple alerts are active:
 - The loop continues indefinitely until alerts are resolved
 
 The `ticker` theme is the exception — it scrolls all active alerts simultaneously in a single bar without cycling.
+
+### Snooze
+
+Hover over any active alert card to reveal the 💤 button. Clicking it shows a duration menu:
+
+| Option | Hides for |
+|--------|-----------|
+| 1 h | 1 hour |
+| 4 h | 4 hours |
+| 8 h | 8 hours (a work shift) |
+| 24 h | 24 hours |
+
+Snoozed alerts are stored in `localStorage` and survive page reloads. The card re-shows the alert automatically when the duration expires — even if the entity hasn't changed state. Useful when you're away from home and don't want a low-water alert filling your dashboard.
+
+### Numeric / comparison conditions
+
+By default, alerts trigger when `entity state = "on"`. With the `operator` field you can use any comparison:
+
+```yaml
+- entity: sensor.humidity
+  operator: "<"
+  state: "40"
+  message: Humidity too low!
+
+- entity: sensor.co2_ppm
+  operator: ">"
+  state: "1000"
+  message: CO₂ level critical!
+
+- entity: sensor.battery
+  operator: "<="
+  state: "20"
+  message: Battery low
+```
+
+Supported operators: `=` (default, exact match), `!=`, `>`, `<`, `>=`, `<=`. For `>`, `<`, `>=`, `<=`, both sides are parsed as floats — non-numeric entity states skip the alert gracefully.
 
 ### All-clear state
 
@@ -248,9 +296,10 @@ alerts:
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `entity` | `string` | ✅ | — | Entity ID, e.g. `binary_sensor.smoke_detector` |
-| `state` | `string` | ✅ | — | Trigger state value, e.g. `"on"`, `"off"`, `"unavailable"` |
+| `operator` | `string` | ❌ | `=` | Comparison: `=` `!=` `>` `<` `>=` `<=` |
+| `state` | `string` | ✅ | — | Trigger value, e.g. `"on"`, `"40"`, `"unavailable"` |
 | `message` | `string` | ✅ | — | Text shown when alert is active |
-| `theme` | `string` | ✅ | `emergency` | Visual theme (see theme table) |
+| `theme` | `string` | ✅ | `emergency` | Visual theme (see theme table — 22 available) |
 | `priority` | `number` | ❌ | `1` | 1=Critical · 2=Warning · 3=Info · 4=Low |
 | `icon` | `string` | ❌ | *(theme default)* | Emoji override, e.g. `"☕"` |
 

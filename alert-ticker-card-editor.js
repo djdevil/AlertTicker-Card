@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.0.1
+ * AlertTicker Card Editor v1.0.3
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.0.1";
+const CARD_VERSION = "1.0.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -33,6 +33,11 @@ const THEME_META = {
   glass:        { icon: "🔮", category: "style"    },
   matrix:       { icon: "💻", category: "style"    },
   minimal:      { icon: "📋", category: "style"    },
+  retro:        { icon: "📺", category: "style"    },
+  nuclear:      { icon: "☢️", category: "critical" },
+  radar:        { icon: "🎯", category: "warning"  },
+  hologram:     { icon: "🔷", category: "info"     },
+  heartbeat:    { icon: "💓", category: "ok"       },
 };
 
 // ---------------------------------------------------------------------------
@@ -57,6 +62,11 @@ const DEFAULT_MSG = {
     glass:        "Avviso glass",
     matrix:       "Messaggio terminale",
     minimal:      "Avviso",
+    nuclear:      "Allarme radiazione",
+    radar:        "Rilevamento in corso",
+    hologram:     "Proiezione sistema",
+    heartbeat:    "Sistema operativo",
+    retro:        "Avviso retrò",
   },
   en: {
     emergency:    "Emergency active",
@@ -76,6 +86,11 @@ const DEFAULT_MSG = {
     glass:        "Glass alert",
     matrix:       "Terminal message",
     minimal:      "Alert",
+    nuclear:      "Radiation alert",
+    radar:        "Detection in progress",
+    hologram:     "System projection",
+    heartbeat:    "System operational",
+    retro:        "Retro alert",
   },
   fr: {
     emergency:    "Urgence active",
@@ -95,6 +110,11 @@ const DEFAULT_MSG = {
     glass:        "Alerte glass",
     matrix:       "Message terminal",
     minimal:      "Alerte",
+    nuclear:      "Alerte radiation",
+    radar:        "Détection en cours",
+    hologram:     "Projection système",
+    heartbeat:    "Système opérationnel",
+    retro:        "Alerte rétro",
   },
   de: {
     emergency:    "Notfall aktiv",
@@ -114,6 +134,11 @@ const DEFAULT_MSG = {
     glass:        "Glas-Warnung",
     matrix:       "Terminal-Nachricht",
     minimal:      "Warnung",
+    nuclear:      "Strahlungsalarm",
+    radar:        "Erkennung läuft",
+    hologram:     "Systemprojektion",
+    heartbeat:    "System betriebsbereit",
+    retro:        "Retro-Warnung",
   },
 };
 
@@ -132,7 +157,9 @@ const ET = {
     alerts_list: "Lista avvisi configurati",
     add_alert: "Aggiungi avviso",
     alert_entity: "Entità",
-    alert_state: "Stato che attiva l'avviso",
+    alert_operator: "Condizione",
+    alert_state: "Valore",
+    alert_state_help: "es. 'on', '80' (numerico con operatore > < >= <=)",
     alert_message: "Messaggio da visualizzare",
     alert_priority: "Priorità",
     alert_theme: "Tema",
@@ -150,6 +177,12 @@ const ET = {
     move_up: "Su",
     move_down: "Giù",
     version: "Versione",
+    op_eq: "= uguale a",
+    op_ne: "≠ diverso da",
+    op_gt: "> maggiore di",
+    op_lt: "< minore di",
+    op_gte: "≥ magg. o uguale",
+    op_lte: "≤ min. o uguale",
   },
   en: {
     tab_general: "General",
@@ -162,7 +195,9 @@ const ET = {
     alerts_list: "Configured alerts",
     add_alert: "Add alert",
     alert_entity: "Entity",
-    alert_state: "State that triggers the alert",
+    alert_operator: "Condition",
+    alert_state: "Value",
+    alert_state_help: "e.g. 'on', '80' (numeric with > < >= <=)",
     alert_message: "Message to display",
     alert_priority: "Priority",
     alert_theme: "Theme",
@@ -180,6 +215,12 @@ const ET = {
     move_up: "Up",
     move_down: "Down",
     version: "Version",
+    op_eq: "= equals",
+    op_ne: "≠ not equal",
+    op_gt: "> greater than",
+    op_lt: "< less than",
+    op_gte: "≥ greater or equal",
+    op_lte: "≤ less or equal",
   },
   fr: {
     tab_general: "Général",
@@ -192,7 +233,9 @@ const ET = {
     alerts_list: "Liste des alertes configurées",
     add_alert: "Ajouter une alerte",
     alert_entity: "Entité",
-    alert_state: "État qui déclenche l'alerte",
+    alert_operator: "Condition",
+    alert_state: "Valeur",
+    alert_state_help: "ex. 'on', '80' (numérique avec > < >= <=)",
     alert_message: "Message à afficher",
     alert_priority: "Priorité",
     alert_theme: "Thème",
@@ -210,6 +253,12 @@ const ET = {
     move_up: "Haut",
     move_down: "Bas",
     version: "Version",
+    op_eq: "= égal à",
+    op_ne: "≠ différent de",
+    op_gt: "> supérieur à",
+    op_lt: "< inférieur à",
+    op_gte: "≥ supérieur ou égal",
+    op_lte: "≤ inférieur ou égal",
   },
   de: {
     tab_general: "Allgemein",
@@ -222,7 +271,9 @@ const ET = {
     alerts_list: "Konfigurierte Warnungen",
     add_alert: "Warnung hinzufügen",
     alert_entity: "Entität",
-    alert_state: "Zustand der die Warnung auslöst",
+    alert_operator: "Bedingung",
+    alert_state: "Wert",
+    alert_state_help: "z.B. 'on', '80' (numerisch mit > < >= <=)",
     alert_message: "Anzuzeigende Nachricht",
     alert_priority: "Priorität",
     alert_theme: "Thema",
@@ -240,6 +291,12 @@ const ET = {
     move_up: "Hoch",
     move_down: "Runter",
     version: "Version",
+    op_eq: "= gleich",
+    op_ne: "≠ ungleich",
+    op_gt: "> größer als",
+    op_lt: "< kleiner als",
+    op_gte: "≥ größer oder gleich",
+    op_lte: "≤ kleiner oder gleich",
   },
 };
 
@@ -253,23 +310,28 @@ const THEME_OPTIONS = [
   { value: "fire",         label: "🔥 Fire (Fiamma)" },
   { value: "alarm",        label: "🔴 Alarm (Strobo)" },
   { value: "lightning",    label: "🌩️ Lightning (Fulmine)" },
+  { value: "nuclear",      label: "☢️ Nuclear (Radiazione)" },
   { sep: true,  label: "── ⚠️ ATTENZIONE ──" },
   { value: "warning",      label: "⚠️ Warning (Bordo ambra)" },
   { value: "caution",      label: "🟡 Caution (Nastro giallo)" },
+  { value: "radar",        label: "🎯 Radar (Sonar sweep)" },
   { sep: true,  label: "── ℹ️ INFORMAZIONE ──" },
   { value: "info",         label: "ℹ️ Info (Bordo blu)" },
   { value: "notification", label: "🔔 Notification (Bubble)" },
   { value: "aurora",       label: "🌌 Aurora (Animato)" },
+  { value: "hologram",     label: "🔷 Hologram (Olografico)" },
   { sep: true,  label: "── ✅ TUTTO OK ──" },
   { value: "success",      label: "✅ Success (Verde)" },
   { value: "check",        label: "🟢 Check (Anello pulsante)" },
   { value: "confetti",     label: "🎉 Confetti (Coriandoli)" },
+  { value: "heartbeat",    label: "💓 Heartbeat (ECG pulsante)" },
   { sep: true,  label: "── 🎨 STILE ──" },
   { value: "ticker",       label: "📰 Ticker (Scorrevole)" },
   { value: "neon",         label: "⚡ Neon (Cyberpunk)" },
   { value: "glass",        label: "🔮 Glass (Glassmorphism)" },
   { value: "matrix",       label: "💻 Matrix (Terminale)" },
   { value: "minimal",      label: "📋 Minimal (Pulito)" },
+  { value: "retro",        label: "📺 Retro (CRT fosforescente)" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -540,35 +602,61 @@ class AlertTickerCardEditor extends LitElement {
                   @value-changed="${(e) => this._alertEntityChanged(e.detail.value, index)}"
                 ></ha-entity-picker>
 
+                <!-- Condition: operator + value -->
                 <div class="form-row-2col">
-                  <!-- Trigger state -->
-                  <ha-textfield
-                    .label="${this._t("alert_state")}"
-                    .value="${alert.state || "on"}"
-                    @change="${(e) => this._alertStateChanged(e.target.value, index)}"
-                  ></ha-textfield>
-
-                  <!-- Priority select -->
-                  <ha-select
-                    .label="${this._t("alert_priority")}"
-                    .value="${String(alert.priority || 1)}"
-                    fixedMenuPosition
-                    naturalMenuWidth
-                  >
-                    ${[1, 2, 3, 4].map(
-                      (p) => html`
-                        <mwc-list-item
-                          value="${String(p)}"
-                          ?selected="${(alert.priority || 1) === p}"
-                          @request-selected="${(e) => {
-                            if (e.detail.source !== "interaction") return;
-                            this._alertPriorityChanged(e.target.getAttribute("value"), index);
-                          }}"
-                        >${this._t("priority_" + p)}</mwc-list-item>
-                      `
-                    )}
-                  </ha-select>
+                  <div class="native-select-wrap">
+                    <label class="native-select-label">${this._t("alert_operator")}</label>
+                    <select
+                      class="native-select"
+                      @change="${(e) => this._alertOperatorChanged(e.target.value, index)}"
+                    >
+                      ${[
+                        ["=",  "op_eq"],
+                        ["!=", "op_ne"],
+                        [">",  "op_gt"],
+                        ["<",  "op_lt"],
+                        [">=", "op_gte"],
+                        ["<=", "op_lte"],
+                      ].map(([op, key]) => html`
+                        <option value="${op}" ?selected="${(alert.operator || "=") === op}">
+                          ${this._t(key)}
+                        </option>
+                      `)}
+                    </select>
+                  </div>
+                  <div>
+                    <ha-textfield
+                      .label="${this._t("alert_state")}"
+                      .value="${Array.isArray(alert.state) ? alert.state.join(", ") : (alert.state || "on")}"
+                      @change="${(e) => this._alertStateChanged(e.target.value, index)}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("alert_state_help")}</div>
+                  </div>
                 </div>
+
+                <!-- Priority -->
+                <!-- @closed stops the mwc-menu "closed" event from bubbling up to
+                     the outer ha-dialog/mwc-dialog which would close the editor. -->
+                <ha-select
+                  .label="${this._t("alert_priority")}"
+                  .value="${String(alert.priority || 1)}"
+                  fixedMenuPosition
+                  naturalMenuWidth
+                  @closed="${(e) => e.stopPropagation()}"
+                >
+                  ${[1, 2, 3, 4].map(
+                    (p) => html`
+                      <mwc-list-item
+                        value="${String(p)}"
+                        ?selected="${(alert.priority || 1) === p}"
+                        @request-selected="${(e) => {
+                          if (e.detail.source !== "interaction") return;
+                          this._alertPriorityChanged(e.target.getAttribute("value"), index);
+                        }}"
+                      >${this._t("priority_" + p)}</mwc-list-item>
+                    `
+                  )}
+                </ha-select>
 
                 <!-- Message -->
                 <ha-textfield
@@ -681,7 +769,7 @@ class AlertTickerCardEditor extends LitElement {
     const newIndex = alerts.length;
     const defaultTheme = "emergency";
     const defaultMsg = (DEFAULT_MSG[this._lang] || DEFAULT_MSG.en)[defaultTheme] || "";
-    alerts.push({ entity: "", state: "on", message: defaultMsg, priority: 1, theme: defaultTheme, icon: "" });
+    alerts.push({ entity: "", operator: "=", state: "on", message: defaultMsg, priority: 1, theme: defaultTheme, icon: "" });
     this._expandedAlerts = new Set([...this._expandedAlerts, newIndex]);
     this._fireConfig({ ...this._config, alerts });
   }
@@ -706,6 +794,11 @@ class AlertTickerCardEditor extends LitElement {
   // -------------------------------------------------------------------------
   _alertEntityChanged(value, index) {
     this._updateAlert(index, { entity: value });
+  }
+
+  _alertOperatorChanged(value, index) {
+    if (!value) return;
+    this._updateAlert(index, { operator: value });
   }
 
   _alertStateChanged(value, index) {
