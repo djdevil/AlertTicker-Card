@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **22 visual themes** with per-alert theme assignment, 3D fold animation cycling, numeric conditions, snooze, priority ordering, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.0.5-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)  [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
@@ -26,23 +26,29 @@ A custom Lovelace card to display alerts and notifications based on entity state
 
 | Feature | Details |
 |---------|---------|
-| **Themes** | **22** visual themes in 5 categories |
+| **Themes** | **40** visual themes in 6 categories (including 4 timer themes) |
+| **Animations** | **12** selectable transition animations between alerts |
 | **Per-alert theme** | Each alert has its own independent theme |
 | **Multiple entities** | Unlimited alerts per card |
 | **Priority system** | 4 levels — Critical, Warning, Info, Low |
-| **Fold animation** | 3D page-turn transition when cycling alerts |
+| **tap_action / hold_action** | Standard Lovelace card interactions per alert |
+| **Attribute triggers** | Trigger on any entity attribute (e.g. `battery_level`) |
+| **AND / OR conditions** | Multiple entities must match (all or at least one) |
 | **Numeric conditions** | Trigger on `>`, `<`, `>=`, `<=`, `!=` for sensor values |
-| **Snooze** | Suspend any alert for 1 h / 4 h / 8 h / 24 h — persisted in localStorage |
+| **secondary_entity** | Live entity value shown below the message |
+| **entity_filter** | Text filter — one alert per matched entity, with exclude list |
+| **Snooze** | Suspend any alert — fixed duration or menu — persisted in localStorage |
+| **snooze_action** | Execute a Lovelace action when the 💤 button is tapped |
+| **Alert history** | 📋 button flips the card to a timestamped event log |
+| **Timer themes** | 4 animated themes for `timer.*` entities with live countdown |
+| **HA icons** | Use any `mdi:` icon per alert via toggle |
 | **Visual editor** | Full GUI — no YAML required |
 | **Languages** | Italian, English, French, German, Dutch |
-| **HACS compatible** | Cache-busting via `import.meta.url` |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
 ---
 
 ## Themes
-
-Themes are grouped by category. Selecting a theme automatically sets the matching icon and default message. You can always override the icon with any emoji.
 
 ### 🚨 Critical
 
@@ -53,6 +59,10 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `alarm` | 🔴 | Black card with rapid red strobe effect |
 | `lightning` | 🌩️ | Dark purple card with electric glow and lightning flash |
 | `nuclear` | ☢️ | Dark amber card with slowly rotating radiation symbol and radial glow pulse |
+| `flood` | 🌊 | Deep blue card with animated horizontal water waves |
+| `motion` | 👁️ | Dark green night-vision infrared scan effect |
+| `intruder` | 🚷 | Black card with red siren flash and rotating warning icon |
+| `toxic` | ☠️ | Black/green card with rising poison bubbles |
 
 ### ⚠️ Warning
 
@@ -61,6 +71,9 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `warning` | ⚠️ | Dark amber card with orange left border and pulsing dot |
 | `caution` | 🟡 | Black/yellow card with diagonal stripe bar and blinking dot |
 | `radar` | 🎯 | Dark green card with circular sonar display, sweeping cone and concentric rings |
+| `temperature` | 🌡️ | Dark orange card with shaking thermometer and animated fill bar |
+| `battery` | 🔋 | Dark card with blinking battery drain animation |
+| `door` | 🚪 | Dark card with swinging door animation and light ray |
 
 ### ℹ️ Info
 
@@ -70,6 +83,8 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `notification` | 🔔 | Deep navy card with blue app-icon bubble and pulsing red badge |
 | `aurora` | 🌌 | Dark card with shifting aurora gradient background |
 | `hologram` | 🔷 | Holographic card with grid lines, horizontal scan beam and glitch flicker |
+| `presence` | 🏠 | Dark cyan card with expanding ping rings radiating from icon |
+| `update` | 🔄 | Dark card with spinning double progress ring |
 
 ### ✅ OK / All Clear
 
@@ -79,6 +94,8 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `check` | 🟢 | Dark green card with pulsing ring around icon |
 | `confetti` | 🎉 | Dark green card with floating coloured particles |
 | `heartbeat` | 💓 | Dark card with scrolling ECG line at the bottom and beating pulse ring |
+| `shield` | 🛡️ | Dark teal card with rotating scan wave and glow pulse |
+| `power` | ⚡ | Dark green card with energy surge lines and lightning zap |
 
 ### 🎨 Style
 
@@ -90,8 +107,22 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 | `matrix` | 💻 | Terminal-style green-on-black monospace card with blinking cursor |
 | `minimal` | 📋 | Clean light card with dynamic accent left border |
 | `retro` | 📺 | CRT amber phosphor card with scanlines, screen flicker and warm glow |
+| `cyberpunk` | 🤖 | Neon purple/cyan diagonal stripes with glitch bar |
+| `vapor` | 🌸 | Vaporwave perspective grid with pink/cyan gradient |
+| `lava` | 🌋 | Black card with floating orange lava blobs |
 
-> **Note:** The `clear_theme` (all-clear state) only accepts `success`, `check`, or `confetti`.
+### ⏱️ Timer *(only available for `timer.*` entities)*
+
+| Theme | Icon | Visual style |
+|-------|------|-------------|
+| `countdown` | ⏱️ | Horizontal progress bar at the bottom that shrinks as time passes. Pulses red when < 20% remaining. |
+| `hourglass` | ⏳ | Background vertical fill that drains from top to bottom, like sand in an hourglass. |
+| `timer_pulse` | 💥 | Card glows with a pulsing halo — pulse speed increases as time runs out. |
+| `timer_ring` | 🔵 | SVG circular ring on the right side with the countdown in the center. |
+
+All timer themes transition green → orange → red as the remaining time decreases.
+
+> **Note:** The `clear_theme` only accepts `success`, `check`, or `confetti`.
 
 ---
 
@@ -99,102 +130,177 @@ Themes are grouped by category. Selecting a theme automatically sets the matchin
 
 ### Alert lifecycle
 
-1. You configure one or more **alerts**, each linked to an entity + condition (`operator` + `state`)
-2. When an entity matches the condition, the alert becomes **active**
+1. Configure one or more **alerts**, each linked to an entity + condition
+2. When an entity matches the condition (and any extra `conditions` rules), the alert becomes **active**
 3. Active alerts are **sorted by priority** (1=most critical)
-4. The card **displays** the highest-priority active alert
-5. If multiple alerts are active, it **auto-cycles** through them with a 3D fold transition
-6. You can **snooze** any alert for 1–24 hours by hovering and clicking 💤
-7. When no alerts are active and `show_when_clear: true`, the card shows the **all-clear message**
-8. When no alerts are active and `show_when_clear: false`, the **card hides itself** completely
+4. The card **displays** the current alert and **auto-cycles** through multiple active alerts
+5. **Tap** or **hold** the card to execute configured actions
+6. **Snooze** any alert with 💤 — one tap for fixed duration, or choose from the menu
+7. **📋** opens the alert history with timestamps
+8. When no alerts are active and `show_when_clear: true`, the card shows the **all-clear message**
 
-### Per-alert theme
+### Transition animations
 
-Each alert in the list has its own `theme` field. This means:
-- Alert 1 (power outage) → `emergency` (red, pulsing)
-- Alert 2 (door open) → `caution` (yellow stripes)
-- Alert 3 (firmware update) → `info` (blue)
+When multiple alerts are active, the card cycles using the selected animation:
 
-They all coexist on the same card and cycle between each other automatically.
+| Animation | Description |
+|-----------|-------------|
+| `fold` *(default)* | 3D page-turn along the X axis |
+| `slide` | Horizontal push left/right |
+| `fade` | Cross-dissolve opacity fade |
+| `flip` | RotateY card flip |
+| `zoom` | Scale punch in/out |
+| `glitch` | Clip-path jitter digital noise |
+| `bounce` | Elastic spring from below |
+| `swing` | RotateZ pendulum |
+| `blur` | Gaussian dissolve |
+| `split` | Vertical split (top up, bottom down) |
+| `roll` | RotateY + translateX combined roll |
+| `curtain` | Opens from center (theater curtain) |
 
-### Theme → icon coherence
+### Secondary entity value
 
-When you select a theme in the editor, the icon is automatically set to the theme's default:
-- `emergency` → 🚨, `fire` → 🔥, `alarm` → 🔴, `lightning` → 🌩️, `nuclear` → ☢️
-- `warning` → ⚠️, `caution` → 🟡, `radar` → 🎯
-- `info` → ℹ️, `notification` → 🔔, `aurora` → 🌌, `hologram` → 🔷
-- `success` → ✅, `check` → 🟢, `confetti` → 🎉, `heartbeat` → 💓
-- `ticker` → 📰, `neon` → ⚡, `glass` → 🔮, `matrix` → 💻, `minimal` → 📋, `retro` → 📺
+Display a live entity value as a second line below the alert message:
 
-You can override any icon with a custom emoji in the `icon` field.
+```yaml
+- entity: sensor.open_zones
+  operator: "!="
+  state: "0"
+  message: "Zones open"
+  secondary_entity: sensor.open_zones_list
+  secondary_attribute: zone_names   # optional — read an attribute instead of state
+```
 
-### Priority system
+### tap_action / hold_action
 
-Alerts are sorted automatically. You only configure the priority number — the card does the rest.
+Standard Lovelace interactions — tap or hold (500 ms) the whole card to trigger any action:
 
-| Priority | Label | Auto-sort position | Typical use case |
-|----------|-------|--------------------|-----------------|
-| `1` | Critical | First | Power outage, fire alarm, intrusion detected |
-| `2` | Warning | Second | Door left open, water leak, low battery |
-| `3` | Info | Third | Firmware update available, calendar reminder |
-| `4` | Low | Last | Routine notifications, status messages |
+```yaml
+- entity: binary_sensor.front_door
+  state: "on"
+  message: "Front door open"
+  tap_action:
+    action: more-info
+    entity_id: binary_sensor.front_door
+  hold_action:
+    action: navigate
+    navigation_path: /lovelace/security
+```
 
-When two alerts share the same priority, they appear in configuration order.
-
-### Auto-cycle with 3D fold animation
-
-When multiple alerts are active:
-- A **counter** (e.g. `2/3`) appears in the top-right corner
-- The card waits `cycle_interval` seconds, then plays a **3D fold-out** animation
-- The content swaps to the next alert in priority order
-- A **fold-in** animation reveals the new alert
-- The loop continues indefinitely until alerts are resolved
-
-The `ticker` theme is the exception — it scrolls all active alerts simultaneously in a single bar without cycling.
+Supported action types: `call-service`, `navigate`, `more-info`, `url`, `none`.
 
 ### Snooze
 
-Hover over any active alert card to reveal the 💤 button. Clicking it shows a duration menu:
+Tap 💤 on any active alert to snooze it. Two modes (configurable in General tab):
 
-| Option | Hides for |
-|--------|-----------|
-| 1 h | 1 hour |
-| 4 h | 4 hours |
-| 8 h | 8 hours (a work shift) |
-| 24 h | 24 hours |
+- **Menu** *(default)* — choose 1h / 4h / 8h / 24h from a menu on the card
+- **Fixed duration** — configure 30min / 1h / 4h / 8h / 24h for immediate one-tap snooze
 
-Snoozed alerts are stored in `localStorage` and survive page reloads. The card re-shows the alert automatically when the duration expires — even if the entity hasn't changed state. Useful when you're away from home and don't want a low-water alert filling your dashboard.
+Snoozed alerts persist in `localStorage` and the card restores them automatically when the duration expires. A small amber 💤 pill appears when some alerts are snoozed while others remain active — tap it to resume all.
+
+### snooze_action
+
+Execute a Lovelace action when the 💤 button is tapped, in addition to snoozing. Useful for resetting sensors:
+
+```yaml
+- entity: binary_sensor.mailbox
+  state: "on"
+  message: "Mail arrived"
+  snooze_action:
+    action: call-service
+    service: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.mailbox_flag
+```
+
+### Alert history
+
+Tap 📋 to flip the card and view a timestamped log of every alert that became active. Includes a Clear button. History is stored in `localStorage` (configurable max: 25 / 50 / 100 / 200 events).
+
+### entity_filter
+
+Instead of specifying a single entity, write a text filter. The card finds all entities whose ID or friendly name contains the filter text and creates one alert per match:
+
+```yaml
+- entity_filter: "battery"
+  attribute: battery_level
+  operator: "<="
+  state: "20"
+  message: "Low battery: {name} ({state}%)"
+  theme: battery
+  entity_filter_exclude:
+    - sensor.battery_test_device
+```
+
+**Message placeholders:**
+
+| Placeholder | Replaced with |
+|---|---|
+| `{name}` | Entity friendly name |
+| `{entity}` | Entity ID |
+| `{state}` | Current state value |
+
+The matched entity's friendly name is also automatically shown below the message so you always know which device triggered the alert.
+
+**Editor preview:** type a filter text and a live counter shows how many entities match. Click the counter to expand a full list with names, entity IDs and current states. Click any entity to exclude it (✗) or re-include it (✓).
+
+### Timer themes
+
+Select a `timer.*` entity and use one of the 4 dedicated timer themes. The card reads `finishes_at` from the timer attributes and updates the display every second:
+
+```yaml
+- entity: timer.ad_blocker_paused
+  state: active
+  message: "Ad blocking disabled for {timer}"
+  theme: countdown
+```
+
+Use `{timer}` in the message to display the live countdown (`mm:ss` or `h:mm:ss`).
+
+When a timer entity is selected in the editor, `state` is automatically set to `active` and the theme switches to `countdown`.
 
 ### Numeric / comparison conditions
 
-By default, alerts trigger when `entity state = "on"`. With the `operator` field you can use any comparison:
-
 ```yaml
-- entity: sensor.humidity
-  operator: "<"
-  state: "40"
-  message: Humidity too low!
-
 - entity: sensor.co2_ppm
   operator: ">"
   state: "1000"
-  message: CO₂ level critical!
-
-- entity: sensor.battery
-  operator: "<="
-  state: "20"
-  message: Battery low
+  message: "CO₂ level critical!"
 ```
 
-Supported operators: `=` (default, exact match), `!=`, `>`, `<`, `>=`, `<=`. For `>`, `<`, `>=`, `<=`, both sides are parsed as floats — non-numeric entity states skip the alert gracefully.
+Supported operators: `=` (default), `!=`, `>`, `<`, `>=`, `<=`.
 
-### All-clear state
+### Attribute-based triggers
 
-When `show_when_clear: true`:
-- The card remains visible even when no alerts are active
-- It shows a configurable `clear_message` (e.g. "Everything is fine")
-- It uses the `clear_theme` to style the all-clear card (limited to OK themes)
-- This is useful to confirm to the user that the card is working and there is genuinely nothing to worry about
+```yaml
+- entity: sensor.phone
+  attribute: battery_level
+  operator: "<"
+  state: "20"
+  message: "Phone battery critical"
+  theme: battery
+```
+
+### AND / OR multi-entity conditions
+
+```yaml
+- entity: binary_sensor.front_door
+  state: "on"
+  conditions_logic: "and"
+  conditions:
+    - entity: input_boolean.night_mode
+      operator: "="
+      state: "on"
+  message: "Door open at night"
+  theme: intruder
+```
+
+- `and` — all conditions must match (default)
+- `or` — at least one condition must match
+
+### HA icons (mdi:)
+
+Enable the `use_ha_icon` toggle per alert to use a native HA icon instead of an emoji. When enabled, the icon is automatically read from the entity's attributes. You can also type any `mdi:` or `hass:` icon manually.
 
 ---
 
@@ -228,210 +334,216 @@ No YAML knowledge required. The editor has two tabs:
 
 | Field | Description |
 |-------|-------------|
-| **Cycle interval** | How many seconds between alerts when multiple are active (default: 5) |
+| **Cycle interval** | Seconds between alerts when multiple are active (default: 5) |
+| **Transition animation** | Animation played when switching alerts (12 options) |
 | **Show when no alerts** | Toggle to keep the card visible when everything is OK |
 | **Message when clear** | Text to show in the all-clear state |
 | **Theme for all-clear** | Visual theme for the all-clear card (OK themes only) |
+| **Snooze behaviour** | Fixed duration or menu (30min / 1h / 4h / 8h / 24h) |
+| **History max events** | How many history entries to keep (25 / 50 / 100 / 200) |
 
 ### Alerts tab
 
-For each alert you can configure:
+For each alert:
 
 | Field | Description |
 |-------|-------------|
-| **Entity** | Select any entity from your HA instance via the native entity picker |
-| **Trigger state** | The state value that activates the alert (e.g. `on`, `off`, `unavailable`) |
+| **Entity filter** | Text filter — auto-expands to one alert per matched entity |
+| **Entity** | Single entity from your HA instance (hidden when filter is active) |
+| **Attribute** | Optional — check attribute instead of entity state |
+| **Condition** | Operator + trigger value |
 | **Priority** | 1 (Critical) → 4 (Low) |
-| **Message** | The text displayed when this alert is active. Pre-filled with a theme default |
-| **Theme** | Visual theme for this specific alert |
-| **Icon** | Optional emoji override — leave empty for automatic icon from theme |
+| **Message** | Text shown when active — supports `{name}`, `{entity}`, `{state}`, `{timer}` |
+| **Secondary entity** | Live value shown below the message |
+| **Theme** | Visual theme — timer entities see only timer themes |
+| **Icon** | Emoji override, or `mdi:` icon via toggle |
+| **Extra conditions** | AND/OR additional entity conditions |
+| **Tap action** | Action executed on tap |
+| **Hold action** | Action executed on hold (500 ms) |
+| **Snooze action** | Action executed when 💤 is tapped |
 
-You can **reorder** alerts with the ↑ Su / ↓ Giù buttons. The priority number is what controls display order in the card — the list order in the editor is just for your own organisation.
+You can **reorder** alerts with ↑ / ↓ buttons.
 
 ---
 
 ## YAML Configuration
-
-Full reference for manual configuration:
-
-```yaml
-type: custom:alert-ticker-card
-cycle_interval: 5           # seconds between alerts (default: 5)
-show_when_clear: false      # show card when no alerts active (default: false)
-clear_message: "Tutto ok"   # message when all clear
-clear_theme: success        # theme for all-clear (success | check | confetti)
-alerts:
-  - entity: binary_sensor.power_ground_floor
-    state: "off"
-    message: "Mancanza corrente al piano terra"
-    priority: 1
-    theme: emergency
-  - entity: sensor.coffee_machine
-    state: "empty"
-    message: "Caffè esaurito nella macchinetta"
-    priority: 2
-    theme: warning
-    icon: "☕"            # optional emoji override
-  - entity: binary_sensor.garage_door
-    state: "on"
-    message: "Porta garage aperta"
-    priority: 3
-    theme: caution
-```
 
 ### Card-level options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `cycle_interval` | `number` | `5` | Seconds between alerts when cycling |
+| `cycle_animation` | `string` | `fold` | Transition animation |
 | `show_when_clear` | `boolean` | `false` | Show card when no alerts are active |
 | `clear_message` | `string` | `""` | Message shown in all-clear state |
 | `clear_theme` | `string` | `success` | Theme for all-clear (`success`, `check`, `confetti`) |
-| `alerts` | `list` | `[]` | List of alert objects (see below) |
+| `snooze_default_duration` | `number` | *(menu)* | Fixed snooze duration in hours (`0.5`, `1`, `4`, `8`, `24`). Omit for menu. |
+| `history_max_events` | `number` | `50` | Max history entries to keep |
+| `alerts` | `list` | `[]` | List of alert objects |
 
 ### Alert-level options
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `entity` | `string` | ✅ | — | Entity ID, e.g. `binary_sensor.smoke_detector` |
-| `operator` | `string` | ❌ | `=` | Comparison: `=` `!=` `>` `<` `>=` `<=` |
-| `state` | `string` | ✅ | — | Trigger value, e.g. `"on"`, `"40"`, `"unavailable"` |
-| `message` | `string` | ✅ | — | Text shown when alert is active |
-| `theme` | `string` | ✅ | `emergency` | Visual theme (see theme table — 22 available) |
-| `priority` | `number` | ❌ | `1` | 1=Critical · 2=Warning · 3=Info · 4=Low |
-| `icon` | `string` | ❌ | *(theme default)* | Emoji override, e.g. `"☕"` |
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `entity` | `string` | ✅* | Entity ID |
+| `entity_filter` | `string` | ✅* | Text filter (replaces `entity`) |
+| `entity_filter_exclude` | `list` | ❌ | Entity IDs to exclude from filter |
+| `attribute` | `string` | ❌ | Attribute to check instead of state |
+| `operator` | `string` | ❌ | `=` `!=` `>` `<` `>=` `<=` (default: `=`) |
+| `state` | `string` | ✅ | Trigger value |
+| `message` | `string` | ✅ | Text shown when active |
+| `theme` | `string` | ❌ | Visual theme (default: `emergency`) |
+| `priority` | `number` | ❌ | 1–4 (default: `1`) |
+| `icon` | `string` | ❌ | Emoji or `mdi:` icon override |
+| `use_ha_icon` | `boolean` | ❌ | Use HA native icon instead of emoji |
+| `secondary_entity` | `string` | ❌ | Entity whose live value appears below the message |
+| `secondary_attribute` | `string` | ❌ | Attribute of `secondary_entity` to show |
+| `conditions_logic` | `string` | ❌ | `and` or `or` for extra conditions |
+| `conditions` | `list` | ❌ | Extra entity conditions |
+| `tap_action` | `object` | ❌ | Action on tap |
+| `hold_action` | `object` | ❌ | Action on hold (500 ms) |
+| `snooze_action` | `object` | ❌ | Action executed when 💤 is tapped |
+
+*Either `entity` or `entity_filter` is required.
+
+### Action object (`tap_action`, `hold_action`, `snooze_action`)
+
+| Field | Description |
+|-------|-------------|
+| `action` | `call-service` · `navigate` · `more-info` · `url` · `none` |
+| `service` | HA service in `domain.service` format |
+| `target` | `{entity_id: "..."}` |
+| `service_data` | Extra service parameters (object) |
+| `navigation_path` | Path for `navigate` action |
+| `url_path` | URL for `url` action |
+| `entity_id` | Entity for `more-info` action |
 
 ---
 
 ## Examples
 
-### Emergency — power outage
+### Battery monitor with entity filter
 
 ```yaml
 type: custom:alert-ticker-card
+cycle_animation: slide
 alerts:
-  - entity: binary_sensor.power_sensor
-    state: "off"
-    message: "Power outage on ground floor"
-    priority: 1
-    theme: emergency
-```
-
-### Fire alarm
-
-```yaml
-type: custom:alert-ticker-card
-alerts:
-  - entity: binary_sensor.smoke_detector
-    state: "on"
-    message: "Smoke detected in kitchen!"
-    priority: 1
-    theme: fire
-```
-
-### Multiple warnings with cycling
-
-```yaml
-type: custom:alert-ticker-card
-cycle_interval: 8
-alerts:
-  - entity: binary_sensor.smoke_detector_battery
-    state: "on"
-    message: "Smoke detector battery low"
+  - entity_filter: "battery"
+    attribute: battery_level
+    operator: "<="
+    state: "20"
+    message: "Low battery: {name} ({state}%)"
+    theme: battery
     priority: 2
-    theme: warning
-  - entity: binary_sensor.motion_sensor_battery
-    state: "on"
-    message: "Motion sensor battery low"
-    priority: 2
-    theme: caution
-  - entity: binary_sensor.window_contact
-    state: "on"
-    message: "Living room window left open"
-    priority: 3
-    theme: info
+    entity_filter_exclude:
+      - sensor.battery_test_device
 ```
 
-### Scrolling ticker with all active alerts
+### Timer with countdown
 
 ```yaml
 type: custom:alert-ticker-card
-show_when_clear: true
-clear_message: "No active alerts — all systems normal"
-clear_theme: success
 alerts:
-  - entity: binary_sensor.front_door
-    state: "on"
-    message: "Front door is open"
+  - entity: timer.ad_blocker_paused
+    state: active
+    message: "Ad blocking disabled for {timer}"
+    theme: countdown
     priority: 2
-    theme: ticker
-  - entity: update.bridge_firmware
-    state: "on"
-    message: "Firmware update available for Zigbee bridge"
-    priority: 3
-    theme: ticker
-    icon: "🔄"
-  - entity: calendar.reminders
-    state: "on"
-    message: "Appointment reminder: dentist at 3pm"
-    priority: 4
-    theme: ticker
 ```
 
-### Neon — security system
+### Alarm with tap_action
 
 ```yaml
 type: custom:alert-ticker-card
 alerts:
   - entity: alarm_control_panel.home
     state: "triggered"
-    message: "SECURITY ALARM TRIGGERED"
+    message: "ALARM TRIGGERED"
     priority: 1
-    theme: neon
-    icon: "🔒"
+    theme: emergency
+    tap_action:
+      action: call-service
+      service: alarm_control_panel.alarm_disarm
+      target:
+        entity_id: alarm_control_panel.home
+      service_data:
+        code: "1234"
 ```
 
-### All-priorities mixed — full example
+### Smart snooze (resets the sensor)
 
 ```yaml
 type: custom:alert-ticker-card
-cycle_interval: 6
-show_when_clear: true
-clear_message: "Tutti i sistemi operativi"
-clear_theme: confetti
 alerts:
-  - entity: binary_sensor.fire_sensor
+  - entity: binary_sensor.mailbox
     state: "on"
-    message: "Rilevato fumo in cucina"
+    message: "Mail arrived"
+    theme: notification
+    snooze_action:
+      action: call-service
+      service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.mailbox_flag
+```
+
+### Night-time door alert (AND condition)
+
+```yaml
+type: custom:alert-ticker-card
+alerts:
+  - entity: binary_sensor.front_door
+    state: "on"
+    conditions_logic: "and"
+    conditions:
+      - entity: input_boolean.night_mode
+        state: "on"
+    message: "Front door open at night!"
+    priority: 1
+    theme: intruder
+    hold_action:
+      action: navigate
+      navigation_path: /lovelace/security
+```
+
+### Multiple warnings cycling
+
+```yaml
+type: custom:alert-ticker-card
+cycle_interval: 8
+cycle_animation: slide
+show_when_clear: true
+clear_message: "All systems normal"
+clear_theme: success
+alerts:
+  - entity: binary_sensor.smoke_detector
+    state: "on"
+    message: "Smoke detected in kitchen!"
     priority: 1
     theme: fire
-  - entity: binary_sensor.door_lock
-    state: "off"
-    message: "Porta di ingresso aperta"
-    priority: 2
-    theme: alarm
   - entity: binary_sensor.water_leak
     state: "on"
-    message: "Perdita d'acqua sotto il lavandino"
+    message: "Water leak under sink"
     priority: 2
-    theme: lightning
-  - entity: sensor.temperature_outdoor
-    state: "unavailable"
-    message: "Sensore temperatura non disponibile"
-    priority: 3
-    theme: notification
-  - entity: calendar.home_reminders
+    theme: flood
+  - entity: sensor.co2_ppm
+    operator: ">"
+    state: "1000"
+    message: "CO₂ level too high — {state} ppm"
+    priority: 2
+    theme: toxic
+  - entity: binary_sensor.window_contact
     state: "on"
-    message: "Promemoria in scadenza oggi"
-    priority: 4
-    theme: minimal
+    message: "Living room window open"
+    priority: 3
+    theme: door
+    secondary_entity: sensor.outdoor_temperature
 ```
 
 ---
 
 ## Languages
 
-The card automatically detects the language from your Home Assistant settings (`configuration.yaml → homeassistant: language`). No manual configuration needed.
+The card automatically detects the language from your Home Assistant settings.
 
 | Language | Code | Fallback |
 |----------|------|---------|
@@ -441,43 +553,28 @@ The card automatically detects the language from your Home Assistant settings (`
 | German | `de` | — |
 | Dutch | `nl` | — |
 
-All UI labels, category names, default messages, and editor strings are fully translated in all five languages. Any unsupported language automatically falls back to English.
-
----
-
-## Technical Notes
-
-### Entity picker in the editor
-
-The card uses the native `ha-entity-picker` component from Home Assistant. This component is loaded lazily by HA. To ensure it is available when the editor opens, the card uses the `hui-glance-card.getConfigElement()` technique — the standard community pattern for forcing HA to load the picker before the editor renders.
-
-### Cache busting
-
-Both `alert-ticker-card.js` and `alert-ticker-card-editor.js` use `import.meta.url` with a `?v=` version query parameter. This ensures browsers always load the latest version after an update, even if the file is cached.
-
-### Performance
-
-The `set hass()` setter uses a **signature string** (all entity IDs concatenated with their current states) to detect whether any relevant entity has changed. If the signature is identical to the previous update, the re-render is skipped entirely. This avoids unnecessary DOM updates when unrelated entities change in HA.
-
 ---
 
 ## Troubleshooting
 
 **Card not appearing after installation**
-- Make sure you added `alert-ticker-card.js` as a JavaScript module resource in Settings → Dashboards → Resources
+- Add `alert-ticker-card.js` as a JavaScript module in Settings → Dashboards → Resources
 - Hard-reload the browser (Ctrl+Shift+R / Cmd+Shift+R)
 
 **Entity picker not showing in editor**
-- This is a known HA lazy-loading issue. The card handles it automatically via `hui-glance-card.getConfigElement()`. If it still doesn't appear, try closing and reopening the editor.
+- Known HA lazy-loading issue. The card handles it automatically. If it still doesn't appear, close and reopen the editor.
 
 **Card disappears when alerts resolve**
-- This is by design. Set `show_when_clear: true` to keep the card visible with an all-clear message.
+- Set `show_when_clear: true` to keep the card visible.
 
 **Trigger state not matching**
-- State values are case-sensitive and must be exact strings. Check the entity state in Developer Tools → States. Common values: `"on"`, `"off"`, `"unavailable"`, `"home"`, `"away"`, `"triggered"`.
+- State values are case-sensitive exact strings. Use the live **Current state** hint in the editor or check Developer Tools → States.
 
-**All alerts cycling too fast**
-- Increase `cycle_interval`. Minimum is 1 second, recommended is 5–10 seconds.
+**Timer not updating**
+- Ensure the timer entity state is `active`. The card reads `finishes_at` from the timer attributes. If `finishes_at` is missing, the countdown shows `--:--`.
+
+**entity_filter matching too many entities**
+- Use a more specific filter text, or click individual entities in the editor preview list to exclude them.
 
 ---
 
