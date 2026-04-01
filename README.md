@@ -552,6 +552,7 @@ The card automatically detects the language from your Home Assistant settings.
 | French | `fr` | — |
 | German | `de` | — |
 | Dutch | `nl` | — |
+| Vietnamese | `vi` | - |
 
 ---
 

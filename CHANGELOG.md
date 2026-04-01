@@ -163,9 +163,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Move up / move down reordering
 - Expand / collapse per alert
 
-#### Languages — 4 languages auto-detected from HA settings
+#### Languages — 5 languages auto-detected from HA settings
 
-- Italian (`it`), English (`en`), French (`fr`), German (`de`)
+- Italian (`it`), English (`en`), French (`fr`), German (`de`), Vietnamese (`vi`)
 
 #### HACS compatibility
 
