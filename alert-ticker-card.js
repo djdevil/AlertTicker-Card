@@ -78,7 +78,7 @@ const THEME_META = {
 };
 
 // ---------------------------------------------------------------------------
-// Translations (IT / EN / FR / DE)
+// Translations (IT / EN / FR / DE / VI)
 // ---------------------------------------------------------------------------
 const T = {
   it: {
@@ -210,6 +210,32 @@ const T = {
     history_empty: "Nog geen gebeurtenissen opgeslagen",
     timer_active: "Actief",
     timer_done: "Verlopen",
+  },
+  vi: {
+    alerts: "Báo động",
+    critical: "Nghiêm trọng",
+    warning_label: "Cảnh báo",
+    info_label: "Thông tin",
+    success_label: "Mọi thứ ổn",
+    no_alerts: "Không có báo động nào",
+    all_clear: "Không có vấn đề",
+    priority_short: "P",
+    alert_system: "HỆ THỐNG BÁO ĐỘNG",
+    cmd_prefix: "root@ha:~$",
+    cmd_read: "báo động --đọc",
+    snooze: "Tạm hoãn",
+    snoozed: "Đã tạm hoãn",
+    snooze_1h: "1 giờ",
+    snooze_4h: "4 giờ",
+    snooze_8h: "8 giờ",
+    snooze_24h: "24 giờ",
+    snooze_reset: "Bỏ tạm hoãn tất cả",
+    alerts_snoozed: "báo động đã tạm hoãn",
+    history: "Lịch sử",
+    history_clear: "Xóa",
+    history_empty: "Chưa có sự kiện nào",
+    timer_active: "Đang chạy",
+    timer_done: "Hết hạn",
   },
 };
 
