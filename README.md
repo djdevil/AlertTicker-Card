@@ -3,7 +3,7 @@
 A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.0.5-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)  [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
@@ -36,14 +36,17 @@ A custom Lovelace card to display alerts and notifications based on entity state
 | **AND / OR conditions** | Multiple entities must match (all or at least one) |
 | **Numeric conditions** | Trigger on `>`, `<`, `>=`, `<=`, `!=` for sensor values |
 | **secondary_entity** | Live entity value shown below the message |
-| **entity_filter** | Text filter — one alert per matched entity, with exclude list |
+| **entity_filter** | Text filter — one alert per matched entity, with exclude list and wildcard `*` support |
 | **Snooze** | Suspend any alert — fixed duration or menu — persisted in localStorage |
 | **snooze_action** | Execute a Lovelace action when the 💤 button is tapped |
 | **Alert history** | 📋 button flips the card to a timestamped event log |
 | **Timer themes** | 4 animated themes for `timer.*` entities with live countdown |
-| **HA icons** | Use any `mdi:` icon per alert via toggle |
+| **HA icons** | Use any `mdi:` icon per alert via native icon picker |
+| **Sound notifications** | Per-alert audio — auto-generated tones or custom URL |
+| **Large buttons** | Always-visible pill-shaped 💤 and 📋 buttons |
+| **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
-| **Languages** | Italian, English, French, German, Dutch |
+| **Languages** | Italian, English, French, German, Dutch, Vietnamese |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
 ---
@@ -300,7 +303,72 @@ Supported operators: `=` (default), `!=`, `>`, `<`, `>=`, `<=`.
 
 ### HA icons (mdi:)
 
-Enable the `use_ha_icon` toggle per alert to use a native HA icon instead of an emoji. When enabled, the icon is automatically read from the entity's attributes. You can also type any `mdi:` or `hass:` icon manually.
+Enable the `use_ha_icon` toggle per alert to use a native HA icon instead of an emoji. When enabled, the icon is automatically read from the entity's attributes. You can also pick any `mdi:` or `hass:` icon from the native HA icon picker in the editor.
+
+### Message placeholders
+
+`{state}`, `{name}`, and `{entity}` work in the `message` field of **any** alert that has an entity set — not just `entity_filter` alerts:
+
+```yaml
+- entity: sensor.meter_abe4
+  operator: "<="
+  state: "20"
+  message: "Battery low: {state}%"
+  secondary_text: "Device: {name}"
+```
+
+### secondary_text
+
+A static second line displayed below the message. Supports placeholders. Does not require a secondary entity:
+
+```yaml
+secondary_text: "Zone: {name} — Current: {state}"
+```
+
+### Badge customization
+
+Hide the category badge or replace its text:
+
+```yaml
+show_badge: false        # hide completely
+badge_label: "URGENT"   # or use a custom label
+```
+
+### Sound notifications
+
+Play an audio tone when an alert becomes active. Uses the Web Audio API — no files required for the default tones:
+
+```yaml
+- entity: binary_sensor.smoke_detector
+  state: "on"
+  message: "Smoke detected!"
+  sound: true
+  sound_url: "https://example.com/alarm.mp3"  # optional custom sound
+```
+
+Default tones by category: Critical = double high beep · Warning = medium beep · Info = soft beep · OK = rising chime.
+
+> **Note:** requires browser autoplay permission. Works out of the box on wall-mounted tablets with HA Companion.
+
+### Large buttons
+
+Always-visible pill-shaped 💤 and 📋 buttons — useful for wall-mounted tablets where hover is not available:
+
+```yaml
+large_buttons: true
+```
+
+### Test mode
+
+Force all configured alerts to display as active — useful for previewing the card appearance without waiting for real conditions:
+
+```yaml
+test_mode: true
+```
+
+> Remember to remove `test_mode` before going live. A yellow banner is shown on the card as a reminder.
+
+In the visual editor, open the **Alerts tab** → enable **Test mode** at the bottom → expand any alert to instantly preview it on the card.
 
 ---
 
@@ -335,11 +403,13 @@ No YAML knowledge required. The editor has two tabs:
 | Field | Description |
 |-------|-------------|
 | **Cycle interval** | Seconds between alerts when multiple are active (default: 5) |
-| **Transition animation** | Animation played when switching alerts (12 options) |
+| **Transition animation** | Animation played when switching alerts (12 options) — preview plays on change |
 | **Show when no alerts** | Toggle to keep the card visible when everything is OK |
 | **Message when clear** | Text to show in the all-clear state |
 | **Theme for all-clear** | Visual theme for the all-clear card (OK themes only) |
 | **Snooze behaviour** | Fixed duration or menu (30min / 1h / 4h / 8h / 24h) |
+| **Show snooze bar** | Toggle the amber snooze reactivation bar |
+| **Large buttons** | Always-visible pill-shaped 💤 and 📋 buttons |
 | **History max events** | How many history entries to keep (25 / 50 / 100 / 200) |
 
 ### Alerts tab
@@ -348,17 +418,21 @@ For each alert:
 
 | Field | Description |
 |-------|-------------|
-| **Entity filter** | Text filter — auto-expands to one alert per matched entity |
+| **Entity filter** | Text filter with wildcard `*` — auto-expands to one alert per matched entity |
 | **Entity** | Single entity from your HA instance (hidden when filter is active) |
-| **Attribute** | Optional — check attribute instead of entity state |
+| **Attribute** | Optional — check attribute instead of entity state (dot-notation supported) |
 | **Condition** | Operator + trigger value |
 | **Priority** | 1 (Critical) → 4 (Low) |
 | **Message** | Text shown when active — supports `{name}`, `{entity}`, `{state}`, `{timer}` |
+| **Secondary text** | Static second line — supports placeholders, no entity required |
 | **Secondary entity** | Live value shown below the message |
 | **Theme** | Visual theme — timer entities see only timer themes |
-| **Icon** | Emoji override, or `mdi:` icon via toggle |
+| **Icon** | Emoji override, or native `mdi:` icon picker via toggle |
+| **Badge** | Show/hide category badge or set a custom label |
+| **Snooze duration** | Per-alert override of global snooze setting |
+| **Sound** | Enable audio notification + optional custom URL |
 | **Extra conditions** | AND/OR additional entity conditions |
-| **Tap action** | Action executed on tap |
+| **Tap action** | Action executed on tap (native service control) |
 | **Hold action** | Action executed on hold (500 ms) |
 | **Snooze action** | Action executed when 💤 is tapped |
 
@@ -378,7 +452,10 @@ You can **reorder** alerts with ↑ / ↓ buttons.
 | `clear_message` | `string` | `""` | Message shown in all-clear state |
 | `clear_theme` | `string` | `success` | Theme for all-clear (`success`, `check`, `confetti`) |
 | `snooze_default_duration` | `number` | *(menu)* | Fixed snooze duration in hours (`0.5`, `1`, `4`, `8`, `24`). Omit for menu. |
+| `show_snooze_bar` | `boolean` | `true` | Set `false` to hide the amber snooze reactivation bar and pill |
+| `large_buttons` | `boolean` | `false` | Always-visible pill-shaped 💤 and 📋 buttons at bottom-right |
 | `history_max_events` | `number` | `50` | Max history entries to keep |
+| `test_mode` | `boolean` | `false` | Show all alerts as active (ignore conditions) — for editor preview only |
 | `alerts` | `list` | `[]` | List of alert objects |
 
 ### Alert-level options
@@ -386,18 +463,25 @@ You can **reorder** alerts with ↑ / ↓ buttons.
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
 | `entity` | `string` | ✅* | Entity ID |
-| `entity_filter` | `string` | ✅* | Text filter (replaces `entity`) |
+| `entity_filter` | `string` | ✅* | Text filter — supports `*` wildcard (replaces `entity`) |
 | `entity_filter_exclude` | `list` | ❌ | Entity IDs to exclude from filter |
-| `attribute` | `string` | ❌ | Attribute to check instead of state |
+| `show_filter_name` | `boolean` | `true` | Set `false` to hide the entity friendly name below the message |
+| `attribute` | `string` | ❌ | Attribute to check instead of state — supports dot-notation (e.g. `activity.0.forecast`) |
 | `operator` | `string` | ❌ | `=` `!=` `>` `<` `>=` `<=` (default: `=`) |
 | `state` | `string` | ✅ | Trigger value |
-| `message` | `string` | ✅ | Text shown when active |
+| `message` | `string` | ✅ | Text shown when active — supports `{name}`, `{entity}`, `{state}`, `{timer}` |
+| `secondary_text` | `string` | ❌ | Static second line below the message — supports `{state}`, `{name}`, `{entity}` |
 | `theme` | `string` | ❌ | Visual theme (default: `emergency`) |
 | `priority` | `number` | ❌ | 1–4 (default: `1`) |
 | `icon` | `string` | ❌ | Emoji or `mdi:` icon override |
 | `use_ha_icon` | `boolean` | ❌ | Use HA native icon instead of emoji |
+| `show_badge` | `boolean` | `true` | Set `false` to hide the category badge |
+| `badge_label` | `string` | ❌ | Custom text for the category badge |
 | `secondary_entity` | `string` | ❌ | Entity whose live value appears below the message |
-| `secondary_attribute` | `string` | ❌ | Attribute of `secondary_entity` to show |
+| `secondary_attribute` | `string` | ❌ | Attribute of `secondary_entity` to show — supports dot-notation |
+| `snooze_duration` | `number\|null` | ❌ | Override global snooze: hours, `null` for menu, omit to use global |
+| `sound` | `boolean` | `false` | Play a sound when this alert becomes active |
+| `sound_url` | `string` | ❌ | Custom `.mp3`/`.wav` URL — omit for auto-generated tone |
 | `conditions_logic` | `string` | ❌ | `and` or `or` for extra conditions |
 | `conditions` | `list` | ❌ | Extra entity conditions |
 | `tap_action` | `object` | ❌ | Action on tap |
@@ -552,7 +636,7 @@ The card automatically detects the language from your Home Assistant settings.
 | French | `fr` | — |
 | German | `de` | — |
 | Dutch | `nl` | — |
-| Vietnamese | `vi` | - |
+| Vietnamese | `vi` | — |
 
 ---
 

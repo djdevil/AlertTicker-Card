@@ -78,7 +78,7 @@ const THEME_META = {
 };
 
 // ---------------------------------------------------------------------------
-// Translations (IT / EN / FR / DE / VI)
+// Translations (IT / EN / FR / DE / NL / VI)
 // ---------------------------------------------------------------------------
 const T = {
   it: {
@@ -106,6 +106,7 @@ const T = {
     history_empty: "Nessun evento registrato",
     timer_active: "In corso",
     timer_done: "Scaduto",
+    test_mode_active: "MODALITÀ TEST ATTIVA — disattivala prima di salvare",
   },
   en: {
     alerts: "Alerts",
@@ -132,6 +133,7 @@ const T = {
     history_empty: "No events recorded yet",
     timer_active: "Running",
     timer_done: "Expired",
+    test_mode_active: "TEST MODE ACTIVE — disable it before saving",
   },
   fr: {
     alerts: "Alertes",
@@ -158,6 +160,7 @@ const T = {
     history_empty: "Aucun événement enregistré",
     timer_active: "En cours",
     timer_done: "Expiré",
+    test_mode_active: "MODE TEST ACTIF — désactivez-le avant de sauvegarder",
   },
   de: {
     alerts: "Warnungen",
@@ -184,6 +187,7 @@ const T = {
     history_empty: "Noch keine Ereignisse aufgezeichnet",
     timer_active: "Läuft",
     timer_done: "Abgelaufen",
+    test_mode_active: "TESTMODUS AKTIV — vor dem Speichern deaktivieren",
   },
   nl: {
     alerts: "Meldingen",
@@ -210,6 +214,7 @@ const T = {
     history_empty: "Nog geen gebeurtenissen opgeslagen",
     timer_active: "Actief",
     timer_done: "Verlopen",
+    test_mode_active: "TESTMODUS ACTIEF — schakel uit voor het opslaan",
   },
   vi: {
     alerts: "Báo động",
@@ -236,6 +241,7 @@ const T = {
     history_empty: "Chưa có sự kiện nào",
     timer_active: "Đang chạy",
     timer_done: "Hết hạn",
+    test_mode_active: "CHẾ ĐỘ THỬ ĐANG BẬT — tắt trước khi lưu",
   },
 };
 
@@ -271,6 +277,7 @@ class AlertTickerCard extends LitElement {
     this._timerInterval = null;
     this._lastSignature = "";
     this._animPhase = "";
+    this._initialLoadDone = false; // prevents sound/history on first compute after init
     this._snoozeMenuOpen = null;
     this._snoozedCount = 0;
     this._snoozed = new Map(); // snoozeKey → expiry timestamp
@@ -331,9 +338,20 @@ class AlertTickerCard extends LitElement {
       alerts: [],
       ...config,
     };
+    // Stop/start cycle timer based on test_mode
+    if (this._config.test_mode) {
+      this._stopCycleTimer();
+    } else if (this._hass && !this._cycleTimer) {
+      this._startCycleTimer();
+    }
     // Re-compute alerts if hass is already set
     if (this._hass) {
       this._computeActiveAlerts();
+    }
+    // Play a one-shot animation preview when the editor changes cycle_animation
+    // Delay so requestUpdate from _computeActiveAlerts settles first
+    if (this._config._preview_anim) {
+      setTimeout(() => this._triggerAnimPreview(), 50);
     }
   }
 
@@ -370,12 +388,12 @@ class AlertTickerCard extends LitElement {
     const expandedAlerts = [];
     for (const alert of this._config.alerts) {
       if (alert.entity_filter && !alert.entity) {
-        const filterText = alert.entity_filter.toLowerCase();
+        const matchFn = this._buildFilterMatcher(alert.entity_filter);
         const excluded = new Set(alert.entity_filter_exclude || []);
         const matched = Object.entries(this._hass.states).filter(([entityId, state]) => {
           if (excluded.has(entityId)) return false;
-          const friendlyName = (state.attributes.friendly_name || "").toLowerCase();
-          return entityId.toLowerCase().includes(filterText) || friendlyName.includes(filterText);
+          const friendlyName = state.attributes.friendly_name || "";
+          return matchFn(entityId) || matchFn(friendlyName);
         });
         for (const [entityId, state] of matched) {
           const friendlyName = state.attributes.friendly_name || entityId;
@@ -394,47 +412,67 @@ class AlertTickerCard extends LitElement {
     }
 
     let snoozedCount = 0;
+    const testMode = !!this._config.test_mode;
     const active = expandedAlerts.filter((alert) => {
       const entityState = this._hass.states[alert.entity];
       if (!entityState) return false;
-      // Use attribute value if specified, otherwise entity state
-      const stateValue = (alert.attribute != null && alert.attribute !== "")
-        ? String(entityState.attributes[alert.attribute] ?? "")
-        : entityState.state;
-      if (!this._matchesState(stateValue, alert)) return false;
-      // Extra AND/OR conditions
-      if (Array.isArray(alert.conditions) && alert.conditions.length > 0) {
-        const logic = alert.conditions_logic || "and";
-        const results = alert.conditions.map((cond) => {
-          if (!cond.entity) return false;
-          const es = this._hass.states[cond.entity];
-          if (!es) return false;
-          const val = (cond.attribute != null && cond.attribute !== "")
-            ? String(es.attributes[cond.attribute] ?? "")
-            : es.state;
-          return this._matchesState(val, cond);
-        });
-        const passes = logic === "or" ? results.some(Boolean) : results.every(Boolean);
-        if (!passes) return false;
+      if (!testMode) {
+        // Use attribute value if specified, otherwise entity state
+        const stateValue = (alert.attribute != null && alert.attribute !== "")
+          ? String(this._resolveAttrPath(entityState.attributes, alert.attribute) ?? "")
+          : entityState.state;
+        if (!this._matchesState(stateValue, alert)) return false;
+        // Extra AND/OR conditions
+        if (Array.isArray(alert.conditions) && alert.conditions.length > 0) {
+          const logic = alert.conditions_logic || "and";
+          const results = alert.conditions.map((cond) => {
+            if (!cond.entity) return false;
+            const es = this._hass.states[cond.entity];
+            if (!es) return false;
+            const val = (cond.attribute != null && cond.attribute !== "")
+              ? String(this._resolveAttrPath(es.attributes, cond.attribute) ?? "")
+              : es.state;
+            return this._matchesState(val, cond);
+          });
+          const passes = logic === "or" ? results.some(Boolean) : results.every(Boolean);
+          if (!passes) return false;
+        }
+        if (this._isSnoozed(alert)) { snoozedCount++; return false; }
       }
-      if (this._isSnoozed(alert)) { snoozedCount++; return false; }
       return true;
     });
 
     // Sort by priority (lower number = first; undefined priority goes last)
     active.sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
 
+    // In test mode: jump immediately to the previewed alert before the early-return check
+    if (testMode && this._config._preview_index != null) {
+      const pi = this._config._preview_index;
+      if (pi >= 0 && pi < active.length && pi !== this._currentIndex) {
+        this._currentIndex = pi;
+        this._animPhase = "";
+        this._activeAlerts = active;
+        this.requestUpdate();
+        return;
+      }
+    }
+
     // Build a lightweight signature to detect changes
     const signature = active.map((a) => `${a.entity}:${a.message}:${a.priority}`).join("|");
     if (signature === this._lastSignature && snoozedCount === this._snoozedCount) return;
 
-    // Record newly triggered alerts into history
-    const prevKeys = new Set(this._activeAlerts.map((a) => this._snoozeKey(a)));
-    active.forEach((alert) => {
-      if (!prevKeys.has(this._snoozeKey(alert))) {
-        this._recordHistory(alert);
-      }
-    });
+    // Record newly triggered alerts into history and play sound
+    // Skip on first compute after init (avoids replaying sound/history for already-active alerts on reload)
+    if (!testMode && this._initialLoadDone) {
+      const prevKeys = new Set(this._activeAlerts.map((a) => this._snoozeKey(a)));
+      active.forEach((alert) => {
+        if (!prevKeys.has(this._snoozeKey(alert))) {
+          this._recordHistory(alert);
+          this._playAlertSound(alert);
+        }
+      });
+    }
+    this._initialLoadDone = true;
 
     this._lastSignature = signature;
     this._activeAlerts = active;
@@ -462,8 +500,8 @@ class AlertTickerCard extends LitElement {
     const interval = ((this._config && this._config.cycle_interval) || 5) * 1000;
     const FOLD_MS = 340;
     this._cycleTimer = setInterval(() => {
-      // Skip tick if there is nothing to cycle or history is open
-      if (!this._activeAlerts || this._activeAlerts.length <= 1 || this._historyOpen) return;
+      // Skip tick if there is nothing to cycle, history is open, or test mode is active
+      if (!this._activeAlerts || this._activeAlerts.length <= 1 || this._historyOpen || (this._config && this._config.test_mode)) return;
       // 1. Fold out
       this._animPhase = "fold-out";
       this.requestUpdate();
@@ -486,6 +524,37 @@ class AlertTickerCard extends LitElement {
       clearInterval(this._cycleTimer);
       this._cycleTimer = null;
     }
+  }
+
+  /** Play one animation cycle immediately — used as preview when editor changes cycle_animation */
+  _triggerAnimPreview() {
+    if (this._animPhase) return; // already animating
+    const FOLD_MS = 340;
+
+    // If no active alerts, temporarily inject the first configured alert so there's something to animate
+    const wasEmpty = !this._activeAlerts || this._activeAlerts.length === 0;
+    if (wasEmpty) {
+      const alerts = this._config.alerts || [];
+      if (alerts.length === 0) return; // nothing to preview
+      this._activeAlerts = [alerts[0]];
+      this.requestUpdate();
+    }
+
+    setTimeout(() => {
+      this._animPhase = "fold-out";
+      this.requestUpdate();
+      setTimeout(() => {
+        this._animPhase = "fold-in";
+        this.requestUpdate();
+        setTimeout(() => {
+          this._animPhase = "";
+          if (wasEmpty) {
+            this._activeAlerts = [];
+          }
+          this.requestUpdate();
+        }, FOLD_MS);
+      }, FOLD_MS);
+    }, 50); // small delay so the injected alert renders first
   }
 
   // ---- Timer tick (1s) — keeps countdown display live -----------------------
@@ -529,10 +598,28 @@ class AlertTickerCard extends LitElement {
   }
 
   _resolveMessage(alert) {
-    const msg = alert.message || "";
-    if (!msg.includes("{timer}")) return msg;
-    const { remainingStr } = this._getTimerData(alert);
-    return msg.replace(/\{timer\}/g, remainingStr);
+    let msg = alert.message || "";
+    if (!msg.includes("{")) return msg;
+    // {timer} — live countdown for timer.* entities
+    if (msg.includes("{timer}")) {
+      const { remainingStr } = this._getTimerData(alert);
+      msg = msg.replace(/\{timer\}/g, remainingStr);
+    }
+    // {state}, {name}, {entity} — live entity values for any alert
+    if (alert.entity && this._hass && (msg.includes("{state}") || msg.includes("{name}") || msg.includes("{entity}"))) {
+      const es = this._hass.states[alert.entity];
+      if (es) {
+        const state = (alert.attribute != null && alert.attribute !== "")
+          ? String(this._resolveAttrPath(es.attributes, alert.attribute) ?? "")
+          : es.state;
+        const name = es.attributes.friendly_name || alert.entity;
+        msg = msg
+          .replace(/\{state\}/g, state)
+          .replace(/\{name\}/g, name)
+          .replace(/\{entity\}/g, alert.entity);
+      }
+    }
+    return msg;
   }
 
   _timerColor(progress) {
@@ -542,6 +629,35 @@ class AlertTickerCard extends LitElement {
   }
 
   // ---- State-matching helper -----------------------------------------------
+
+  /**
+   * Builds a matcher function for entity_filter.
+   * Plain text → case-insensitive substring. Contains * → wildcard glob (e.g. sensor.battery_*_level).
+   */
+  _buildFilterMatcher(filter) {
+    const f = filter.toLowerCase();
+    if (f.includes("*")) {
+      const pattern = f.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+      const re = new RegExp(pattern);
+      return (text) => re.test(text.toLowerCase());
+    }
+    return (text) => text.toLowerCase().includes(f);
+  }
+
+  /**
+   * Resolves a dot-notation path from an attributes object.
+   * Supports: "battery_level", "activity.0.forecast", "activity[0].forecast"
+   */
+  _resolveAttrPath(attrs, path) {
+    if (attrs == null || path == null || path === "") return undefined;
+    const parts = path.replace(/\[(\d+)\]/g, ".$1").split(".");
+    let cur = attrs;
+    for (const part of parts) {
+      if (cur == null) return undefined;
+      cur = cur[part];
+    }
+    return cur;
+  }
 
   /**
    * Returns true when the entity's state matches the alert's condition.
@@ -635,13 +751,66 @@ class AlertTickerCard extends LitElement {
     const max = this._config.history_max_events || 50;
     this._history.unshift({
       ts: Date.now(),
-      message: alert.message || "",
+      message: this._resolveMessage(alert) || "",
       theme: alert.theme || "emergency",
       icon: (THEME_META[alert.theme] || {}).icon || "🔔",
       entity: alert.entity || "",
     });
     if (this._history.length > max) this._history.length = max;
     this._saveHistory();
+  }
+
+  /** Play an audio notification when an alert newly becomes active */
+  _playAlertSound(alert) {
+    if (!alert.sound) return;
+
+    // Custom URL per-alert
+    const url = alert.sound_url;
+    if (url) {
+      try { new Audio(url).play(); } catch (_) {}
+      return;
+    }
+
+    // Generated tones via Web Audio API — no external files needed
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const cat = (THEME_META[alert.theme] || {}).category || "info";
+      const now = ctx.currentTime;
+
+      const tone = (freq, start, dur, vol = 0.3) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        osc.start(start);
+        osc.stop(start + dur);
+      };
+
+      switch (cat) {
+        case "critical":
+          // Two sharp high beeps
+          tone(960, now,        0.15, 0.45);
+          tone(960, now + 0.22, 0.15, 0.45);
+          break;
+        case "warning":
+          // Single medium beep
+          tone(700, now, 0.35, 0.30);
+          break;
+        case "ok":
+          // Two rising tones — positive chime
+          tone(440, now,        0.15, 0.20);
+          tone(660, now + 0.18, 0.28, 0.20);
+          break;
+        default: // info, timer, style
+          // Single soft beep
+          tone(520, now, 0.30, 0.20);
+          break;
+      }
+    } catch (_) {}
   }
 
   /** Clear all history */
@@ -697,7 +866,9 @@ class AlertTickerCard extends LitElement {
    *  If snooze_action is configured (per-alert), it is also executed on tap. */
   _renderSnoozeButton(alert) {
     if (!alert || !alert.entity) return html``;
-    const fixedDuration = this._config.snooze_default_duration;
+    const fixedDuration = alert.snooze_duration !== undefined
+      ? alert.snooze_duration
+      : this._config.snooze_default_duration;
     const showMenu = fixedDuration == null;
     const snoozeAction = alert.snooze_action && alert.snooze_action.action !== "none"
       ? alert.snooze_action : null;
@@ -763,7 +934,7 @@ class AlertTickerCard extends LitElement {
   _renderHistory() {
     const fmt = (ts) => {
       const d = new Date(ts);
-      return d.toLocaleDateString(this._lang, { day: "2-digit", month: "2-digit" })
+      return d.toLocaleDateString(this._lang, { day: "2-digit", month: "2-digit", year: "numeric" })
         + " " + d.toLocaleTimeString(this._lang, { hour: "2-digit", minute: "2-digit" });
     };
     return html`
@@ -921,14 +1092,18 @@ class AlertTickerCard extends LitElement {
     return raw;
   }
 
-  /** Returns a localised label based on the theme's category */
-  _getCategoryLabel(theme) {
-    const cat = (THEME_META[theme] || {}).category || "info";
+  /** Returns the badge label for an alert, respecting show_badge and badge_label overrides.
+   *  Returns null when show_badge === false (badge div will be empty → hidden via CSS :empty). */
+  _getCategoryLabel(alert) {
+    if (alert.show_badge === false) return null;
+    if (alert.badge_label) return alert.badge_label;
+    const cat = (THEME_META[alert.theme] || {}).category || "info";
     switch (cat) {
       case "critical": return this._t("critical");
       case "warning":  return this._t("warning_label");
       case "info":     return this._t("info_label");
       case "ok":       return this._t("success_label");
+      case "timer":    return this._t("info_label");
       default:         return this._t("info_label");
     }
   }
@@ -938,11 +1113,17 @@ class AlertTickerCard extends LitElement {
   _renderSecondaryValue(alert) {
     const lines = [];
 
-    // entity_filter: auto-show the matched entity's friendly name
-    if (alert && alert.entity_filter) {
+    // entity_filter: auto-show the matched entity's friendly name (opt-out with show_filter_name: false)
+    if (alert && alert.entity_filter && alert.show_filter_name !== false) {
       const es = this._hass && this._hass.states[alert.entity];
       const name = es ? (es.attributes.friendly_name || alert.entity) : alert.entity;
       lines.push(html`<div class="atc-secondary-value atc-filter-label">📍 ${name}</div>`);
+    }
+
+    // secondary_text: static custom string (supports {state}/{name}/{entity} placeholders)
+    if (alert && alert.secondary_text) {
+      const resolved = this._resolveMessage({ ...alert, message: alert.secondary_text });
+      if (resolved) lines.push(html`<div class="atc-secondary-value">${resolved}</div>`);
     }
 
     // secondary_entity: live value below message
@@ -950,7 +1131,7 @@ class AlertTickerCard extends LitElement {
       const es = this._hass && this._hass.states[alert.secondary_entity];
       if (es) {
         const val = (alert.secondary_attribute != null && alert.secondary_attribute !== "")
-          ? String(es.attributes[alert.secondary_attribute] ?? "")
+          ? String(this._resolveAttrPath(es.attributes, alert.secondary_attribute) ?? "")
           : es.state;
         if (val !== "" && val != null) {
           lines.push(html`<div class="atc-secondary-value">${val}</div>`);
@@ -1023,13 +1204,13 @@ class AlertTickerCard extends LitElement {
   _renderEmergency(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-emergency">
         <div class="em-icon">${icon}</div>
         <div class="em-content">
           <div class="em-badge">${label}</div>
-          <div class="em-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="em-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="em-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1042,13 +1223,13 @@ class AlertTickerCard extends LitElement {
   _renderWarning(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-warning">
         <div class="wn-icon">${icon}</div>
         <div class="wn-content">
           <div class="wn-badge">${label}</div>
-          <div class="wn-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="wn-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="wn-right">
           <div class="wn-dot"></div>
@@ -1064,13 +1245,13 @@ class AlertTickerCard extends LitElement {
   _renderInfo(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-info">
         <div class="in-icon-wrap">${icon}</div>
         <div class="in-content">
           <div class="in-badge">${label}</div>
-          <div class="in-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="in-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="in-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1083,13 +1264,13 @@ class AlertTickerCard extends LitElement {
   _renderSuccess(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-success">
         <div class="su-icon-wrap">${icon}</div>
         <div class="su-content">
           <div class="su-badge">${label}</div>
-          <div class="su-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="su-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="su-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1102,14 +1283,14 @@ class AlertTickerCard extends LitElement {
   _renderNeon(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-neon">
         <div class="ne-scan"></div>
         <div class="ne-icon">${icon}</div>
         <div class="ne-content">
-          <div class="ne-badge">// ${label.toUpperCase()}_ALERT</div>
-          <div class="ne-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          ${label != null ? html`<div class="ne-badge">// ${(alert.badge_label || label).toUpperCase()}_ALERT</div>` : ""}
+          <div class="ne-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="ne-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1122,13 +1303,13 @@ class AlertTickerCard extends LitElement {
   _renderGlass(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-glass">
         <div class="gl-icon-wrap">${icon}</div>
         <div class="gl-content">
           <div class="gl-badge">${label}</div>
-          <div class="gl-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="gl-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="gl-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1152,7 +1333,7 @@ class AlertTickerCard extends LitElement {
             <span>${this._t("cmd_prefix")}</span>
             <span class="mx-cmd">&nbsp;${this._t("cmd_read")}</span>
           </div>
-          <div class="mx-msg">${alert.message}<span class="mx-cursor"></span></div>
+          <div class="mx-msg">${this._resolveMessage(alert)}<span class="mx-cursor"></span></div>
           ${this._renderSecondaryValue(alert)}
         </div>
         <div class="mx-right">
@@ -1168,14 +1349,14 @@ class AlertTickerCard extends LitElement {
   _renderMinimal(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     const accent = this._getAccentColor(alert.theme);
     return html`
       <ha-card class="at-minimal" style="--minimal-accent: ${accent}">
         <div class="mn-icon">${icon}</div>
         <div class="mn-content">
           <div class="mn-badge">${label}</div>
-          <div class="mn-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="mn-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="mn-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1188,13 +1369,13 @@ class AlertTickerCard extends LitElement {
   _renderFire(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-fire">
         <div class="fi-icon">${icon}</div>
         <div class="fi-content">
           <div class="fi-badge">${label}</div>
-          <div class="fi-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="fi-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="fi-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1205,14 +1386,14 @@ class AlertTickerCard extends LitElement {
   _renderAlarm(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-alarm">
         <div class="al-strobe"></div>
         <div class="al-icon">${icon}</div>
         <div class="al-content">
           <div class="al-badge">${label}</div>
-          <div class="al-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="al-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="al-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1223,7 +1404,7 @@ class AlertTickerCard extends LitElement {
   _renderLightning(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-lightning">
         <div class="lt-bg"></div>
@@ -1231,7 +1412,7 @@ class AlertTickerCard extends LitElement {
         <div class="lt-icon">${icon}</div>
         <div class="lt-content">
           <div class="lt-badge">${label}</div>
-          <div class="lt-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="lt-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="lt-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1242,13 +1423,13 @@ class AlertTickerCard extends LitElement {
   _renderCaution(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-caution">
         <div class="ca-icon">${icon}</div>
         <div class="ca-content">
           <div class="ca-badge">${label}</div>
-          <div class="ca-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="ca-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="ca-right">
           <div class="ca-dot"></div>
@@ -1262,7 +1443,7 @@ class AlertTickerCard extends LitElement {
   _renderNotification(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-notification">
         <div class="no-icon-wrap">
@@ -1271,7 +1452,7 @@ class AlertTickerCard extends LitElement {
         </div>
         <div class="no-content">
           <div class="no-badge">${label}</div>
-          <div class="no-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="no-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="no-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1282,14 +1463,14 @@ class AlertTickerCard extends LitElement {
   _renderAurora(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-aurora">
         <div class="au-bg"></div>
         <div class="au-icon-wrap">${icon}</div>
         <div class="au-content">
           <div class="au-badge">${label}</div>
-          <div class="au-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="au-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="au-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1300,13 +1481,13 @@ class AlertTickerCard extends LitElement {
   _renderCheck(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-check">
         <div class="ck-icon-wrap">${icon}</div>
         <div class="ck-content">
           <div class="ck-badge">${label}</div>
-          <div class="ck-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="ck-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="ck-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1317,7 +1498,7 @@ class AlertTickerCard extends LitElement {
   _renderConfetti(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-confetti">
         <div class="cf-particles">
@@ -1329,7 +1510,7 @@ class AlertTickerCard extends LitElement {
         <div class="cf-icon-wrap">${icon}</div>
         <div class="cf-content">
           <div class="cf-badge">${label}</div>
-          <div class="cf-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="cf-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="cf-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1340,14 +1521,14 @@ class AlertTickerCard extends LitElement {
   _renderNuclear(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-nuclear">
         <div class="nc-bg"></div>
         <div class="nc-icon">${icon}</div>
         <div class="nc-content">
           <div class="nc-badge">${label}</div>
-          <div class="nc-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="nc-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="nc-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1358,7 +1539,7 @@ class AlertTickerCard extends LitElement {
   _renderRadar(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-radar">
         <div class="rd-display">
@@ -1371,7 +1552,7 @@ class AlertTickerCard extends LitElement {
         <div class="rd-icon">${icon}</div>
         <div class="rd-content">
           <div class="rd-badge">${label}</div>
-          <div class="rd-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="rd-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="rd-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1382,7 +1563,7 @@ class AlertTickerCard extends LitElement {
   _renderHologram(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-hologram">
         <div class="hg-grid"></div>
@@ -1390,7 +1571,7 @@ class AlertTickerCard extends LitElement {
         <div class="hg-icon-wrap">${icon}</div>
         <div class="hg-content">
           <div class="hg-badge">${label}</div>
-          <div class="hg-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="hg-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="hg-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1401,7 +1582,7 @@ class AlertTickerCard extends LitElement {
   _renderHeartbeat(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-heartbeat">
         <div class="hb-ecg">
@@ -1414,7 +1595,7 @@ class AlertTickerCard extends LitElement {
         <div class="hb-icon-wrap">${icon}</div>
         <div class="hb-content">
           <div class="hb-badge">${label}</div>
-          <div class="hb-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="hb-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="hb-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1425,14 +1606,14 @@ class AlertTickerCard extends LitElement {
   _renderRetro(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-retro">
         <div class="rt-scanlines"></div>
         <div class="rt-icon">${icon}</div>
         <div class="rt-content">
           <div class="rt-badge">${label}</div>
-          <div class="rt-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="rt-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="rt-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1443,14 +1624,14 @@ class AlertTickerCard extends LitElement {
   _renderFlood(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-flood">
         <div class="fl-waves"></div>
         <div class="fl-icon">${icon}</div>
         <div class="fl-content">
           <div class="fl-badge">${label}</div>
-          <div class="fl-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="fl-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="fl-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1461,14 +1642,14 @@ class AlertTickerCard extends LitElement {
   _renderMotion(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-motion">
         <div class="mo-scan"></div>
         <div class="mo-icon">${icon}</div>
         <div class="mo-content">
           <div class="mo-badge">${label}</div>
-          <div class="mo-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="mo-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="mo-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1479,14 +1660,14 @@ class AlertTickerCard extends LitElement {
   _renderIntruder(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-intruder">
         <div class="it-stripes"></div>
         <div class="it-icon">${icon}</div>
         <div class="it-content">
           <div class="it-badge">${label}</div>
-          <div class="it-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="it-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="it-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1497,7 +1678,7 @@ class AlertTickerCard extends LitElement {
   _renderToxic(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-toxic">
         <div class="tx-bubble tx-b1"></div>
@@ -1507,7 +1688,7 @@ class AlertTickerCard extends LitElement {
         <div class="tx-icon">${icon}</div>
         <div class="tx-content">
           <div class="tx-badge">${label}</div>
-          <div class="tx-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="tx-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="tx-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1518,14 +1699,14 @@ class AlertTickerCard extends LitElement {
   _renderTemperature(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-temperature">
         <div class="tp-fill"></div>
         <div class="tp-icon">${icon}</div>
         <div class="tp-content">
           <div class="tp-badge">${label}</div>
-          <div class="tp-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="tp-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="tp-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1536,14 +1717,14 @@ class AlertTickerCard extends LitElement {
   _renderBattery(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-battery">
         <div class="bt-drain"></div>
         <div class="bt-icon">${icon}</div>
         <div class="bt-content">
           <div class="bt-badge">${label}</div>
-          <div class="bt-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="bt-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="bt-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1554,14 +1735,14 @@ class AlertTickerCard extends LitElement {
   _renderDoor(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-door">
         <div class="dr-ray"></div>
         <div class="dr-icon">${icon}</div>
         <div class="dr-content">
           <div class="dr-badge">${label}</div>
-          <div class="dr-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="dr-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="dr-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1572,7 +1753,7 @@ class AlertTickerCard extends LitElement {
   _renderPresence(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-presence">
         <div class="pr-ping">
@@ -1583,7 +1764,7 @@ class AlertTickerCard extends LitElement {
         <div class="pr-icon">${icon}</div>
         <div class="pr-content">
           <div class="pr-badge">${label}</div>
-          <div class="pr-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="pr-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="pr-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1594,14 +1775,14 @@ class AlertTickerCard extends LitElement {
   _renderUpdate(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-update">
         <div class="up-ring"></div>
         <div class="up-icon">${icon}</div>
         <div class="up-content">
           <div class="up-badge">${label}</div>
-          <div class="up-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="up-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="up-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1612,14 +1793,14 @@ class AlertTickerCard extends LitElement {
   _renderShield(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-shield">
         <div class="sh-scan"></div>
         <div class="sh-icon">${icon}</div>
         <div class="sh-content">
           <div class="sh-badge">${label}</div>
-          <div class="sh-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="sh-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="sh-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1630,14 +1811,14 @@ class AlertTickerCard extends LitElement {
   _renderPower(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-power">
         <div class="pw-lines"></div>
         <div class="pw-icon">${icon}</div>
         <div class="pw-content">
           <div class="pw-badge">${label}</div>
-          <div class="pw-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="pw-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="pw-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1648,7 +1829,7 @@ class AlertTickerCard extends LitElement {
   _renderCyberpunk(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-cyberpunk">
         <div class="cp-lines"></div>
@@ -1656,7 +1837,7 @@ class AlertTickerCard extends LitElement {
         <div class="cp-icon">${icon}</div>
         <div class="cp-content">
           <div class="cp-badge">${label}</div>
-          <div class="cp-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="cp-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="cp-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1667,7 +1848,7 @@ class AlertTickerCard extends LitElement {
   _renderVapor(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-vapor">
         <div class="vp-grid"></div>
@@ -1675,7 +1856,7 @@ class AlertTickerCard extends LitElement {
         <div class="vp-icon">${icon}</div>
         <div class="vp-content">
           <div class="vp-badge">${label}</div>
-          <div class="vp-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="vp-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="vp-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1686,7 +1867,7 @@ class AlertTickerCard extends LitElement {
   _renderLava(alert) {
     if (!alert) return html``;
     const icon = this._getIcon(alert);
-    const label = this._getCategoryLabel(alert.theme);
+    const label = this._getCategoryLabel(alert);
     return html`
       <ha-card class="at-lava">
         <div class="lv-blob lv-b1"></div>
@@ -1695,7 +1876,7 @@ class AlertTickerCard extends LitElement {
         <div class="lv-icon">${icon}</div>
         <div class="lv-content">
           <div class="lv-badge">${label}</div>
-          <div class="lv-title">${alert.message}</div>${this._renderSecondaryValue(alert)}
+          <div class="lv-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="lv-right">${this._renderCounter()}</div>
       </ha-card>
@@ -1868,7 +2049,7 @@ class AlertTickerCard extends LitElement {
     // No active alerts
     if (this._activeAlerts.length === 0) {
       // Some alerts match but are snoozed — show a minimal indicator with reset button
-      if (this._snoozedCount > 0) {
+      if (this._snoozedCount > 0 && this._config.show_snooze_bar !== false) {
         return this._renderSnoozedIndicator();
       }
       if (this._config.show_when_clear) {
@@ -1891,20 +2072,27 @@ class AlertTickerCard extends LitElement {
     const historyBtn = this._renderHistoryButton();
 
     // Small pill shown at bottom-right when ≥1 alert is snoozed but others are still active
-    const snoozedPill = this._snoozedCount > 0 ? html`
+    const snoozedPill = (this._snoozedCount > 0 && this._config.show_snooze_bar !== false) ? html`
       <button class="atc-snoozed-pill" title="${this._t("snooze_reset")}" @click="${() => this._resetSnooze()}">
         💤 ${this._snoozedCount}
       </button>
     ` : "";
 
+    const testModeBanner = this._config.test_mode ? html`
+      <div class="atc-test-mode-banner">🧪 ${this._t("test_mode_active")}</div>
+    ` : "";
+
     // History view — replaces card content with animation
     if (this._historyOpen) {
       return html`
-        <div class="atc-snooze-host">
-          <div class="at-fold-wrapper ${this._animPhase}" data-anim="${this._config.cycle_animation || "fold"}">
-            ${this._renderHistory()}
+        <div class="atc-card-root">
+          <div class="atc-snooze-host${this._config.large_buttons ? " atc-large-buttons" : ""}">
+            <div class="at-fold-wrapper ${this._animPhase}" data-anim="${this._config.cycle_animation || "fold"}">
+              ${this._renderHistory()}
+            </div>
+            ${historyBtn}${snoozedPill}
           </div>
-          ${historyBtn}${snoozedPill}
+          ${testModeBanner}
         </div>
       `;
     }
@@ -1924,20 +2112,26 @@ class AlertTickerCard extends LitElement {
     // Ticker has its own scroll animation — skip fold wrapper
     if ((current.theme || "").toLowerCase() === "ticker") {
       return html`
-        <div class="atc-snooze-host">
-          <div class="${hasInteraction ? "atc-clickable" : ""}"
-            @pointerdown="${pdHandler}" @pointerup="${puHandler}"
-            @pointerleave="${plHandler}" @pointercancel="${plHandler}">${inner}</div>
-          ${snoozeBtn}${historyBtn}${snoozedPill}
+        <div class="atc-card-root">
+          <div class="atc-snooze-host${this._config.large_buttons ? " atc-large-buttons" : ""}">
+            <div class="${hasInteraction ? "atc-clickable" : ""}"
+              @pointerdown="${pdHandler}" @pointerup="${puHandler}"
+              @pointerleave="${plHandler}" @pointercancel="${plHandler}">${inner}</div>
+            ${snoozeBtn}${historyBtn}${snoozedPill}
+          </div>
+          ${testModeBanner}
         </div>`;
     }
     return html`
-      <div class="atc-snooze-host">
-        <div class="at-fold-wrapper ${this._animPhase}${hasInteraction ? " atc-clickable" : ""}"
-          data-anim="${this._config.cycle_animation || "fold"}"
-          @pointerdown="${pdHandler}" @pointerup="${puHandler}"
-          @pointerleave="${plHandler}" @pointercancel="${plHandler}">${inner}</div>
-        ${snoozeBtn}${historyBtn}${snoozedPill}
+      <div class="atc-card-root">
+        <div class="atc-snooze-host${this._config.large_buttons ? " atc-large-buttons" : ""}">
+          <div class="at-fold-wrapper ${this._animPhase}${hasInteraction ? " atc-clickable" : ""}"
+            data-anim="${this._config.cycle_animation || "fold"}"
+            @pointerdown="${pdHandler}" @pointerup="${puHandler}"
+            @pointerleave="${plHandler}" @pointercancel="${plHandler}">${inner}</div>
+          ${snoozeBtn}${historyBtn}${snoozedPill}
+        </div>
+        ${testModeBanner}
       </div>
     `;
   }
@@ -1954,6 +2148,15 @@ class AlertTickerCard extends LitElement {
         overflow: hidden;
         position: relative;
         --ha-card-border-radius: 10px;
+      }
+
+      /* -----------------------------------------------------------------------
+       * BADGE — hide when empty (show_badge: false)
+       * --------------------------------------------------------------------- */
+      [class$="-badge"]:empty {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
 
       /* -----------------------------------------------------------------------
@@ -3953,6 +4156,74 @@ class AlertTickerCard extends LitElement {
       .atc-snooze-host:hover .atc-history-btn {
         opacity: 1;
         pointer-events: auto;
+      }
+
+      /* -----------------------------------------------------------------------
+       * LARGE BUTTONS MODE (large_buttons: true)
+       * Both buttons stacked vertically at bottom-right, always visible.
+       * --------------------------------------------------------------------- */
+      .atc-large-buttons .atc-snooze-wrap {
+        pointer-events: auto;
+        top: auto;
+        bottom: 8px;
+        right: 8px;
+      }
+      .atc-large-buttons .atc-snooze-btn {
+        opacity: 1 !important;
+        width: auto;
+        height: 26px;
+        border-radius: 13px;
+        padding: 0 10px;
+        font-size: 0.78rem;
+        background: rgba(0,0,0,0.50);
+        border: 1px solid rgba(255,255,255,0.15);
+      }
+      .atc-large-buttons .atc-snooze-btn::after {
+        content: attr(title);
+        font-size: 0.72rem;
+        margin-left: 3px;
+        letter-spacing: 0.02em;
+      }
+      .atc-large-buttons .atc-history-btn {
+        opacity: 1 !important;
+        pointer-events: auto;
+        width: auto;
+        height: 26px;
+        border-radius: 13px;
+        padding: 0 10px;
+        font-size: 0.78rem;
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.10);
+        top: auto;
+        bottom: 42px;
+        right: 8px;
+        left: auto;
+      }
+      .atc-large-buttons .atc-history-btn::after {
+        content: attr(title);
+        font-size: 0.72rem;
+        margin-left: 3px;
+        letter-spacing: 0.02em;
+      }
+
+      /* -----------------------------------------------------------------------
+       * TEST MODE BANNER
+       * --------------------------------------------------------------------- */
+      .atc-card-root {
+        display: flex;
+        flex-direction: column;
+      }
+      .atc-test-mode-banner {
+        background: rgba(255, 165, 0, 0.92);
+        color: #000;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-align: center;
+        padding: 3px 8px;
+        letter-spacing: 0.04em;
+        pointer-events: none;
+        border-radius: 0 0 var(--ha-card-border-radius, 12px) var(--ha-card-border-radius, 12px);
+        margin-top: -2px;
       }
 
       /* -----------------------------------------------------------------------

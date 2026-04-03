@@ -303,9 +303,25 @@ const ET = {
     cycle_interval: "Intervallo ciclo (secondi)",
     cycle_interval_help: "Secondi tra un avviso e l'altro quando ce ne sono più di uno attivi",
     show_when_clear: "Mostra quando non ci sono avvisi",
+    large_buttons: "Pulsanti grandi sempre visibili (💤 e 📋)",
+    show_snooze_bar: "Mostra barra di riattivazione snooze 💤",
     snooze_default_duration: "Comportamento snooze 💤",
     snooze_default_duration_help: "Menu durata: tap su 💤 apre il menu per scegliere quanto silenziare. Durata fissa: tap su 💤 silenzia subito senza menu.",
     snooze_option_menu: "Mostra menu durata (come prima)",
+    snooze_duration: "Durata snooze per questo avviso 💤",
+    snooze_duration_help: "Sovrascrive l'impostazione globale. Vuoto = usa il globale.",
+    snooze_duration_menu: "Menu durata",
+    snooze_duration_global: "Usa impostazione globale",
+    sound_enabled: "Notifica sonora alla comparsa di un avviso",
+    sound_enabled_help: "Suona un tono generato automaticamente quando un avviso diventa attivo. Il suono varia per categoria (Critico = doppio beep acuto, Allerta = beep medio, Info = beep morbido, OK = chime). Richiede che il browser consenta la riproduzione automatica.",
+    sound_url: "URL audio personalizzato (globale)",
+    sound_url_help: "URL di un file .mp3 o .wav da usare al posto del suono predefinito. Lascia vuoto per il suono generato.",
+    alert_sound: "Suono abilitato per questo avviso",
+    alert_sound_url: "URL audio personalizzato per questo avviso",
+    alert_sound_url_help: "Sovrascrive l'URL globale. Lascia vuoto per usare quello globale.",
+    test_mode: "Modalità test",
+    test_mode_desc: "Mostra tutti gli avvisi come attivi, ignorando le condizioni. L'animazione di scorrimento è sospesa — apri un avviso nell'editor per vederlo subito sulla card.",
+    test_mode_warning: "Ricordati di disattivare la modalità test prima di salvare!",
     history_max_events: "Cronologia — eventi massimi da conservare",
     history_max_events_help: "Registra automaticamente ogni avviso che si attiva. Tap su 📋 nella card per vedere la cronologia con data/ora. I dati sono salvati nel browser.",
     history: "Cronologia",
@@ -321,11 +337,15 @@ const ET = {
     alert_state_help: "es. 'on', '80' (numerico con operatore > < >= <=)",
     current_state: "Stato attuale",
     alert_message: "Messaggio da visualizzare",
+    alert_message_help: "Usa {state} per il valore live, {name} per il nome, {entity} per l'ID entità. Es. 'Batteria: {state}%'",
     alert_priority: "Priorità",
     alert_theme: "Tema",
     alert_icon: "Icona",
-    alert_icon_help: "Emoji: lascia vuoto per icona automatica. Con icona HA: es. mdi:home",
+    alert_icon_help: "Emoji: lascia vuoto per icona automatica. Con icona HA: usa il selettore icone nativo.",
     use_ha_icon: "Usa icona Home Assistant (mdi:)",
+    show_badge: "Mostra badge",
+    badge_label: "Testo badge personalizzato",
+    badge_label_help: "Lascia vuoto per usare il testo di default del tema",
     delete: "Elimina",
     priority_1: "1 — Critico (rosso)",
     priority_2: "2 — Attenzione (arancione)",
@@ -358,15 +378,19 @@ const ET = {
     anim_roll:    "🎲 Roll — rotolamento",
     anim_curtain: "🎭 Curtain — sipario",
     entity_filter: "Filtro entità (testo)",
-    entity_filter_help: "Cerca tutte le entità il cui ID o nome contiene questo testo. Clicca sul numero di corrispondenze per vedere la lista. Usa {name}, {entity}, {state} nel messaggio. Es. filtro 'battery' → avviso per ogni batteria scarica.",
+    entity_filter_help: "Cerca tutte le entità il cui ID o nome contiene questo testo. Supporta wildcard * (es. sensor.battery_*_level). Clicca sul conteggio per vedere la lista e usare 'Inverti selezione'. Usa {name}, {entity}, {state} nel messaggio.",
     entity_filter_count: "entità corrispondono",
     entity_filter_excluded: "escluse",
     entity_filter_zero: "Nessuna entità corrisponde",
     entity_filter_exclude_tip: "Clicca su un'entità per escluderla — clicca di nuovo per includerla",
+    entity_filter_invert: "Inverti selezione",
     alert_attribute: "Attributo (opzionale)",
-    alert_attribute_help: "es. battery_level — lascia vuoto per usare lo stato entità",
+    alert_attribute_help: "es. battery_level — lascia vuoto per usare lo stato entità. Supporta percorsi annidati: es. activity.0.forecast",
     secondary_entity: "Entità valore secondario (opzionale)",
     secondary_entity_help: "Mostra il valore live di questa entità come riga aggiuntiva sotto il messaggio. Es. un sensore con lista di zone aperte.",
+    secondary_text: "Testo secondario statico (opzionale)",
+    secondary_text_help: "Testo fisso mostrato sotto il messaggio. Supporta {state}, {name}, {entity}. Non richiede un'entità sensore.",
+    show_filter_name: "Mostra nome entità (da entity_filter)",
     secondary_attribute: "Attributo valore secondario",
     conditions_section: "Condizioni aggiuntive",
     conditions_logic: "Logica",
@@ -399,9 +423,25 @@ const ET = {
     cycle_interval: "Cycle interval (seconds)",
     cycle_interval_help: "Seconds between alerts when multiple are active",
     show_when_clear: "Show when no alerts are active",
+    large_buttons: "Large always-visible buttons (💤 and 📋)",
+    show_snooze_bar: "Show snooze reactivation bar 💤",
     snooze_default_duration: "Snooze 💤 behaviour",
     snooze_default_duration_help: "Duration menu: tap on 💤 opens a menu to choose how long to snooze. Fixed duration: tap on 💤 snoozes immediately with no menu.",
     snooze_option_menu: "Show duration menu (as before)",
+    snooze_duration: "Snooze duration for this alert 💤",
+    snooze_duration_help: "Overrides the global setting. Empty = use global.",
+    snooze_duration_menu: "Duration menu",
+    snooze_duration_global: "Use global setting",
+    sound_enabled: "Play a sound when an alert appears",
+    sound_enabled_help: "Plays an auto-generated tone when an alert becomes active. Tone varies by category (Critical = double high beep, Warning = medium beep, Info = soft beep, OK = rising chime). Requires browser autoplay permission.",
+    sound_url: "Custom audio URL (global)",
+    sound_url_help: "URL of an .mp3 or .wav file to use instead of the generated sound. Leave empty for the generated tone.",
+    alert_sound: "Sound enabled for this alert",
+    alert_sound_url: "Custom audio URL for this alert",
+    alert_sound_url_help: "Overrides the global URL. Leave empty to use the global one.",
+    test_mode: "Test mode",
+    test_mode_desc: "Shows all alerts as active, ignoring conditions. Cycling animation is paused — expand an alert in the editor to preview it instantly on the card.",
+    test_mode_warning: "Remember to disable test mode before saving!",
     history_max_events: "History — max events to keep",
     history_max_events_help: "Automatically records every alert that becomes active. Tap 📋 on the card to view history with date/time. Data is stored in the browser.",
     history: "History",
@@ -417,11 +457,15 @@ const ET = {
     alert_state_help: "e.g. 'on', '80' (numeric with > < >= <=)",
     current_state: "Current state",
     alert_message: "Message to display",
+    alert_message_help: "Use {state} for live value, {name} for friendly name, {entity} for entity ID. E.g. 'Battery: {state}%'",
     alert_priority: "Priority",
     alert_theme: "Theme",
     alert_icon: "Icon",
-    alert_icon_help: "Emoji: leave empty for automatic. HA icon: e.g. mdi:home",
+    alert_icon_help: "Emoji: leave empty for automatic. HA icon: use the native icon picker.",
     use_ha_icon: "Use Home Assistant icon (mdi:)",
+    show_badge: "Show badge",
+    badge_label: "Custom badge label",
+    badge_label_help: "Leave empty to use the theme default label",
     delete: "Delete",
     priority_1: "1 — Critical (red)",
     priority_2: "2 — Warning (orange)",
@@ -454,15 +498,19 @@ const ET = {
     anim_roll:    "🎲 Roll — rotateY + slide",
     anim_curtain: "🎭 Curtain — theater open",
     entity_filter: "Entity filter (text)",
-    entity_filter_help: "Matches all entities whose ID or name contains this text. Click the match count to preview the list. Use {name}, {entity}, {state} in the message. E.g. filter 'battery' → one alert per low battery.",
+    entity_filter_help: "Matches all entities whose ID or name contains this text. Supports wildcard * (e.g. sensor.battery_*_level). Click the count to preview the list and use 'Invert selection'. Use {name}, {entity}, {state} in the message.",
     entity_filter_count: "entities match",
     entity_filter_excluded: "excluded",
     entity_filter_zero: "No entities match",
     entity_filter_exclude_tip: "Click an entity to exclude it — click again to re-include it",
+    entity_filter_invert: "Invert selection",
     alert_attribute: "Attribute (optional)",
-    alert_attribute_help: "e.g. battery_level — leave empty to use entity state",
+    alert_attribute_help: "e.g. battery_level — leave empty to use entity state. Supports nested paths: e.g. activity.0.forecast",
     secondary_entity: "Secondary value entity (optional)",
     secondary_entity_help: "Shows the live value of this entity as an extra line below the message. E.g. a sensor listing open zones or active alerts.",
+    secondary_text: "Static secondary text (optional)",
+    secondary_text_help: "Fixed text shown below the message. Supports {state}, {name}, {entity}. No sensor entity required.",
+    show_filter_name: "Show entity name (from entity_filter)",
     secondary_attribute: "Secondary value attribute",
     conditions_section: "Extra conditions",
     conditions_logic: "Logic",
@@ -495,9 +543,25 @@ const ET = {
     cycle_interval: "Intervalle de cycle (secondes)",
     cycle_interval_help: "Secondes entre les alertes quand plusieurs sont actives",
     show_when_clear: "Afficher quand aucune alerte n'est active",
+    large_buttons: "Grands boutons toujours visibles (💤 et 📋)",
+    show_snooze_bar: "Afficher la barre de réactivation snooze 💤",
     snooze_default_duration: "Comportement snooze 💤",
     snooze_default_duration_help: "Menu de durée: tap sur 💤 ouvre un menu pour choisir la durée. Durée fixe: tap sur 💤 met en veille immédiatement sans menu.",
     snooze_option_menu: "Afficher le menu de durée (comme avant)",
+    snooze_duration: "Durée snooze pour cette alerte 💤",
+    snooze_duration_help: "Remplace le réglage global. Vide = utiliser le global.",
+    snooze_duration_menu: "Menu de durée",
+    snooze_duration_global: "Utiliser le réglage global",
+    sound_enabled: "Jouer un son à l'apparition d'une alerte",
+    sound_enabled_help: "Joue un ton généré automatiquement quand une alerte devient active. Le ton varie par catégorie (Critique = double bip aigu, Avertissement = bip moyen, Info = bip doux, OK = carillon). Nécessite l'autorisation de lecture automatique du navigateur.",
+    sound_url: "URL audio personnalisée (globale)",
+    sound_url_help: "URL d'un fichier .mp3 ou .wav à utiliser à la place du son généré. Laisser vide pour le ton généré.",
+    alert_sound: "Son activé pour cette alerte",
+    alert_sound_url: "URL audio personnalisée pour cette alerte",
+    alert_sound_url_help: "Remplace l'URL globale. Laisser vide pour utiliser celle globale.",
+    test_mode: "Mode test",
+    test_mode_desc: "Affiche toutes les alertes comme actives, en ignorant leurs conditions. L'animation de défilement est suspendue — ouvrez une alerte dans l'éditeur pour la voir immédiatement sur la carte.",
+    test_mode_warning: "N'oubliez pas de désactiver le mode test avant de sauvegarder !",
     history_max_events: "Historique — événements maximum à conserver",
     history_max_events_help: "Enregistre automatiquement chaque alerte qui devient active. Tap sur 📋 dans la carte pour voir l'historique avec date/heure. Données sauvegardées dans le navigateur.",
     history: "Historique",
@@ -513,11 +577,15 @@ const ET = {
     alert_state_help: "ex. 'on', '80' (numérique avec > < >= <=)",
     current_state: "État actuel",
     alert_message: "Message à afficher",
+    alert_message_help: "Utilisez {state} pour la valeur live, {name} pour le nom, {entity} pour l'ID entité. Ex. 'Batterie : {state}%'",
     alert_priority: "Priorité",
     alert_theme: "Thème",
     alert_icon: "Icône",
-    alert_icon_help: "Emoji: laisser vide pour icône automatique. Icône HA: ex. mdi:home",
+    alert_icon_help: "Emoji: laisser vide pour icône automatique. Icône HA: utiliser le sélecteur d'icônes natif.",
     use_ha_icon: "Utiliser une icône Home Assistant (mdi:)",
+    show_badge: "Afficher le badge",
+    badge_label: "Texte du badge personnalisé",
+    badge_label_help: "Laisser vide pour utiliser le texte par défaut du thème",
     delete: "Supprimer",
     priority_1: "1 — Critique (rouge)",
     priority_2: "2 — Attention (orange)",
@@ -550,15 +618,19 @@ const ET = {
     anim_roll:    "🎲 Roll — roulement",
     anim_curtain: "🎭 Curtain — rideau de théâtre",
     entity_filter: "Filtre entité (texte)",
-    entity_filter_help: "Correspond à toutes les entités dont l'ID ou le nom contient ce texte. Cliquez sur le nombre de correspondances pour voir la liste. Utilisez {name}, {entity}, {state} dans le message. Ex. filtre 'battery' → une alerte par batterie faible.",
+    entity_filter_help: "Correspond à toutes les entités dont l'ID ou le nom contient ce texte. Supporte le wildcard * (ex. sensor.battery_*_level). Cliquez sur le compteur pour prévisualiser et utiliser 'Inverser la sélection'. Utilisez {name}, {entity}, {state} dans le message.",
     entity_filter_count: "entités correspondent",
     entity_filter_excluded: "exclues",
     entity_filter_zero: "Aucune entité ne correspond",
     entity_filter_exclude_tip: "Cliquez sur une entité pour l'exclure — cliquez à nouveau pour la réinclure",
+    entity_filter_invert: "Inverser la sélection",
     alert_attribute: "Attribut (optionnel)",
-    alert_attribute_help: "ex. battery_level — laisser vide pour utiliser l'état de l'entité",
+    alert_attribute_help: "ex. battery_level — laisser vide pour utiliser l'état de l'entité. Supporte les chemins imbriqués : ex. activity.0.forecast",
     secondary_entity: "Entité valeur secondaire (optionnel)",
     secondary_entity_help: "Affiche la valeur en direct de cette entité comme ligne supplémentaire sous le message. Ex. un capteur listant les zones ouvertes.",
+    secondary_text: "Texte secondaire statique (optionnel)",
+    secondary_text_help: "Texte fixe affiché sous le message. Supporte {state}, {name}, {entity}. Aucune entité capteur requise.",
+    show_filter_name: "Afficher le nom de l'entité (depuis entity_filter)",
     secondary_attribute: "Attribut valeur secondaire",
     conditions_section: "Conditions supplémentaires",
     conditions_logic: "Logique",
@@ -591,9 +663,25 @@ const ET = {
     cycle_interval: "Zyklusintervall (Sekunden)",
     cycle_interval_help: "Sekunden zwischen Warnungen wenn mehrere aktiv sind",
     show_when_clear: "Anzeigen wenn keine Warnung aktiv",
+    large_buttons: "Große, immer sichtbare Schaltflächen (💤 und 📋)",
+    show_snooze_bar: "Schlummern-Reaktivierungsleiste anzeigen 💤",
     snooze_default_duration: "Schlummern 💤 Verhalten",
     snooze_default_duration_help: "Dauermenü: Tap auf 💤 öffnet ein Menü zur Auswahl der Dauer. Feste Dauer: Tap auf 💤 schlummert sofort ohne Menü.",
     snooze_option_menu: "Dauermenü anzeigen (wie bisher)",
+    snooze_duration: "Schlummerdauer für diese Warnung 💤",
+    snooze_duration_help: "Überschreibt die globale Einstellung. Leer = global verwenden.",
+    snooze_duration_menu: "Dauermenü",
+    snooze_duration_global: "Globale Einstellung verwenden",
+    sound_enabled: "Ton bei Erscheinen einer Warnung abspielen",
+    sound_enabled_help: "Spielt einen automatisch generierten Ton ab, wenn eine Warnung aktiv wird. Der Ton variiert je nach Kategorie (Kritisch = doppelter hoher Piepton, Warnung = mittlerer Piepton, Info = sanfter Piepton, OK = aufsteigendes Chime). Erfordert Autoplay-Berechtigung im Browser.",
+    sound_url: "Benutzerdefinierte Audio-URL (global)",
+    sound_url_help: "URL einer .mp3- oder .wav-Datei anstelle des generierten Tons. Leer lassen für den generierten Ton.",
+    alert_sound: "Ton für diese Warnung aktiviert",
+    alert_sound_url: "Benutzerdefinierte Audio-URL für diese Warnung",
+    alert_sound_url_help: "Überschreibt die globale URL. Leer lassen, um die globale zu verwenden.",
+    test_mode: "Testmodus",
+    test_mode_desc: "Zeigt alle Warnungen als aktiv an, unabhängig von ihren Bedingungen. Die Scroll-Animation ist angehalten — öffne eine Warnung im Editor, um sie sofort auf der Karte anzuzeigen.",
+    test_mode_warning: "Denk daran, den Testmodus vor dem Speichern zu deaktivieren!",
     history_max_events: "Verlauf — maximale Ereignisse",
     history_max_events_help: "Zeichnet automatisch jede aktiv werdende Warnung auf. Tap auf 📋 in der Karte zum Anzeigen mit Datum/Uhrzeit. Daten werden im Browser gespeichert.",
     history: "Verlauf",
@@ -609,11 +697,15 @@ const ET = {
     alert_state_help: "z.B. 'on', '80' (numerisch mit > < >= <=)",
     current_state: "Aktueller Zustand",
     alert_message: "Anzuzeigende Nachricht",
+    alert_message_help: "Verwende {state} für den Live-Wert, {name} für den Namen, {entity} für die Entitäts-ID. Z.B. 'Batterie: {state}%'",
     alert_priority: "Priorität",
     alert_theme: "Thema",
     alert_icon: "Symbol",
-    alert_icon_help: "Emoji: leer lassen für automatisch. HA-Symbol: z.B. mdi:home",
+    alert_icon_help: "Emoji: leer lassen für automatisch. HA-Symbol: nativen Icon-Picker verwenden.",
     use_ha_icon: "Home Assistant Symbol verwenden (mdi:)",
+    show_badge: "Badge anzeigen",
+    badge_label: "Benutzerdefinierter Badge-Text",
+    badge_label_help: "Leer lassen für den Standard-Text des Themas",
     delete: "Löschen",
     priority_1: "1 — Kritisch (rot)",
     priority_2: "2 — Warnung (orange)",
@@ -646,15 +738,19 @@ const ET = {
     anim_roll:    "🎲 Roll — Rollen",
     anim_curtain: "🎭 Curtain — Theatervorhang",
     entity_filter: "Entitätsfilter (Text)",
-    entity_filter_help: "Findet alle Entitäten, deren ID oder Name diesen Text enthält. Klicke auf die Trefferanzahl um die Liste anzuzeigen. Verwende {name}, {entity}, {state} in der Nachricht. Z.B. Filter 'battery' → eine Warnung pro schwacher Batterie.",
+    entity_filter_help: "Findet alle Entitäten, deren ID oder Name diesen Text enthält. Unterstützt Wildcard * (z.B. sensor.battery_*_level). Klicke auf die Anzahl für die Vorschau und 'Auswahl umkehren'. Verwende {name}, {entity}, {state} in der Nachricht.",
     entity_filter_count: "Entitäten gefunden",
     entity_filter_excluded: "ausgeschlossen",
     entity_filter_zero: "Keine Entitäten gefunden",
     entity_filter_exclude_tip: "Entität anklicken zum Ausschließen — erneut klicken zum Einschließen",
+    entity_filter_invert: "Auswahl umkehren",
     alert_attribute: "Attribut (optional)",
-    alert_attribute_help: "z.B. battery_level — leer lassen für Entity-Zustand",
+    alert_attribute_help: "z.B. battery_level — leer lassen für Entity-Zustand. Unterstützt verschachtelte Pfade: z.B. activity.0.forecast",
     secondary_entity: "Sekundärwert-Entität (optional)",
     secondary_entity_help: "Zeigt den Live-Wert dieser Entität als zusätzliche Zeile unter der Nachricht. Z.B. ein Sensor mit einer Liste offener Zonen.",
+    secondary_text: "Statischer Sekundärtext (optional)",
+    secondary_text_help: "Fester Text unter der Nachricht. Unterstützt {state}, {name}, {entity}. Kein Sensor-Entity erforderlich.",
+    show_filter_name: "Entity-Name anzeigen (aus entity_filter)",
     secondary_attribute: "Sekundärwert-Attribut",
     conditions_section: "Zusätzliche Bedingungen",
     conditions_logic: "Logik",
@@ -687,9 +783,25 @@ const ET = {
     cycle_interval: "Cyclusinterval (seconden)",
     cycle_interval_help: "Seconden tussen meldingen wanneer meerdere actief zijn",
     show_when_clear: "Tonen wanneer geen meldingen actief zijn",
+    large_buttons: "Grote, altijd zichtbare knoppen (💤 en 📋)",
+    show_snooze_bar: "Sluimer-reactiveringsbalk weergeven 💤",
     snooze_default_duration: "Sluimer 💤 gedrag",
     snooze_default_duration_help: "Duurmenu: tik op 💤 opent een menu om de duur te kiezen. Vaste duur: tik op 💤 sluimert direct zonder menu.",
     snooze_option_menu: "Duurmenu tonen (zoals voorheen)",
+    snooze_duration: "Sluimerduur voor deze melding 💤",
+    snooze_duration_help: "Overschrijft de globale instelling. Leeg = globaal gebruiken.",
+    snooze_duration_menu: "Duurmenu",
+    snooze_duration_global: "Globale instelling gebruiken",
+    sound_enabled: "Geluid afspelen bij het verschijnen van een melding",
+    sound_enabled_help: "Speelt een automatisch gegenereerde toon af wanneer een melding actief wordt. De toon varieert per categorie (Kritiek = dubbele hoge piep, Waarschuwing = middelhoge piep, Info = zachte piep, OK = klim-chime). Vereist autoplay-toestemming in de browser.",
+    sound_url: "Aangepaste audio-URL (globaal)",
+    sound_url_help: "URL van een .mp3- of .wav-bestand in plaats van de gegenereerde toon. Leeg laten voor de gegenereerde toon.",
+    alert_sound: "Geluid ingeschakeld voor deze melding",
+    alert_sound_url: "Aangepaste audio-URL voor deze melding",
+    alert_sound_url_help: "Overschrijft de globale URL. Leeg laten om de globale te gebruiken.",
+    test_mode: "Testmodus",
+    test_mode_desc: "Toont alle meldingen als actief, ongeacht hun voorwaarden. De scroll-animatie is gepauzeerd — open een melding in de editor om deze direct op de kaart te zien.",
+    test_mode_warning: "Vergeet niet de testmodus uit te schakelen voor het opslaan!",
     history_max_events: "Geschiedenis — maximale gebeurtenissen",
     history_max_events_help: "Registreert automatisch elke melding die actief wordt. Tik op 📋 op de kaart voor de geschiedenis met datum/tijd. Gegevens worden opgeslagen in de browser.",
     history: "Geschiedenis",
@@ -705,11 +817,15 @@ const ET = {
     alert_state_help: "bijv. 'on', '80' (numeriek met > < >= <=)",
     current_state: "Huidige toestand",
     alert_message: "Te tonen bericht",
+    alert_message_help: "Gebruik {state} voor live waarde, {name} voor naam, {entity} voor entiteits-ID. Bijv. 'Batterij: {state}%'",
     alert_priority: "Prioriteit",
     alert_theme: "Thema",
     alert_icon: "Pictogram",
-    alert_icon_help: "Emoji: leeg laten voor automatisch. HA-pictogram: bijv. mdi:home",
+    alert_icon_help: "Emoji: leeg laten voor automatisch. HA-pictogram: gebruik de native pictogramselector.",
     use_ha_icon: "Home Assistant pictogram gebruiken (mdi:)",
+    show_badge: "Badge weergeven",
+    badge_label: "Aangepaste badge-tekst",
+    badge_label_help: "Leeg laten voor de standaardtekst van het thema",
     delete: "Verwijderen",
     priority_1: "1 — Kritiek (rood)",
     priority_2: "2 — Waarschuwing (oranje)",
@@ -742,15 +858,19 @@ const ET = {
     anim_roll:    "🎲 Roll — rollen",
     anim_curtain: "🎭 Curtain — theatergordijn",
     entity_filter: "Entiteitsfilter (tekst)",
-    entity_filter_help: "Vindt alle entiteiten waarvan het ID of de naam deze tekst bevat. Klik op het aantal overeenkomsten om de lijst te zien. Gebruik {name}, {entity}, {state} in het bericht. Bijv. filter 'battery' → één melding per lege batterij.",
+    entity_filter_help: "Vindt alle entiteiten waarvan het ID of de naam deze tekst bevat. Ondersteunt wildcard * (bijv. sensor.battery_*_level). Klik op het aantal voor de voorvertoning en 'Selectie omdraaien'. Gebruik {name}, {entity}, {state} in het bericht.",
     entity_filter_count: "entiteiten gevonden",
     entity_filter_excluded: "uitgesloten",
     entity_filter_zero: "Geen entiteiten gevonden",
     entity_filter_exclude_tip: "Klik op een entiteit om het uit te sluiten — klik opnieuw om het in te sluiten",
+    entity_filter_invert: "Selectie omdraaien",
     alert_attribute: "Attribuut (optioneel)",
-    alert_attribute_help: "bijv. battery_level — leeg laten voor entiteitstoestand",
+    alert_attribute_help: "bijv. battery_level — leeg laten voor entiteitstoestand. Ondersteunt geneste paden: bijv. activity.0.forecast",
     secondary_entity: "Secundaire waarde-entiteit (optioneel)",
     secondary_entity_help: "Toont de live waarde van deze entiteit als extra regel onder het bericht. Bijv. een sensor met een lijst van open zones.",
+    secondary_text: "Statische secundaire tekst (optioneel)",
+    secondary_text_help: "Vaste tekst onder het bericht. Ondersteunt {state}, {name}, {entity}. Geen sensor-entiteit vereist.",
+    show_filter_name: "Entiteitsnaam weergeven (uit entity_filter)",
     secondary_attribute: "Secundaire waarde-attribuut",
     conditions_section: "Extra voorwaarden",
     conditions_logic: "Logica",
@@ -780,38 +900,58 @@ const ET = {
   vi: {
     tab_general: "Chung",
     tab_alerts: "Báo động",
-    cycle_interval: "Khoảng thời gian lặp (giây)",
-    cycle_interval_help: "Số giây chuyển tiếp giữa các báo động khi có nhiều mục cùng hoạt động",
+    cycle_interval: "Chu kỳ chuyển đổi (giây)",
+    cycle_interval_help: "Số giây giữa các báo động khi có nhiều báo động đang hoạt động",
     show_when_clear: "Hiển thị khi không có báo động",
-    snooze_default_duration: "Chế độ tạm hoãn 💤",
-    snooze_default_duration_help: "Menu thời gian: chạm 💤 để chọn thời gian tạm hoãn. Thời gian cố định: chạm 💤 để tạm hoãn ngay lập tức.",
-    snooze_option_menu: "Hiển thị menu chọn thời gian (như trước)",
-    history_max_events: "Lịch sử — số sự kiện tối đa",
-    history_max_events_help: "Tự động ghi lại mỗi khi báo động kích hoạt. Chạm 📋 để xem lịch sử kèm ngày/giờ. Dữ liệu lưu tại trình duyệt.",
+    large_buttons: "Nút lớn luôn hiển thị (💤 và 📋)",
+    show_snooze_bar: "Hiển thị thanh kích hoạt lại tạm hoãn 💤",
+    snooze_default_duration: "Hành vi tạm hoãn 💤",
+    snooze_default_duration_help: "Menu thời gian: nhấn 💤 mở menu chọn thời lượng. Thời lượng cố định: nhấn 💤 tạm hoãn ngay không cần menu.",
+    snooze_option_menu: "Hiển thị menu thời lượng (như trước)",
+    snooze_duration: "Thời lượng tạm hoãn cho báo động này 💤",
+    snooze_duration_help: "Ghi đè cài đặt toàn cục. Trống = dùng cài đặt toàn cục.",
+    snooze_duration_menu: "Menu thời lượng",
+    snooze_duration_global: "Dùng cài đặt toàn cục",
+    sound_enabled: "Phát âm thanh khi xuất hiện báo động",
+    sound_enabled_help: "Phát tông tự động khi báo động kích hoạt. Tông thay đổi theo danh mục (Nghiêm trọng = hai tiếng bíp cao, Cảnh báo = tiếng bíp vừa, Thông tin = tiếng bíp nhẹ, OK = chime tăng dần). Yêu cầu trình duyệt cho phép tự động phát.",
+    sound_url: "URL âm thanh tùy chỉnh (toàn cục)",
+    sound_url_help: "URL của tệp .mp3 hoặc .wav thay thế âm thanh được tạo. Để trống để dùng tông tự động.",
+    alert_sound: "Âm thanh bật cho báo động này",
+    alert_sound_url: "URL âm thanh tùy chỉnh cho báo động này",
+    alert_sound_url_help: "Ghi đè URL toàn cục. Để trống để dùng URL toàn cục.",
+    test_mode: "Chế độ thử",
+    test_mode_desc: "Hiển thị tất cả báo động như đang hoạt động, bỏ qua điều kiện. Hoạt ảnh cuộn bị tạm dừng — mở một báo động trong trình chỉnh sửa để xem ngay trên thẻ.",
+    test_mode_warning: "Nhớ tắt chế độ thử trước khi lưu!",
+    history_max_events: "Lịch sử — số sự kiện tối đa lưu trữ",
+    history_max_events_help: "Tự động ghi lại mỗi báo động được kích hoạt. Nhấn 📋 trên thẻ để xem lịch sử với ngày/giờ. Dữ liệu được lưu trong trình duyệt.",
     history: "Lịch sử",
     history_clear: "Xóa",
-    history_empty: "Chưa có sự kiện nào được ghi lại",
+    history_empty: "Chưa có sự kiện nào",
     clear_message: "Thông báo khi không có báo động",
-    clear_theme: "Theme khi trạng thái an toàn",
-    alerts_list: "Danh sách báo động",
+    clear_theme: "Giao diện trạng thái 'mọi thứ ổn'",
+    alerts_list: "Danh sách báo động đã cài đặt",
     add_alert: "Thêm báo động",
     alert_entity: "Thực thể (Entity)",
     alert_operator: "Điều kiện",
     alert_state: "Giá trị",
-    alert_state_help: "VD: 'on', '80' (dùng kèm > < >= <= cho số)",
+    alert_state_help: "vd. 'on', '80' (số với > < >= <=)",
     current_state: "Trạng thái hiện tại",
-    alert_message: "Nội dung hiển thị",
-    alert_priority: "Độ ưu tiên",
+    alert_message: "Thông báo hiển thị",
+    alert_message_help: "Dùng {state} cho giá trị live, {name} cho tên, {entity} cho ID thực thể. Vd. 'Pin: {state}%'",
+    alert_priority: "Mức ưu tiên",
     alert_theme: "Giao diện",
-    alert_icon: "Icon",
-    alert_icon_help: "Emoji: để trống để tự động. HA icon: VD mdi:home",
-    use_ha_icon: "Dùng icon Home Assistant (mdi:)",
+    alert_icon: "Biểu tượng",
+    alert_icon_help: "Emoji: để trống để tự động. Biểu tượng HA: dùng bộ chọn biểu tượng gốc.",
+    use_ha_icon: "Dùng biểu tượng Home Assistant (mdi:)",
+    show_badge: "Hiển thị badge",
+    badge_label: "Nhãn badge tùy chỉnh",
+    badge_label_help: "Để trống để dùng nhãn mặc định của giao diện",
     delete: "Xóa",
-    priority_1: "1 — Khẩn cấp (đỏ)",
+    priority_1: "1 — Nghiêm trọng (đỏ)",
     priority_2: "2 — Cảnh báo (cam)",
-    priority_3: "3 — Thông tin (xanh dương)",
+    priority_3: "3 — Thông tin (xanh)",
     priority_4: "4 — Ưu tiên thấp (xám)",
-    no_alerts: "Chưa cấu hình báo động. Nhấn 'Thêm báo động' để bắt đầu.",
+    no_alerts: "Chưa có báo động nào. Nhấn 'Thêm báo động' để bắt đầu.",
     alert_num: "Báo động",
     collapse: "Đóng",
     expand: "Chỉnh sửa",
@@ -824,52 +964,56 @@ const ET = {
     op_lt: "< nhỏ hơn",
     op_gte: "≥ lớn hơn hoặc bằng",
     op_lte: "≤ nhỏ hơn hoặc bằng",
-    cycle_animation: "Hiệu ứng chuyển cảnh",
+    cycle_animation: "Hiệu ứng chuyển đổi",
     anim_fold:    "🃏 Fold — lật trang 3D",
     anim_slide:   "➡️ Slide — trượt ngang",
-    anim_fade:    "🌫️ Fade — hòa tan",
+    anim_fade:    "🌫️ Fade — mờ dần",
     anim_flip:    "🔄 Flip — lật thẻ",
-    anim_zoom:    "🔍 Zoom — phóng phóng",
-    anim_glitch:  "⚡ Glitch — nhiễu kỹ thuật số",
-    anim_bounce:  "🏀 Bounce — đàn hồi",
+    anim_zoom:    "🔍 Zoom — phóng to",
+    anim_glitch:  "⚡ Glitch — hiệu ứng kỹ thuật số",
+    anim_bounce:  "🏀 Bounce — nảy đàn hồi",
     anim_swing:   "🎪 Swing — con lắc",
     anim_blur:    "💨 Blur — làm mờ",
-    anim_split:   "✂️ Split — cắt dọc",
-    anim_roll:    "🎲 Roll — xoay ngang và trượt",
-    anim_curtain: "🎭 Curtain — mở rèm",
-    entity_filter: "Lọc thực thể (văn bản)",
-    entity_filter_help: "Khớp với các thực thể có ID hoặc tên chứa văn bản này. Chạm vào số lượng để xem trước. Dùng {name}, {entity}, {state} trong nội dung hiển thị. VD: lọc 'battery' → tạo báo động cho mỗi pin yếu.",
-    entity_filter_count: "thực thể khớp",
+    anim_split:   "✂️ Split — chia dọc",
+    anim_roll:    "🎲 Roll — cuộn",
+    anim_curtain: "🎭 Curtain — màn sân khấu",
+    entity_filter: "Bộ lọc thực thể (văn bản)",
+    entity_filter_help: "Tìm tất cả thực thể có ID hoặc tên chứa văn bản này. Hỗ trợ wildcard * (vd. sensor.battery_*_level). Nhấn số kết quả để xem danh sách và dùng 'Đảo ngược lựa chọn'. Dùng {name}, {entity}, {state} trong thông báo.",
+    entity_filter_count: "thực thể phù hợp",
     entity_filter_excluded: "đã loại trừ",
-    entity_filter_zero: "Không có thực thể nào khớp",
-    entity_filter_exclude_tip: "Chạm vào thực thể để loại trừ — chạm lại để thêm vào",
+    entity_filter_zero: "Không tìm thấy thực thể nào",
+    entity_filter_exclude_tip: "Nhấn vào thực thể để loại trừ — nhấn lại để đưa vào",
+    entity_filter_invert: "Đảo ngược lựa chọn",
     alert_attribute: "Thuộc tính (tùy chọn)",
-    alert_attribute_help: "VD: battery_level — để trống để dùng trạng thái chính",
+    alert_attribute_help: "vd. battery_level — để trống để dùng trạng thái thực thể. Hỗ trợ đường dẫn lồng nhau: vd. activity.0.forecast",
     secondary_entity: "Thực thể giá trị phụ (tùy chọn)",
-    secondary_entity_help: "Hiển thị giá trị thực tế dưới dòng nội dung hiển thị. VD: cảm biến liệt kê các cửa đang mở hoặc các báo động đang hoạt động.",
+    secondary_entity_help: "Hiển thị giá trị trực tiếp của thực thể này làm dòng bổ sung bên dưới thông báo.",
+    secondary_text: "Văn bản phụ tĩnh (tùy chọn)",
+    secondary_text_help: "Văn bản cố định hiển thị bên dưới thông báo. Hỗ trợ {state}, {name}, {entity}. Không cần thực thể cảm biến.",
+    show_filter_name: "Hiển thị tên thực thể (từ entity_filter)",
     secondary_attribute: "Thuộc tính giá trị phụ",
     conditions_section: "Điều kiện bổ sung",
     conditions_logic: "Logic",
-    logic_and: "AND — tất cả phải đúng",
-    logic_or: "OR — ít nhất một cái đúng",
+    logic_and: "AND — tất cả phải khớp",
+    logic_or: "OR — ít nhất một khớp",
     add_condition: "Thêm điều kiện",
     condition_entity: "Thực thể điều kiện",
     condition_attribute: "Thuộc tính điều kiện",
-    tap_action_section: "Hành động khi chạm",
-    hold_action_section: "Hành động khi giữ (500ms)",
-    snooze_action_section: "Hành động tạm hoãn 💤 — thực thi khi chạm nút snooze",
-    timer_theme_category: "Bộ hẹn giờ",
-    timer_placeholder_hint: "Dùng {timer} để hiển thị đếm ngược (VD: 'Tạm hoãn trong {timer}')",
+    tap_action_section: "Hành động nhấn",
+    hold_action_section: "Hành động giữ (500ms)",
+    snooze_action_section: "Hành động tạm hoãn 💤 — thực hiện khi nhấn nút tạm hoãn",
+    timer_theme_category: "Hẹn giờ",
+    timer_placeholder_hint: "Dùng {timer} trong thông báo để hiển thị đếm ngược (vd. 'Đã tắt trong {timer}')",
     action_type: "Loại hành động",
     action_none: "Không có",
     action_call_service: "Gọi dịch vụ",
-    action_navigate: "Chuyển trang",
-    action_more_info: "Thông tin thêm",
-    action_url: "Mở liên kết (URL)",
+    action_navigate: "Điều hướng đến trang",
+    action_more_info: "Xem thêm thông tin",
+    action_url: "Mở URL",
     action_service: "Dịch vụ HA",
-    action_target: "Thực thể mục tiêu",
-    action_service_data: "Dữ liệu bổ sung (JSON tùy chọn)",
-    action_navigate_path: "Đường dẫn (VD: /lovelace/home)",
+    action_target: "Thực thể đích",
+    action_service_data: "Dữ liệu thêm (JSON tùy chọn)",
+    action_navigate_path: "Đường dẫn (vd. /lovelace/home)",
     action_url_path: "URL cần mở",
     delete_item: "Xóa",
   },
@@ -1160,6 +1304,28 @@ class AlertTickerCardEditor extends LitElement {
         </div>
       </div>
 
+      <!-- Large buttons toggle -->
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("large_buttons")}</span>
+          <ha-switch
+            .checked="${!!cfg.large_buttons}"
+            @change="${(e) => this._fireConfig({ ...this._config, large_buttons: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+
+      <!-- Show snooze reactivation bar toggle -->
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("show_snooze_bar")}</span>
+          <ha-switch
+            .checked="${cfg.show_snooze_bar !== false}"
+            @change="${(e) => this._fireConfig({ ...this._config, show_snooze_bar: e.target.checked ? undefined : false })}"
+          ></ha-switch>
+        </div>
+      </div>
+
       <!-- Clear message + theme (only when show_when_clear is true) -->
       ${cfg.show_when_clear
         ? html`
@@ -1194,6 +1360,23 @@ class AlertTickerCardEditor extends LitElement {
       <button class="btn-add-alert" @click="${() => this._addAlert()}">
         + ${this._t("add_alert")}
       </button>
+
+      <div class="test-mode-box${this._config.test_mode ? " test-mode-box--active" : ""}">
+        <div class="test-mode-box-header">
+          <span class="test-mode-box-icon">🧪</span>
+          <div class="test-mode-box-text">
+            <div class="test-mode-box-title">${this._t("test_mode")}</div>
+            <div class="test-mode-box-desc">${this._t("test_mode_desc")}</div>
+          </div>
+          <ha-switch
+            .checked="${!!this._config.test_mode}"
+            @change="${(e) => this._fireConfig({ ...this._config, test_mode: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+        ${this._config.test_mode ? html`
+          <div class="test-mode-box-warning">⚠ ${this._t("test_mode_warning")}</div>
+        ` : ""}
+      </div>
     `;
   }
 
@@ -1258,16 +1441,10 @@ class AlertTickerCardEditor extends LitElement {
                   ></ha-textfield>
                   <div class="helper-text">
                     ${alert.entity_filter && this._hass ? (() => {
-                      const ft = alert.entity_filter.toLowerCase();
-                      const matched = Object.entries(this._hass.states).filter(([id, s]) =>
-                        id.toLowerCase().includes(ft) ||
-                        (s.attributes.friendly_name || "").toLowerCase().includes(ft)
-                      );
+                      const matchFn = this._buildFilterMatcher(alert.entity_filter);
                       const excluded = new Set(alert.entity_filter_exclude || []);
-                      // all matching entities (before exclusion)
                       const allMatched = Object.entries(this._hass.states).filter(([id, s]) =>
-                        id.toLowerCase().includes(ft) ||
-                        (s.attributes.friendly_name || "").toLowerCase().includes(ft)
+                        matchFn(id) || matchFn(s.attributes.friendly_name || "")
                       );
                       const activeCount = allMatched.filter(([id]) => !excluded.has(id)).length;
                       const excludedCount = excluded.size;
@@ -1288,6 +1465,10 @@ class AlertTickerCardEditor extends LitElement {
                           ${previewOpen ? html`
                             <div class="filter-entity-list">
                               <div class="filter-entity-tip">${this._t("entity_filter_exclude_tip")}</div>
+                              <button class="filter-invert-btn" @click="${() => {
+                                const newExcluded = allMatched.filter(([id]) => !excluded.has(id)).map(([id]) => id);
+                                this._updateAlert(index, { entity_filter_exclude: newExcluded.length ? newExcluded : undefined });
+                              }}">⇄ ${this._t("entity_filter_invert")}</button>
                               ${allMatched.map(([id, s]) => {
                                 const isExcluded = excluded.has(id);
                                 return html`
@@ -1328,6 +1509,16 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="helper-text">${this._t("alert_attribute_help")}</div>
                 </div>
 
+                <!-- Secondary static text -->
+                <div>
+                  <ha-textfield
+                    .label="${this._t("secondary_text")}"
+                    .value="${alert.secondary_text || ""}"
+                    @change="${(e) => this._updateAlert(index, { secondary_text: e.target.value || undefined })}"
+                  ></ha-textfield>
+                  <div class="helper-text">${this._t("secondary_text_help")}</div>
+                </div>
+
                 <!-- Secondary entity — live value shown on card below message -->
                 <div>
                 <ha-entity-picker
@@ -1345,6 +1536,16 @@ class AlertTickerCardEditor extends LitElement {
                     .value="${alert.secondary_attribute || ""}"
                     @change="${(e) => this._updateAlert(index, { secondary_attribute: e.target.value.trim() || undefined })}"
                   ></ha-textfield>
+                ` : ""}
+
+                <!-- show_filter_name toggle — only when entity_filter is set -->
+                ${alert.entity_filter ? html`
+                  <ha-formfield .label="${this._t("show_filter_name")}">
+                    <ha-switch
+                      ?checked="${alert.show_filter_name !== false}"
+                      @change="${(e) => this._updateAlert(index, { show_filter_name: e.target.checked ? undefined : false })}"
+                    ></ha-switch>
+                  </ha-formfield>
                 ` : ""}
 
                 <!-- Condition: operator + value -->
@@ -1427,6 +1628,7 @@ class AlertTickerCardEditor extends LitElement {
                   .value="${alert.message || ""}"
                   @change="${(e) => this._alertMessageChanged(e.target.value, index)}"
                 ></ha-textfield>
+                <div class="helper-text">${this._t("alert_message_help")}</div>
 
                 <!-- Theme per alert — timer entities see only timer themes -->
                 ${this._renderThemeSelect(
@@ -1448,13 +1650,39 @@ class AlertTickerCardEditor extends LitElement {
                       @change="${(e) => this._alertHaIconToggled(e.target.checked, index)}"
                     ></ha-switch>
                   </ha-formfield>
-                  <ha-textfield
-                    .label="${this._t("alert_icon")}"
-                    .value="${alert.icon || ""}"
-                    .placeholder="${alert.use_ha_icon ? "mdi:home" : "🔔"}"
-                    @change="${(e) => this._alertIconChanged(e.target.value, index)}"
-                  ></ha-textfield>
+                  ${alert.use_ha_icon
+                    ? html`<ha-icon-picker
+                        .label="${this._t("alert_icon")}"
+                        .value="${alert.icon || ""}"
+                        @value-changed="${(e) => this._alertIconChanged(e.detail.value, index)}"
+                      ></ha-icon-picker>`
+                    : html`<ha-textfield
+                        .label="${this._t("alert_icon")}"
+                        .value="${alert.icon || ""}"
+                        .placeholder="🔔"
+                        @change="${(e) => this._alertIconChanged(e.target.value, index)}"
+                      ></ha-textfield>`
+                  }
                   <div class="helper-text">${this._t("alert_icon_help")}</div>
+                </div>
+
+                <!-- Badge visibility + custom label -->
+                <div>
+                  <ha-formfield .label="${this._t("show_badge")}">
+                    <ha-switch
+                      ?checked="${alert.show_badge !== false}"
+                      @change="${(e) => this._updateAlert(index, { show_badge: e.target.checked ? undefined : false })}"
+                    ></ha-switch>
+                  </ha-formfield>
+                  ${alert.show_badge !== false ? html`
+                    <ha-textfield
+                      .label="${this._t("badge_label")}"
+                      .value="${alert.badge_label || ""}"
+                      .placeholder="${this._getDefaultBadgeLabel(alert)}"
+                      @change="${(e) => this._updateAlert(index, { badge_label: e.target.value.trim() || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("badge_label_help")}</div>
+                  ` : ""}
                 </div>
 
                 <!-- Move up/down buttons -->
@@ -1533,6 +1761,49 @@ class AlertTickerCardEditor extends LitElement {
                   + ${this._t("add_condition")}
                 </button>
 
+                <!-- Per-alert snooze duration override -->
+                <div class="section-divider">💤 ${this._t("snooze_duration")}</div>
+                <div class="native-select-wrap">
+                  <select class="native-select"
+                    @change="${(e) => {
+                      const v = e.target.value;
+                      this._updateAlert(index, { snooze_duration: v === "__global__" ? undefined : v === "__menu__" ? null : Number(v) });
+                    }}"
+                  >
+                    <option value="__global__" ?selected="${alert.snooze_duration === undefined}">${this._t("snooze_duration_global")}</option>
+                    <option value="__menu__"   ?selected="${alert.snooze_duration === null}">${this._t("snooze_duration_menu")}</option>
+                    <option value="1"  ?selected="${alert.snooze_duration === 1}">1h</option>
+                    <option value="4"  ?selected="${alert.snooze_duration === 4}">4h</option>
+                    <option value="8"  ?selected="${alert.snooze_duration === 8}">8h</option>
+                    <option value="24" ?selected="${alert.snooze_duration === 24}">24h</option>
+                  </select>
+                </div>
+                <div class="helper-text">${this._t("snooze_duration_help")}</div>
+
+                <!-- Sound per alert -->
+                <div class="section-divider">🔊 ${this._t("alert_sound")}</div>
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("alert_sound")}</span>
+                    <ha-switch
+                      .checked="${!!alert.sound}"
+                      @change="${(e) => this._updateAlert(index, { sound: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </div>
+                  <div class="helper-text">${this._t("sound_enabled_help")}</div>
+                </div>
+                ${alert.sound ? html`
+                  <div class="form-row">
+                    <ha-textfield
+                      .label="${this._t("alert_sound_url")}"
+                      .value="${alert.sound_url || ""}"
+                      placeholder="https://example.com/alert.mp3"
+                      @change="${(e) => this._updateAlert(index, { sound_url: e.target.value || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("alert_sound_url_help")}</div>
+                  </div>
+                ` : ""}
+
                 <!-- Tap action / Hold action / Snooze action -->
                 ${this._renderActionConfig(alert, index, "tap_action", this._t("tap_action_section"))}
                 ${this._renderActionConfig(alert, index, "hold_action", this._t("hold_action_section"))}
@@ -1598,7 +1869,11 @@ class AlertTickerCardEditor extends LitElement {
 
   _cycleAnimationChanged(value) {
     if (!value) return;
-    this._fireConfig({ ...this._config, cycle_animation: value });
+    // Fire with _preview_anim so the card plays one animation cycle as preview
+    this._fireConfig({ ...this._config, cycle_animation: value, _preview_anim: true });
+    setTimeout(() => {
+      this._fireConfig({ ...this._config, cycle_animation: value, _preview_anim: undefined });
+    }, 800);
   }
 
   _showWhenClearChanged(checked) {
@@ -1620,6 +1895,10 @@ class AlertTickerCardEditor extends LitElement {
       next.add(index);
     }
     this._expandedAlerts = next;
+    // In test mode: tell the card which alert to preview
+    if (this._config.test_mode && next.has(index)) {
+      this._fireConfig({ ...this._config, _preview_index: index });
+    }
     this.requestUpdate();
   }
 
@@ -1630,7 +1909,11 @@ class AlertTickerCardEditor extends LitElement {
     const defaultMsg = (DEFAULT_MSG[this._lang] || DEFAULT_MSG.en)[defaultTheme] || "";
     alerts.push({ entity: "", operator: "=", state: "on", message: defaultMsg, priority: 1, theme: defaultTheme, icon: "" });
     this._expandedAlerts = new Set([...this._expandedAlerts, newIndex]);
-    this._fireConfig({ ...this._config, alerts });
+    // In test mode: jump card to the newly added alert
+    const newConfig = this._config.test_mode
+      ? { ...this._config, alerts, _preview_index: newIndex }
+      : { ...this._config, alerts };
+    this._fireConfig(newConfig);
   }
 
   _deleteAlert(index) {
@@ -1727,6 +2010,24 @@ class AlertTickerCardEditor extends LitElement {
     }
   }
 
+  /** Builds a matcher function for entity_filter (mirrors card logic). */
+  _buildFilterMatcher(filter) {
+    const f = filter.toLowerCase();
+    if (f.includes("*")) {
+      const pattern = f.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+      const re = new RegExp(pattern);
+      return (text) => re.test(text.toLowerCase());
+    }
+    return (text) => text.toLowerCase().includes(f);
+  }
+
+  /** Returns the default badge label for a given alert based on its theme category */
+  _getDefaultBadgeLabel(alert) {
+    const cat = (THEME_META[alert.theme] || {}).category || "info";
+    const map = { critical: "critical", warning: "warning_label", info: "info_label", ok: "success_label", timer: "info_label" };
+    return this._t(map[cat] || "info_label");
+  }
+
   _alertAttributeChanged(value, index) {
     this._updateAlert(index, { attribute: value.trim() || undefined });
   }
@@ -1770,6 +2071,32 @@ class AlertTickerCardEditor extends LitElement {
     this._fireConfig({ ...this._config, alerts });
   }
 
+  /** Converts our action config format to ha-service-control value format */
+  _toServiceControlValue(cfg) {
+    return {
+      action: cfg.service || "",
+      target: cfg.target || {},
+      data: cfg.service_data || {},
+    };
+  }
+
+  /** Handles ha-service-control value-changed and saves back to our format */
+  _onServiceControlChanged(alertIndex, key, val) {
+    const alerts = [...(this._config.alerts || [])];
+    const current = alerts[alertIndex][key] || { action: "call-service" };
+    alerts[alertIndex] = {
+      ...alerts[alertIndex],
+      [key]: {
+        ...current,
+        action: "call-service",
+        service: val.action || val.service || current.service || "",
+        target: (val.target && Object.keys(val.target).length) ? val.target : undefined,
+        service_data: (val.data && Object.keys(val.data).length) ? val.data : undefined,
+      },
+    };
+    this._fireConfig({ ...this._config, alerts });
+  }
+
   /** Renders the action config form for tap_action or hold_action */
   _renderActionConfig(alert, index, key, sectionLabel) {
     const cfg = alert[key] || { action: "none" };
@@ -1789,40 +2116,12 @@ class AlertTickerCardEditor extends LitElement {
         </select>
       </div>
       ${type === "call-service" ? html`
-        <div class="native-select-wrap">
-          <label class="native-select-label">${this._t("action_service")}</label>
-          <select class="native-select"
-            @change="${(e) => this._setActionConfig(index, key, "service", e.target.value)}"
-          >
-            <option value="">—</option>
-            ${Object.entries(this._hass ? (this._hass.services || {}) : {})
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([domain, services]) => html`
-                <optgroup label="${domain}">
-                  ${Object.keys(services).sort().map((svc) => html`
-                    <option value="${domain}.${svc}"
-                      ?selected="${(cfg.service || "") === domain + "." + svc}"
-                    >${domain}.${svc}</option>
-                  `)}
-                </optgroup>
-              `)}
-          </select>
-        </div>
-        <ha-entity-picker
-          .label="${this._t("action_target")}"
+        <ha-service-control
           .hass="${this._hass}"
-          .value="${(cfg.target && cfg.target.entity_id) || ""}"
-          allow-custom-entity
-          @value-changed="${(e) => this._setActionConfig(index, key, "target", e.detail.value ? { entity_id: e.detail.value } : {})}"
-        ></ha-entity-picker>
-        <ha-textfield
-          .label="${this._t("action_service_data")}"
-          .value="${cfg.service_data ? JSON.stringify(cfg.service_data) : ""}"
-          @change="${(e) => {
-            try { this._setActionConfig(index, key, "service_data", JSON.parse(e.target.value || "{}")); }
-            catch (_) {}
-          }}"
-        ></ha-textfield>
+          .value="${this._toServiceControlValue(cfg)}"
+          .showAdvanced="${true}"
+          @value-changed="${(e) => this._onServiceControlChanged(index, key, e.detail.value)}"
+        ></ha-service-control>
       ` : ""}
       ${type === "navigate" ? html`
         <ha-textfield
@@ -1908,6 +2207,15 @@ class AlertTickerCardEditor extends LitElement {
   // -------------------------------------------------------------------------
   static get styles() {
     return css`
+      :host {
+        --mdc-text-field-fill-color: var(--input-fill-color, var(--secondary-background-color, transparent));
+        --mdc-select-fill-color: var(--input-fill-color, var(--secondary-background-color, transparent));
+        --mdc-text-field-ink-color: var(--primary-text-color);
+        --mdc-text-field-label-ink-color: var(--secondary-text-color);
+        --mdc-select-ink-color: var(--primary-text-color);
+        --mdc-select-label-ink-color: var(--secondary-text-color);
+      }
+
       .editor-wrapper {
         padding: 16px;
         font-family: var(--paper-font-body1_-_font-family, sans-serif);
@@ -1951,6 +2259,7 @@ class AlertTickerCardEditor extends LitElement {
       .form-row ha-textfield {
         width: 100%;
       }
+
       .form-row-inline {
         display: flex;
         align-items: center;
@@ -2091,6 +2400,24 @@ class AlertTickerCardEditor extends LitElement {
         max-height: 200px;
         overflow-y: auto;
       }
+      .filter-invert-btn {
+        display: block;
+        width: 100%;
+        margin: 4px 0;
+        padding: 4px 8px;
+        background: var(--secondary-background-color, #f5f5f5);
+        border: 1px solid var(--divider-color, #ddd);
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-align: center;
+        color: var(--primary-text-color);
+      }
+      .filter-invert-btn:hover {
+        background: var(--primary-color, #03a9f4);
+        color: white;
+        border-color: var(--primary-color, #03a9f4);
+      }
       .filter-entity-tip {
         font-size: 0.75rem;
         color: var(--secondary-text-color, #888);
@@ -2183,6 +2510,51 @@ class AlertTickerCardEditor extends LitElement {
       }
       .btn-add-alert:hover {
         opacity: 0.9;
+      }
+
+      /* ---- Test mode box ---- */
+      .test-mode-box {
+        margin-top: 16px;
+        border-radius: 10px;
+        border: 2px solid rgba(255, 180, 0, 0.35);
+        background: rgba(255, 180, 0, 0.07);
+        overflow: hidden;
+      }
+      .test-mode-box--active {
+        border-color: rgba(255, 180, 0, 0.80);
+        background: rgba(255, 180, 0, 0.15);
+      }
+      .test-mode-box-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+      }
+      .test-mode-box-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+      }
+      .test-mode-box-text {
+        flex: 1;
+      }
+      .test-mode-box-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--primary-text-color);
+      }
+      .test-mode-box-desc {
+        font-size: 0.78rem;
+        color: var(--secondary-text-color, #888);
+        margin-top: 2px;
+      }
+      .test-mode-box-warning {
+        background: rgba(255, 130, 0, 0.85);
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 6px 14px;
+        text-align: center;
+        letter-spacing: 0.02em;
       }
 
       /* ---- Empty state ---- */
