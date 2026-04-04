@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.0.5";
+const CARD_VERSION = "1.1.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels

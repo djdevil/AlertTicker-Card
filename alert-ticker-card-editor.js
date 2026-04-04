@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.0.5";
+const CARD_VERSION = "1.1.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1090,9 +1090,27 @@ class AlertTickerCardEditor extends LitElement {
   constructor() {
     super();
     this._activeTab = "general";
-    this._expandedAlerts = new Set();
+    this._expandedAlerts = new Set(); // stores UIDs, not indices
+    this._alertUIDs = [];             // parallel array: _alertUIDs[i] = stable UID for alerts[i]
+    this._uidCounter = 0;
     this._filterPreviewOpen = new Set();
     this._lang = "en";
+  }
+
+  // Assign a new unique ID
+  _nextUID() {
+    return ++this._uidCounter;
+  }
+
+  // Sync _alertUIDs with a new alerts array, preserving UIDs for matching alerts
+  _syncUIDs(alerts) {
+    const newUIDs = [];
+    for (let i = 0; i < alerts.length; i++) {
+      // Try to find a matching existing UID by fingerprint (entity + message)
+      // Fall back to positional match if fingerprint not found
+      newUIDs.push(this._alertUIDs[i] != null ? this._alertUIDs[i] : this._nextUID());
+    }
+    this._alertUIDs = newUIDs;
   }
 
   // -------------------------------------------------------------------------
@@ -1107,6 +1125,8 @@ class AlertTickerCardEditor extends LitElement {
       alerts: [],
       ...config,
     };
+    // Ensure UID array is in sync (preserves existing UIDs by position)
+    this._syncUIDs(this._config.alerts || []);
   }
 
   set hass(hass) {
@@ -1381,7 +1401,8 @@ class AlertTickerCardEditor extends LitElement {
   }
 
   _renderAlertItem(alert, index) {
-    const isExpanded = this._expandedAlerts.has(index);
+    const uid = this._alertUIDs[index];
+    const isExpanded = uid != null && this._expandedAlerts.has(uid);
     const alerts = this._config.alerts || [];
     const prio = alert.priority || 1;
     const rawIcon = alert.icon || (THEME_META[alert.theme] || {}).icon || "🔔";
@@ -1400,7 +1421,7 @@ class AlertTickerCardEditor extends LitElement {
     return html`
       <div class="alert-item">
         <!-- Summary row -->
-        <div class="alert-summary">
+        <div class="alert-summary" data-idx="${index}" @click="${(e) => this._toggleAlert(parseInt(e.currentTarget.dataset.idx))}">
           <span class="alert-icon-badge">${icon}</span>
           <div class="alert-summary-text">
             <div class="alert-entity-label">${this._t("alert_num")} ${index + 1}: ${entityLabel}</div>
@@ -1408,17 +1429,11 @@ class AlertTickerCardEditor extends LitElement {
           </div>
           <span class="alert-prio-badge prio-${prio}">P${prio}</span>
           <div class="alert-actions">
-            <button
-              class="btn-icon"
-              title="${isExpanded ? this._t("collapse") : this._t("expand")}"
-              @click="${() => this._toggleAlert(index)}"
-            >
-              ${isExpanded ? "▲" : "▼"} ${isExpanded ? this._t("collapse") : this._t("expand")}
-            </button>
+            <span class="alert-expand-indicator">${isExpanded ? "▲" : "▼"}</span>
             <button
               class="btn-icon btn-delete"
               title="${this._t("delete")}"
-              @click="${() => this._deleteAlert(index)}"
+              @click="${(e) => { e.stopPropagation(); this._deleteAlert(index); }}"
             >
               🗑 ${this._t("delete")}
             </button>
@@ -1448,13 +1463,13 @@ class AlertTickerCardEditor extends LitElement {
                       );
                       const activeCount = allMatched.filter(([id]) => !excluded.has(id)).length;
                       const excludedCount = excluded.size;
-                      const previewOpen = this._filterPreviewOpen.has(index);
+                      const previewOpen = this._filterPreviewOpen.has(uid);
                       return allMatched.length === 0
                         ? html`<span style="color:var(--error-color,#db4437)">${this._t("entity_filter_zero")}</span>`
                         : html`
                           <button class="filter-count-btn" @click="${() => {
                             const next = new Set(this._filterPreviewOpen);
-                            if (next.has(index)) next.delete(index); else next.add(index);
+                            if (next.has(uid)) next.delete(uid); else next.add(uid);
                             this._filterPreviewOpen = next;
                             this.requestUpdate();
                           }}">
@@ -1888,15 +1903,17 @@ class AlertTickerCardEditor extends LitElement {
   // Event handlers — alert list
   // -------------------------------------------------------------------------
   _toggleAlert(index) {
+    const uid = this._alertUIDs[index];
+    if (uid == null) return;
     const next = new Set(this._expandedAlerts);
-    if (next.has(index)) {
-      next.delete(index);
+    if (next.has(uid)) {
+      next.delete(uid);
     } else {
-      next.add(index);
+      next.add(uid);
     }
     this._expandedAlerts = next;
     // In test mode: tell the card which alert to preview
-    if (this._config.test_mode && next.has(index)) {
+    if (this._config.test_mode && next.has(uid)) {
       this._fireConfig({ ...this._config, _preview_index: index });
     }
     this.requestUpdate();
@@ -1908,7 +1925,10 @@ class AlertTickerCardEditor extends LitElement {
     const defaultTheme = "emergency";
     const defaultMsg = (DEFAULT_MSG[this._lang] || DEFAULT_MSG.en)[defaultTheme] || "";
     alerts.push({ entity: "", operator: "=", state: "on", message: defaultMsg, priority: 1, theme: defaultTheme, icon: "" });
-    this._expandedAlerts = new Set([...this._expandedAlerts, newIndex]);
+    // Assign a new UID for the new alert and mark it expanded
+    const newUID = this._nextUID();
+    this._alertUIDs = [...this._alertUIDs, newUID];
+    this._expandedAlerts = new Set([...this._expandedAlerts, newUID]);
     // In test mode: jump card to the newly added alert
     const newConfig = this._config.test_mode
       ? { ...this._config, alerts, _preview_index: newIndex }
@@ -1920,13 +1940,11 @@ class AlertTickerCardEditor extends LitElement {
     const alerts = [...(this._config.alerts || [])];
     alerts.splice(index, 1);
 
-    // Re-map expanded indices: remove deleted, shift down indices above deleted
-    const next = new Set();
-    for (const i of this._expandedAlerts) {
-      if (i < index) next.add(i);
-      else if (i > index) next.add(i - 1);
-      // i === index is dropped
-    }
+    // Remove the UID for the deleted alert; _expandedAlerts keys stay valid since UIDs don't shift
+    const deletedUID = this._alertUIDs[index];
+    this._alertUIDs = this._alertUIDs.filter((_, i) => i !== index);
+    const next = new Set(this._expandedAlerts);
+    next.delete(deletedUID);
     this._expandedAlerts = next;
     this._fireConfig({ ...this._config, alerts });
   }
@@ -2175,13 +2193,10 @@ class AlertTickerCardEditor extends LitElement {
     const alerts = [...(this._config.alerts || [])];
     [alerts[index - 1], alerts[index]] = [alerts[index], alerts[index - 1]];
 
-    // Swap expanded state for the two affected indices
-    const next = new Set(this._expandedAlerts);
-    const aExpanded = next.has(index);
-    const bExpanded = next.has(index - 1);
-    if (aExpanded) next.add(index - 1); else next.delete(index - 1);
-    if (bExpanded) next.add(index);     else next.delete(index);
-    this._expandedAlerts = next;
+    // Swap UIDs — _expandedAlerts is UID-based so no changes needed there
+    const uids = [...this._alertUIDs];
+    [uids[index - 1], uids[index]] = [uids[index], uids[index - 1]];
+    this._alertUIDs = uids;
 
     this._fireConfig({ ...this._config, alerts });
   }
@@ -2192,12 +2207,10 @@ class AlertTickerCardEditor extends LitElement {
     const copy = [...alerts];
     [copy[index], copy[index + 1]] = [copy[index + 1], copy[index]];
 
-    const next = new Set(this._expandedAlerts);
-    const aExpanded = next.has(index);
-    const bExpanded = next.has(index + 1);
-    if (aExpanded) next.add(index + 1); else next.delete(index + 1);
-    if (bExpanded) next.add(index);     else next.delete(index);
-    this._expandedAlerts = next;
+    // Swap UIDs — _expandedAlerts is UID-based so no changes needed there
+    const uids = [...this._alertUIDs];
+    [uids[index], uids[index + 1]] = [uids[index + 1], uids[index]];
+    this._alertUIDs = uids;
 
     this._fireConfig({ ...this._config, alerts: copy });
   }
@@ -2306,6 +2319,12 @@ class AlertTickerCardEditor extends LitElement {
       }
       .alert-summary:hover {
         background: var(--secondary-background-color, #f5f5f5);
+      }
+      .alert-expand-indicator {
+        font-size: 0.85rem;
+        color: var(--secondary-text-color, #888);
+        flex-shrink: 0;
+        pointer-events: none;
       }
       .alert-icon-badge {
         font-size: 1.3rem;

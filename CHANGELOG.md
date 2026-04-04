@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] - 2026-04-04
+
+### Fixed
+
+- **Editor opened the wrong alert when clicking to expand** — the expansion state was tracked by array index. When lit-html re-rendered the list after any config change, stale index bindings could cause a different alert to appear expanded than the one actually clicked. Fixed by assigning a stable internal UID to each alert and tracking expansion by UID instead of index. The click handler also now reads the index from a `data-idx` DOM attribute at event time, eliminating any closure-capture mismatch.
+
+  > ⚠️ **Migration note:** due to the new UID system, alerts already present in existing card configurations will be assigned UIDs the first time the editor is opened. No YAML changes are required — your existing `alerts:` block is fully compatible. However, if you notice the editor still behaving unexpectedly after upgrading, **delete and re-add the affected alerts** in the visual editor to force a clean UID assignment.
+
+---
+
 ## [1.1.0] - 2026-04-03
 
 ### Added
