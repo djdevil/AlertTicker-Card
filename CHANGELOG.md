@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.2] - 2026-04-05
+
+### Added
+
+- **9 new themes to align all categories** — closes [#22](https://github.com/djdevil/AlertTicker-Card/issues/22). All main categories now have 9 themes each (previously critical and style had 9, while warning/info/ok had only 6):
+  - **Warning:** `smoke` 🌫️ (drifting grey puffs), `wind` 💨 (fast horizontal streaks), `leak` 💧 (blue drip animation)
+  - **Info:** `cloud` ☁️ (soft floating pulse), `satellite` 📡 (radiating signal waves), `tips` 💡 (amber lightbulb glow)
+  - **Ok:** `sunrise` 🌅 (warm golden rising light), `plant` 🌱 (green growing pulse), `lock` 🔒 (deep blue secure pulse)
+- Default messages for all 9 new themes in all 6 supported languages (it, en, fr, de, nl, vi)
+
+---
+
 ## [1.1.1] - 2026-04-04
 
 ### Fixed

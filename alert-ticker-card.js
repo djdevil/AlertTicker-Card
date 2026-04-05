@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.1";
+const CARD_VERSION = "1.1.2";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -70,6 +70,15 @@ const THEME_META = {
   cyberpunk:    { icon: "🤖", category: "style"    },
   vapor:        { icon: "🌸", category: "style"    },
   lava:         { icon: "🌋", category: "style"    },
+  smoke:        { icon: "🌫️", category: "warning"  },
+  wind:         { icon: "💨", category: "warning"  },
+  leak:         { icon: "💧", category: "warning"  },
+  cloud:        { icon: "☁️", category: "info"     },
+  satellite:    { icon: "📡", category: "info"     },
+  tips:         { icon: "💡", category: "info"     },
+  sunrise:      { icon: "🌅", category: "ok"       },
+  plant:        { icon: "🌱", category: "ok"       },
+  lock:         { icon: "🔒", category: "ok"       },
   // --- Timer (only shown when entity is timer.*) ---
   countdown:    { icon: "⏱️", category: "timer"    },
   hourglass:    { icon: "⏳", category: "timer"    },
@@ -1883,6 +1892,168 @@ class AlertTickerCard extends LitElement {
     `;
   }
 
+  /** SMOKE — grey drifting puffs, warning */
+  _renderSmoke(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-smoke">
+        <div class="sm-drift"><div class="sm-p1"></div><div class="sm-p2"></div><div class="sm-p3"></div></div>
+        <div class="sm-icon">${icon}</div>
+        <div class="sm-content">
+          <div class="sm-badge">${label}</div>
+          <div class="sm-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="sm-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** WIND — fast horizontal streaks, warning */
+  _renderWind(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-wind">
+        <div class="wd-lines"></div>
+        <div class="wd-icon">${icon}</div>
+        <div class="wd-content">
+          <div class="wd-badge">${label}</div>
+          <div class="wd-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="wd-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** LEAK — slow blue drip, warning */
+  _renderLeak(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-leak">
+        <div class="lk-drip"><div class="lk-drop lk-d1"></div><div class="lk-drop lk-d2"></div><div class="lk-drop lk-d3"></div></div>
+        <div class="lk-icon">${icon}</div>
+        <div class="lk-content">
+          <div class="lk-badge">${label}</div>
+          <div class="lk-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="lk-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** CLOUD — soft grey-blue floating pulse, info */
+  _renderCloud(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-cloud">
+        <div class="cw-float"></div>
+        <div class="cw-icon">${icon}</div>
+        <div class="cw-content">
+          <div class="cw-badge">${label}</div>
+          <div class="cw-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="cw-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** SATELLITE — radiating signal waves, info */
+  _renderSatellite(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-satellite">
+        <div class="sl-waves"><div class="sl-w sl-w1"></div><div class="sl-w sl-w2"></div><div class="sl-w sl-w3"></div></div>
+        <div class="sl-icon">${icon}</div>
+        <div class="sl-content">
+          <div class="sl-badge">${label}</div>
+          <div class="sl-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="sl-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** TIPS — warm amber lightbulb glow, info */
+  _renderTips(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-tips">
+        <div class="ts-glow"></div>
+        <div class="ts-icon">${icon}</div>
+        <div class="ts-content">
+          <div class="ts-badge">${label}</div>
+          <div class="ts-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="ts-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** SUNRISE — warm golden rising light, ok */
+  _renderSunrise(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-sunrise">
+        <div class="sn-ray"></div>
+        <div class="sn-icon">${icon}</div>
+        <div class="sn-content">
+          <div class="sn-badge">${label}</div>
+          <div class="sn-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="sn-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** PLANT — deep green growing pulse, ok */
+  _renderPlant(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-plant">
+        <div class="pn-grow"></div>
+        <div class="pn-icon">${icon}</div>
+        <div class="pn-content">
+          <div class="pn-badge">${label}</div>
+          <div class="pn-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="pn-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
+  /** LOCK — deep blue secure pulse, ok */
+  _renderLock(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <ha-card class="at-lock">
+        <div class="lo-scan"></div>
+        <div class="lo-icon">${icon}</div>
+        <div class="lo-content">
+          <div class="lo-badge">${label}</div>
+          <div class="lo-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="lo-right">${this._renderCounter()}</div>
+      </ha-card>
+    `;
+  }
+
   /**
    * Dispatch to a theme renderer by name, passing the alert object.
    */
@@ -2033,6 +2204,15 @@ class AlertTickerCard extends LitElement {
       case "cyberpunk":    return this._renderCyberpunk(alert);
       case "vapor":        return this._renderVapor(alert);
       case "lava":         return this._renderLava(alert);
+      case "smoke":        return this._renderSmoke(alert);
+      case "wind":         return this._renderWind(alert);
+      case "leak":         return this._renderLeak(alert);
+      case "cloud":        return this._renderCloud(alert);
+      case "satellite":    return this._renderSatellite(alert);
+      case "tips":         return this._renderTips(alert);
+      case "sunrise":      return this._renderSunrise(alert);
+      case "plant":        return this._renderPlant(alert);
+      case "lock":         return this._renderLock(alert);
       case "countdown":    return this._renderCountdown(alert);
       case "hourglass":    return this._renderHourglass(alert);
       case "timer_pulse":  return this._renderTimerPulse(alert);
@@ -3973,6 +4153,302 @@ class AlertTickerCard extends LitElement {
       .lv-right   { flex-shrink: 0; position: relative; }
       .lv-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ff6d00; margin-bottom: 3px; }
       .lv-title { font-weight: 600; color: #fff3e0; }
+
+      /* -----------------------------------------------------------------------
+       * SMOKE — drifting grey puffs, warning
+       * --------------------------------------------------------------------- */
+      .at-smoke {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #0a0a0a, #151515);
+        border: 1px solid rgba(160,160,160,0.4); border-radius: 12px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 18px rgba(120,120,120,0.08);
+      }
+      .sm-drift { position: absolute; inset: 0; pointer-events: none; }
+      .sm-p1,.sm-p2,.sm-p3 {
+        position: absolute; border-radius: 50%;
+        background: radial-gradient(circle, rgba(180,180,180,0.18) 0%, transparent 70%);
+        animation: smDrift 6s ease-in-out infinite;
+      }
+      .sm-p1 { width: 70px; height: 50px; bottom: -10px; left: 8%;  animation-delay: 0s; }
+      .sm-p2 { width: 55px; height: 40px; bottom: -8px;  left: 42%; animation-delay: 2s; }
+      .sm-p3 { width: 45px; height: 35px; bottom: -5px;  left: 70%; animation-delay: 4s; }
+      @keyframes smDrift {
+        0%,100% { transform: translateY(0) translateX(0) scale(1);   opacity: 0.45; }
+        50%      { transform: translateY(-22px) translateX(8px) scale(1.2); opacity: 0.85; }
+      }
+      .sm-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 8px rgba(180,180,180,0.5));
+        animation: smWobble 4s ease-in-out infinite;
+      }
+      @keyframes smWobble { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08) translateY(-3px); } }
+      .sm-content { flex: 1; min-width: 0; position: relative; }
+      .sm-right   { flex-shrink: 0; position: relative; }
+      .sm-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #9e9e9e; margin-bottom: 3px; }
+      .sm-title { font-weight: 600; color: #eeeeee; }
+
+      /* -----------------------------------------------------------------------
+       * WIND — fast horizontal streaks, warning
+       * --------------------------------------------------------------------- */
+      .at-wind {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #00080d, #001018);
+        border: 1px solid rgba(100,200,255,0.35); border-radius: 12px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 18px rgba(100,200,255,0.06);
+      }
+      .wd-lines {
+        position: absolute; inset: 0; pointer-events: none;
+        background: repeating-linear-gradient(
+          90deg, transparent 0, transparent 28px,
+          rgba(100,200,255,0.07) 28px, rgba(100,200,255,0.07) 32px,
+          transparent 32px, transparent 60px,
+          rgba(100,200,255,0.04) 60px, rgba(100,200,255,0.04) 63px);
+        animation: wdFlow 0.8s linear infinite;
+      }
+      @keyframes wdFlow { to { transform: translateX(63px); } }
+      .wd-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 10px rgba(100,200,255,0.8));
+        animation: wdSway 1.2s ease-in-out infinite;
+      }
+      @keyframes wdSway { 0%,100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+      .wd-content { flex: 1; min-width: 0; position: relative; }
+      .wd-right   { flex-shrink: 0; position: relative; }
+      .wd-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #64c8ff; margin-bottom: 3px; }
+      .wd-title { font-weight: 600; color: #e0f4ff; }
+
+      /* -----------------------------------------------------------------------
+       * LEAK — slow blue drip, warning
+       * --------------------------------------------------------------------- */
+      .at-leak {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #000512, #000d20);
+        border: 1px solid rgba(30,136,229,0.45); border-radius: 12px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 18px rgba(30,136,229,0.08);
+      }
+      .lk-drip { position: absolute; inset: 0; pointer-events: none; }
+      .lk-drop {
+        position: absolute; width: 6px; height: 10px; border-radius: 50% 50% 60% 60%;
+        background: rgba(30,136,229,0.65);
+        animation: lkDrop 3.5s ease-in infinite;
+      }
+      .lk-d1 { top: -10px; left: 20%; animation-delay: 0s; }
+      .lk-d2 { top: -10px; left: 50%; animation-delay: 1.2s; }
+      .lk-d3 { top: -10px; left: 76%; animation-delay: 2.4s; }
+      @keyframes lkDrop {
+        0%   { transform: translateY(0);    opacity: 0; }
+        10%  { opacity: 1; }
+        80%  { opacity: 0.8; }
+        100% { transform: translateY(80px); opacity: 0; }
+      }
+      .lk-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 10px rgba(30,136,229,0.8));
+        animation: lkBob 2s ease-in-out infinite;
+      }
+      @keyframes lkBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+      .lk-content { flex: 1; min-width: 0; position: relative; }
+      .lk-right   { flex-shrink: 0; position: relative; }
+      .lk-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #1e88e5; margin-bottom: 3px; }
+      .lk-title { font-weight: 600; color: #e3f2fd; }
+
+      /* -----------------------------------------------------------------------
+       * CLOUD — soft grey-blue floating pulse, info
+       * --------------------------------------------------------------------- */
+      .at-cloud {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #080c10, #0d1520);
+        border: 1px solid rgba(144,164,174,0.35); border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: cwFloat 4s ease-in-out infinite;
+      }
+      @keyframes cwFloat {
+        0%,100% { box-shadow: 0 0 18px rgba(144,164,174,0.1); }
+        50%      { box-shadow: 0 0 32px rgba(144,164,174,0.22); }
+      }
+      .cw-float {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 30% 60%, rgba(144,164,174,0.07) 0%, transparent 70%);
+        animation: cwPulse 4s ease-in-out infinite; pointer-events: none;
+      }
+      @keyframes cwPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+      .cw-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 8px rgba(144,164,174,0.6));
+        animation: cwBob 5s ease-in-out infinite;
+      }
+      @keyframes cwBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+      .cw-content { flex: 1; min-width: 0; position: relative; }
+      .cw-right   { flex-shrink: 0; position: relative; }
+      .cw-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #90a4ae; margin-bottom: 3px; }
+      .cw-title { font-weight: 600; color: #eceff1; }
+
+      /* -----------------------------------------------------------------------
+       * SATELLITE — radiating signal waves, info
+       * --------------------------------------------------------------------- */
+      .at-satellite {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #000a14, #001020);
+        border: 1px solid rgba(0,230,118,0.3); border-radius: 12px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 18px rgba(0,230,118,0.06);
+      }
+      .sl-waves { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+      .sl-w {
+        position: absolute; top: 50%; left: 50%;
+        width: 0; height: 0;
+        border-radius: 50%; border: 1.5px solid rgba(0,230,118,0.7);
+        transform: translate(-50%,-50%);
+        animation: slWave 2s ease-out infinite;
+      }
+      .sl-w1 { animation-delay: 0s; }
+      .sl-w2 { animation-delay: 0.66s; }
+      .sl-w3 { animation-delay: 1.33s; }
+      @keyframes slWave {
+        0%   { width: 4px;  height: 4px;  opacity: 1; }
+        100% { width: 55px; height: 55px; opacity: 0; }
+      }
+      .sl-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 8px rgba(0,230,118,0.7));
+        animation: slBlink 2s ease-in-out infinite;
+      }
+      @keyframes slBlink { 0%,80%,100% { opacity: 1; } 85%,95% { opacity: 0.3; } }
+      .sl-content { flex: 1; min-width: 0; position: relative; }
+      .sl-right   { flex-shrink: 0; position: relative; }
+      .sl-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #00e676; margin-bottom: 3px; }
+      .sl-title { font-weight: 600; color: #e8f5e9; }
+
+      /* -----------------------------------------------------------------------
+       * TIPS — warm amber lightbulb glow, info
+       * --------------------------------------------------------------------- */
+      .at-tips {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #0d0900, #1a1200);
+        border: 1px solid rgba(255,193,7,0.35); border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: tsGlow 3s ease-in-out infinite;
+      }
+      @keyframes tsGlow {
+        0%,100% { box-shadow: 0 0 18px rgba(255,193,7,0.12); }
+        50%      { box-shadow: 0 0 38px rgba(255,193,7,0.28); }
+      }
+      .ts-glow {
+        position: absolute; top: -20%; left: 30px;
+        width: 60px; height: 140%;
+        background: radial-gradient(ellipse at center, rgba(255,193,7,0.12) 0%, transparent 70%);
+        animation: tsPulse 3s ease-in-out infinite; pointer-events: none;
+      }
+      @keyframes tsPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+      .ts-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        animation: tsFlicker 4s ease-in-out infinite;
+      }
+      @keyframes tsFlicker {
+        0%,85%,100% { filter: drop-shadow(0 0 12px rgba(255,193,7,0.9)); }
+        88%,96%     { filter: drop-shadow(0 0 4px rgba(255,193,7,0.3)); }
+      }
+      .ts-content { flex: 1; min-width: 0; position: relative; }
+      .ts-right   { flex-shrink: 0; position: relative; }
+      .ts-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ffc107; margin-bottom: 3px; }
+      .ts-title { font-weight: 600; color: #fff8e1; }
+
+      /* -----------------------------------------------------------------------
+       * SUNRISE — warm golden rising light, ok
+       * --------------------------------------------------------------------- */
+      .at-sunrise {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #0d0500, #180c00);
+        border: 1px solid rgba(255,160,0,0.4); border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: snRise 4s ease-in-out infinite;
+      }
+      @keyframes snRise {
+        0%,100% { box-shadow: 0 0 18px rgba(255,160,0,0.15); }
+        50%      { box-shadow: 0 0 40px rgba(255,160,0,0.35); }
+      }
+      .sn-ray {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 55%;
+        background: linear-gradient(0deg, rgba(255,160,0,0.14) 0%, transparent 100%);
+        animation: snRayPulse 4s ease-in-out infinite; pointer-events: none;
+      }
+      @keyframes snRayPulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+      .sn-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 14px rgba(255,160,0,0.9));
+        animation: snFloat 4s ease-in-out infinite;
+      }
+      @keyframes snFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+      .sn-content { flex: 1; min-width: 0; position: relative; }
+      .sn-right   { flex-shrink: 0; position: relative; }
+      .sn-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ffa000; margin-bottom: 3px; }
+      .sn-title { font-weight: 600; color: #fff8e1; }
+
+      /* -----------------------------------------------------------------------
+       * PLANT — deep green growing pulse, ok
+       * --------------------------------------------------------------------- */
+      .at-plant {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #010d00, #011800);
+        border: 1px solid rgba(0,200,83,0.4); border-radius: 12px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 0 18px rgba(0,200,83,0.06);
+      }
+      .pn-grow {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+        border-radius: 0 0 12px 12px;
+        background: linear-gradient(90deg, #00c853, #69f0ae, #00c853);
+        background-size: 200% 100%;
+        animation: pnGrow 3s ease-in-out infinite;
+      }
+      @keyframes pnGrow {
+        0%,100% { background-position: 0% 50%;   box-shadow: none; }
+        50%      { background-position: 100% 50%; box-shadow: 0 0 10px rgba(0,200,83,0.7); }
+      }
+      .pn-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 10px rgba(0,200,83,0.7));
+        animation: pnPulse 3s ease-in-out infinite;
+      }
+      @keyframes pnPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+      .pn-content { flex: 1; min-width: 0; position: relative; }
+      .pn-right   { flex-shrink: 0; position: relative; }
+      .pn-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #00c853; margin-bottom: 3px; }
+      .pn-title { font-weight: 600; color: #e8f5e9; }
+
+      /* -----------------------------------------------------------------------
+       * LOCK — deep blue secure pulse, ok
+       * --------------------------------------------------------------------- */
+      .at-lock {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #00030d, #000616);
+        border: 2px solid #1565c0; border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: loSecure 3s ease-in-out infinite;
+      }
+      @keyframes loSecure {
+        0%,100% { box-shadow: 0 0 18px rgba(21,101,192,0.3); border-color: #1565c0; }
+        50%      { box-shadow: 0 0 38px rgba(21,101,192,0.6); border-color: #1976d2; }
+      }
+      .lo-scan {
+        position: absolute; top: -100%; left: 0; right: 0; height: 100%;
+        background: linear-gradient(180deg, transparent 0%, rgba(21,101,192,0.1) 50%, transparent 100%);
+        animation: loScan 4s linear infinite; pointer-events: none;
+      }
+      @keyframes loScan { to { top: 200%; } }
+      .lo-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 12px rgba(21,101,192,0.9));
+        animation: loPulse 3s ease-in-out infinite;
+      }
+      @keyframes loPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+      .lo-content { flex: 1; min-width: 0; position: relative; }
+      .lo-right   { flex-shrink: 0; position: relative; }
+      .lo-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #1976d2; margin-bottom: 3px; }
+      .lo-title { font-weight: 600; color: #e3f2fd; }
 
       /* -----------------------------------------------------------------------
        * SNOOZE HOST + BUTTON + MENU
