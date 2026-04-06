@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.5";
+const CARD_VERSION = "1.1.6";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -454,7 +454,7 @@ const ET = {
     secondary_text: "Testo secondario statico (opzionale)",
     secondary_text_help: "Testo fisso mostrato sotto il messaggio. Supporta {state}, {name}, {entity}. Non richiede un'entità sensore.",
     show_filter_name: "Mostra nome entità (da entity_filter)",
-    show_filter_state: "Mostra stato tradotto affianco al nome",
+    show_filter_state: "Mostra stato",
     secondary_attribute: "Attributo valore secondario",
     show_secondary_name: "Mostra nome entità affianco al valore",
     conditions_section: "Condizioni aggiuntive",
@@ -576,7 +576,7 @@ const ET = {
     secondary_text: "Static secondary text (optional)",
     secondary_text_help: "Fixed text shown below the message. Supports {state}, {name}, {entity}. No sensor entity required.",
     show_filter_name: "Show entity name (from entity_filter)",
-    show_filter_state: "Show translated state next to name",
+    show_filter_state: "Show state",
     secondary_attribute: "Secondary value attribute",
     show_secondary_name: "Show entity name next to value",
     conditions_section: "Extra conditions",
@@ -698,7 +698,7 @@ const ET = {
     secondary_text: "Texte secondaire statique (optionnel)",
     secondary_text_help: "Texte fixe affiché sous le message. Supporte {state}, {name}, {entity}. Aucune entité capteur requise.",
     show_filter_name: "Afficher le nom de l'entité (depuis entity_filter)",
-    show_filter_state: "Afficher l'état traduit à côté du nom",
+    show_filter_state: "Afficher l'état",
     secondary_attribute: "Attribut valeur secondaire",
     show_secondary_name: "Afficher le nom de l'entité à côté de la valeur",
     conditions_section: "Conditions supplémentaires",
@@ -820,7 +820,7 @@ const ET = {
     secondary_text: "Statischer Sekundärtext (optional)",
     secondary_text_help: "Fester Text unter der Nachricht. Unterstützt {state}, {name}, {entity}. Kein Sensor-Entity erforderlich.",
     show_filter_name: "Entity-Name anzeigen (aus entity_filter)",
-    show_filter_state: "Übersetzten Zustand neben dem Namen anzeigen",
+    show_filter_state: "Zustand anzeigen",
     secondary_attribute: "Sekundärwert-Attribut",
     show_secondary_name: "Entity-Name neben dem Wert anzeigen",
     conditions_section: "Zusätzliche Bedingungen",
@@ -942,7 +942,7 @@ const ET = {
     secondary_text: "Statische secundaire tekst (optioneel)",
     secondary_text_help: "Vaste tekst onder het bericht. Ondersteunt {state}, {name}, {entity}. Geen sensor-entiteit vereist.",
     show_filter_name: "Entiteitsnaam weergeven (uit entity_filter)",
-    show_filter_state: "Vertaalde status naast naam weergeven",
+    show_filter_state: "Status weergeven",
     secondary_attribute: "Secundaire waarde-attribuut",
     show_secondary_name: "Entiteitsnaam naast waarde weergeven",
     conditions_section: "Extra voorwaarden",
@@ -1064,7 +1064,7 @@ const ET = {
     secondary_text: "Văn bản phụ tĩnh (tùy chọn)",
     secondary_text_help: "Văn bản cố định hiển thị bên dưới thông báo. Hỗ trợ {state}, {name}, {entity}. Không cần thực thể cảm biến.",
     show_filter_name: "Hiển thị tên thực thể (từ entity_filter)",
-    show_filter_state: "Hiển thị trạng thái đã dịch bên cạnh tên",
+    show_filter_state: "Hiển thị trạng thái",
     secondary_attribute: "Thuộc tính giá trị phụ",
     show_secondary_name: "Hiển thị tên thực thể bên cạnh giá trị",
     conditions_section: "Điều kiện bổ sung",
@@ -1184,7 +1184,18 @@ class AlertTickerCardEditor extends LitElement {
   // Uses a simple Number (_editingIndex) — no Set, no DOM attributes.
   // setConfig / _fireConfig / ha-service-control can never corrupt this.
   _editAlert(index) {
-    this._editingIndex = this._editingIndex === index ? -1 : index;
+    const opening = this._editingIndex !== index;
+    this._editingIndex = opening ? index : -1;
+    if (opening) {
+      // Suppress spurious ha-service-control value-changed events fired on
+      // willUpdate when the new edit panel mounts (confirmed HA bug: oldValue
+      // is undefined on first render). Re-use the same two-tick suppression
+      // used in connectedCallback.
+      this._initializing = true;
+      Promise.resolve().then(() => Promise.resolve().then(() => {
+        this._initializing = false;
+      }));
+    }
     if (this._config && this._config.test_mode && this._editingIndex === index) {
       this._fireConfig({ ...this._config, _preview_index: index });
     }
@@ -1517,9 +1528,24 @@ class AlertTickerCardEditor extends LitElement {
         : alert.message
       : "";
 
+    const total = (this._config.alerts || []).length;
     return html`
       <div class="${`alert-item${isEditing ? " is-editing" : ""}`}"
            @click="${() => this._editAlert(index)}">
+        <div class="alert-move-col">
+          <button
+            class="btn-move-inline"
+            title="${this._t("move_up")}"
+            ?disabled="${index === 0}"
+            @click="${(e) => { e.stopPropagation(); this._moveAlertUp(index); }}"
+          >▲</button>
+          <button
+            class="btn-move-inline"
+            title="${this._t("move_down")}"
+            ?disabled="${index === total - 1}"
+            @click="${(e) => { e.stopPropagation(); this._moveAlertDown(index); }}"
+          >▼</button>
+        </div>
         <span class="alert-icon-badge">${icon}</span>
         <div class="alert-summary-text">
           <div class="alert-entity-label">${this._t("alert_num")} ${index + 1}: ${entityLabel}</div>
@@ -1554,6 +1580,42 @@ class AlertTickerCardEditor extends LitElement {
           <button class="btn-icon alert-edit-close" @click="${() => { this._editingIndex = -1; }}">✕</button>
         </div>
         <div class="alert-form">
+
+                <!-- ── TEMA + PRIORITÀ (in cima per anteprima immediata) ─── -->
+                <div class="theme-priority-row">
+                  <div class="theme-priority-theme">
+                    ${this._renderThemeSelect(
+                      "alert_theme",
+                      alert.theme || ((alert.entity || "").startsWith("timer.") ? "countdown" : "emergency"),
+                      (v) => this._alertThemeChanged(v, index),
+                      false,
+                      (alert.entity || alert.entity_filter || "").startsWith("timer.")
+                    )}
+                  </div>
+                  <div class="theme-priority-priority">
+                    <ha-select
+                      .label="${this._t("alert_priority")}"
+                      .value="${String(alert.priority || 1)}"
+                      fixedMenuPosition
+                      naturalMenuWidth
+                      @closed="${(e) => e.stopPropagation()}"
+                    >
+                      ${[1, 2, 3, 4].map((p) => html`
+                        <mwc-list-item
+                          value="${String(p)}"
+                          ?selected="${(alert.priority || 1) === p}"
+                          @request-selected="${(e) => {
+                            if (e.detail.source !== "interaction") return;
+                            this._alertPriorityChanged(e.target.getAttribute("value"), index);
+                          }}"
+                        >${this._t("priority_" + p)}</mwc-list-item>
+                      `)}
+                    </ha-select>
+                  </div>
+                </div>
+                ${(alert.entity || "").startsWith("timer.") ? html`
+                  <div class="helper-text">${this._t("timer_placeholder_hint")}</div>
+                ` : ""}
 
                 <!-- ── 1. ENTITÀ ─────────────────────────────────────────── -->
                 <div class="section-divider">🔍 ${this._t("alert_entity")}</div>
@@ -1774,39 +1836,6 @@ class AlertTickerCardEditor extends LitElement {
                 ></ha-textfield>
                 <div class="helper-text">${this._t("alert_message_help")}</div>
 
-                <!-- Priority -->
-                <ha-select
-                  .label="${this._t("alert_priority")}"
-                  .value="${String(alert.priority || 1)}"
-                  fixedMenuPosition
-                  naturalMenuWidth
-                  @closed="${(e) => e.stopPropagation()}"
-                >
-                  ${[1, 2, 3, 4].map(
-                    (p) => html`
-                      <mwc-list-item
-                        value="${String(p)}"
-                        ?selected="${(alert.priority || 1) === p}"
-                        @request-selected="${(e) => {
-                          if (e.detail.source !== "interaction") return;
-                          this._alertPriorityChanged(e.target.getAttribute("value"), index);
-                        }}"
-                      >${this._t("priority_" + p)}</mwc-list-item>
-                    `
-                  )}
-                </ha-select>
-
-                <!-- Theme per alert -->
-                ${this._renderThemeSelect(
-                  "alert_theme",
-                  alert.theme || ((alert.entity || "").startsWith("timer.") ? "countdown" : "emergency"),
-                  (v) => this._alertThemeChanged(v, index),
-                  false,
-                  (alert.entity || alert.entity_filter || "").startsWith("timer.")
-                )}
-                ${(alert.entity || "").startsWith("timer.") ? html`
-                  <div class="helper-text">${this._t("timer_placeholder_hint")}</div>
-                ` : ""}
 
                 <!-- Icon override -->
                 <div>
@@ -1934,24 +1963,6 @@ class AlertTickerCardEditor extends LitElement {
                   </div>
                 ` : ""}
 
-                <!-- Move up/down -->
-                <div class="move-btns">
-                  <button
-                    class="btn-move"
-                    ?disabled="${index === 0}"
-                    @click="${() => this._moveAlertUp(index)}"
-                  >
-                    ↑ ${this._t("move_up")}
-                  </button>
-                  <button
-                    class="btn-move"
-                    ?disabled="${index === alerts.length - 1}"
-                    @click="${() => this._moveAlertDown(index)}"
-                  >
-                    ↓ ${this._t("move_down")}
-                  </button>
-                </div>
-
                 <!-- Tap action / Hold action / Snooze action -->
                 ${this._renderActionConfig(alert, index, "tap_action", this._t("tap_action_section"))}
                 ${this._renderActionConfig(alert, index, "hold_action", this._t("hold_action_section"))}
@@ -1983,7 +1994,13 @@ class AlertTickerCardEditor extends LitElement {
   _updateAlert(index, changes) {
     const alerts = [...(this._config.alerts || [])];
     alerts[index] = { ...alerts[index], ...changes };
-    this._fireConfig({ ...this._config, alerts });
+    // Re-attach _preview_index when editing in test mode so the card stays
+    // on the correct alert after every field change (otherwise the card
+    // loses _preview_index and may jump back to the first alert).
+    const extra = (this._config.test_mode && this._editingIndex === index)
+      ? { _preview_index: index }
+      : {};
+    this._fireConfig({ ...this._config, alerts, ...extra });
   }
 
   _toggleFilterExclude(alertIndex, entityId) {
@@ -2541,6 +2558,23 @@ class AlertTickerCardEditor extends LitElement {
       .alert-form ha-select {
         width: 100%;
       }
+      .theme-priority-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .theme-priority-theme {
+        flex: 2;
+        min-width: 0;
+      }
+      .theme-priority-priority {
+        flex: 1;
+        min-width: 0;
+      }
+      .theme-priority-theme ha-select,
+      .theme-priority-priority ha-select {
+        width: 100%;
+      }
       .filter-count-btn {
         display: inline-flex;
         align-items: center;
@@ -2654,6 +2688,35 @@ class AlertTickerCardEditor extends LitElement {
       }
       .btn-move:disabled {
         opacity: 0.4;
+        cursor: default;
+      }
+
+      /* ---- Inline move col (▲▼ on alert row) ---- */
+      .alert-move-col {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex-shrink: 0;
+        margin-right: 6px;
+      }
+      .btn-move-inline {
+        background: var(--secondary-background-color, #f0f0f0);
+        border: 1px solid var(--divider-color, #ddd);
+        border-radius: 4px;
+        cursor: pointer;
+        padding: 3px 7px;
+        font-size: 0.85rem;
+        line-height: 1;
+        color: var(--secondary-text-color, #555);
+        transition: background 0.15s, color 0.15s;
+      }
+      .btn-move-inline:hover:not(:disabled) {
+        background: var(--primary-color, #03a9f4);
+        color: #fff;
+        border-color: transparent;
+      }
+      .btn-move-inline:disabled {
+        opacity: 0.25;
         cursor: default;
       }
 

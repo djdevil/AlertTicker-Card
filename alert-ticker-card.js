@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.5";
+const CARD_VERSION = "1.1.6";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -303,16 +303,7 @@ class AlertTickerCard extends LitElement {
       show_when_clear: false,
       clear_message: "",
       clear_theme: "success",
-      alerts: [
-        {
-          entity: "binary_sensor.smoke_detector",
-          state: "on",
-          message: "Smoke detected!",
-          priority: 1,
-          theme: "emergency",
-          icon: "🚨",
-        },
-      ],
+      alerts: [],
     };
   }
 
@@ -803,12 +794,30 @@ class AlertTickerCard extends LitElement {
   /** Record a new alert event into history */
   _recordHistory(alert) {
     const max = this._config.history_max_events || 50;
+    // Resolve entity friendly name and state
+    const es = this._hass && alert.entity ? this._hass.states[alert.entity] : null;
+    const entityName = es ? (es.attributes.friendly_name || alert.entity) : (alert.entity || "");
+    const entityState = es ? this._formatStateValue(es, alert.attribute || null) : null;
+    // Resolve secondary entity
+    let secondaryName = null;
+    let secondaryState = null;
+    if (alert.secondary_entity) {
+      const ses = this._hass && this._hass.states[alert.secondary_entity];
+      if (ses) {
+        secondaryName = ses.attributes.friendly_name || alert.secondary_entity;
+        secondaryState = this._formatStateValue(ses, alert.secondary_attribute || null);
+      }
+    }
     this._history.unshift({
       ts: Date.now(),
       message: this._resolveMessage(alert) || "",
       theme: alert.theme || "emergency",
       icon: (THEME_META[alert.theme] || {}).icon || "🔔",
       entity: alert.entity || "",
+      entityName: entityName || null,
+      entityState: entityState || null,
+      secondaryName: secondaryName,
+      secondaryState: secondaryState,
     });
     if (this._history.length > max) this._history.length = max;
     this._saveHistory();
@@ -1009,6 +1018,18 @@ class AlertTickerCard extends LitElement {
               <span class="atc-history-icon">${entry.icon}</span>
               <div class="atc-history-body">
                 <div class="atc-history-msg">${entry.message}</div>
+                ${entry.entityName ? html`
+                  <div class="atc-history-entity">
+                    <span class="atc-history-entity-name">${entry.entityName}</span>
+                    ${entry.entityState ? html` <span class="atc-history-entity-state">${entry.entityState}</span>` : ""}
+                  </div>
+                ` : ""}
+                ${entry.secondaryName ? html`
+                  <div class="atc-history-entity atc-history-secondary">
+                    <span class="atc-history-entity-name">${entry.secondaryName}</span>
+                    ${entry.secondaryState ? html` <span class="atc-history-entity-state">${entry.secondaryState}</span>` : ""}
+                  </div>
+                ` : ""}
                 <div class="atc-history-ts">${fmt(entry.ts)}</div>
               </div>
             </div>
@@ -3578,29 +3599,29 @@ class AlertTickerCard extends LitElement {
       .at-radar {
         display: flex; align-items: center; gap: 14px;
         padding: 14px 16px 14px 16px;
-        background: #000f08; border: 1px solid rgba(0,230,118,0.35); border-radius: 12px;
+        background: #120c00; border: 1px solid rgba(255,160,0,0.35); border-radius: 12px;
         position: relative; overflow: hidden;
-        box-shadow: inset 0 0 30px rgba(0,230,118,0.04);
+        box-shadow: inset 0 0 30px rgba(255,160,0,0.04);
       }
       /* Circular radar display on the right */
       .rd-display {
         position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
         width: 72px; height: 72px; border-radius: 50%;
-        border: 1px solid rgba(0,230,118,0.25);
+        border: 1px solid rgba(255,160,0,0.25);
         pointer-events: none; overflow: hidden;
       }
       .rd-r {
         position: absolute; top: 50%; left: 50%; border-radius: 50%;
-        border: 1px solid rgba(0,230,118,0.2);
+        border: 1px solid rgba(255,160,0,0.2);
         transform: translate(-50%,-50%);
       }
       .rd-r1 { width: 100%; height: 100%; }
-      .rd-r2 { width: 66%; height: 66%; border-color: rgba(0,230,118,0.25); }
-      .rd-r3 { width: 33%; height: 33%; border-color: rgba(0,230,118,0.3); }
+      .rd-r2 { width: 66%; height: 66%; border-color: rgba(255,160,0,0.25); }
+      .rd-r3 { width: 33%; height: 33%; border-color: rgba(255,160,0,0.3); }
       /* Sweeping cone */
       .rd-sweep {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: conic-gradient(rgba(0,230,118,0.55) 0deg, transparent 80deg);
+        background: conic-gradient(rgba(255,160,0,0.55) 0deg, transparent 80deg);
         animation: rdSweep 3s linear infinite;
         border-radius: 50%;
       }
@@ -3608,19 +3629,21 @@ class AlertTickerCard extends LitElement {
       /* Center blip */
       .rd-center {
         position: absolute; top: 50%; left: 50%;
-        width: 5px; height: 5px; background: #00e676; border-radius: 50%;
+        width: 5px; height: 5px; background: #ffa000; border-radius: 50%;
         transform: translate(-50%,-50%);
-        box-shadow: 0 0 8px #00e676;
+        box-shadow: 0 0 8px #ffa000;
       }
       .rd-icon {
         font-size: 1.8rem; flex-shrink: 0; position: relative;
-        filter: drop-shadow(0 0 6px #00e676);
+        filter: drop-shadow(0 0 6px #ffa000);
         animation: rdPing 3s ease-in-out infinite;
       }
       @keyframes rdPing {
-        0%,85%,100% { filter: drop-shadow(0 0 4px #00e676); }
-        90%          { filter: drop-shadow(0 0 14px #00e676) brightness(1.6); }
+        0%,85%,100% { filter: drop-shadow(0 0 4px #ffa000); }
+        90%          { filter: drop-shadow(0 0 14px #ffa000) brightness(1.6); }
       }
+      .rd-badge { font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ffa000; margin-bottom: 3px; }
+      .rd-title { font-weight: 600; color: #fff3e0; }
       .rd-content { flex: 1; min-width: 0; padding-right: 86px; }
       .rd-right { flex-shrink: 0; position: absolute; right: 92px; top: 50%; transform: translateY(-50%); }
 
@@ -4765,6 +4788,10 @@ class AlertTickerCard extends LitElement {
       .atc-large-buttons [class*="-right"] {
         display: none;
       }
+      /* timer_ring: add padding-right so the ring SVG doesn't sit under the circular buttons */
+      .atc-large-buttons .at-timer-ring {
+        padding-right: 90px;
+      }
       /* Overlay counter — top-right corner, always inside the card */
       .alert-counter-overlay {
         position: absolute;
@@ -4871,6 +4898,31 @@ class AlertTickerCard extends LitElement {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .atc-history-entity {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .atc-history-entity-name {
+        font-size: 0.78rem;
+        font-weight: 600;
+        opacity: 0.75;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .atc-history-entity-state {
+        font-size: 0.75rem;
+        opacity: 0.55;
+        flex-shrink: 0;
+      }
+      .atc-history-secondary .atc-history-entity-name {
+        font-weight: 400;
+        opacity: 0.55;
       }
       .atc-history-ts {
         font-size: 0.68rem;

@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.6] - 2026-04-06
+
+### Fixed
+
+- **Preview jumps back to first alert when editing a field** — two root causes, both fixed:
+  1. **Spurious `ha-service-control` events on edit panel open**: `_initializing` was only set on the editor's first `connectedCallback`. When the user opened an alert that has a `call-service` action, new `ha-service-control` components mounted and fired spurious `value-changed` events (confirmed HA bug: `oldValue` is `undefined` on `willUpdate`). Fixed by re-setting `_initializing = true` (two microtask ticks) every time a new alert panel is opened in `_editAlert`.
+  2. **`_preview_index` not re-sent on field changes**: `_updateAlert` now re-attaches `_preview_index` to every dispatch when test mode is active and the edited alert is the currently previewed one.
+- **History showed only message without entity context** — `_recordHistory` now also saves the entity's friendly name, its formatted/translated state, and the secondary entity name + state. The history view renders them as additional lines below the message.
+- **`timer_ring` theme: snooze and history buttons overlapping the ring SVG in `large_buttons` mode** — the two circular buttons were positioned absolutely at `right: 8px` / `right: 46px`, covering the ring entirely. Fixed by adding `padding-right: 90px` to `.at-timer-ring` when `large_buttons` is active.
+
+### Changed
+
+- **Theme and priority moved to top of alert edit form** — shown as a compact side-by-side row at the very top of the edit panel, before all other sections, so the visual result is immediately visible in the card preview without scrolling.
+
+---
+
 ## [1.1.5] - 2026-04-06
 
 ### Fixed
