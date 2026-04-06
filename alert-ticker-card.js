@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.2";
+const CARD_VERSION = "1.1.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -412,7 +412,7 @@ class AlertTickerCard extends LitElement {
             message: (alert.message || "")
               .replace(/\{entity\}/g, entityId)
               .replace(/\{name\}/g, friendlyName)
-              .replace(/\{state\}/g, state.state),
+              .replace(/\{state\}/g, this._formatStateValue(state, alert.attribute)),
           });
         }
       } else {
@@ -454,10 +454,16 @@ class AlertTickerCard extends LitElement {
     // Sort by priority (lower number = first; undefined priority goes last)
     active.sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
 
-    // In test mode: jump immediately to the previewed alert before the early-return check
+    // In test mode: jump immediately to the previewed alert before the early-return check.
+    // _preview_index is the index in this._config.alerts (config order), NOT in the
+    // sorted active array. Map it to the sorted-array position via object reference.
     if (testMode && this._config._preview_index != null) {
-      const pi = this._config._preview_index;
-      if (pi >= 0 && pi < active.length && pi !== this._currentIndex) {
+      const configIdx = this._config._preview_index;
+      const target = (this._config.alerts || [])[configIdx];
+      // For entity_filter-expanded alerts a new object is created, so fall back to
+      // position-in-expanded-alerts comparison when the reference is not found.
+      const pi = target ? active.findIndex(a => a === target) : -1;
+      if (pi >= 0 && pi !== this._currentIndex) {
         this._currentIndex = pi;
         this._animPhase = "";
         this._activeAlerts = active;
@@ -606,6 +612,33 @@ class AlertTickerCard extends LitElement {
     return { progress, remainingStr, isActive, remainingSec, totalSec };
   }
 
+  /**
+   * Returns the translated/formatted state value for {state} substitution.
+   * Uses HA's built-in formatEntityState / formatEntityAttributeValue when
+   * available (HA 2023.3+) so the user sees localised strings like
+   * "Acceso", "Spento", "22.5 °C" instead of raw "on", "off", "22.5".
+   * Falls back to the raw value on older HA versions.
+   */
+  _formatStateValue(es, attribute) {
+    if (!es) return "";
+    if (attribute != null && attribute !== "") {
+      if (this._hass && this._hass.formatEntityAttributeValue) {
+        try {
+          const v = this._hass.formatEntityAttributeValue(es, attribute);
+          if (v != null) return String(v);
+        } catch (_) { /* fall through */ }
+      }
+      return String(this._resolveAttrPath(es.attributes, attribute) ?? "");
+    }
+    if (this._hass && this._hass.formatEntityState) {
+      try {
+        const v = this._hass.formatEntityState(es);
+        if (v != null) return String(v);
+      } catch (_) { /* fall through */ }
+    }
+    return es.state;
+  }
+
   _resolveMessage(alert) {
     let msg = alert.message || "";
     if (!msg.includes("{")) return msg;
@@ -618,12 +651,10 @@ class AlertTickerCard extends LitElement {
     if (alert.entity && this._hass && (msg.includes("{state}") || msg.includes("{name}") || msg.includes("{entity}"))) {
       const es = this._hass.states[alert.entity];
       if (es) {
-        const state = (alert.attribute != null && alert.attribute !== "")
-          ? String(this._resolveAttrPath(es.attributes, alert.attribute) ?? "")
-          : es.state;
+        const translatedState = this._formatStateValue(es, alert.attribute);
         const name = es.attributes.friendly_name || alert.entity;
         msg = msg
-          .replace(/\{state\}/g, state)
+          .replace(/\{state\}/g, translatedState)
           .replace(/\{name\}/g, name)
           .replace(/\{entity\}/g, alert.entity);
       }
@@ -782,7 +813,8 @@ class AlertTickerCard extends LitElement {
 
     // Generated tones via Web Audio API — no external files needed
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioCtx = window.AudioContext || /** @type {any} */(window).webkitAudioContext;
+      const ctx = new AudioCtx();
       const cat = (THEME_META[alert.theme] || {}).category || "info";
       const now = ctx.currentTime;
 
@@ -1126,7 +1158,12 @@ class AlertTickerCard extends LitElement {
     if (alert && alert.entity_filter && alert.show_filter_name !== false) {
       const es = this._hass && this._hass.states[alert.entity];
       const name = es ? (es.attributes.friendly_name || alert.entity) : alert.entity;
-      lines.push(html`<div class="atc-secondary-value atc-filter-label">📍 ${name}</div>`);
+      const stateStr = alert.show_filter_state && es
+        ? this._formatStateValue(es, alert.attribute || null)
+        : null;
+      lines.push(html`<div class="atc-secondary-value atc-filter-label">
+        ${name}${stateStr ? html` <span class="atc-filter-state">${stateStr}</span>` : ""}
+      </div>`);
     }
 
     // secondary_text: static custom string (supports {state}/{name}/{entity} placeholders)
@@ -1135,15 +1172,18 @@ class AlertTickerCard extends LitElement {
       if (resolved) lines.push(html`<div class="atc-secondary-value">${resolved}</div>`);
     }
 
-    // secondary_entity: live value below message
+    // secondary_entity: live value below message (translated state)
     if (alert && alert.secondary_entity) {
       const es = this._hass && this._hass.states[alert.secondary_entity];
       if (es) {
-        const val = (alert.secondary_attribute != null && alert.secondary_attribute !== "")
-          ? String(this._resolveAttrPath(es.attributes, alert.secondary_attribute) ?? "")
-          : es.state;
+        const val = this._formatStateValue(es, alert.secondary_attribute || null);
         if (val !== "" && val != null) {
-          lines.push(html`<div class="atc-secondary-value">${val}</div>`);
+          const name = alert.show_secondary_name
+            ? (es.attributes.friendly_name || alert.secondary_entity)
+            : null;
+          lines.push(html`<div class="atc-secondary-value atc-secondary-entity-line">
+            ${name ? html`<span class="atc-secondary-entity-name">${name}</span> ` : ""}${val}
+          </div>`);
         }
       }
     }
@@ -1156,6 +1196,16 @@ class AlertTickerCard extends LitElement {
     if (this._activeAlerts.length <= 1) return html``;
     return html`
       <div class="alert-counter">
+        ${this._currentIndex + 1}<span class="counter-sep">/</span>${this._activeAlerts.length}
+      </div>
+    `;
+  }
+
+  /** Counter overlay for large_buttons mode — absolutely positioned above the button stack */
+  _renderCounterOverlay() {
+    if (this._activeAlerts.length <= 1) return html``;
+    return html`
+      <div class="alert-counter-overlay">
         ${this._currentIndex + 1}<span class="counter-sep">/</span>${this._activeAlerts.length}
       </div>
     `;
@@ -2289,6 +2339,8 @@ class AlertTickerCard extends LitElement {
     const puHandler = hasInteraction ? (e) => this._onPointerUp(e)                    : null;
     const plHandler = hasInteraction ? ()  => this._cancelHold()                      : null;
 
+    const counterOverlay = this._config.large_buttons ? this._renderCounterOverlay() : "";
+
     // Ticker has its own scroll animation — skip fold wrapper
     if ((current.theme || "").toLowerCase() === "ticker") {
       return html`
@@ -2297,7 +2349,7 @@ class AlertTickerCard extends LitElement {
             <div class="${hasInteraction ? "atc-clickable" : ""}"
               @pointerdown="${pdHandler}" @pointerup="${puHandler}"
               @pointerleave="${plHandler}" @pointercancel="${plHandler}">${inner}</div>
-            ${snoozeBtn}${historyBtn}${snoozedPill}
+            ${snoozeBtn}${historyBtn}${snoozedPill}${counterOverlay}
           </div>
           ${testModeBanner}
         </div>`;
@@ -2309,7 +2361,7 @@ class AlertTickerCard extends LitElement {
             data-anim="${this._config.cycle_animation || "fold"}"
             @pointerdown="${pdHandler}" @pointerup="${puHandler}"
             @pointerleave="${plHandler}" @pointercancel="${plHandler}">${inner}</div>
-          ${snoozeBtn}${historyBtn}${snoozedPill}
+          ${snoozeBtn}${historyBtn}${snoozedPill}${counterOverlay}
         </div>
         ${testModeBanner}
       </div>
@@ -2363,9 +2415,26 @@ class AlertTickerCard extends LitElement {
         font-weight: 400;
       }
       .atc-filter-label {
-        opacity: 0.85;
+        font-size: 0.92rem;
+        opacity: 0.9;
+        font-weight: 600;
+        font-style: normal;
+        letter-spacing: 0.01em;
+      }
+      .atc-filter-state {
+        opacity: 0.7;
+        font-weight: 400;
+        font-size: 0.85rem;
+        margin-left: 4px;
+      }
+      .atc-secondary-entity-line {
+        font-size: 0.92rem;
+        opacity: 0.9;
         font-weight: 500;
-        font-style: italic;
+      }
+      .atc-secondary-entity-name {
+        font-weight: 600;
+        opacity: 0.85;
       }
 
       /* Shared content flex regions */
@@ -2385,14 +2454,14 @@ class AlertTickerCard extends LitElement {
        * ALERT COUNTER  (e.g. "2/3")
        * --------------------------------------------------------------------- */
       .alert-counter {
-        font-size: 0.62rem;
+        font-size: 0.85rem;
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.65);
         letter-spacing: 0.5px;
         white-space: nowrap;
       }
       .alert-counter .counter-sep {
-        opacity: 0.4;
+        opacity: 0.45;
       }
 
       /* -----------------------------------------------------------------------
@@ -4636,50 +4705,67 @@ class AlertTickerCard extends LitElement {
 
       /* -----------------------------------------------------------------------
        * LARGE BUTTONS MODE (large_buttons: true)
-       * Both buttons stacked vertically at bottom-right, always visible.
+       * Two large circular icon-only buttons, side by side, vertically centred right.
        * --------------------------------------------------------------------- */
       .atc-large-buttons .atc-snooze-wrap {
         pointer-events: auto;
-        top: auto;
-        bottom: 8px;
+        top: 50%;
+        bottom: auto;
         right: 8px;
+        transform: translateY(-50%);
       }
       .atc-large-buttons .atc-snooze-btn {
         opacity: 1 !important;
-        width: auto;
-        height: 26px;
-        border-radius: 13px;
-        padding: 0 10px;
-        font-size: 0.78rem;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        padding: 0;
+        font-size: 1rem;
         background: rgba(0,0,0,0.50);
-        border: 1px solid rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.20);
       }
       .atc-large-buttons .atc-snooze-btn::after {
-        content: attr(title);
-        font-size: 0.72rem;
-        margin-left: 3px;
-        letter-spacing: 0.02em;
+        content: none;
       }
       .atc-large-buttons .atc-history-btn {
         opacity: 1 !important;
         pointer-events: auto;
-        width: auto;
-        height: 26px;
-        border-radius: 13px;
-        padding: 0 10px;
-        font-size: 0.78rem;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        padding: 0;
+        font-size: 1rem;
         background: rgba(0,0,0,0.35);
-        border: 1px solid rgba(255,255,255,0.10);
-        top: auto;
-        bottom: 42px;
-        right: 8px;
+        border: 1px solid rgba(255,255,255,0.14);
+        top: 50%;
+        bottom: auto;
+        right: 46px;   /* 8 + 30 + 8 gap */
         left: auto;
+        transform: translateY(-50%);
       }
       .atc-large-buttons .atc-history-btn::after {
-        content: attr(title);
-        font-size: 0.72rem;
-        margin-left: 3px;
-        letter-spacing: 0.02em;
+        content: none;
+      }
+      /* Hide per-theme right columns + counters when large_buttons is on */
+      .atc-large-buttons .alert-counter,
+      .atc-large-buttons [class*="-right"] {
+        display: none;
+      }
+      /* Overlay counter — top-right corner, always inside the card */
+      .alert-counter-overlay {
+        position: absolute;
+        top: 5px;
+        right: 7px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.55);
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        z-index: 11;
+        pointer-events: none;
+      }
+      .alert-counter-overlay .counter-sep {
+        opacity: 0.4;
       }
 
       /* -----------------------------------------------------------------------

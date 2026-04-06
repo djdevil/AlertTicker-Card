@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.2";
+const CARD_VERSION = "1.1.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -454,7 +454,9 @@ const ET = {
     secondary_text: "Testo secondario statico (opzionale)",
     secondary_text_help: "Testo fisso mostrato sotto il messaggio. Supporta {state}, {name}, {entity}. Non richiede un'entità sensore.",
     show_filter_name: "Mostra nome entità (da entity_filter)",
+    show_filter_state: "Mostra stato tradotto affianco al nome",
     secondary_attribute: "Attributo valore secondario",
+    show_secondary_name: "Mostra nome entità affianco al valore",
     conditions_section: "Condizioni aggiuntive",
     conditions_logic: "Logica",
     logic_and: "AND — tutte vere",
@@ -574,7 +576,9 @@ const ET = {
     secondary_text: "Static secondary text (optional)",
     secondary_text_help: "Fixed text shown below the message. Supports {state}, {name}, {entity}. No sensor entity required.",
     show_filter_name: "Show entity name (from entity_filter)",
+    show_filter_state: "Show translated state next to name",
     secondary_attribute: "Secondary value attribute",
+    show_secondary_name: "Show entity name next to value",
     conditions_section: "Extra conditions",
     conditions_logic: "Logic",
     logic_and: "AND — all must match",
@@ -694,7 +698,9 @@ const ET = {
     secondary_text: "Texte secondaire statique (optionnel)",
     secondary_text_help: "Texte fixe affiché sous le message. Supporte {state}, {name}, {entity}. Aucune entité capteur requise.",
     show_filter_name: "Afficher le nom de l'entité (depuis entity_filter)",
+    show_filter_state: "Afficher l'état traduit à côté du nom",
     secondary_attribute: "Attribut valeur secondaire",
+    show_secondary_name: "Afficher le nom de l'entité à côté de la valeur",
     conditions_section: "Conditions supplémentaires",
     conditions_logic: "Logique",
     logic_and: "AND — toutes vraies",
@@ -814,7 +820,9 @@ const ET = {
     secondary_text: "Statischer Sekundärtext (optional)",
     secondary_text_help: "Fester Text unter der Nachricht. Unterstützt {state}, {name}, {entity}. Kein Sensor-Entity erforderlich.",
     show_filter_name: "Entity-Name anzeigen (aus entity_filter)",
+    show_filter_state: "Übersetzten Zustand neben dem Namen anzeigen",
     secondary_attribute: "Sekundärwert-Attribut",
+    show_secondary_name: "Entity-Name neben dem Wert anzeigen",
     conditions_section: "Zusätzliche Bedingungen",
     conditions_logic: "Logik",
     logic_and: "AND — alle erfüllt",
@@ -934,7 +942,9 @@ const ET = {
     secondary_text: "Statische secundaire tekst (optioneel)",
     secondary_text_help: "Vaste tekst onder het bericht. Ondersteunt {state}, {name}, {entity}. Geen sensor-entiteit vereist.",
     show_filter_name: "Entiteitsnaam weergeven (uit entity_filter)",
+    show_filter_state: "Vertaalde status naast naam weergeven",
     secondary_attribute: "Secundaire waarde-attribuut",
+    show_secondary_name: "Entiteitsnaam naast waarde weergeven",
     conditions_section: "Extra voorwaarden",
     conditions_logic: "Logica",
     logic_and: "AND — alle moeten kloppen",
@@ -1054,7 +1064,9 @@ const ET = {
     secondary_text: "Văn bản phụ tĩnh (tùy chọn)",
     secondary_text_help: "Văn bản cố định hiển thị bên dưới thông báo. Hỗ trợ {state}, {name}, {entity}. Không cần thực thể cảm biến.",
     show_filter_name: "Hiển thị tên thực thể (từ entity_filter)",
+    show_filter_state: "Hiển thị trạng thái đã dịch bên cạnh tên",
     secondary_attribute: "Thuộc tính giá trị phụ",
+    show_secondary_name: "Hiển thị tên thực thể bên cạnh giá trị",
     conditions_section: "Điều kiện bổ sung",
     conditions_logic: "Logic",
     logic_and: "AND — tất cả phải khớp",
@@ -1153,7 +1165,7 @@ class AlertTickerCardEditor extends LitElement {
       _config: { type: Object },
       _hass: {},
       _activeTab: { type: String },
-      _expandedAlerts: { type: Object },
+      _editingIndex: { type: Number },   // index of alert currently being edited, -1 = none
       _filterPreviewOpen: { type: Object },
       _lang: { type: String },
     };
@@ -1162,43 +1174,50 @@ class AlertTickerCardEditor extends LitElement {
   constructor() {
     super();
     this._activeTab = "general";
-    this._expandedAlerts = new Set(); // stores UIDs, not indices
-    this._alertUIDs = [];             // parallel array: _alertUIDs[i] = stable UID for alerts[i]
-    this._uidCounter = 0;
+    this._editingIndex = -1;            // -1 = no alert being edited
     this._filterPreviewOpen = new Set();
     this._lang = "en";
+    this._initializing = false;         // true during first render microtask burst
   }
 
-  // Assign a new unique ID
-  _nextUID() {
-    return ++this._uidCounter;
-  }
-
-  // Sync _alertUIDs with a new alerts array, preserving UIDs for matching alerts
-  _syncUIDs(alerts) {
-    const newUIDs = [];
-    for (let i = 0; i < alerts.length; i++) {
-      // Try to find a matching existing UID by fingerprint (entity + message)
-      // Fall back to positional match if fingerprint not found
-      newUIDs.push(this._alertUIDs[i] != null ? this._alertUIDs[i] : this._nextUID());
+  // Select or deselect an alert for editing.
+  // Uses a simple Number (_editingIndex) — no Set, no DOM attributes.
+  // setConfig / _fireConfig / ha-service-control can never corrupt this.
+  _editAlert(index) {
+    this._editingIndex = this._editingIndex === index ? -1 : index;
+    if (this._config && this._config.test_mode && this._editingIndex === index) {
+      this._fireConfig({ ...this._config, _preview_index: index });
     }
-    this._alertUIDs = newUIDs;
   }
 
   // -------------------------------------------------------------------------
   // HA lifecycle
   // -------------------------------------------------------------------------
   setConfig(config) {
-    this._config = {
+    const defaults = {
       cycle_interval: 5,
       show_when_clear: false,
       clear_message: "",
       clear_theme: "success",
       alerts: [],
-      ...config,
     };
-    // Ensure UID array is in sync (preserves existing UIDs by position)
-    this._syncUIDs(this._config.alerts || []);
+    // Strip transient editor-only fields so they are NEVER permanently stored.
+    // _preview_index / _preview_anim are ephemeral signals: the card uses them
+    // for one render cycle but they must not end up saved in the user's YAML.
+    // Leaving them in causes the JSON dedup in _fireConfig to malfunction.
+    const { _preview_index, _preview_anim, ...cleanConfig } = config;
+    const merged = { ...defaults, ...cleanConfig };
+    // Preserve existing alert object references where the content is identical.
+    // This prevents unnecessary re-renders caused by new object identity even
+    // when the data hasn't changed (e.g. after ha-service-control normalizes).
+    if (this._config && this._config.alerts) {
+      merged.alerts = (merged.alerts || []).map((newAlert, i) => {
+        const old = this._config.alerts[i];
+        if (old && JSON.stringify(old) === JSON.stringify(newAlert)) return old;
+        return newAlert;
+      });
+    }
+    this._config = merged;
   }
 
   set hass(hass) {
@@ -1211,6 +1230,14 @@ class AlertTickerCardEditor extends LitElement {
 
   async connectedCallback() {
     super.connectedCallback();
+    // Suppress ha-service-control's spurious value-changed fired during willUpdate
+    // on first render (confirmed HA bug: oldValue is undefined on first render so
+    // the condition `oldValue?.action !== this.value?.action` is always true).
+    // Two microtask ticks cover LitElement's update → willUpdate → render cycle.
+    this._initializing = true;
+    Promise.resolve().then(() => Promise.resolve().then(() => {
+      this._initializing = false;
+    }));
     // Force ha-entity-picker to load by requesting config element of hui-glance-card.
     // hui-glance-card depends on ha-entity-picker so this is the standard HA pattern.
     // See: https://community.home-assistant.io/t/re-using-existing-frontend-components-in-lovelace-card-editor/103415
@@ -1449,6 +1476,8 @@ class AlertTickerCardEditor extends LitElement {
         ? html`<div class="empty-alerts">${this._t("no_alerts")}</div>`
         : alerts.map((alert, index) => this._renderAlertItem(alert, index))}
 
+      ${this._renderAlertEditPanel()}
+
       <button class="btn-add-alert" @click="${() => this._addAlert()}">
         + ${this._t("add_alert")}
       </button>
@@ -1473,9 +1502,7 @@ class AlertTickerCardEditor extends LitElement {
   }
 
   _renderAlertItem(alert, index) {
-    const uid = this._alertUIDs[index];
-    const isExpanded = uid != null && this._expandedAlerts.has(uid);
-    const alerts = this._config.alerts || [];
+    const isEditing = this._editingIndex === index;
     const prio = alert.priority || 1;
     const rawIcon = alert.icon || (THEME_META[alert.theme] || {}).icon || "🔔";
     const icon = (alert.use_ha_icon && rawIcon && (rawIcon.startsWith("mdi:") || rawIcon.startsWith("hass:")))
@@ -1491,31 +1518,46 @@ class AlertTickerCardEditor extends LitElement {
       : "";
 
     return html`
-      <div class="alert-item">
-        <!-- Summary row -->
-        <div class="alert-summary" data-idx="${index}" @click="${(e) => this._toggleAlert(parseInt(e.currentTarget.dataset.idx))}">
-          <span class="alert-icon-badge">${icon}</span>
-          <div class="alert-summary-text">
-            <div class="alert-entity-label">${this._t("alert_num")} ${index + 1}: ${entityLabel}</div>
-            ${msgSnippet ? html`<div class="alert-msg-label">${msgSnippet}</div>` : ""}
-          </div>
-          <span class="alert-prio-badge prio-${prio}">P${prio}</span>
-          <div class="alert-actions">
-            <span class="alert-expand-indicator">${isExpanded ? "▲" : "▼"}</span>
-            <button
-              class="btn-icon btn-delete"
-              title="${this._t("delete")}"
-              @click="${(e) => { e.stopPropagation(); this._deleteAlert(index); }}"
-            >
-              🗑 ${this._t("delete")}
-            </button>
-          </div>
+      <div class="${`alert-item${isEditing ? " is-editing" : ""}`}"
+           @click="${() => this._editAlert(index)}">
+        <span class="alert-icon-badge">${icon}</span>
+        <div class="alert-summary-text">
+          <div class="alert-entity-label">${this._t("alert_num")} ${index + 1}: ${entityLabel}</div>
+          ${msgSnippet ? html`<div class="alert-msg-label">${msgSnippet}</div>` : ""}
         </div>
+        <span class="alert-prio-badge prio-${prio}">P${prio}</span>
+        <div class="alert-actions">
+          <span class="alert-expand-indicator"></span>
+          <button
+            class="btn-icon btn-delete"
+            title="${this._t("delete")}"
+            @click="${(e) => { e.stopPropagation(); this._deleteAlert(index); }}"
+          >
+            🗑 ${this._t("delete")}
+          </button>
+        </div>
+      </div>
+    `;
+  }
 
-        <!-- Expanded form -->
-        ${isExpanded
-          ? html`
-              <div class="alert-form">
+  // Renders the full edit form for the currently selected alert (_editingIndex).
+  // This lives OUTSIDE the alert list — completely immune to list re-renders.
+  _renderAlertEditPanel() {
+    const index = this._editingIndex;
+    const alerts = this._config.alerts || [];
+    if (index < 0 || index >= alerts.length) return "";
+    const alert = alerts[index];
+    return html`
+      <div class="alert-edit-panel">
+        <div class="alert-edit-panel-header">
+          <span>${this._t("alert_num")} ${index + 1}</span>
+          <button class="btn-icon alert-edit-close" @click="${() => { this._editingIndex = -1; }}">✕</button>
+        </div>
+        <div class="alert-form">
+
+                <!-- ── 1. ENTITÀ ─────────────────────────────────────────── -->
+                <div class="section-divider">🔍 ${this._t("alert_entity")}</div>
+
                 <!-- Entity filter (text) — expands to one alert per matched entity -->
                 <div>
                   <ha-textfield
@@ -1535,13 +1577,13 @@ class AlertTickerCardEditor extends LitElement {
                       );
                       const activeCount = allMatched.filter(([id]) => !excluded.has(id)).length;
                       const excludedCount = excluded.size;
-                      const previewOpen = this._filterPreviewOpen.has(uid);
+                      const previewOpen = this._filterPreviewOpen.has(index);
                       return allMatched.length === 0
                         ? html`<span style="color:var(--error-color,#db4437)">${this._t("entity_filter_zero")}</span>`
                         : html`
                           <button class="filter-count-btn" @click="${() => {
                             const next = new Set(this._filterPreviewOpen);
-                            if (next.has(uid)) next.delete(uid); else next.add(uid);
+                            if (next.has(index)) next.delete(index); else next.add(index);
                             this._filterPreviewOpen = next;
                             this.requestUpdate();
                           }}">
@@ -1596,36 +1638,7 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="helper-text">${this._t("alert_attribute_help")}</div>
                 </div>
 
-                <!-- Secondary static text -->
-                <div>
-                  <ha-textfield
-                    .label="${this._t("secondary_text")}"
-                    .value="${alert.secondary_text || ""}"
-                    @change="${(e) => this._updateAlert(index, { secondary_text: e.target.value || undefined })}"
-                  ></ha-textfield>
-                  <div class="helper-text">${this._t("secondary_text_help")}</div>
-                </div>
-
-                <!-- Secondary entity — live value shown on card below message -->
-                <div>
-                <ha-entity-picker
-                  .label="${this._t("secondary_entity")}"
-                  .hass="${this._hass}"
-                  .value="${alert.secondary_entity || ""}"
-                  allow-custom-entity
-                  @value-changed="${(e) => this._updateAlert(index, { secondary_entity: e.detail.value || undefined })}"
-                ></ha-entity-picker>
-                <div class="helper-text">${this._t("secondary_entity_help")}</div>
-                </div>
-                ${alert.secondary_entity ? html`
-                  <ha-textfield
-                    .label="${this._t("secondary_attribute")}"
-                    .value="${alert.secondary_attribute || ""}"
-                    @change="${(e) => this._updateAlert(index, { secondary_attribute: e.target.value.trim() || undefined })}"
-                  ></ha-textfield>
-                ` : ""}
-
-                <!-- show_filter_name toggle — only when entity_filter is set -->
+                <!-- show_filter_name / show_filter_state toggles — only when entity_filter is set -->
                 ${alert.entity_filter ? html`
                   <ha-formfield .label="${this._t("show_filter_name")}">
                     <ha-switch
@@ -1633,9 +1646,18 @@ class AlertTickerCardEditor extends LitElement {
                       @change="${(e) => this._updateAlert(index, { show_filter_name: e.target.checked ? undefined : false })}"
                     ></ha-switch>
                   </ha-formfield>
+                  <ha-formfield .label="${this._t("show_filter_state")}">
+                    <ha-switch
+                      ?checked="${!!alert.show_filter_state}"
+                      @change="${(e) => this._updateAlert(index, { show_filter_state: e.target.checked ? true : undefined })}"
+                    ></ha-switch>
+                  </ha-formfield>
                 ` : ""}
 
-                <!-- Condition: operator + value -->
+                <!-- ── 2. CONDIZIONE ──────────────────────────────────────── -->
+                <div class="section-divider">⚡ ${this._t("conditions_section")}</div>
+
+                <!-- Primary condition: operator + value -->
                 <div class="form-row-2col">
                   <div class="native-select-wrap">
                     <label class="native-select-label">${this._t("alert_operator")}</label>
@@ -1685,113 +1707,7 @@ class AlertTickerCardEditor extends LitElement {
                   </div>
                 </div>
 
-                <!-- Priority -->
-                <!-- @closed stops the mwc-menu "closed" event from bubbling up to
-                     the outer ha-dialog/mwc-dialog which would close the editor. -->
-                <ha-select
-                  .label="${this._t("alert_priority")}"
-                  .value="${String(alert.priority || 1)}"
-                  fixedMenuPosition
-                  naturalMenuWidth
-                  @closed="${(e) => e.stopPropagation()}"
-                >
-                  ${[1, 2, 3, 4].map(
-                    (p) => html`
-                      <mwc-list-item
-                        value="${String(p)}"
-                        ?selected="${(alert.priority || 1) === p}"
-                        @request-selected="${(e) => {
-                          if (e.detail.source !== "interaction") return;
-                          this._alertPriorityChanged(e.target.getAttribute("value"), index);
-                        }}"
-                      >${this._t("priority_" + p)}</mwc-list-item>
-                    `
-                  )}
-                </ha-select>
-
-                <!-- Message -->
-                <ha-textfield
-                  .label="${this._t("alert_message")}"
-                  .value="${alert.message || ""}"
-                  @change="${(e) => this._alertMessageChanged(e.target.value, index)}"
-                ></ha-textfield>
-                <div class="helper-text">${this._t("alert_message_help")}</div>
-
-                <!-- Theme per alert — timer entities see only timer themes -->
-                ${this._renderThemeSelect(
-                  "alert_theme",
-                  alert.theme || ((alert.entity || "").startsWith("timer.") ? "countdown" : "emergency"),
-                  (v) => this._alertThemeChanged(v, index),
-                  false,
-                  (alert.entity || alert.entity_filter || "").startsWith("timer.")
-                )}
-                ${(alert.entity || "").startsWith("timer.") ? html`
-                  <div class="helper-text">${this._t("timer_placeholder_hint")}</div>
-                ` : ""}
-
-                <!-- Icon override -->
-                <div>
-                  <ha-formfield .label="${this._t("use_ha_icon")}">
-                    <ha-switch
-                      ?checked="${!!alert.use_ha_icon}"
-                      @change="${(e) => this._alertHaIconToggled(e.target.checked, index)}"
-                    ></ha-switch>
-                  </ha-formfield>
-                  ${alert.use_ha_icon
-                    ? html`<ha-icon-picker
-                        .label="${this._t("alert_icon")}"
-                        .value="${alert.icon || ""}"
-                        @value-changed="${(e) => this._alertIconChanged(e.detail.value, index)}"
-                      ></ha-icon-picker>`
-                    : html`<ha-textfield
-                        .label="${this._t("alert_icon")}"
-                        .value="${alert.icon || ""}"
-                        .placeholder="🔔"
-                        @change="${(e) => this._alertIconChanged(e.target.value, index)}"
-                      ></ha-textfield>`
-                  }
-                  <div class="helper-text">${this._t("alert_icon_help")}</div>
-                </div>
-
-                <!-- Badge visibility + custom label -->
-                <div>
-                  <ha-formfield .label="${this._t("show_badge")}">
-                    <ha-switch
-                      ?checked="${alert.show_badge !== false}"
-                      @change="${(e) => this._updateAlert(index, { show_badge: e.target.checked ? undefined : false })}"
-                    ></ha-switch>
-                  </ha-formfield>
-                  ${alert.show_badge !== false ? html`
-                    <ha-textfield
-                      .label="${this._t("badge_label")}"
-                      .value="${alert.badge_label || ""}"
-                      .placeholder="${this._getDefaultBadgeLabel(alert)}"
-                      @change="${(e) => this._updateAlert(index, { badge_label: e.target.value.trim() || undefined })}"
-                    ></ha-textfield>
-                    <div class="helper-text">${this._t("badge_label_help")}</div>
-                  ` : ""}
-                </div>
-
-                <!-- Move up/down buttons -->
-                <div class="move-btns">
-                  <button
-                    class="btn-move"
-                    ?disabled="${index === 0}"
-                    @click="${() => this._moveAlertUp(index)}"
-                  >
-                    ↑ ${this._t("move_up")}
-                  </button>
-                  <button
-                    class="btn-move"
-                    ?disabled="${index === alerts.length - 1}"
-                    @click="${() => this._moveAlertDown(index)}"
-                  >
-                    ↓ ${this._t("move_down")}
-                  </button>
-                </div>
-
                 <!-- Extra AND/OR conditions -->
-                <div class="section-divider">${this._t("conditions_section")}</div>
                 <div class="form-row">
                   <div class="native-select-wrap">
                     <label class="native-select-label">${this._t("conditions_logic")}</label>
@@ -1848,8 +1764,135 @@ class AlertTickerCardEditor extends LitElement {
                   + ${this._t("add_condition")}
                 </button>
 
+                <!-- ── 3. MESSAGGIO ──────────────────────────────────────── -->
+                <div class="section-divider">💬 ${this._t("alert_message")}</div>
+
+                <ha-textfield
+                  .label="${this._t("alert_message")}"
+                  .value="${alert.message || ""}"
+                  @change="${(e) => this._alertMessageChanged(e.target.value, index)}"
+                ></ha-textfield>
+                <div class="helper-text">${this._t("alert_message_help")}</div>
+
+                <!-- Priority -->
+                <ha-select
+                  .label="${this._t("alert_priority")}"
+                  .value="${String(alert.priority || 1)}"
+                  fixedMenuPosition
+                  naturalMenuWidth
+                  @closed="${(e) => e.stopPropagation()}"
+                >
+                  ${[1, 2, 3, 4].map(
+                    (p) => html`
+                      <mwc-list-item
+                        value="${String(p)}"
+                        ?selected="${(alert.priority || 1) === p}"
+                        @request-selected="${(e) => {
+                          if (e.detail.source !== "interaction") return;
+                          this._alertPriorityChanged(e.target.getAttribute("value"), index);
+                        }}"
+                      >${this._t("priority_" + p)}</mwc-list-item>
+                    `
+                  )}
+                </ha-select>
+
+                <!-- Theme per alert -->
+                ${this._renderThemeSelect(
+                  "alert_theme",
+                  alert.theme || ((alert.entity || "").startsWith("timer.") ? "countdown" : "emergency"),
+                  (v) => this._alertThemeChanged(v, index),
+                  false,
+                  (alert.entity || alert.entity_filter || "").startsWith("timer.")
+                )}
+                ${(alert.entity || "").startsWith("timer.") ? html`
+                  <div class="helper-text">${this._t("timer_placeholder_hint")}</div>
+                ` : ""}
+
+                <!-- Icon override -->
+                <div>
+                  <ha-formfield .label="${this._t("use_ha_icon")}">
+                    <ha-switch
+                      ?checked="${!!alert.use_ha_icon}"
+                      @change="${(e) => this._alertHaIconToggled(e.target.checked, index)}"
+                    ></ha-switch>
+                  </ha-formfield>
+                  ${alert.use_ha_icon
+                    ? html`<ha-icon-picker
+                        .label="${this._t("alert_icon")}"
+                        .value="${alert.icon || ""}"
+                        @value-changed="${(e) => this._alertIconChanged(e.detail.value, index)}"
+                      ></ha-icon-picker>`
+                    : html`<ha-textfield
+                        .label="${this._t("alert_icon")}"
+                        .value="${alert.icon || ""}"
+                        .placeholder="🔔"
+                        @change="${(e) => this._alertIconChanged(e.target.value, index)}"
+                      ></ha-textfield>`
+                  }
+                  <div class="helper-text">${this._t("alert_icon_help")}</div>
+                </div>
+
+                <!-- Badge -->
+                <div>
+                  <ha-formfield .label="${this._t("show_badge")}">
+                    <ha-switch
+                      ?checked="${alert.show_badge !== false}"
+                      @change="${(e) => this._updateAlert(index, { show_badge: e.target.checked ? undefined : false })}"
+                    ></ha-switch>
+                  </ha-formfield>
+                  ${alert.show_badge !== false ? html`
+                    <ha-textfield
+                      .label="${this._t("badge_label")}"
+                      .value="${alert.badge_label || ""}"
+                      .placeholder="${this._getDefaultBadgeLabel(alert)}"
+                      @change="${(e) => this._updateAlert(index, { badge_label: e.target.value.trim() || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("badge_label_help")}</div>
+                  ` : ""}
+                </div>
+
+                <!-- ── 4. VALORI SECONDARI ────────────────────────────────── -->
+                <div class="section-divider">📊 ${this._t("secondary_entity")}</div>
+
+                <!-- Secondary entity — live value shown on card below message -->
+                <div>
+                  <ha-entity-picker
+                    .label="${this._t("secondary_entity")}"
+                    .hass="${this._hass}"
+                    .value="${alert.secondary_entity || ""}"
+                    allow-custom-entity
+                    @value-changed="${(e) => this._updateAlert(index, { secondary_entity: e.detail.value || undefined })}"
+                  ></ha-entity-picker>
+                  <div class="helper-text">${this._t("secondary_entity_help")}</div>
+                </div>
+                ${alert.secondary_entity ? html`
+                  <ha-textfield
+                    .label="${this._t("secondary_attribute")}"
+                    .value="${alert.secondary_attribute || ""}"
+                    @change="${(e) => this._updateAlert(index, { secondary_attribute: e.target.value.trim() || undefined })}"
+                  ></ha-textfield>
+                  <ha-formfield .label="${this._t("show_secondary_name")}">
+                    <ha-switch
+                      ?checked="${!!alert.show_secondary_name}"
+                      @change="${(e) => this._updateAlert(index, { show_secondary_name: e.target.checked ? true : undefined })}"
+                    ></ha-switch>
+                  </ha-formfield>
+                ` : ""}
+
+                <!-- Secondary static text -->
+                <div>
+                  <ha-textfield
+                    .label="${this._t("secondary_text")}"
+                    .value="${alert.secondary_text || ""}"
+                    @change="${(e) => this._updateAlert(index, { secondary_text: e.target.value || undefined })}"
+                  ></ha-textfield>
+                  <div class="helper-text">${this._t("secondary_text_help")}</div>
+                </div>
+
+                <!-- ── 5. OPZIONI ─────────────────────────────────────────── -->
+                <div class="section-divider">⚙️ ${this._t("snooze_duration")}</div>
+
                 <!-- Per-alert snooze duration override -->
-                <div class="section-divider">💤 ${this._t("snooze_duration")}</div>
                 <div class="native-select-wrap">
                   <select class="native-select"
                     @change="${(e) => {
@@ -1891,15 +1934,31 @@ class AlertTickerCardEditor extends LitElement {
                   </div>
                 ` : ""}
 
+                <!-- Move up/down -->
+                <div class="move-btns">
+                  <button
+                    class="btn-move"
+                    ?disabled="${index === 0}"
+                    @click="${() => this._moveAlertUp(index)}"
+                  >
+                    ↑ ${this._t("move_up")}
+                  </button>
+                  <button
+                    class="btn-move"
+                    ?disabled="${index === alerts.length - 1}"
+                    @click="${() => this._moveAlertDown(index)}"
+                  >
+                    ↓ ${this._t("move_down")}
+                  </button>
+                </div>
+
                 <!-- Tap action / Hold action / Snooze action -->
                 ${this._renderActionConfig(alert, index, "tap_action", this._t("tap_action_section"))}
                 ${this._renderActionConfig(alert, index, "hold_action", this._t("hold_action_section"))}
                 ${this._renderActionConfig(alert, index, "snooze_action", this._t("snooze_action_section"))}
 
 
-              </div>
-            `
-          : ""}
+        </div>
       </div>
     `;
   }
@@ -1908,6 +1967,9 @@ class AlertTickerCardEditor extends LitElement {
   // Config change helpers
   // -------------------------------------------------------------------------
   _fireConfig(newConfig) {
+    // Skip if config is unchanged — prevents ha-service-control's init
+    // value-changed events from triggering needless re-renders.
+    if (this._config && JSON.stringify(this._config) === JSON.stringify(newConfig)) return;
     this._config = newConfig;
     this.dispatchEvent(
       new CustomEvent("config-changed", {
@@ -1974,34 +2036,14 @@ class AlertTickerCardEditor extends LitElement {
   // -------------------------------------------------------------------------
   // Event handlers — alert list
   // -------------------------------------------------------------------------
-  _toggleAlert(index) {
-    const uid = this._alertUIDs[index];
-    if (uid == null) return;
-    const next = new Set(this._expandedAlerts);
-    if (next.has(uid)) {
-      next.delete(uid);
-    } else {
-      next.add(uid);
-    }
-    this._expandedAlerts = next;
-    // In test mode: tell the card which alert to preview
-    if (this._config.test_mode && next.has(uid)) {
-      this._fireConfig({ ...this._config, _preview_index: index });
-    }
-    this.requestUpdate();
-  }
-
   _addAlert() {
     const alerts = [...(this._config.alerts || [])];
     const newIndex = alerts.length;
     const defaultTheme = "emergency";
     const defaultMsg = (DEFAULT_MSG[this._lang] || DEFAULT_MSG.en)[defaultTheme] || "";
     alerts.push({ entity: "", operator: "=", state: "on", message: defaultMsg, priority: 1, theme: defaultTheme, icon: "" });
-    // Assign a new UID for the new alert and mark it expanded
-    const newUID = this._nextUID();
-    this._alertUIDs = [...this._alertUIDs, newUID];
-    this._expandedAlerts = new Set([...this._expandedAlerts, newUID]);
-    // In test mode: jump card to the newly added alert
+    // Open the new alert in the edit panel immediately
+    this._editingIndex = newIndex;
     const newConfig = this._config.test_mode
       ? { ...this._config, alerts, _preview_index: newIndex }
       : { ...this._config, alerts };
@@ -2011,13 +2053,16 @@ class AlertTickerCardEditor extends LitElement {
   _deleteAlert(index) {
     const alerts = [...(this._config.alerts || [])];
     alerts.splice(index, 1);
-
-    // Remove the UID for the deleted alert; _expandedAlerts keys stay valid since UIDs don't shift
-    const deletedUID = this._alertUIDs[index];
-    this._alertUIDs = this._alertUIDs.filter((_, i) => i !== index);
-    const next = new Set(this._expandedAlerts);
-    next.delete(deletedUID);
-    this._expandedAlerts = next;
+    // Adjust _editingIndex
+    if (this._editingIndex === index) {
+      this._editingIndex = -1;
+    } else if (this._editingIndex > index) {
+      this._editingIndex = this._editingIndex - 1;
+    }
+    // Clean up filterPreviewOpen
+    const next = new Set(this._filterPreviewOpen);
+    next.delete(index);
+    this._filterPreviewOpen = next;
     this._fireConfig({ ...this._config, alerts });
   }
 
@@ -2172,6 +2217,10 @@ class AlertTickerCardEditor extends LitElement {
 
   /** Handles ha-service-control value-changed and saves back to our format */
   _onServiceControlChanged(alertIndex, key, val) {
+    // ha-service-control always fires value-changed on first render (HA bug:
+    // willUpdate fires when oldValue is undefined even if nothing changed).
+    // Ignore these spurious init events.
+    if (this._initializing) return;
     const alerts = [...(this._config.alerts || [])];
     const current = alerts[alertIndex][key] || { action: "call-service" };
     alerts[alertIndex] = {
@@ -2210,7 +2259,7 @@ class AlertTickerCardEditor extends LitElement {
           .hass="${this._hass}"
           .value="${this._toServiceControlValue(cfg)}"
           .showAdvanced="${true}"
-          @value-changed="${(e) => this._onServiceControlChanged(index, key, e.detail.value)}"
+          @value-changed="${(e) => { e.stopPropagation(); this._onServiceControlChanged(index, key, e.detail.value); }}"
         ></ha-service-control>
       ` : ""}
       ${type === "navigate" ? html`
@@ -2264,12 +2313,9 @@ class AlertTickerCardEditor extends LitElement {
     if (index === 0) return;
     const alerts = [...(this._config.alerts || [])];
     [alerts[index - 1], alerts[index]] = [alerts[index], alerts[index - 1]];
-
-    // Swap UIDs — _expandedAlerts is UID-based so no changes needed there
-    const uids = [...this._alertUIDs];
-    [uids[index - 1], uids[index]] = [uids[index], uids[index - 1]];
-    this._alertUIDs = uids;
-
+    // Follow the moved alert in the edit panel
+    if (this._editingIndex === index) this._editingIndex = index - 1;
+    else if (this._editingIndex === index - 1) this._editingIndex = index;
     this._fireConfig({ ...this._config, alerts });
   }
 
@@ -2278,12 +2324,9 @@ class AlertTickerCardEditor extends LitElement {
     if (index >= alerts.length - 1) return;
     const copy = [...alerts];
     [copy[index], copy[index + 1]] = [copy[index + 1], copy[index]];
-
-    // Swap UIDs — _expandedAlerts is UID-based so no changes needed there
-    const uids = [...this._alertUIDs];
-    [uids[index], uids[index + 1]] = [uids[index + 1], uids[index]];
-    this._alertUIDs = uids;
-
+    // Follow the moved alert in the edit panel
+    if (this._editingIndex === index) this._editingIndex = index + 1;
+    else if (this._editingIndex === index + 1) this._editingIndex = index;
     this._fireConfig({ ...this._config, alerts: copy });
   }
 
@@ -2376,25 +2419,54 @@ class AlertTickerCardEditor extends LitElement {
         color: var(--secondary-text-color, #888);
       }
       .alert-item {
-        border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 10px;
-        margin-bottom: 10px;
-        overflow: hidden;
-      }
-      .alert-summary {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 12px 14px;
+        border: 1px solid var(--divider-color, #e0e0e0);
+        border-radius: 10px;
+        margin-bottom: 6px;
         cursor: pointer;
         background: var(--card-background-color, #fff);
+        user-select: none;
       }
-      .alert-summary:hover {
+      .alert-item:hover {
         background: var(--secondary-background-color, #f5f5f5);
       }
-      .alert-expand-indicator {
+      .alert-item.is-editing {
+        border-color: var(--primary-color, #03a9f4);
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 8%, var(--card-background-color, #fff));
+      }
+      /* ▼ indicator — purely decorative on the compact row */
+      .alert-expand-indicator::before {
+        content: "▼";
         font-size: 0.85rem;
         color: var(--secondary-text-color, #888);
+      }
+      .alert-item.is-editing .alert-expand-indicator::before {
+        content: "▲";
+      }
+      /* Edit panel — appears below the list for the selected alert */
+      .alert-edit-panel {
+        border: 2px solid var(--primary-color, #03a9f4);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+      .alert-edit-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 12%, var(--card-background-color, #fff));
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      .alert-edit-close {
+        font-size: 1rem;
+        line-height: 1;
+      }
+      .alert-expand-indicator {
         flex-shrink: 0;
         pointer-events: none;
       }

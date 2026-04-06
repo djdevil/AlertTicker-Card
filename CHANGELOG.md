@@ -6,7 +6,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.1.2] - 2026-04-05
+## [1.1.3] - 2026-04-06
+
+### Added
+
+- **`show_filter_state`** — new toggle in the editor (visible when `entity_filter` is set). When enabled, shows the translated/formatted entity state next to the entity name in the card's secondary line (e.g. "Bathroom Radar Sensor  On").
+- **`show_secondary_name`** — new toggle in the editor (visible when `secondary_entity` is set). When enabled, shows the entity's friendly name next to the value (e.g. "Living Room Temperature  22.5 °C").
+
+### Fixed
+
+- **`{state}` now shows the translated/formatted value** — previously `{state}` substituted the raw HA state string (e.g. `"on"`, `"off"`, `"2"`). Now uses `hass.formatEntityState()` and `hass.formatEntityAttributeValue()` (available from HA 2023.3) to return the localized string (e.g. `"On"`, `"Off"`, `"22.5 °C"`). Falls back to the raw value on older HA versions. Applies to regular messages, `entity_filter` expansion, and `secondary_entity`.
+- **Notification counter correctly positioned in `large_buttons` mode** — the "X/Y" counter is now shown as an overlay at `top: 5px; right: 7px` (top-right corner), always visible and never outside the card. Theme `*-right` columns are fully hidden to prevent layout shift.
+
+### Changed
+
+- **Removed 📍 icon before entity name in filters** — when `entity_filter` + `show_filter_name` is active, the pin icon has been removed. Text is now larger (`0.92rem`, weight `600`, no italic).
+- **`secondary_entity` now uses translated state** — same system as `{state}`, uses `formatEntityState()` / `formatEntityAttributeValue()`. Text is now larger (`0.92rem`, weight `500`).
+- **`large_buttons` are now circular and side by side** — two 30×30px circles centered vertically on the right side, showing only the icon (💤 / 📋). No text, no overlap with card content.
+- **Notification counter larger** — the "2/3" badge increased from `0.62rem` to `0.85rem` for better visibility (normal mode).
+
+---
+
+## [1.1.2] - 2026-04-06
+
+### Fixed
+
+- **Editor preview opened the wrong alert** — root cause: `ha-service-control.willUpdate` always fires `value-changed` on first render (HA bug: `oldValue` is `undefined`), triggering a `_fireConfig` → `config-changed` → `setConfig` → re-render loop that corrupted expansion state. Fixed with:
+  - **New "edit panel" architecture** — the edit panel is separate from the alert list and driven by a single `_editingIndex: Number`, impossible to corrupt via LitElement or HA re-renders.
+  - **`_initializing` flag** — silences all `ha-service-control` `value-changed` events during the first render burst (two microtask ticks).
+  - **`setConfig` preserves alert object references** — JSON deduplication to avoid unnecessary re-renders.
+- **`_preview_index` pointed to the wrong alert** — the card was applying `_preview_index` against the priority-sorted array instead of the config array. Fixed using `active.findIndex(a => a === target)` to resolve position via object reference.
+- **`_preview_index` and `_preview_anim` permanently saved to YAML** — `_fireConfig` was dispatching these transient editor fields to HA which saved them to the user's config, corrupting JSON deduplication. Fixed by stripping them in `setConfig` via destructuring.
+
+---
+
+## [1.1.1] - 2026-04-06
 
 ### Added
 
@@ -18,60 +52,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.1.1] - 2026-04-04
-
-### Fixed
-
-- **Editor opened the wrong alert when clicking to expand** — the expansion state was tracked by array index. When lit-html re-rendered the list after any config change, stale index bindings could cause a different alert to appear expanded than the one actually clicked. Fixed by assigning a stable internal UID to each alert and tracking expansion by UID instead of index. The click handler also now reads the index from a `data-idx` DOM attribute at event time, eliminating any closure-capture mismatch.
-
-  > ⚠️ **Migration note:** due to the new UID system, alerts already present in existing card configurations will be assigned UIDs the first time the editor is opened. No YAML changes are required — your existing `alerts:` block is fully compatible. However, if you notice the editor still behaving unexpectedly after upgrading, **delete and re-add the affected alerts** in the visual editor to force a clean UID assignment.
-
----
-
 ## [1.1.0] - 2026-04-03
 
 ### Added
 
 - **Message placeholders in any alert** — `{state}`, `{name}`, `{entity}` now work in the `message` field of any alert that has an entity set, not just `entity_filter` alerts. ([#11](https://github.com/djdevil/AlertTicker-Card/issues/11))
-
 - **Nested attribute dot-notation** — `attribute` and `secondary_attribute` now accept dot-notation paths for deeply nested HA attributes (e.g. `activity.0.forecast`, `weather.temperature`). ([#7](https://github.com/djdevil/AlertTicker-Card/issues/7))
-
 - **Wildcard `*` in `entity_filter`** — glob-style wildcards are now supported in filter patterns (e.g. `sensor.battery_*_level`). ([#16](https://github.com/djdevil/AlertTicker-Card/issues/16))
-
 - **"Invert selection" button in filter preview** — one click to exclude all currently matched entities and include all previously excluded ones. ([#16](https://github.com/djdevil/AlertTicker-Card/issues/16))
-
 - **`secondary_text`** — static text shown as a second line below the alert message. Supports `{state}`, `{name}`, `{entity}` placeholders. Does not require a secondary entity. ([#14](https://github.com/djdevil/AlertTicker-Card/issues/14))
-  ```yaml
-  secondary_text: "Last seen: {state}"
-  ```
-
 - **`show_filter_name: false`** — hides the entity friendly name automatically shown below the message when using `entity_filter`. ([#14](https://github.com/djdevil/AlertTicker-Card/issues/14))
-
 - **`show_badge` / `badge_label`** — per-alert toggle to hide the category badge, or replace its text with a custom label. ([#13](https://github.com/djdevil/AlertTicker-Card/issues/13))
-  ```yaml
-  show_badge: false        # hide completely
-  badge_label: "CUSTOM"   # or override label text
-  ```
-
 - **`show_snooze_bar: false`** — global option to hide the amber snooze reactivation bar and pill. ([#15](https://github.com/djdevil/AlertTicker-Card/issues/15))
-
-- **`large_buttons: true`** — always-visible pill-shaped 💤 and 📋 buttons at the bottom-right of the card (no hover required). Stacked vertically, right-aligned. ([#23](https://github.com/djdevil/AlertTicker-Card/issues/23))
-
-- **Per-alert `snooze_duration`** — override the global snooze setting for any individual alert. Set to hours (`1`, `4`, `8`, `24`), `null` for menu, or omit to inherit the global setting. ([#17](https://github.com/djdevil/AlertTicker-Card/issues/17))
-
-- **Per-alert sound notifications** — `sound: true` plays an auto-generated tone when the alert becomes active. Tone varies by category: Critical = double high beep, Warning = medium beep, Info = soft beep, OK = rising chime. `sound_url` accepts a custom `.mp3` / `.wav` URL. Uses the Web Audio API — no external files required for default tones. ([#20](https://github.com/djdevil/AlertTicker-Card/issues/20))
-  ```yaml
-  sound: true
-  sound_url: "https://example.com/alert.mp3"  # optional
-  ```
-
-- **Test mode** (`test_mode: true`) — forces all configured alerts to display as active regardless of entity state. Cycling animation is paused. Expand any alert in the editor to instantly jump the card preview to that alert. A yellow banner is displayed on the card as a reminder. ([#21](https://github.com/djdevil/AlertTicker-Card/issues/21))
-
-- **Native `ha-icon-picker` in editor** — when `use_ha_icon` is enabled the icon field becomes a native HA icon picker component instead of a plain text field. ([#18](https://github.com/djdevil/AlertTicker-Card/issues/18))
-
-- **Native `ha-service-control` in editor** — the `call-service` action block now uses the native HA service control component for service and target selection. ([#19](https://github.com/djdevil/AlertTicker-Card/issues/19))
-
-- **Animation preview in editor** — changing the transition animation dropdown in the General tab immediately plays a one-shot preview of the selected animation on the card.
+- **`large_buttons: true`** — always-visible 💤 and 📋 buttons on the right side of the card (no hover required). ([#23](https://github.com/djdevil/AlertTicker-Card/issues/23))
+- **Per-alert `snooze_duration`** — override the global snooze setting for any individual alert. ([#17](https://github.com/djdevil/AlertTicker-Card/issues/17))
+- **Per-alert sound notifications** — `sound: true` plays an auto-generated tone when the alert becomes active. Tone varies by category. `sound_url` accepts a custom `.mp3` / `.wav` URL. Uses the Web Audio API. ([#20](https://github.com/djdevil/AlertTicker-Card/issues/20))
+- **Test mode** (`test_mode: true`) — forces all configured alerts to display as active regardless of entity state. A yellow banner is shown on the card as a reminder. ([#21](https://github.com/djdevil/AlertTicker-Card/issues/21))
+- **Native `ha-icon-picker` in editor** — the icon field becomes a native HA icon picker component when `use_ha_icon` is enabled. ([#18](https://github.com/djdevil/AlertTicker-Card/issues/18))
+- **Native `ha-service-control` in editor** — the `call-service` action block now uses the native HA service control component. ([#19](https://github.com/djdevil/AlertTicker-Card/issues/19))
+- **Animation preview in editor** — changing the transition animation dropdown immediately plays a one-shot preview of the selected animation.
 
 ### Fixed
 
@@ -84,89 +83,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`secondary_entity` / `secondary_attribute`** — display a live entity value as a second line below the alert message. Use any entity or attribute (e.g. a sensor listing open zones, a weather description). Configurable in the visual editor per alert. ([#7](https://github.com/djdevil/AlertTicker-Card/issues/7))
-  ```yaml
-  - entity: sensor.unmet_conditions_list
-    operator: "!="
-    state: ""
-    message: "Active alerts"
-    secondary_entity: sensor.unmet_conditions_list
-  ```
-
-- **`tap_action` / `hold_action`** — standard Lovelace card interactions per alert. Tap and hold (500 ms) can independently trigger `call-service`, `navigate`, `more-info`, or `url`. Fully configurable from the visual editor. ([#6](https://github.com/djdevil/AlertTicker-Card/issues/6))
-  ```yaml
-  - entity: binary_sensor.front_door
-    state: "on"
-    message: "Front door open"
-    tap_action:
-      action: more-info
-      entity_id: binary_sensor.front_door
-    hold_action:
-      action: navigate
-      navigation_path: /lovelace/security
-  ```
-
-- **`use_ha_icon` toggle** — per-alert switch to use a native Home Assistant `mdi:` icon instead of an emoji. When enabled, the icon is automatically read from the entity's `attributes.icon`. The icon field accepts any `mdi:` or `hass:` icon string. Toggling off restores the theme's default emoji.
-
-- **`snooze_default_duration`** (General tab) — configures the behaviour of the 💤 snooze button. Set to a fixed duration (30 min / 1h / 4h / 8h / 24h) for one-tap immediate snooze, or leave as "Menu" (default) to keep the duration picker visible on the card.
-
-- **`snooze_action`** — per-alert Lovelace action executed when the 💤 button is tapped, in addition to snoozing. Useful for resetting sensors or calling any HA service directly from the snooze button. ([#8](https://github.com/djdevil/AlertTicker-Card/issues/8))
-  ```yaml
-  - entity: binary_sensor.mailbox
-    state: "on"
-    message: "Mail arrived"
-    snooze_action:
-      action: call-service
-      service: input_boolean.turn_off
-      target:
-        entity_id: input_boolean.mailbox_flag
-  ```
-
-- **Alert history** — a 📋 button appears on each card. Tapping it flips the card (fold animation) to a history view showing every alert that became active, with date and time. Includes a "Clear" button. History is stored in `localStorage`, survives page reloads, and is configurable (max events: 25 / 50 / 100 / 200). The 📋 button automatically hides when history is open. Cycle animation is paused while history is visible. ([#5](https://github.com/djdevil/AlertTicker-Card/issues/5))
-
-- **`entity_filter`** — text-based entity filter that expands one alert config into one alert per matched entity. Matches entity IDs and friendly names (case-insensitive). Supports `{name}`, `{entity}`, `{state}` placeholders in the message. The card automatically shows the matched entity's friendly name below the message. Snooze and history work independently per entity. ([#10](https://github.com/djdevil/AlertTicker-Card/issues/10))
-  ```yaml
-  - entity_filter: "battery"
-    attribute: battery_level
-    operator: "<="
-    state: "20"
-    message: "Low battery: {name} ({state}%)"
-    theme: battery
-  ```
-
-- **`entity_filter_exclude`** — list of entity IDs to exclude from a filter match. Configurable directly in the editor by clicking on any entity in the preview list.
-  ```yaml
-    entity_filter_exclude:
-      - sensor.battery_test_device
-  ```
-
-- **Entity filter preview in editor** — when `entity_filter` is set, the editor shows a live match counter (green = found, red = none). Clicking the counter expands a list of all matched entities with name, entity ID and current state. Each entity can be clicked to exclude/re-include it (✓/✗ toggle with strikethrough).
-
-- **4 dedicated Timer themes** — shown only when the entity is `timer.*`. All themes update every second using `finishes_at` and color-transition green→orange→red as time runs out. ([#9](https://github.com/djdevil/AlertTicker-Card/issues/9))
-
-  | Theme | Description |
-  |-------|-------------|
-  | `countdown` | Horizontal progress bar at the bottom that shrinks left. Pulses when < 20% remaining. |
-  | `hourglass` | Vertical background fill that drains from top to bottom. |
-  | `timer_pulse` | Card glows and pulses — pulse speed increases as time runs out. |
-  | `timer_ring` | SVG circular ring on the right with countdown in the center. |
-
-- **`{timer}` placeholder** — use `{timer}` in the message of a timer alert to display the live countdown (`mm:ss` or `h:mm:ss`):
-  ```yaml
-  message: "Ad blocking disabled for {timer}"
-  ```
-
-- **Auto-fill message** — when selecting an entity in the editor, the message field is automatically pre-filled with the entity's `friendly_name` if the message is still empty or at the theme default.
-
-- **Timer entity auto-config** — when a `timer.*` entity is selected in the editor: `state` is automatically set to `active`, the theme switches to `countdown`, and the `{timer}` placeholder hint appears below the message field.
-
-- **Vietnamese language** (`vi`) — full translation contributed by @vdt2210, covering all card strings, editor labels, operator descriptions, and default theme messages. ([#12](https://github.com/djdevil/AlertTicker-Card/pull/12))
+- **`secondary_entity` / `secondary_attribute`** — display a live entity value as a second line below the alert message. ([#7](https://github.com/djdevil/AlertTicker-Card/issues/7))
+- **`tap_action` / `hold_action`** — standard Lovelace card interactions per alert. Tap and hold (500 ms) can independently trigger `call-service`, `navigate`, `more-info`, or `url`. ([#6](https://github.com/djdevil/AlertTicker-Card/issues/6))
+- **`use_ha_icon` toggle** — per-alert switch to use a native Home Assistant `mdi:` icon instead of an emoji.
+- **`snooze_default_duration`** (General tab) — fixed duration for the 💤 button or "Menu" (default).
+- **`snooze_action`** — Lovelace action executed when the 💤 button is tapped, in addition to snoozing. ([#8](https://github.com/djdevil/AlertTicker-Card/issues/8))
+- **Alert history** — a 📋 button opens a history view showing every alert that became active, with date and time. Includes a "Clear" button. Stored in `localStorage`. ([#5](https://github.com/djdevil/AlertTicker-Card/issues/5))
+- **`entity_filter`** — text-based entity filter that expands one alert config into one alert per matched entity. Supports `{name}`, `{entity}`, `{state}` placeholders. ([#10](https://github.com/djdevil/AlertTicker-Card/issues/10))
+- **`entity_filter_exclude`** — list of entity IDs to exclude from a filter match.
+- **Entity filter preview in editor** — live match counter with expandable entity list. Each entity can be clicked to exclude/re-include it.
+- **4 dedicated Timer themes** — `countdown`, `hourglass`, `timer_pulse`, `timer_ring`. All update every second using `finishes_at`. ([#9](https://github.com/djdevil/AlertTicker-Card/issues/9))
+- **`{timer}` placeholder** — displays the live countdown (`mm:ss` or `h:mm:ss`) in the alert message.
+- **Auto-fill message** — the message field is automatically pre-filled with the entity's `friendly_name` when selecting an entity if the message is still empty.
+- **Timer entity auto-config** — when a `timer.*` entity is selected: `state` is set to `active`, theme switches to `countdown`, and the `{timer}` placeholder hint appears.
+- **Vietnamese language** (`vi`) — full translation. ([#12](https://github.com/djdevil/AlertTicker-Card/pull/12))
 
 ### Fixed
 
-- 📋 history button remained visible while history was open — now returns `html\`\`` when `_historyOpen` is true
-- Cycle animation continued playing while history view was open — tick now skips when `_historyOpen`
-- Editor alert list showed `mdi:home` as raw text when `use_ha_icon` was enabled — now renders `<ha-icon>` in the preview row
+- The 📋 history button remained visible while history was open.
+- Cycle animation continued playing while history view was open.
+- Editor showed `mdi:home` as raw text when `use_ha_icon` was enabled.
 
 ---
 
@@ -174,23 +110,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **5 new spectacular themes** (total now 22):
-  - `nuclear` ☢️ — rotating radiation icon with amber pulsing glow (Critical)
-  - `radar` 🎯 — circular sonar display with sweeping cone + concentric rings (Warning)
-  - `hologram` 🔷 — holographic grid + horizontal scan beam + glitch flicker (Info)
-  - `heartbeat` 💓 — scrolling ECG line + beating pulse ring on icon (OK)
-  - `retro` 📺 — CRT amber phosphor display with scanlines and screen flicker (Style)
-- **Font size increase** for all 22 themes: badge labels 0.65→0.72 rem, message text 0.90→0.98 rem, critical themes 0.95→1.05 rem.
-- **Numeric / comparison conditions** — the `operator` field on each alert now accepts `=` (default, exact match), `!=`, `>`, `<`, `>=`, `<=`. Enables sensors with % or numeric values (e.g. `humidity < 40`, `co2 > 1000`). Visual editor exposes an operator dropdown next to the value field; YAML backward-compatible (omitting `operator` defaults to `=`).
-- **Snooze / suspend alert** — a 💤 button appears on hover over any active alert. Clicking it opens a duration menu (1 h / 4 h / 8 h / 24 h). Snoozed alerts are hidden for the chosen duration without touching the underlying entity. State is persisted to `localStorage` so it survives page reloads. The card restores the alert automatically when the snooze expires, even with no entity state change.
-- **Dutch language** (requested in [#3](https://github.com/djdevil/AlertTicker-Card/issues/3)) — full `nl` translation contributed by @peterpijpelink, covering all card strings, editor labels, operator descriptions, and default theme messages.
-- **Snoozed indicator + reset button** — when all matching alerts are snoozed the card no longer disappears silently. Instead it shows a minimal dark bar "💤 N alerts snoozed" with a **↩ Resume all** button. Clicking it instantly clears all snooze state and restores the matching alerts.
+- **5 new spectacular themes** (total now 22): `nuclear` ☢️, `radar` 🎯, `hologram` 🔷, `heartbeat` 💓, `retro` 📺.
+- **Font size increase** for all 22 themes: badge labels `0.65→0.72rem`, message text `0.90→0.98rem`, critical themes `0.95→1.05rem`.
+- **Numeric / comparison conditions** — `operator` accepts `=`, `!=`, `>`, `<`, `>=`, `<=`. Enables numeric sensors (e.g. `humidity < 40`, `co2 > 1000`).
+- **Snooze / suspend alert** — a 💤 button appears on hover. Clicking opens a duration menu (1h / 4h / 8h / 24h). Persisted in `localStorage`.
+- **Dutch language** (`nl`). ([#3](https://github.com/djdevil/AlertTicker-Card/issues/3))
+- **Snoozed indicator + reset button** — when all matching alerts are snoozed the card shows a minimal bar "💤 N alerts snoozed" with a **↩ Resume all** button.
 
 ### Fixed
 
-- **Counter / alert number invisible** — `backdrop-filter: blur(4px)` on the snooze button was blurring the counter text behind it even when the button was `opacity: 0`. Removed `backdrop-filter`; added `pointer-events: none` to the snooze wrap so it never captures mouse events when invisible.
-- **Editor closes when changing priority** (reported in [#1](https://github.com/djdevil/AlertTicker-Card/issues/1)) — The `ha-select` priority dropdown uses `mwc-select` internally. When the dropdown closes after a selection, it fires a `closed` event that bubbled up through the shadow DOM and was caught by HA's outer `mwc-dialog`, closing the card editor. Fixed by adding `@closed="${(e) => e.stopPropagation()}"` on the `ha-select` element.
-- **State value hint in editor** (reported in [#2](https://github.com/djdevil/AlertTicker-Card/issues/2)) — the alert state field now shows the entity's actual current HA state value below the input (e.g. `Current state: "on"`). This prevents the common mistake of entering the UI display label (e.g. "Geöffnet") instead of the real state string ("on"). Also added `.trim()` on the state value to avoid invisible whitespace mismatches.
+- **Counter / alert number invisible** — `backdrop-filter: blur(4px)` on the snooze button was blurring the counter behind it even at `opacity: 0`. Removed `backdrop-filter`; added `pointer-events: none` to the snooze wrap.
+- **Editor closes when changing priority** ([#1](https://github.com/djdevil/AlertTicker-Card/issues/1)) — the `closed` event from `ha-select` bubbled up to HA's `mwc-dialog`, closing the editor. Fixed with `@closed="${(e) => e.stopPropagation()}"`.
+- **State value hint in editor** ([#2](https://github.com/djdevil/AlertTicker-Card/issues/2)) — the state field now shows the entity's actual current HA state value below the input.
 
 ---
 
@@ -198,7 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Cycling animation** — fold animation played but always returned to the first alert. Root cause: `_computeActiveAlerts()` was calling `_stopCycleTimer()` + `_startCycleTimer()` whenever the alert list changed, resetting both the interval and `_currentIndex` mid-fold. The timer is now started once (on `connectedCallback`) and never restarted by entity state updates.
+- **Cycling animation** — the fold animation played but always returned to the first alert. The timer is now started once on `connectedCallback` and never restarted by entity state updates.
 
 ---
 
@@ -217,7 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Per-alert theme system
 
 - Each alert has its own `theme` field — no global theme
-- Selecting a theme automatically sets the matching icon (coherent visual identity)
+- Selecting a theme automatically sets the matching icon
 - Changing theme also updates the default message if it hasn't been customized
 
 #### Priority system
@@ -228,7 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Auto-cycle with fold animation
 
-- Configurable cycle interval (default 5 s)
+- Configurable cycle interval (default 5s)
 - 3D page-turn (fold) transition between active alerts
 - `ticker` theme shows all alerts scrolling simultaneously instead of cycling
 
