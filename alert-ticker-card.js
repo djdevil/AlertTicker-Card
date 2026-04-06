@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.4";
+const CARD_VERSION = "1.1.5";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -408,6 +408,7 @@ class AlertTickerCard extends LitElement {
           const friendlyName = state.attributes.friendly_name || entityId;
           expandedAlerts.push({
             ...alert,
+            _sourceAlert: alert, // preserve reference to original config alert for preview mapping
             entity: entityId,
             message: (alert.message || "")
               .replace(/\{entity\}/g, entityId)
@@ -456,13 +457,14 @@ class AlertTickerCard extends LitElement {
 
     // In test mode: jump immediately to the previewed alert before the early-return check.
     // _preview_index is the index in this._config.alerts (config order), NOT in the
-    // sorted active array. Map it to the sorted-array position via object reference.
+    // sorted active array. For regular alerts match by object reference; for entity_filter
+    // alerts match via the _sourceAlert reference preserved during expansion.
     if (testMode && this._config._preview_index != null) {
       const configIdx = this._config._preview_index;
       const target = (this._config.alerts || [])[configIdx];
-      // For entity_filter-expanded alerts a new object is created, so fall back to
-      // position-in-expanded-alerts comparison when the reference is not found.
-      const pi = target ? active.findIndex(a => a === target) : -1;
+      const pi = target
+        ? active.findIndex(a => a === target || a._sourceAlert === target)
+        : -1;
       if (pi >= 0 && pi !== this._currentIndex) {
         this._currentIndex = pi;
         this._animPhase = "";
