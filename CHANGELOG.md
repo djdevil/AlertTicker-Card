@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.4] - 2026-04-06
+
+### Fixed
+
+- **Alert not recorded in history on page load** — if an alert was already active when the card loaded (e.g. an automation already `off`), `_initialLoadDone` was `false` on the first `_computeActiveAlerts` call, causing history recording to be skipped entirely. Since the entity state didn't change afterwards, the signature dedup prevented any subsequent recording. Fixed by recording history on first load too, with a 5-minute deduplication window per entity to avoid duplicate entries on page reload. Sound playback is still suppressed on first load.
+
+---
+
 ## [1.1.3] - 2026-04-06
 
 ### Added

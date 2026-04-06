@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.3";
+const CARD_VERSION = "1.1.4";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -476,14 +476,26 @@ class AlertTickerCard extends LitElement {
     const signature = active.map((a) => `${a.entity}:${a.message}:${a.priority}`).join("|");
     if (signature === this._lastSignature && snoozedCount === this._snoozedCount) return;
 
-    // Record newly triggered alerts into history and play sound
-    // Skip on first compute after init (avoids replaying sound/history for already-active alerts on reload)
-    if (!testMode && this._initialLoadDone) {
+    // Record newly triggered alerts into history and play sound.
+    // On first load: record history (so alerts already active on load appear in cronologia)
+    // but skip sound and deduplicate — if the same entity was recorded within the last
+    // 5 minutes we skip it (avoids duplicate history entries on page reload).
+    if (!testMode) {
       const prevKeys = new Set(this._activeAlerts.map((a) => this._snoozeKey(a)));
+      const now = Date.now();
       active.forEach((alert) => {
         if (!prevKeys.has(this._snoozeKey(alert))) {
-          this._recordHistory(alert);
-          this._playAlertSound(alert);
+          if (!this._initialLoadDone) {
+            // First load — record only if not already recorded recently (reload dedup)
+            const recentlySeen = this._history.some(
+              h => h.entity === (alert.entity || "") && (now - h.ts) < 5 * 60 * 1000
+            );
+            if (!recentlySeen) this._recordHistory(alert);
+          } else {
+            // Normal state change — record + sound
+            this._recordHistory(alert);
+            this._playAlertSound(alert);
+          }
         }
       });
     }
