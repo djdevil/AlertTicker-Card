@@ -3,7 +3,7 @@
 A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.1.5-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)  [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
@@ -36,6 +36,7 @@ A custom Lovelace card to display alerts and notifications based on entity state
 | **AND / OR conditions** | Multiple entities must match (all or at least one) |
 | **Numeric conditions** | Trigger on `>`, `<`, `>=`, `<=`, `!=` for sensor values |
 | **secondary_entity** | Live entity value shown below the message |
+| **Jinja2 templates** | Full HA template syntax in messages — rendered server-side with live updates |
 | **entity_filter** | Text filter — one alert per matched entity, with exclude list and wildcard `*` support |
 | **Snooze** | Suspend any alert — fixed duration or menu — persisted in localStorage |
 | **snooze_action** | Execute a Lovelace action when the 💤 button is tapped |
@@ -244,6 +245,47 @@ Instead of specifying a single entity, write a text filter. The card finds all e
 | `{state}` | Current state value |
 
 The matched entity's friendly name is also automatically shown below the message so you always know which device triggered the alert.
+
+### HA template syntax in messages
+
+The `message` field (and `secondary_text`) supports **full Jinja2 template syntax** — rendered server-side by Home Assistant via the WebSocket API, with live updates whenever entities change.
+
+```yaml
+# Simple sensor value
+- entity: sensor.co2_ppm
+  operator: ">"
+  state: "1000"
+  message: "CO₂: {{ states('sensor.co2_ppm') }} ppm"
+
+# Attribute value
+- entity: climate.hvac
+  state: heating
+  message: "Heating — room: {{ state_attr('climate.hvac', 'current_temperature') }}°"
+
+# Conditional logic
+- entity: sensor.battery_phone
+  operator: "<"
+  state: "20"
+  message: >
+    {% if states('sensor.battery_phone') | int < 10 %}
+      Critical: {{ states('sensor.battery_phone') }}%
+    {% else %}
+      Low battery: {{ states('sensor.battery_phone') }}%
+    {% endif %}
+
+# Time / date
+- entity: binary_sensor.night_mode
+  state: "on"
+  message: "Night mode active since {{ now().strftime('%H:%M') }}"
+
+# Math / unit conversion
+- entity: sensor.power_consumption
+  operator: ">"
+  state: "2000"
+  message: "High consumption: {{ (states('sensor.power_consumption') | float / 1000) | round(2) }} kW"
+```
+
+Any template that works in HA automations and template sensors works here too.
 
 **Editor preview:** type a filter text and a live counter shows how many entities match. Click the counter to expand a full list with names, entity IDs and current states. Click any entity to exclude it (✗) or re-include it (✓).
 
