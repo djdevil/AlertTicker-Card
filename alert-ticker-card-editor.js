@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.6";
+const CARD_VERSION = "1.1.7";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -400,7 +400,7 @@ const ET = {
     alert_state_help: "es. 'on', '80' (numerico con operatore > < >= <=)",
     current_state: "Stato attuale",
     alert_message: "Messaggio da visualizzare",
-    alert_message_help: "Usa {state} per il valore live, {name} per il nome, {entity} per l'ID entità. Es. 'Batteria: {state}%'",
+    alert_message_help: "Usa {state} per il valore live, {name} per il nome, {entity} per l'ID entità. Supporta anche template HA completi: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Priorità",
     alert_theme: "Tema",
     alert_icon: "Icona",
@@ -522,7 +522,7 @@ const ET = {
     alert_state_help: "e.g. 'on', '80' (numeric with > < >= <=)",
     current_state: "Current state",
     alert_message: "Message to display",
-    alert_message_help: "Use {state} for live value, {name} for friendly name, {entity} for entity ID. E.g. 'Battery: {state}%'",
+    alert_message_help: "Use {state} for live value, {name} for friendly name, {entity} for entity ID. Also supports full HA templates: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Priority",
     alert_theme: "Theme",
     alert_icon: "Icon",
@@ -644,7 +644,7 @@ const ET = {
     alert_state_help: "ex. 'on', '80' (numérique avec > < >= <=)",
     current_state: "État actuel",
     alert_message: "Message à afficher",
-    alert_message_help: "Utilisez {state} pour la valeur live, {name} pour le nom, {entity} pour l'ID entité. Ex. 'Batterie : {state}%'",
+    alert_message_help: "Utilisez {state} pour la valeur live, {name} pour le nom, {entity} pour l'ID entité. Supporte aussi les templates HA complets : {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Priorité",
     alert_theme: "Thème",
     alert_icon: "Icône",
@@ -766,7 +766,7 @@ const ET = {
     alert_state_help: "z.B. 'on', '80' (numerisch mit > < >= <=)",
     current_state: "Aktueller Zustand",
     alert_message: "Anzuzeigende Nachricht",
-    alert_message_help: "Verwende {state} für den Live-Wert, {name} für den Namen, {entity} für die Entitäts-ID. Z.B. 'Batterie: {state}%'",
+    alert_message_help: "Verwende {state} für den Live-Wert, {name} für den Namen, {entity} für die Entitäts-ID. Unterstützt auch vollständige HA-Templates: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Priorität",
     alert_theme: "Thema",
     alert_icon: "Symbol",
@@ -888,7 +888,7 @@ const ET = {
     alert_state_help: "bijv. 'on', '80' (numeriek met > < >= <=)",
     current_state: "Huidige toestand",
     alert_message: "Te tonen bericht",
-    alert_message_help: "Gebruik {state} voor live waarde, {name} voor naam, {entity} voor entiteits-ID. Bijv. 'Batterij: {state}%'",
+    alert_message_help: "Gebruik {state} voor live waarde, {name} voor naam, {entity} voor entiteits-ID. Ondersteunt ook volledige HA-templates: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Prioriteit",
     alert_theme: "Thema",
     alert_icon: "Pictogram",
@@ -1010,7 +1010,7 @@ const ET = {
     alert_state_help: "vd. 'on', '80' (số với > < >= <=)",
     current_state: "Trạng thái hiện tại",
     alert_message: "Thông báo hiển thị",
-    alert_message_help: "Dùng {state} cho giá trị live, {name} cho tên, {entity} cho ID thực thể. Vd. 'Pin: {state}%'",
+    alert_message_help: "Dùng {state} cho giá trị live, {name} cho tên, {entity} cho ID thực thể. Cũng hỗ trợ template HA đầy đủ: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Mức ưu tiên",
     alert_theme: "Giao diện",
     alert_icon: "Biểu tượng",

@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.7] - 2026-04-13
+
+### Added
+
+- **Full HA template support in `message` and `secondary_text`** — fields containing `{{ }}` are now rendered server-side by Home Assistant via the WebSocket `render_template` API. This means any Jinja2 syntax that works in HA automations and templates works here too: `{{ states('sensor.x') }}`, `{{ state_attr('entity','attr') }}`, `{% if %}...{% endif %}`, `{{ now() }}`, `| round()`, `| int`, etc. Templates update live whenever the underlying entities change. A lightweight client-side fallback (`states()`, `state_attr()`, `is_state()` with common filters) is shown immediately while the WebSocket response is pending.
+
+### Fixed
+
+- **`secondary_entity` silently showed nothing when the entity ID was wrong** — the card now shows a subtle `⚠ entity.id` warning in amber so the user knows the entity was not found instead of seeing a blank space.
+
+---
+
 ## [1.1.6] - 2026-04-06
 
 ### Fixed

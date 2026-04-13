@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.6";
+const CARD_VERSION = "1.1.7";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -292,6 +292,17 @@ class AlertTickerCard extends LitElement {
     this._snoozed = new Map(); // snoozeKey → expiry timestamp
     this._historyOpen = false;
     this._history = []; // { ts, message, theme, icon, entity }
+    // HA template rendering via WebSocket render_template subscription
+    this._tmplCache = new Map();   // template string → rendered string
+    this._tmplUnsubs = new Map();  // template string → unsubscribe fn
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback?.();
+    this._stopCycleTimer();
+    for (const unsub of this._tmplUnsubs.values()) { try { unsub(); } catch (_) {} }
+    this._tmplUnsubs.clear();
+    this._tmplCache.clear();
   }
 
   // ---- Lovelace card static helpers ----------------------------------------
@@ -348,6 +359,8 @@ class AlertTickerCard extends LitElement {
     if (this._hass) {
       this._computeActiveAlerts();
     }
+    // Sync HA template subscriptions (render_template via WebSocket)
+    if (this._hass) this._syncTemplates();
     // Play a one-shot animation preview when the editor changes cycle_animation
     // Delay so requestUpdate from _computeActiveAlerts settles first
     if (this._config._preview_anim) {
@@ -365,6 +378,7 @@ class AlertTickerCard extends LitElement {
     if (lang !== this._lang) {
       this._lang = lang;
     }
+    this._syncTemplates();
     this._computeActiveAlerts();
   }
 
@@ -644,9 +658,135 @@ class AlertTickerCard extends LitElement {
     return es.state;
   }
 
+  /**
+   * Subscribes a template string to HA's render_template WebSocket endpoint.
+   * Results are cached in _tmplCache; each update triggers requestUpdate().
+   * Falls back silently to the mini-evaluator if the connection is unavailable.
+   */
+  _subscribeTemplate(tmpl) {
+    if (this._tmplUnsubs.has(tmpl)) return;
+    const conn = this._hass && this._hass.connection;
+    if (!conn || !conn.subscribeMessage) return;
+    // Mark as pending so we don't re-subscribe on the next render
+    this._tmplUnsubs.set(tmpl, () => {});
+    conn.subscribeMessage(
+      (msg) => {
+        if (msg && msg.result !== undefined) {
+          this._tmplCache.set(tmpl, String(msg.result));
+          this.requestUpdate();
+        }
+      },
+      { type: "render_template", template: tmpl, variables: {}, strict: false }
+    ).then(unsub => {
+      this._tmplUnsubs.set(tmpl, unsub);
+    }).catch(err => {
+      console.warn("[AlertTicker] Template render error:", err);
+      this._tmplCache.set(tmpl, `[template error]`);
+      this._tmplUnsubs.delete(tmpl);
+    });
+  }
+
+  /**
+   * Collects all template strings (messages/secondary_text containing {{ }})
+   * from the current config and keeps subscriptions in sync.
+   */
+  _syncTemplates() {
+    const needed = new Set();
+    for (const alert of this._config?.alerts || []) {
+      if ((alert.message || "").includes("{{")) needed.add(alert.message);
+      if ((alert.secondary_text || "").includes("{{")) needed.add(alert.secondary_text);
+    }
+    // Unsubscribe stale
+    for (const [tmpl, unsub] of this._tmplUnsubs) {
+      if (!needed.has(tmpl)) {
+        try { unsub(); } catch (_) {}
+        this._tmplUnsubs.delete(tmpl);
+        this._tmplCache.delete(tmpl);
+      }
+    }
+    // Subscribe new
+    for (const tmpl of needed) {
+      if (!this._tmplUnsubs.has(tmpl)) this._subscribeTemplate(tmpl);
+    }
+  }
+
+  /**
+   * Evaluates a single Jinja2-lite expression pulled from {{ ... }}.
+   * Supported: states('id'), state_attr('id','attr'), is_state('id','val'),
+   * and pipe filters: | round(n), | int, | float, | upper, | lower, | default('x').
+   * Returns the result string, or null if the expression is not recognised.
+   * Used as immediate fallback while the WS subscription is pending.
+   */
+  _evalJinjaExpr(expr) {
+    const hass = this._hass;
+    if (!hass) return null;
+    const parts = expr.split("|");
+    const base = parts[0].trim();
+    const filters = parts.slice(1).map(f => f.trim());
+
+    let val = null;
+
+    // states('entity_id')
+    let m = base.match(/^states\(\s*['"]([^'"]+)['"]\s*\)$/);
+    if (m) {
+      const es = hass.states[m[1]];
+      val = es ? this._formatStateValue(es, null) : "unknown";
+    }
+
+    // state_attr('entity_id', 'attribute')
+    if (val === null) {
+      m = base.match(/^state_attr\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)$/);
+      if (m) {
+        const es = hass.states[m[1]];
+        val = es ? String(this._resolveAttrPath(es.attributes, m[2]) ?? "") : "";
+      }
+    }
+
+    // is_state('entity_id', 'value')
+    if (val === null) {
+      m = base.match(/^is_state\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)$/);
+      if (m) {
+        const es = hass.states[m[1]];
+        val = es && es.state === m[2] ? "true" : "false";
+      }
+    }
+
+    if (val === null) return null;
+
+    // Apply pipe filters
+    for (const f of filters) {
+      const rm = f.match(/^round\((\d+)\)$/);
+      if (rm) { val = String(parseFloat(val).toFixed(parseInt(rm[1]))); continue; }
+      if (f === "int") { val = String(parseInt(val, 10)); continue; }
+      if (f === "float") { val = String(parseFloat(val)); continue; }
+      if (f === "upper") { val = String(val).toUpperCase(); continue; }
+      if (f === "lower") { val = String(val).toLowerCase(); continue; }
+      const dm = f.match(/^default\(\s*['"]?([^'"]*?)['"]?\s*\)$/);
+      if (dm) { if (!val || val === "unknown" || val === "unavailable") val = dm[1]; continue; }
+    }
+
+    return val;
+  }
+
   _resolveMessage(alert) {
     let msg = alert.message || "";
     if (!msg.includes("{")) return msg;
+
+    // {{ ... }} Full HA template rendering via WebSocket render_template
+    if (msg.includes("{{")) {
+      const cached = this._tmplCache.get(msg);
+      if (cached !== undefined) {
+        // WS result available — use it (already fully rendered by HA)
+        return cached;
+      }
+      // Not yet rendered — subscribe and use mini-evaluator as immediate fallback
+      this._subscribeTemplate(msg);
+      msg = msg.replace(/\{\{\s*([\s\S]*?)\s*\}\}/g, (match, expr) => {
+        const v = this._evalJinjaExpr(expr.trim());
+        return v !== null ? v : match;
+      });
+    }
+
     // {timer} — live countdown for timer.* entities
     if (msg.includes("{timer}")) {
       const { remainingStr } = this._getTimerData(alert);
@@ -1220,6 +1360,11 @@ class AlertTickerCard extends LitElement {
             ${name ? html`<span class="atc-secondary-entity-name">${name}</span> ` : ""}${val}
           </div>`);
         }
+      } else if (this._hass) {
+        // Entity not found — show a subtle warning so the user can correct the ID
+        lines.push(html`<div class="atc-secondary-value atc-secondary-missing">
+          ⚠ ${alert.secondary_entity}
+        </div>`);
       }
     }
 
@@ -2470,6 +2615,12 @@ class AlertTickerCard extends LitElement {
       .atc-secondary-entity-name {
         font-weight: 600;
         opacity: 0.85;
+      }
+      .atc-secondary-missing {
+        font-size: 0.72rem;
+        opacity: 0.5;
+        font-style: italic;
+        color: var(--warning-color, #ff9800);
       }
 
       /* Shared content flex regions */
