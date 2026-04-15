@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.8] - 2026-04-14
+
+### Added
+
+- **`ha_theme` option — HA global theme adaptation** — when `ha_theme: true` is set, the card adapts its colors to the active Home Assistant theme. Card backgrounds use `--card-background-color`, text uses `--primary-text-color`, and badge/border accents use the semantic HA color variables (`--error-color`, `--warning-color`, `--success-color`, `--info-color`). Compatible with any HA theme including Mushroom, Material, iOS, and custom themes. All 40 visual themes retain their unique animations and layouts — only the color palette adapts. Toggle available in the visual editor. ([#33](https://github.com/djdevil/AlertTicker-Card/issues/33))
+- **`vertical: true` option — vertical layout for all themes** — stacks icon on top, badge + message + secondary text centered below. Works with all 40 themes via a single CSS class override. The Ticker theme keeps its horizontal scrolling behaviour. Toggle available in the visual editor. ([#32](https://github.com/djdevil/AlertTicker-Card/issues/32))
+- **`swipe_to_snooze` option — left-swipe gesture to snooze on mobile** — when `swipe_to_snooze: true` is set, swiping left on the card silently snoozes the current alert using the configured duration (or 1h as default). Works independently of `tap_action` and `hold_action`, resolving the conflict between tap interactions and snooze access on touch screens. Toggle available in the visual editor. ([#34](https://github.com/djdevil/AlertTicker-Card/issues/34))
+
+### Fixed
+
+- **Theme description labels were Italian-only in the visual editor** — the parenthetical descriptions in the theme dropdown (e.g. "Red button", "Amber border", "Progress bar") are now translated into all 6 supported languages (IT, EN, FR, DE, NL, VI). Category group headings in the dropdown are also fully localised.
+- **`large_buttons` + `vertical` layout conflict** — when both options were active together, the always-visible buttons were vertically centred on the right side of a tall card. They now anchor to the top-right corner to avoid overlapping the centred content.
+- **`vertical` and `ha_theme` not applied to "All Clear" and snoozed-indicator banners** — the early-return render paths for `show_when_clear` and the snoozed-all indicator bypassed the `atc-snooze-host` wrapper, so neither `atc-vertical` nor `atc-ha-theme` classes were applied. Both paths now share the same `_hostClass` getter as the main render path.
+- **`disconnectedCallback` conflict** — a duplicate method definition introduced in v1.1.7 caused `_stopTimerTick()` to never be called when the card was removed from the page. Merged the template subscription cleanup into the single existing `disconnectedCallback`.
+- **`large_buttons` mode content overlap** — with `large_buttons: true`, the always-visible 💤 and 📋 buttons were overlapping the alert message text in some themes. All theme cards now get `padding-right: 88px` in this mode, ensuring the message remains fully readable. ([#34](https://github.com/djdevil/AlertTicker-Card/issues/34))
+
+---
+
 ## [1.1.7] - 2026-04-13
 
 ### Added

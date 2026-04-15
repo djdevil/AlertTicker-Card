@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.1.7-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.1.8-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)  [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
@@ -45,6 +45,9 @@ A custom Lovelace card to display alerts and notifications based on entity state
 | **HA icons** | Use any `mdi:` icon per alert via native icon picker |
 | **Sound notifications** | Per-alert audio — auto-generated tones or custom URL |
 | **Large buttons** | Always-visible pill-shaped 💤 and 📋 buttons |
+| **Swipe to snooze** | Swipe left on the card to snooze — no conflict with `tap_action` |
+| **Vertical layout** | Stack icon on top, message below, centered — all 40 themes |
+| **HA theme adaptation** | `ha_theme: true` adapts colors to any active HA global theme |
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
 | **Languages** | Italian, English, French, German, Dutch, Vietnamese |
@@ -126,7 +129,7 @@ A custom Lovelace card to display alerts and notifications based on entity state
 
 All timer themes transition green → orange → red as the remaining time decreases.
 
-> **Note:** The `clear_theme` only accepts `success`, `check`, or `confetti`.
+> **Note:** The `clear_theme` accepts any theme from the ✅ OK category: `success`, `check`, `confetti`, `heartbeat`, `shield`, `power`, `sunrise`, `plant`, `lock`.
 
 ---
 
@@ -400,6 +403,44 @@ Always-visible pill-shaped 💤 and 📋 buttons — useful for wall-mounted tab
 large_buttons: true
 ```
 
+### Swipe to snooze
+
+Enable a left-swipe gesture to snooze the current alert on touch devices. Works independently of `tap_action` and `hold_action` — no conflict:
+
+```yaml
+swipe_to_snooze: true
+```
+
+Swipe at least 60 px horizontally to trigger. Uses the configured `snooze_duration` (or 1 h if none is set).
+
+### Vertical layout
+
+Stack the icon on top and the message below, centered — useful for narrow columns or square card grids:
+
+```yaml
+vertical: true
+```
+
+Works with all 40 themes. The **Ticker** theme keeps its horizontal scrolling. Can be combined with `ha_theme: true` and `large_buttons: true`.
+
+### HA theme adaptation
+
+Adapt the card's color palette to the active Home Assistant global theme:
+
+```yaml
+ha_theme: true
+```
+
+When enabled:
+- Card background → `--card-background-color`
+- Text → `--primary-text-color` / `--secondary-text-color`
+- Critical badges/borders → `--error-color`
+- Warning badges/borders → `--warning-color`
+- Info badges/borders → `--info-color`
+- OK badges/borders → `--success-color`
+
+All 40 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
+
 ### Test mode
 
 Force all configured alerts to display as active — useful for previewing the card appearance without waiting for real conditions:
@@ -452,6 +493,9 @@ No YAML knowledge required. The editor has two tabs:
 | **Snooze behaviour** | Fixed duration or menu (30min / 1h / 4h / 8h / 24h) |
 | **Show snooze bar** | Toggle the amber snooze reactivation bar |
 | **Large buttons** | Always-visible pill-shaped 💤 and 📋 buttons |
+| **Swipe to snooze** | Left-swipe gesture to snooze — ideal for mobile |
+| **Vertical layout** | Stack icon on top, message below, centered |
+| **Adapt to HA theme** | Adapt colors to the active HA global theme |
 | **History max events** | How many history entries to keep (25 / 50 / 100 / 200) |
 
 ### Alerts tab
@@ -495,7 +539,10 @@ You can **reorder** alerts with ↑ / ↓ buttons.
 | `clear_theme` | `string` | `success` | Theme for all-clear (`success`, `check`, `confetti`) |
 | `snooze_default_duration` | `number` | *(menu)* | Fixed snooze duration in hours (`0.5`, `1`, `4`, `8`, `24`). Omit for menu. |
 | `show_snooze_bar` | `boolean` | `true` | Set `false` to hide the amber snooze reactivation bar and pill |
-| `large_buttons` | `boolean` | `false` | Always-visible pill-shaped 💤 and 📋 buttons at bottom-right |
+| `large_buttons` | `boolean` | `false` | Always-visible pill-shaped 💤 and 📋 buttons |
+| `swipe_to_snooze` | `boolean` | `false` | Left-swipe gesture to snooze on touch devices |
+| `vertical` | `boolean` | `false` | Vertical layout — icon on top, message centered below |
+| `ha_theme` | `boolean` | `false` | Adapt card colors to the active HA global theme |
 | `history_max_events` | `number` | `50` | Max history entries to keep |
 | `test_mode` | `boolean` | `false` | Show all alerts as active (ignore conditions) — for editor preview only |
 | `alerts` | `list` | `[]` | List of alert objects |
@@ -687,6 +734,9 @@ The card automatically detects the language from your Home Assistant settings.
 **Card not appearing after installation**
 - Add `alert-ticker-card.js` as a JavaScript module in Settings → Dashboards → Resources
 - Hard-reload the browser (Ctrl+Shift+R / Cmd+Shift+R)
+
+**Features not working after update (secondary text, templates, new options)**
+- HA and browsers cache custom card files aggressively. After updating, always do a **hard-reload** (`Ctrl+Shift+R` / `Cmd+Shift+R`) or go to **Settings → System → Restart → Clear cache and restart**. You can verify the running version by searching for `CARD_VERSION` in the JS file via browser DevTools.
 
 **Entity picker not showing in editor**
 - Known HA lazy-loading issue. The card handles it automatically. If it still doesn't appear, close and reopen the editor.

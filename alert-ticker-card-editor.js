@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.7";
+const CARD_VERSION = "1.1.8";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -367,6 +367,9 @@ const ET = {
     cycle_interval_help: "Secondi tra un avviso e l'altro quando ce ne sono più di uno attivi",
     show_when_clear: "Mostra quando non ci sono avvisi",
     large_buttons: "Pulsanti grandi sempre visibili (💤 e 📋)",
+    ha_theme: "Adatta al tema HA (compatibile con Mushroom e tutti i temi globali)",
+    swipe_to_snooze: "Scorri a sinistra per silenziare 💤 (ideale per mobile)",
+    vertical: "Layout verticale (icona sopra, testo sotto, centrato)",
     show_snooze_bar: "Mostra barra di riattivazione snooze 💤",
     snooze_default_duration: "Comportamento snooze 💤",
     snooze_default_duration_help: "Menu durata: tap su 💤 apre il menu per scegliere quanto silenziare. Durata fissa: tap su 💤 silenzia subito senza menu.",
@@ -489,6 +492,9 @@ const ET = {
     cycle_interval_help: "Seconds between alerts when multiple are active",
     show_when_clear: "Show when no alerts are active",
     large_buttons: "Large always-visible buttons (💤 and 📋)",
+    ha_theme: "Adapt to HA theme (compatible with Mushroom and all global themes)",
+    swipe_to_snooze: "Swipe left to snooze 💤 (ideal for mobile)",
+    vertical: "Vertical layout (icon on top, text below, centered)",
     show_snooze_bar: "Show snooze reactivation bar 💤",
     snooze_default_duration: "Snooze 💤 behaviour",
     snooze_default_duration_help: "Duration menu: tap on 💤 opens a menu to choose how long to snooze. Fixed duration: tap on 💤 snoozes immediately with no menu.",
@@ -611,6 +617,9 @@ const ET = {
     cycle_interval_help: "Secondes entre les alertes quand plusieurs sont actives",
     show_when_clear: "Afficher quand aucune alerte n'est active",
     large_buttons: "Grands boutons toujours visibles (💤 et 📋)",
+    ha_theme: "Adapter au thème HA (compatible Mushroom et tous les thèmes globaux)",
+    swipe_to_snooze: "Glisser à gauche pour mettre en veille 💤 (idéal mobile)",
+    vertical: "Disposition verticale (icône en haut, texte en bas, centré)",
     show_snooze_bar: "Afficher la barre de réactivation snooze 💤",
     snooze_default_duration: "Comportement snooze 💤",
     snooze_default_duration_help: "Menu de durée: tap sur 💤 ouvre un menu pour choisir la durée. Durée fixe: tap sur 💤 met en veille immédiatement sans menu.",
@@ -733,6 +742,9 @@ const ET = {
     cycle_interval_help: "Sekunden zwischen Warnungen wenn mehrere aktiv sind",
     show_when_clear: "Anzeigen wenn keine Warnung aktiv",
     large_buttons: "Große, immer sichtbare Schaltflächen (💤 und 📋)",
+    ha_theme: "An HA-Theme anpassen (kompatibel mit Mushroom und allen globalen Themes)",
+    swipe_to_snooze: "Nach links wischen zum Schlummern 💤 (ideal für Mobilgeräte)",
+    vertical: "Vertikales Layout (Symbol oben, Text unten, zentriert)",
     show_snooze_bar: "Schlummern-Reaktivierungsleiste anzeigen 💤",
     snooze_default_duration: "Schlummern 💤 Verhalten",
     snooze_default_duration_help: "Dauermenü: Tap auf 💤 öffnet ein Menü zur Auswahl der Dauer. Feste Dauer: Tap auf 💤 schlummert sofort ohne Menü.",
@@ -855,6 +867,9 @@ const ET = {
     cycle_interval_help: "Seconden tussen meldingen wanneer meerdere actief zijn",
     show_when_clear: "Tonen wanneer geen meldingen actief zijn",
     large_buttons: "Grote, altijd zichtbare knoppen (💤 en 📋)",
+    ha_theme: "Aanpassen aan HA-thema (compatibel met Mushroom en alle globale thema's)",
+    swipe_to_snooze: "Veeg naar links om te sluimeren 💤 (ideaal voor mobiel)",
+    vertical: "Verticale lay-out (icoon boven, tekst onder, gecentreerd)",
     show_snooze_bar: "Sluimer-reactiveringsbalk weergeven 💤",
     snooze_default_duration: "Sluimer 💤 gedrag",
     snooze_default_duration_help: "Duurmenu: tik op 💤 opent een menu om de duur te kiezen. Vaste duur: tik op 💤 sluimert direct zonder menu.",
@@ -977,6 +992,9 @@ const ET = {
     cycle_interval_help: "Số giây giữa các báo động khi có nhiều báo động đang hoạt động",
     show_when_clear: "Hiển thị khi không có báo động",
     large_buttons: "Nút lớn luôn hiển thị (💤 và 📋)",
+    ha_theme: "Thích ứng với chủ đề HA (tương thích Mushroom và tất cả chủ đề toàn cục)",
+    swipe_to_snooze: "Vuốt sang trái để tạm hoãn 💤 (lý tưởng cho di động)",
+    vertical: "Bố cục dọc (biểu tượng trên, văn bản dưới, căn giữa)",
     show_snooze_bar: "Hiển thị thanh kích hoạt lại tạm hoãn 💤",
     snooze_default_duration: "Hành vi tạm hoãn 💤",
     snooze_default_duration_help: "Menu thời gian: nhấn 💤 mở menu chọn thời lượng. Thời lượng cố định: nhấn 💤 tạm hoãn ngay không cần menu.",
@@ -1095,65 +1113,124 @@ const ET = {
 };
 
 // ---------------------------------------------------------------------------
+// Theme description translations  (parenthetical label per language)
+// vi falls back to en for technical terms
+// ---------------------------------------------------------------------------
+const THEME_DESC_I18N = {
+  emergency:    { it: "Pulsante rosso",        en: "Red button",           fr: "Bouton rouge",          de: "Roter Knopf",           nl: "Rode knop"            },
+  fire:         { it: "Fiamma",                en: "Flame",                fr: "Flamme",                de: "Flamme",                nl: "Vlam"                 },
+  alarm:        { it: "Strobo",                en: "Strobe",               fr: "Stroboscope",           de: "Stroboskop",            nl: "Stroboscoop"          },
+  lightning:    { it: "Fulmine",               en: "Lightning bolt",       fr: "Éclair",                de: "Blitz",                 nl: "Bliksem"              },
+  nuclear:      { it: "Radiazione",            en: "Radiation",            fr: "Radiation",             de: "Strahlung",             nl: "Straling"             },
+  flood:        { it: "Onde animate",          en: "Animated waves",       fr: "Vagues animées",        de: "Wellen animiert",       nl: "Geanimeerde golven"   },
+  motion:       { it: "Night-vision scan",     en: "Night-vision scan",    fr: "Scan vision nocturne",  de: "Nachtsicht-Scan",       nl: "Nachtzicht scan"      },
+  intruder:     { it: "Sirena rossa",          en: "Red siren",            fr: "Sirène rouge",          de: "Rote Sirene",           nl: "Rode sirene"          },
+  toxic:        { it: "Bolle verdi",           en: "Green bubbles",        fr: "Bulles vertes",         de: "Grüne Blasen",          nl: "Groene bellen"        },
+  warning:      { it: "Bordo ambra",           en: "Amber border",         fr: "Bordure ambrée",        de: "Bernsteinrahmen",       nl: "Amber rand"           },
+  caution:      { it: "Nastro giallo",         en: "Yellow tape",          fr: "Ruban jaune",           de: "Gelbes Band",           nl: "Geel lint"            },
+  radar:        { it: "Sonar sweep",           en: "Sonar sweep",          fr: "Balayage sonar",        de: "Sonar-Scan",            nl: "Sonar sweep"          },
+  temperature:  { it: "Termometro",            en: "Thermometer",          fr: "Thermomètre",           de: "Thermometer",           nl: "Thermometer"          },
+  battery:      { it: "Scarica",               en: "Draining",             fr: "En décharge",           de: "Entladen",              nl: "Ontladen"             },
+  door:         { it: "Porta aperta",          en: "Open door",            fr: "Porte ouverte",         de: "Offene Tür",            nl: "Open deur"            },
+  smoke:        { it: "Fumo grigio",           en: "Grey smoke",           fr: "Fumée grise",           de: "Grauer Rauch",          nl: "Grijze rook"          },
+  wind:         { it: "Raffiche",              en: "Gusts",                fr: "Rafales",               de: "Böen",                  nl: "Windvlagen"           },
+  leak:         { it: "Gocce",                 en: "Drops",                fr: "Gouttes",               de: "Tropfen",               nl: "Druppels"             },
+  info:         { it: "Bordo blu",             en: "Blue border",          fr: "Bordure bleue",         de: "Blauer Rand",           nl: "Blauwe rand"          },
+  notification: { it: "Bubble",                en: "Bubble",               fr: "Bulle",                 de: "Blase",                 nl: "Ballon"               },
+  aurora:       { it: "Animato",               en: "Animated",             fr: "Animé",                 de: "Animiert",              nl: "Geanimeerd"           },
+  hologram:     { it: "Olografico",            en: "Holographic",          fr: "Holographique",         de: "Holografisch",          nl: "Holografisch"         },
+  presence:     { it: "Ping radar",            en: "Radar ping",           fr: "Ping radar",            de: "Radar-Ping",            nl: "Radar ping"           },
+  update:       { it: "Anello rotante",        en: "Rotating ring",        fr: "Anneau rotatif",        de: "Rotierender Ring",      nl: "Roterende ring"       },
+  cloud:        { it: "Nuvola",                en: "Cloud puff",           fr: "Nuage",                 de: "Wolke",                 nl: "Wolk"                 },
+  satellite:    { it: "Segnale",               en: "Signal",               fr: "Signal",                de: "Signal",                nl: "Signaal"              },
+  tips:         { it: "Consiglio",             en: "Tip",                  fr: "Conseil",               de: "Tipp",                  nl: "Tip"                  },
+  success:      { it: "Verde",                 en: "Green",                fr: "Vert",                  de: "Grün",                  nl: "Groen"                },
+  check:        { it: "Anello pulsante",       en: "Pulsing ring",         fr: "Anneau pulsant",        de: "Pulsierender Ring",     nl: "Pulserende ring"      },
+  confetti:     { it: "Coriandoli",            en: "Confetti",             fr: "Confettis",             de: "Konfetti",              nl: "Confetti"             },
+  heartbeat:    { it: "ECG pulsante",          en: "Pulsing ECG",          fr: "ECG pulsant",           de: "Pulsierendes EKG",      nl: "Pulserend ECG"        },
+  shield:       { it: "Scudo + scan",          en: "Shield scan",          fr: "Bouclier + scan",       de: "Schild-Scan",           nl: "Schild scan"          },
+  power:        { it: "Fulmine verde",         en: "Green bolt",           fr: "Éclair vert",           de: "Grüner Blitz",          nl: "Groene bliksem"       },
+  sunrise:      { it: "Alba",                  en: "Sunrise glow",         fr: "Lueur de l'aube",       de: "Sonnenaufgang",         nl: "Ochtendgloren"        },
+  plant:        { it: "Crescita",              en: "Growing",              fr: "Croissance",            de: "Wachstum",              nl: "Groeiend"             },
+  lock:         { it: "Sicuro",                en: "Secure",               fr: "Sécurisé",              de: "Gesichert",             nl: "Beveiligd"            },
+  ticker:       { it: "Scorrevole",            en: "Scrolling",            fr: "Défilant",              de: "Laufschrift",           nl: "Scrollend"            },
+  neon:         { it: "Cyberpunk",             en: "Cyberpunk",            fr: "Cyberpunk",             de: "Cyberpunk",             nl: "Cyberpunk"            },
+  glass:        { it: "Glassmorphism",         en: "Glassmorphism",        fr: "Glassmorphism",         de: "Glassmorphism",         nl: "Glassmorphism"        },
+  matrix:       { it: "Terminale",             en: "Terminal",             fr: "Terminal",              de: "Terminal",              nl: "Terminal"             },
+  minimal:      { it: "Pulito",                en: "Clean",                fr: "Épuré",                 de: "Aufgeräumt",            nl: "Opgeruimd"            },
+  retro:        { it: "CRT fosforescente",     en: "Phosphor CRT",         fr: "CRT phosphore",         de: "Phosphor-CRT",          nl: "Fosfor CRT"           },
+  cyberpunk:    { it: "Neon viola/cyan",       en: "Purple/cyan neon",     fr: "Néon violet/cyan",      de: "Lila/Cyan Neon",        nl: "Paars/cyan neon"      },
+  vapor:        { it: "Vaporwave grid",        en: "Vaporwave grid",       fr: "Vaporwave grid",        de: "Vaporwave-Raster",      nl: "Vaporwave raster"     },
+  lava:         { it: "Blob arancio",          en: "Orange blob",          fr: "Blob orange",           de: "Orangefarbener Blob",   nl: "Oranje blob"          },
+  countdown:    { it: "Barra progressiva",     en: "Progress bar",         fr: "Barre de progression",  de: "Fortschrittsbalken",    nl: "Voortgangsbalk"       },
+  hourglass:    { it: "Riempimento verticale", en: "Vertical fill",        fr: "Remplissage vertical",  de: "Vertikale Füllung",     nl: "Verticale vulling"    },
+  timer_pulse:  { it: "Pulsante veloce",       en: "Fast pulse",           fr: "Pulsation rapide",      de: "Schneller Puls",        nl: "Snelle puls"          },
+  timer_ring:   { it: "Anello SVG",            en: "SVG ring",             fr: "Anneau SVG",            de: "SVG-Ring",              nl: "SVG ring"             },
+};
+
+// Category group name translations
+const THEME_GROUP_I18N = {
+  critical: { it: "Critico",      en: "Critical",  fr: "Critique",     de: "Kritisch",   nl: "Kritiek",       vi: "Nghiêm trọng" },
+  warning:  { it: "Attenzione",   en: "Warning",   fr: "Attention",    de: "Warnung",    nl: "Waarschuwing",  vi: "Cảnh báo"     },
+  info:     { it: "Informazione", en: "Info",      fr: "Information",  de: "Info",       nl: "Informatie",    vi: "Thông tin"    },
+  ok:       { it: "Tutto OK",     en: "All Clear", fr: "Tout va bien", de: "Alles OK",   nl: "Alles OK",      vi: "Tất cả ổn"    },
+  style:    { it: "Stile",        en: "Style",     fr: "Style",        de: "Stil",       nl: "Stijl",         vi: "Phong cách"   },
+};
+
+// ---------------------------------------------------------------------------
 // Theme options
 // ---------------------------------------------------------------------------
 // Grouped theme options with category separators
 const THEME_OPTIONS = [
-  { sep: true,  label: "── 🚨 CRITICO ──" },
-  { value: "emergency",    label: "🚨 Emergency (Pulsante rosso)" },
-  { value: "fire",         label: "🔥 Fire (Fiamma)" },
-  { value: "alarm",        label: "🔴 Alarm (Strobo)" },
-  { value: "lightning",    label: "🌩️ Lightning (Fulmine)" },
-  { value: "nuclear",      label: "☢️ Nuclear (Radiazione)" },
-  { value: "flood",        label: "🌊 Flood (Onde animate)" },
-  { value: "motion",       label: "👁️ Motion (Night-vision scan)" },
-  { value: "intruder",     label: "🚷 Intruder (Sirena rossa)" },
-  { value: "toxic",        label: "☠️ Toxic (Bolle verdi)" },
-  { sep: true,  label: "── ⚠️ ATTENZIONE ──" },
-  { value: "warning",      label: "⚠️ Warning (Bordo ambra)" },
-  { value: "caution",      label: "🟡 Caution (Nastro giallo)" },
-  { value: "radar",        label: "🎯 Radar (Sonar sweep)" },
-  { value: "temperature",  label: "🌡️ Temperature (Termometro)" },
-  { value: "battery",      label: "🔋 Battery (Scarica)" },
-  { value: "door",         label: "🚪 Door (Porta aperta)" },
-  { value: "smoke",        label: "🌫️ Smoke (Fumo grigio)" },
-  { value: "wind",         label: "💨 Wind (Raffiche)" },
-  { value: "leak",         label: "💧 Leak (Gocce)" },
-  { sep: true,  label: "── ℹ️ INFORMAZIONE ──" },
-  { value: "info",         label: "ℹ️ Info (Bordo blu)" },
-  { value: "notification", label: "🔔 Notification (Bubble)" },
-  { value: "aurora",       label: "🌌 Aurora (Animato)" },
-  { value: "hologram",     label: "🔷 Hologram (Olografico)" },
-  { value: "presence",     label: "🏠 Presence (Ping radar)" },
-  { value: "update",       label: "🔄 Update (Anello rotante)" },
-  { value: "cloud",        label: "☁️ Cloud (Nuvola)" },
-  { value: "satellite",    label: "📡 Satellite (Segnale)" },
-  { value: "tips",         label: "💡 Tips (Consiglio)" },
-  { sep: true,  label: "── ✅ TUTTO OK ──" },
-  { value: "success",      label: "✅ Success (Verde)" },
-  { value: "check",        label: "🟢 Check (Anello pulsante)" },
-  { value: "confetti",     label: "🎉 Confetti (Coriandoli)" },
-  { value: "heartbeat",    label: "💓 Heartbeat (ECG pulsante)" },
-  { value: "shield",       label: "🛡️ Shield (Scudo + scan)" },
-  { value: "power",        label: "⚡ Power (Fulmine verde)" },
-  { value: "sunrise",      label: "🌅 Sunrise (Alba)" },
-  { value: "plant",        label: "🌱 Plant (Crescita)" },
-  { value: "lock",         label: "🔒 Lock (Sicuro)" },
-  { sep: true,  label: "── 🎨 STILE ──" },
-  { value: "ticker",       label: "📰 Ticker (Scorrevole)" },
-  { value: "neon",         label: "⚡ Neon (Cyberpunk)" },
-  { value: "glass",        label: "🔮 Glass (Glassmorphism)" },
-  { value: "matrix",       label: "💻 Matrix (Terminale)" },
-  { value: "minimal",      label: "📋 Minimal (Pulito)" },
-  { value: "retro",        label: "📺 Retro (CRT fosforescente)" },
-  { value: "cyberpunk",    label: "🤖 Cyberpunk (Neon viola/cyan)" },
-  { value: "vapor",        label: "🌸 Vapor (Vaporwave grid)" },
-  { value: "lava",         label: "🌋 Lava (Blob arancio)" },
-  // Timer themes
-  { value: "countdown",    label: "⏱️ Countdown (Barra progressiva)" },
-  { value: "hourglass",    label: "⏳ Hourglass (Riempimento verticale)" },
-  { value: "timer_pulse",  label: "💥 Timer Pulse (Pulsante veloce)" },
-  { value: "timer_ring",   label: "🔵 Timer Ring (Anello SVG)" },
+  { value: "emergency"    },
+  { value: "fire"         },
+  { value: "alarm"        },
+  { value: "lightning"    },
+  { value: "nuclear"      },
+  { value: "flood"        },
+  { value: "motion"       },
+  { value: "intruder"     },
+  { value: "toxic"        },
+  { value: "warning"      },
+  { value: "caution"      },
+  { value: "radar"        },
+  { value: "temperature"  },
+  { value: "battery"      },
+  { value: "door"         },
+  { value: "smoke"        },
+  { value: "wind"         },
+  { value: "leak"         },
+  { value: "info"         },
+  { value: "notification" },
+  { value: "aurora"       },
+  { value: "hologram"     },
+  { value: "presence"     },
+  { value: "update"       },
+  { value: "cloud"        },
+  { value: "satellite"    },
+  { value: "tips"         },
+  { value: "success"      },
+  { value: "check"        },
+  { value: "confetti"     },
+  { value: "heartbeat"    },
+  { value: "shield"       },
+  { value: "power"        },
+  { value: "sunrise"      },
+  { value: "plant"        },
+  { value: "lock"         },
+  { value: "ticker"       },
+  { value: "neon"         },
+  { value: "glass"        },
+  { value: "matrix"       },
+  { value: "minimal"      },
+  { value: "retro"        },
+  { value: "cyberpunk"    },
+  { value: "vapor"        },
+  { value: "lava"         },
+  { value: "countdown"    },
+  { value: "hourglass"    },
+  { value: "timer_pulse"  },
+  { value: "timer_ring"   },
 ];
 
 // ---------------------------------------------------------------------------
@@ -1276,6 +1353,41 @@ class AlertTickerCardEditor extends LitElement {
     return (ET[this._lang] && ET[this._lang][key]) || ET.en[key] || key;
   }
 
+  /** Returns a translated label for a theme option entry */
+  _themeLabel(opt) {
+    const EMOJI = {
+      emergency: "🚨", fire: "🔥", alarm: "🔴", lightning: "🌩️", nuclear: "☢️",
+      flood: "🌊", motion: "👁️", intruder: "🚷", toxic: "☠️",
+      warning: "⚠️", caution: "🟡", radar: "🎯", temperature: "🌡️",
+      battery: "🔋", door: "🚪", smoke: "🌫️", wind: "💨", leak: "💧",
+      info: "ℹ️", notification: "🔔", aurora: "🌌", hologram: "🔷",
+      presence: "🏠", update: "🔄", cloud: "☁️", satellite: "📡", tips: "💡",
+      success: "✅", check: "🟢", confetti: "🎉", heartbeat: "💓",
+      shield: "🛡️", power: "⚡", sunrise: "🌅", plant: "🌱", lock: "🔒",
+      ticker: "📰", neon: "⚡", glass: "🔮", matrix: "💻", minimal: "📋",
+      retro: "📺", cyberpunk: "🤖", vapor: "🌸", lava: "🌋",
+      countdown: "⏱️", hourglass: "⏳", timer_pulse: "💥", timer_ring: "🔵",
+    };
+    const NAME = {
+      timer_pulse: "Timer Pulse", timer_ring: "Timer Ring",
+    };
+    const emoji = EMOJI[opt.value] || "";
+    const name  = NAME[opt.value] || (opt.value.charAt(0).toUpperCase() + opt.value.slice(1));
+    const descs = THEME_DESC_I18N[opt.value];
+    if (!descs) return `${emoji} ${name}`;
+    const lang = this._lang || "en";
+    const desc = descs[lang] || descs.en;
+    return `${emoji} ${name} (${desc})`;
+  }
+
+  /** Returns the translated label for a theme category group */
+  _groupLabel(cat, emoji) {
+    const lang = this._lang || "en";
+    const g = THEME_GROUP_I18N[cat];
+    const name = g ? (g[lang] || g.en) : cat;
+    return `${emoji} ${name}`;
+  }
+
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
@@ -1320,19 +1432,18 @@ class AlertTickerCardEditor extends LitElement {
    */
   _renderThemeSelect(labelKey, currentValue, handler, onlyOk = false, timerOnly = false) {
     const GROUPS = [
-      { cat: "critical", label: "🚨 Critico / Critical" },
-      { cat: "warning",  label: "⚠️ Attenzione / Warning" },
-      { cat: "info",     label: "ℹ️ Informazione / Info" },
-      { cat: "ok",       label: "✅ Tutto OK / All Clear" },
-      { cat: "style",    label: "🎨 Stile / Style" },
+      { cat: "critical", emoji: "🚨" },
+      { cat: "warning",  emoji: "⚠️" },
+      { cat: "info",     emoji: "ℹ️" },
+      { cat: "ok",       emoji: "✅" },
+      { cat: "style",    emoji: "🎨" },
     ];
     const TIMER_GROUP = { cat: "timer", label: `⏱️ ${this._t("timer_theme_category")}` };
 
-    const allThemes = THEME_OPTIONS.filter((o) => !o.sep);
     const groups = timerOnly
       ? [TIMER_GROUP]
       : onlyOk
-        ? [{ cat: "ok", label: "✅ Tutto OK / All Clear" }]
+        ? [{ cat: "ok", emoji: "✅" }]
         : GROUPS;
 
     return html`
@@ -1343,12 +1454,12 @@ class AlertTickerCardEditor extends LitElement {
           @change="${(e) => handler(e.target.value)}"
         >
           ${groups.map((g) => html`
-            <optgroup label="${g.label}">
-              ${allThemes
+            <optgroup label="${g.label || this._groupLabel(g.cat, g.emoji)}">
+              ${THEME_OPTIONS
                 .filter((o) => (THEME_META[o.value] || {}).category === g.cat)
                 .map((o) => html`
                   <option value="${o.value}" ?selected="${currentValue === o.value}">
-                    ${o.label}
+                    ${this._themeLabel(o)}
                   </option>
                 `)}
             </optgroup>
@@ -1441,6 +1552,39 @@ class AlertTickerCardEditor extends LitElement {
           <ha-switch
             .checked="${!!cfg.large_buttons}"
             @change="${(e) => this._fireConfig({ ...this._config, large_buttons: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+
+      <!-- HA theme adaptation toggle -->
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("ha_theme")}</span>
+          <ha-switch
+            .checked="${!!cfg.ha_theme}"
+            @change="${(e) => this._fireConfig({ ...this._config, ha_theme: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+
+      <!-- Swipe-to-snooze toggle (mobile gesture) -->
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("swipe_to_snooze")}</span>
+          <ha-switch
+            .checked="${!!cfg.swipe_to_snooze}"
+            @change="${(e) => this._fireConfig({ ...this._config, swipe_to_snooze: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+
+      <!-- Vertical layout toggle -->
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("vertical")}</span>
+          <ha-switch
+            .checked="${!!cfg.vertical}"
+            @change="${(e) => this._fireConfig({ ...this._config, vertical: e.target.checked || undefined })}"
           ></ha-switch>
         </div>
       </div>

@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.7";
+const CARD_VERSION = "1.1.8";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -295,14 +295,9 @@ class AlertTickerCard extends LitElement {
     // HA template rendering via WebSocket render_template subscription
     this._tmplCache = new Map();   // template string → rendered string
     this._tmplUnsubs = new Map();  // template string → unsubscribe fn
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback?.();
-    this._stopCycleTimer();
-    for (const unsub of this._tmplUnsubs.values()) { try { unsub(); } catch (_) {} }
-    this._tmplUnsubs.clear();
-    this._tmplCache.clear();
+    // Swipe-to-snooze gesture tracking
+    this._swipeStartX = 0;
+    this._swipeStartY = 0;
   }
 
   // ---- Lovelace card static helpers ----------------------------------------
@@ -1248,6 +1243,32 @@ class AlertTickerCard extends LitElement {
     if (this._holdTimer) { clearTimeout(this._holdTimer); this._holdTimer = null; }
   }
 
+  /** Swipe-to-snooze: record touch start position */
+  _onSwipeStart(e) {
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    this._swipeStartX = t.clientX;
+    this._swipeStartY = t.clientY;
+  }
+
+  /** Swipe-to-snooze: on release, check for left-swipe and snooze current alert */
+  _onSwipeEnd(e) {
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    const dx = t.clientX - this._swipeStartX;
+    const dy = t.clientY - this._swipeStartY;
+    // Require at least 60px horizontal movement, and more horizontal than vertical
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0) {
+      // Swipe left → snooze current alert
+      const alert = this._current;
+      if (!alert || !alert.entity) return;
+      const dur = alert.snooze_duration !== undefined
+        ? alert.snooze_duration
+        : (this._config.snooze_default_duration ?? 1);
+      this._snoozeAlert(alert, dur === null ? 1 : dur);
+    }
+  }
 
   /** Clear all snooze state and immediately reshow matching alerts */
   _resetSnooze() {
@@ -1287,6 +1308,10 @@ class AlertTickerCard extends LitElement {
     super.disconnectedCallback();
     this._stopCycleTimer();
     this._stopTimerTick();
+    // Unsubscribe all render_template WebSocket subscriptions
+    for (const unsub of this._tmplUnsubs.values()) { try { unsub(); } catch (_) {} }
+    this._tmplUnsubs.clear();
+    this._tmplCache.clear();
   }
 
   // ---- Helpers -------------------------------------------------------------
@@ -2453,6 +2478,14 @@ class AlertTickerCard extends LitElement {
 
   // ---- render() -----------------------------------------------------------
 
+  /** Class string for the snooze-host wrapper — shared by all render paths */
+  get _hostClass() {
+    return "atc-snooze-host"
+      + (this._config.large_buttons ? " atc-large-buttons" : "")
+      + (this._config.ha_theme      ? " atc-ha-theme"      : "")
+      + (this._config.vertical      ? " atc-vertical"      : "");
+  }
+
   render() {
     if (!this._config) return html``;
 
@@ -2460,7 +2493,10 @@ class AlertTickerCard extends LitElement {
     if (this._activeAlerts.length === 0) {
       // Some alerts match but are snoozed — show a minimal indicator with reset button
       if (this._snoozedCount > 0 && this._config.show_snooze_bar !== false) {
-        return this._renderSnoozedIndicator();
+        return html`
+          <div class="atc-card-root">
+            <div class="${this._hostClass}">${this._renderSnoozedIndicator()}</div>
+          </div>`;
       }
       if (this._config.show_when_clear) {
         // Build a virtual "all clear" alert and render it with the chosen clear theme
@@ -2471,7 +2507,14 @@ class AlertTickerCard extends LitElement {
           entity: null,
           theme: this._config.clear_theme || "success",
         };
-        return this._renderForTheme(clearAlert.theme, clearAlert);
+        return html`
+          <div class="atc-card-root">
+            <div class="${this._hostClass}">
+              <div class="at-fold-wrapper">
+                ${this._renderForTheme(clearAlert.theme, clearAlert)}
+              </div>
+            </div>
+          </div>`;
       }
       return html``; // hide card completely
     }
@@ -2496,7 +2539,7 @@ class AlertTickerCard extends LitElement {
     if (this._historyOpen) {
       return html`
         <div class="atc-card-root">
-          <div class="atc-snooze-host${this._config.large_buttons ? " atc-large-buttons" : ""}">
+          <div class="${this._hostClass}">
             <div class="at-fold-wrapper ${this._animPhase}" data-anim="${this._config.cycle_animation || "fold"}">
               ${this._renderHistory()}
             </div>
@@ -2519,16 +2562,21 @@ class AlertTickerCard extends LitElement {
     const puHandler = hasInteraction ? (e) => this._onPointerUp(e)                    : null;
     const plHandler = hasInteraction ? ()  => this._cancelHold()                      : null;
 
+    // Swipe-to-snooze gesture handlers (touchstart/touchend, mobile only)
+    const swipeStart = this._config.swipe_to_snooze ? (e) => this._onSwipeStart(e) : null;
+    const swipeEnd   = this._config.swipe_to_snooze ? (e) => this._onSwipeEnd(e)   : null;
+
     const counterOverlay = this._config.large_buttons ? this._renderCounterOverlay() : "";
 
     // Ticker has its own scroll animation — skip fold wrapper
     if ((current.theme || "").toLowerCase() === "ticker") {
       return html`
         <div class="atc-card-root">
-          <div class="atc-snooze-host${this._config.large_buttons ? " atc-large-buttons" : ""}">
+          <div class="${this._hostClass}">
             <div class="${hasInteraction ? "atc-clickable" : ""}"
               @pointerdown="${pdHandler}" @pointerup="${puHandler}"
-              @pointerleave="${plHandler}" @pointercancel="${plHandler}">${inner}</div>
+              @pointerleave="${plHandler}" @pointercancel="${plHandler}"
+              @touchstart="${swipeStart}" @touchend="${swipeEnd}">${inner}</div>
             ${snoozeBtn}${historyBtn}${snoozedPill}${counterOverlay}
           </div>
           ${testModeBanner}
@@ -2536,11 +2584,12 @@ class AlertTickerCard extends LitElement {
     }
     return html`
       <div class="atc-card-root">
-        <div class="atc-snooze-host${this._config.large_buttons ? " atc-large-buttons" : ""}">
+        <div class="${this._hostClass}">
           <div class="at-fold-wrapper ${this._animPhase}${hasInteraction ? " atc-clickable" : ""}"
             data-anim="${this._config.cycle_animation || "fold"}"
             @pointerdown="${pdHandler}" @pointerup="${puHandler}"
-            @pointerleave="${plHandler}" @pointercancel="${plHandler}">${inner}</div>
+            @pointerleave="${plHandler}" @pointercancel="${plHandler}"
+            @touchstart="${swipeStart}" @touchend="${swipeEnd}">${inner}</div>
           ${snoozeBtn}${historyBtn}${snoozedPill}${counterOverlay}
         </div>
         ${testModeBanner}
@@ -4939,9 +4988,9 @@ class AlertTickerCard extends LitElement {
       .atc-large-buttons [class*="-right"] {
         display: none;
       }
-      /* timer_ring: add padding-right so the ring SVG doesn't sit under the circular buttons */
-      .atc-large-buttons .at-timer-ring {
-        padding-right: 90px;
+      /* All theme cards: add padding-right so content never sits under the circular buttons */
+      .atc-large-buttons ha-card {
+        padding-right: 88px !important;
       }
       /* Overlay counter — top-right corner, always inside the card */
       .alert-counter-overlay {
@@ -5178,6 +5227,258 @@ class AlertTickerCard extends LitElement {
         position: absolute; inset: 0;
         display: flex; align-items: center; justify-content: center;
         font-size: 0.65rem; font-weight: 800; font-variant-numeric: tabular-nums;
+      }
+
+      /* -----------------------------------------------------------------------
+       * HA THEME ADAPTATION — ha_theme: true
+       * Overrides hardcoded dark palettes with HA CSS custom properties.
+       * Compatible with any HA theme including Mushroom, Material, etc.
+       * --------------------------------------------------------------------- */
+
+      /* Card background */
+      .atc-ha-theme ha-card {
+        background: var(--card-background-color, #1c1c2e) !important;
+      }
+      /* Disable decorative gradient overlays / pulsing backgrounds */
+      .atc-ha-theme ha-card::before,
+      .atc-ha-theme ha-card::after {
+        display: none !important;
+      }
+      /* All titles / messages → primary text color */
+      .atc-ha-theme [class$="-title"],
+      .atc-ha-theme [class$="-msg"],
+      .atc-ha-theme [class$="-message"] {
+        color: var(--primary-text-color, inherit) !important;
+        text-shadow: none !important;
+      }
+      /* Secondary / badge text → secondary text color */
+      .atc-ha-theme [class$="-secondary"],
+      .atc-ha-theme [class$="-sub"],
+      .atc-ha-theme .atc-secondary-value {
+        color: var(--secondary-text-color, rgba(0,0,0,0.6)) !important;
+      }
+
+      /* ── Critical ── */
+      .atc-ha-theme .at-emergency,
+      .atc-ha-theme .at-alarm,
+      .atc-ha-theme .at-fire,
+      .atc-ha-theme .at-lightning,
+      .atc-ha-theme .at-nuclear,
+      .atc-ha-theme .at-flood,
+      .atc-ha-theme .at-motion,
+      .atc-ha-theme .at-intruder,
+      .atc-ha-theme .at-toxic {
+        border: 1px solid var(--error-color, #e53935) !important;
+      }
+      .atc-ha-theme .at-emergency [class$="-badge"],
+      .atc-ha-theme .at-alarm     [class$="-badge"],
+      .atc-ha-theme .at-fire      [class$="-badge"],
+      .atc-ha-theme .at-lightning [class$="-badge"],
+      .atc-ha-theme .at-nuclear   [class$="-badge"],
+      .atc-ha-theme .at-flood     [class$="-badge"],
+      .atc-ha-theme .at-motion    [class$="-badge"],
+      .atc-ha-theme .at-intruder  [class$="-badge"],
+      .atc-ha-theme .at-toxic     [class$="-badge"] {
+        color: var(--error-color, #e53935) !important;
+      }
+
+      /* ── Warning ── */
+      .atc-ha-theme .at-warning,
+      .atc-ha-theme .at-caution,
+      .atc-ha-theme .at-radar,
+      .atc-ha-theme .at-temperature,
+      .atc-ha-theme .at-battery,
+      .atc-ha-theme .at-door,
+      .atc-ha-theme .at-smoke,
+      .atc-ha-theme .at-wind,
+      .atc-ha-theme .at-leak {
+        border: 1px solid var(--warning-color, #ff9800) !important;
+      }
+      .atc-ha-theme .at-warning     [class$="-badge"],
+      .atc-ha-theme .at-caution     [class$="-badge"],
+      .atc-ha-theme .at-radar       [class$="-badge"],
+      .atc-ha-theme .at-temperature [class$="-badge"],
+      .atc-ha-theme .at-battery     [class$="-badge"],
+      .atc-ha-theme .at-door        [class$="-badge"],
+      .atc-ha-theme .at-smoke       [class$="-badge"],
+      .atc-ha-theme .at-wind        [class$="-badge"],
+      .atc-ha-theme .at-leak        [class$="-badge"] {
+        color: var(--warning-color, #ff9800) !important;
+      }
+
+      /* ── Info / Style ── */
+      .atc-ha-theme .at-info,
+      .atc-ha-theme .at-notification,
+      .atc-ha-theme .at-aurora,
+      .atc-ha-theme .at-neon,
+      .atc-ha-theme .at-glass,
+      .atc-ha-theme .at-matrix,
+      .atc-ha-theme .at-minimal,
+      .atc-ha-theme .at-retro,
+      .atc-ha-theme .at-hologram,
+      .atc-ha-theme .at-heartbeat,
+      .atc-ha-theme .at-presence,
+      .atc-ha-theme .at-update,
+      .atc-ha-theme .at-cloud,
+      .atc-ha-theme .at-satellite,
+      .atc-ha-theme .at-tips,
+      .atc-ha-theme .at-cyberpunk,
+      .atc-ha-theme .at-vapor,
+      .atc-ha-theme .at-ticker {
+        border: 1px solid var(--info-color, var(--primary-color, #2196f3)) !important;
+      }
+      .atc-ha-theme .at-info         [class$="-badge"],
+      .atc-ha-theme .at-notification [class$="-badge"],
+      .atc-ha-theme .at-aurora       [class$="-badge"],
+      .atc-ha-theme .at-neon         [class$="-badge"],
+      .atc-ha-theme .at-glass        [class$="-badge"],
+      .atc-ha-theme .at-matrix       [class$="-badge"],
+      .atc-ha-theme .at-minimal      [class$="-badge"],
+      .atc-ha-theme .at-retro        [class$="-badge"],
+      .atc-ha-theme .at-hologram     [class$="-badge"],
+      .atc-ha-theme .at-heartbeat    [class$="-badge"],
+      .atc-ha-theme .at-presence     [class$="-badge"],
+      .atc-ha-theme .at-update       [class$="-badge"],
+      .atc-ha-theme .at-cloud        [class$="-badge"],
+      .atc-ha-theme .at-satellite    [class$="-badge"],
+      .atc-ha-theme .at-tips         [class$="-badge"],
+      .atc-ha-theme .at-cyberpunk    [class$="-badge"],
+      .atc-ha-theme .at-vapor        [class$="-badge"],
+      .atc-ha-theme .at-ticker       [class$="-badge"] {
+        color: var(--info-color, var(--primary-color, #2196f3)) !important;
+      }
+
+      /* ── Ok / Success ── */
+      .atc-ha-theme .at-success,
+      .atc-ha-theme .at-check,
+      .atc-ha-theme .at-confetti,
+      .atc-ha-theme .at-shield,
+      .atc-ha-theme .at-power,
+      .atc-ha-theme .at-sunrise,
+      .atc-ha-theme .at-plant,
+      .atc-ha-theme .at-lock {
+        border: 1px solid var(--success-color, #43a047) !important;
+      }
+      .atc-ha-theme .at-success  [class$="-badge"],
+      .atc-ha-theme .at-check    [class$="-badge"],
+      .atc-ha-theme .at-confetti [class$="-badge"],
+      .atc-ha-theme .at-shield   [class$="-badge"],
+      .atc-ha-theme .at-power    [class$="-badge"],
+      .atc-ha-theme .at-sunrise  [class$="-badge"],
+      .atc-ha-theme .at-plant    [class$="-badge"],
+      .atc-ha-theme .at-lock     [class$="-badge"] {
+        color: var(--success-color, #43a047) !important;
+      }
+
+      /* ── Timers ── */
+      .atc-ha-theme .at-countdown,
+      .atc-ha-theme .at-hourglass,
+      .atc-ha-theme .at-timer-pulse,
+      .atc-ha-theme .at-timer-ring {
+        background: var(--card-background-color, #1c1c2e) !important;
+        border: 1px solid var(--divider-color, rgba(0,0,0,0.12)) !important;
+      }
+
+      /* ── Decorative elements reset ── */
+      .atc-ha-theme [class$="-fill"],
+      .atc-ha-theme [class$="-drain"],
+      .atc-ha-theme [class$="-bg"],
+      .atc-ha-theme [class$="-glow"],
+      .atc-ha-theme [class$="-ring"]:not(.tr2-ring-wrap) {
+        opacity: 0.25 !important;
+      }
+      /* Icon filters → remove neon/glow effects */
+      .atc-ha-theme [class$="-icon"] {
+        filter: none !important;
+        text-shadow: none !important;
+      }
+
+      /* -----------------------------------------------------------------------
+       * VERTICAL LAYOUT  (vertical: true)
+       * Single CSS class switches all standard themes to column stacking.
+       * Ticker is excluded — horizontal scrolling doesn't translate to vertical.
+       * Uses [class$="…"] suffix selectors to cover all 40 themes at once.
+       * --------------------------------------------------------------------- */
+
+      /* Core: flip ha-card to vertical stacking */
+      .atc-vertical ha-card:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 20px 18px 16px !important;
+        gap: 6px !important;
+      }
+
+      /* Icon: was flex-shrink on left edge, now centered at top */
+      .atc-vertical ha-card:not(.at-ticker) > [class$="-icon"],
+      .atc-vertical ha-card:not(.at-ticker) > [class$="-icon-wrap"] {
+        flex-shrink: 0;
+        font-size: 2.2rem !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 0 2px 0 !important;
+      }
+
+      /* Content area: full width, centered text */
+      .atc-vertical ha-card:not(.at-ticker) > [class$="-content"] {
+        flex: unset !important;
+        width: 100% !important;
+        min-width: unset !important;
+        text-align: center !important;
+      }
+
+      /* Right column: reset horizontal flex, center counter below content */
+      .atc-vertical ha-card:not(.at-ticker) > [class$="-right"] {
+        flex-shrink: 0;
+        align-self: center !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        gap: 6px !important;
+      }
+
+      /* Counter badge alignment in vertical mode */
+      .atc-vertical .alert-counter {
+        text-align: center;
+      }
+
+      /* Timer ring: stack SVG ring below the text content */
+      .atc-vertical .at-timer-ring {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 20px 18px 16px !important;
+      }
+      .atc-vertical .tr2-content {
+        text-align: center !important;
+        width: 100%;
+      }
+      .atc-vertical .tr2-ring-wrap {
+        margin-top: 8px;
+        flex-shrink: 0;
+      }
+
+      /* Matrix theme: center the scrolling text */
+      .atc-vertical .mx-content {
+        text-align: center !important;
+        justify-content: center !important;
+      }
+
+      /* Snooze/history buttons: keep top-right corner positioning (unchanged) */
+      /* large_buttons + vertical: cancel the padding-right (content is centered),
+         move buttons to top-right corner instead of vertically centered */
+      .atc-vertical.atc-large-buttons ha-card:not(.at-ticker) {
+        padding-right: 18px !important;
+      }
+      .atc-vertical.atc-large-buttons .atc-snooze-wrap {
+        top: 8px !important;
+        bottom: auto !important;
+        transform: none !important;
+      }
+      .atc-vertical.atc-large-buttons .atc-history-btn {
+        top: 8px !important;
+        bottom: auto !important;
+        transform: none !important;
       }
 
       /* -----------------------------------------------------------------------
