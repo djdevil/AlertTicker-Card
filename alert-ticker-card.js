@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.8.1";
+const CARD_VERSION = "1.1.9";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1314,10 +1314,16 @@ class AlertTickerCard extends LitElement {
     this._tmplCache.clear();
   }
 
-  /** In vertical mode, make the host element fill the HA grid cell height */
+  /** In vertical mode, make the host element fill the HA grid cell height.
+   *  Also stamps 'atc-has-mdi-icon' on every icon container that holds an
+   *  ha-icon so CSS can remove backgrounds/filters without :has() (wider
+   *  browser support, covers both -icon and -icon-wrap class patterns). */
   updated(changedProps) {
     super.updated(changedProps);
     this.style.height = this._config?.vertical ? "100%" : "";
+    this.shadowRoot?.querySelectorAll(".atc-ha-icon").forEach(el => {
+      el.parentElement?.classList.add("atc-has-mdi-icon");
+    });
   }
 
   // ---- Helpers -------------------------------------------------------------
@@ -1334,7 +1340,8 @@ class AlertTickerCard extends LitElement {
   _getIcon(alert) {
     const raw = alert.icon || (THEME_META[alert.theme] || {}).icon || "🔔";
     if (alert.use_ha_icon && raw && (raw.startsWith("mdi:") || raw.startsWith("hass:"))) {
-      return html`<ha-icon icon="${raw}" class="atc-ha-icon"></ha-icon>`;
+      const colorStyle = alert.icon_color ? `color: ${alert.icon_color};` : "";
+      return html`<ha-icon icon="${raw}" class="atc-ha-icon" style="${colorStyle}"></ha-icon>`;
     }
     return raw;
   }
@@ -5482,6 +5489,14 @@ class AlertTickerCard extends LitElement {
         justify-content: center !important;
       }
 
+      /* Radar theme: hide absolute-positioned sonar display, reset counter and content padding */
+      .atc-vertical .rd-display { display: none; }
+      .atc-vertical .rd-right   { position: static !important; transform: none !important; }
+      .atc-vertical .rd-content { padding-right: 0 !important; }
+
+      /* Lightning theme: hide decorative background bolt (was absolute right-side element) */
+      .atc-vertical .lt-bolt { display: none; }
+
       /* Snooze/history buttons: keep top-right corner positioning (unchanged) */
       /* large_buttons + vertical: cancel the padding-right (content is centered),
          move buttons to top-right corner instead of vertically centered */
@@ -5500,12 +5515,16 @@ class AlertTickerCard extends LitElement {
       }
 
       /* -----------------------------------------------------------------------
-       * MDI ICON — transparent background when ha-icon is used inside icon-wrap
+       * MDI ICON — transparent background/border/shadow/filter when ha-icon
+       * is used. Class 'atc-has-mdi-icon' is stamped by updated() on the
+       * direct parent of .atc-ha-icon, covering both -icon and -icon-wrap
+       * patterns across all 40 themes without requiring :has() support.
        * --------------------------------------------------------------------- */
-      [class$="-icon-wrap"]:has(.atc-ha-icon) {
+      .atc-has-mdi-icon {
         background: transparent !important;
         border-color: transparent !important;
         box-shadow: none !important;
+        filter: none !important;
       }
 
       /* -----------------------------------------------------------------------

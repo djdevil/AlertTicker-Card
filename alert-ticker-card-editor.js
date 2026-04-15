@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.8";
+const CARD_VERSION = "1.1.9";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -409,6 +409,8 @@ const ET = {
     alert_icon: "Icona",
     alert_icon_help: "Emoji: lascia vuoto per icona automatica. Con icona HA: usa il selettore icone nativo.",
     use_ha_icon: "Usa icona Home Assistant (mdi:)",
+    icon_color: "Colore icona",
+    icon_color_help: "Colore CSS: es. #ff0000, red, var(--error-color). Lascia vuoto per il colore del tema.",
     show_badge: "Mostra badge",
     badge_label: "Testo badge personalizzato",
     badge_label_help: "Lascia vuoto per usare il testo di default del tema",
@@ -534,6 +536,8 @@ const ET = {
     alert_icon: "Icon",
     alert_icon_help: "Emoji: leave empty for automatic. HA icon: use the native icon picker.",
     use_ha_icon: "Use Home Assistant icon (mdi:)",
+    icon_color: "Icon color",
+    icon_color_help: "CSS color: e.g. #ff0000, red, var(--error-color). Leave empty for theme default.",
     show_badge: "Show badge",
     badge_label: "Custom badge label",
     badge_label_help: "Leave empty to use the theme default label",
@@ -659,6 +663,8 @@ const ET = {
     alert_icon: "Icône",
     alert_icon_help: "Emoji: laisser vide pour icône automatique. Icône HA: utiliser le sélecteur d'icônes natif.",
     use_ha_icon: "Utiliser une icône Home Assistant (mdi:)",
+    icon_color: "Couleur de l'icône",
+    icon_color_help: "Couleur CSS: ex. #ff0000, red, var(--error-color). Laisser vide pour la couleur du thème.",
     show_badge: "Afficher le badge",
     badge_label: "Texte du badge personnalisé",
     badge_label_help: "Laisser vide pour utiliser le texte par défaut du thème",
@@ -784,6 +790,8 @@ const ET = {
     alert_icon: "Symbol",
     alert_icon_help: "Emoji: leer lassen für automatisch. HA-Symbol: nativen Icon-Picker verwenden.",
     use_ha_icon: "Home Assistant Symbol verwenden (mdi:)",
+    icon_color: "Symbolfarbe",
+    icon_color_help: "CSS-Farbe: z.B. #ff0000, red, var(--error-color). Leer lassen für Themafarbe.",
     show_badge: "Badge anzeigen",
     badge_label: "Benutzerdefinierter Badge-Text",
     badge_label_help: "Leer lassen für den Standard-Text des Themas",
@@ -909,6 +917,8 @@ const ET = {
     alert_icon: "Pictogram",
     alert_icon_help: "Emoji: leeg laten voor automatisch. HA-pictogram: gebruik de native pictogramselector.",
     use_ha_icon: "Home Assistant pictogram gebruiken (mdi:)",
+    icon_color: "Pictogramkleur",
+    icon_color_help: "CSS-kleur: bijv. #ff0000, red, var(--error-color). Leeg laten voor themakleur.",
     show_badge: "Badge weergeven",
     badge_label: "Aangepaste badge-tekst",
     badge_label_help: "Leeg laten voor de standaardtekst van het thema",
@@ -1034,6 +1044,8 @@ const ET = {
     alert_icon: "Biểu tượng",
     alert_icon_help: "Emoji: để trống để tự động. Biểu tượng HA: dùng bộ chọn biểu tượng gốc.",
     use_ha_icon: "Dùng biểu tượng Home Assistant (mdi:)",
+    icon_color: "Màu biểu tượng",
+    icon_color_help: "Màu CSS: ví dụ #ff0000, red, var(--error-color). Để trống để dùng màu theme.",
     show_badge: "Hiển thị badge",
     badge_label: "Nhãn badge tùy chỉnh",
     badge_label_help: "Để trống để dùng nhãn mặc định của giao diện",
@@ -1994,7 +2006,26 @@ class AlertTickerCardEditor extends LitElement {
                         .label="${this._t("alert_icon")}"
                         .value="${alert.icon || ""}"
                         @value-changed="${(e) => this._alertIconChanged(e.detail.value, index)}"
-                      ></ha-icon-picker>`
+                      ></ha-icon-picker>
+                      <div class="icon-color-row">
+                        <input
+                          type="color"
+                          class="icon-color-swatch"
+                          .value="${this._cssColorToHex(alert.icon_color)}"
+                          @input="${(e) => this._updateAlert(index, { icon_color: e.target.value || undefined })}"
+                          title="${this._t("icon_color")}"
+                        />
+                        <ha-textfield
+                          .label="${this._t("icon_color")}"
+                          .value="${alert.icon_color || ""}"
+                          placeholder="inherit"
+                          @change="${(e) => {
+                            const v = e.target.value.trim() || undefined;
+                            this._updateAlert(index, { icon_color: v });
+                          }}"
+                        ></ha-textfield>
+                      </div>
+                      <div class="helper-text">${this._t("icon_color_help")}</div>`
                     : html`<ha-textfield
                         .label="${this._t("alert_icon")}"
                         .value="${alert.icon || ""}"
@@ -2300,10 +2331,28 @@ class AlertTickerCardEditor extends LitElement {
       const entityIcon = this._hass?.states[alert.entity]?.attributes?.icon || "";
       this._updateAlert(index, { use_ha_icon: true, icon: entityIcon });
     } else {
-      // Restore the theme default emoji
+      // Restore the theme default emoji, clear icon_color
       const themeIcon = (THEME_META[alert.theme] || {}).icon || "";
-      this._updateAlert(index, { use_ha_icon: false, icon: themeIcon });
+      this._updateAlert(index, { use_ha_icon: false, icon: themeIcon, icon_color: undefined });
     }
+  }
+
+  /** Converts a CSS color string to a hex value for <input type="color">.
+   *  Returns #000000 for anything that cannot be parsed (CSS vars, named colors etc.). */
+  _cssColorToHex(color) {
+    if (!color) return "#000000";
+    if (/^#[0-9a-fA-F]{6}$/.test(color)) return color;
+    if (/^#[0-9a-fA-F]{3}$/.test(color)) {
+      const [, r, g, b] = color.match(/^#(.)(.)(.)$/);
+      return `#${r}${r}${g}${g}${b}${b}`;
+    }
+    // For rgb/named/var — try canvas trick; fallback to black
+    try {
+      const c = document.createElement("canvas").getContext("2d");
+      c.fillStyle = color;
+      const filled = c.fillStyle;
+      return /^#[0-9a-fA-F]{6}$/.test(filled) ? filled : "#000000";
+    } catch (_) { return "#000000"; }
   }
 
   /** Builds a matcher function for entity_filter (mirrors card logic). */
@@ -2559,6 +2608,25 @@ class AlertTickerCardEditor extends LitElement {
         font-size: 0.85rem;
         color: var(--secondary-text-color, #888);
         margin-top: 4px;
+      }
+      .icon-color-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .icon-color-row ha-textfield {
+        flex: 1;
+      }
+      .icon-color-swatch {
+        width: 38px;
+        height: 38px;
+        padding: 2px;
+        border: 1px solid var(--divider-color, #ccc);
+        border-radius: 6px;
+        cursor: pointer;
+        background: none;
+        flex-shrink: 0;
       }
       .current-state-hint {
         color: var(--primary-color, #03a9f4);

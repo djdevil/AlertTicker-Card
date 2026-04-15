@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.9] - 2026-04-16
+
+### Added
+
+- **`icon_color` — custom colour for MDI icons** — when `use_ha_icon: true` is set, an optional `icon_color` field lets you specify any CSS color value (`#ff0000`, `red`, `var(--error-color)`, etc.) to override the icon's default theme colour. The visual editor shows a native colour picker swatch alongside a text field (for CSS variables and named colours) that appears automatically when the HA icon toggle is enabled. ([#35](https://github.com/djdevil/AlertTicker-Card/issues/35))
+
+### Fixed
+
+- **MDI icon colour glow/streak on some themes** — themes like `caution` apply a `filter: drop-shadow` to their icon container for an emoji glow effect. When an MDI `ha-icon` (SVG path) was used instead, the coloured glow radiated visibly below the icon as a streak. The fix no longer relies on the CSS `:has()` selector (limited browser/WebView support); instead, `updated()` stamps the class `atc-has-mdi-icon` directly onto the icon container via JavaScript, then CSS removes `background`, `border-color`, `box-shadow`, and `filter` on that element. Covers all 40 themes and both `-icon` and `-icon-wrap` class patterns. ([#32](https://github.com/djdevil/AlertTicker-Card/issues/32))
+- **`radar` theme layout broken in vertical mode** — the sonar display (`.rd-display`) and counter (`.rd-right`) were both `position: absolute` anchored to the right edge of the card. In vertical mode they overlapped the centred content. The sonar display is now hidden in vertical mode; the counter reverts to normal flow positioning; and the content's `padding-right: 86px` (reserved for the sonar circle) is reset to zero. ([#32](https://github.com/djdevil/AlertTicker-Card/issues/32))
+- **`lightning` theme decorative bolt overlapping in vertical mode** — the large decorative ⚡ element (`.lt-bolt`) was absolutely positioned at the right edge. Hidden in vertical mode. ([#32](https://github.com/djdevil/AlertTicker-Card/issues/32))
+
+---
+
 ## [1.1.8.1] - 2026-04-15
 
 ### Fixed
