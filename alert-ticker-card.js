@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.8";
+const CARD_VERSION = "1.1.8.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1312,6 +1312,12 @@ class AlertTickerCard extends LitElement {
     for (const unsub of this._tmplUnsubs.values()) { try { unsub(); } catch (_) {} }
     this._tmplUnsubs.clear();
     this._tmplCache.clear();
+  }
+
+  /** In vertical mode, make the host element fill the HA grid cell height */
+  updated(changedProps) {
+    super.updated(changedProps);
+    this.style.height = this._config?.vertical ? "100%" : "";
   }
 
   // ---- Helpers -------------------------------------------------------------
@@ -5400,6 +5406,18 @@ class AlertTickerCard extends LitElement {
        * Uses [class$="…"] suffix selectors to cover all 40 themes at once.
        * --------------------------------------------------------------------- */
 
+      /* Height propagation: fill HA grid cell when enlarged */
+      .atc-vertical {
+        height: 100%;
+      }
+      .atc-vertical .at-fold-wrapper {
+        height: 100%;
+      }
+      .atc-vertical ha-card:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
+        height: 100% !important;
+        min-height: unset !important;
+      }
+
       /* Core: flip ha-card to vertical stacking */
       .atc-vertical ha-card:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
         flex-direction: column !important;
@@ -5479,6 +5497,15 @@ class AlertTickerCard extends LitElement {
         top: 8px !important;
         bottom: auto !important;
         transform: none !important;
+      }
+
+      /* -----------------------------------------------------------------------
+       * MDI ICON — transparent background when ha-icon is used inside icon-wrap
+       * --------------------------------------------------------------------- */
+      [class$="-icon-wrap"]:has(.atc-ha-icon) {
+        background: transparent !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
       }
 
       /* -----------------------------------------------------------------------

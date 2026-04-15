@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.8.1] - 2026-04-15
+
+### Fixed
+
+- **`vertical` mode card not filling grid cell when enlarged** — the card host element now sets `height: 100%` via `updated()` and the height propagates through `.atc-vertical`, `.at-fold-wrapper`, and `ha-card` so the card fully fills the HA grid cell when the row height is increased. ([#32](https://github.com/djdevil/AlertTicker-Card/issues/32))
+- **MDI icon background not transparent in vertical and other layouts** — icon-wrap elements containing an `ha-icon` (MDI) now get `background: transparent` and `border-color: transparent` applied automatically via `:has(.atc-ha-icon)`, preventing the coloured circle from clipping the card background. ([#32](https://github.com/djdevil/AlertTicker-Card/issues/32))
+
+---
+
 ## [1.1.8] - 2026-04-15
 
 ### Added
