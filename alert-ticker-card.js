@@ -5666,9 +5666,7 @@ class AlertTickerCard extends LitElement {
        * TEXT ALIGN CENTER — activated by atc-center-text host class when
        * text_align: center is set in card config.
        * --------------------------------------------------------------------- */
-      :host(.atc-center-text) [class$="-title"],
-      :host(.atc-center-text) .mx-msg,
-      :host(.atc-center-text) .atc-secondary-value {
+      :host(.atc-center-text) [class$="-content"] {
         text-align: center;
       }
     `;
