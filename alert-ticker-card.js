@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.12";
+const CARD_VERSION = "1.1.13";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1389,6 +1389,7 @@ class AlertTickerCard extends LitElement {
   updated(changedProps) {
     super.updated(changedProps);
     this.style.height = this._config?.vertical ? "100%" : "";
+    this.classList.toggle("atc-center-text", this._config?.text_align === "center");
     this.shadowRoot?.querySelectorAll(".atc-ha-icon").forEach(el => {
       el.parentElement?.classList.add("atc-has-mdi-icon");
     });
@@ -5659,6 +5660,16 @@ class AlertTickerCard extends LitElement {
       .atc-clickable:active ha-card {
         opacity: 0.85;
         transition: opacity 0.1s;
+      }
+
+      /* -----------------------------------------------------------------------
+       * TEXT ALIGN CENTER — activated by atc-center-text host class when
+       * text_align: center is set in card config.
+       * --------------------------------------------------------------------- */
+      :host(.atc-center-text) [class$="-title"],
+      :host(.atc-center-text) .mx-msg,
+      :host(.atc-center-text) .atc-secondary-value {
+        text-align: center;
       }
     `;
   }

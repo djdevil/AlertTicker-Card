@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.12";
+const CARD_VERSION = "1.1.13";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -370,6 +370,7 @@ const ET = {
     ha_theme: "Adatta al tema HA (compatibile con Mushroom e tutti i temi globali)",
     swipe_to_snooze: "Scorri a sinistra per silenziare 💤 (ideale per mobile)",
     vertical: "Layout verticale (icona sopra, testo sotto, centrato)",
+    text_align_center: "Testo centrato (utile per layout Panel molto larghi)",
     show_snooze_bar: "Mostra barra di riattivazione snooze 💤",
     snooze_default_duration: "Comportamento snooze 💤",
     snooze_default_duration_help: "Menu durata: tap su 💤 apre il menu per scegliere quanto silenziare. Durata fissa: tap su 💤 silenzia subito senza menu.",
@@ -412,9 +413,10 @@ const ET = {
     icon_color: "Colore icona",
     icon_color_help: "Colore CSS: es. #ff0000, red, var(--error-color). Lascia vuoto per il colore del tema.",
     on_change: "Attiva al cambio di stato",
-    on_change_help: "L'alert appare ogni volta che lo stato dell'entità cambia (qualunque valore). Non usa operatore/stato.",
+    on_change_help: "L'alert appare ogni volta che lo stato cambia (qualunque valore). Usa questa opzione per eventi: contatori, timestamp, sensori senza stati fissi.",
+    auto_dismiss_section: "Visibilità automatica",
     auto_dismiss_after: "Nascondi automaticamente dopo (secondi)",
-    auto_dismiss_after_help: "L'alert scompare dopo N secondi. Lascia vuoto per tenerlo visibile fino al prossimo cambio.",
+    auto_dismiss_after_help: "L'alert scompare automaticamente dopo N secondi. Lascia vuoto per tenerlo sempre visibile.",
     show_badge: "Mostra badge",
     badge_label: "Testo badge personalizzato",
     badge_label_help: "Lascia vuoto per usare il testo di default del tema",
@@ -501,6 +503,7 @@ const ET = {
     ha_theme: "Adapt to HA theme (compatible with Mushroom and all global themes)",
     swipe_to_snooze: "Swipe left to snooze 💤 (ideal for mobile)",
     vertical: "Vertical layout (icon on top, text below, centered)",
+    text_align_center: "Center text (useful for wide Panel layout)",
     show_snooze_bar: "Show snooze reactivation bar 💤",
     snooze_default_duration: "Snooze 💤 behaviour",
     snooze_default_duration_help: "Duration menu: tap on 💤 opens a menu to choose how long to snooze. Fixed duration: tap on 💤 snoozes immediately with no menu.",
@@ -543,9 +546,10 @@ const ET = {
     icon_color: "Icon color",
     icon_color_help: "CSS color: e.g. #ff0000, red, var(--error-color). Leave empty for theme default.",
     on_change: "Trigger on state change",
-    on_change_help: "Alert fires whenever the entity state changes (any value). Ignores operator/state fields.",
+    on_change_help: "Alert fires whenever the entity state changes (any value). Best for events: counters, timestamps, sensors with no fixed states.",
+    auto_dismiss_section: "Auto-dismiss",
     auto_dismiss_after: "Auto-hide after (seconds)",
-    auto_dismiss_after_help: "Alert disappears after N seconds. Leave empty to keep it visible until the next state change.",
+    auto_dismiss_after_help: "Alert auto-hides after N seconds. Leave empty to keep it always visible.",
     show_badge: "Show badge",
     badge_label: "Custom badge label",
     badge_label_help: "Leave empty to use the theme default label",
@@ -632,6 +636,7 @@ const ET = {
     ha_theme: "Adapter au thème HA (compatible Mushroom et tous les thèmes globaux)",
     swipe_to_snooze: "Glisser à gauche pour mettre en veille 💤 (idéal mobile)",
     vertical: "Disposition verticale (icône en haut, texte en bas, centré)",
+    text_align_center: "Texte centré (utile pour la disposition Panel large)",
     show_snooze_bar: "Afficher la barre de réactivation snooze 💤",
     snooze_default_duration: "Comportement snooze 💤",
     snooze_default_duration_help: "Menu de durée: tap sur 💤 ouvre un menu pour choisir la durée. Durée fixe: tap sur 💤 met en veille immédiatement sans menu.",
@@ -674,9 +679,10 @@ const ET = {
     icon_color: "Couleur de l'icône",
     icon_color_help: "Couleur CSS: ex. #ff0000, red, var(--error-color). Laisser vide pour la couleur du thème.",
     on_change: "Déclencher au changement d'état",
-    on_change_help: "L'alerte s'affiche à chaque changement d'état (quelle que soit la valeur). Ignore opérateur/état.",
+    on_change_help: "L'alerte s'affiche à chaque changement d'état (quelle que soit la valeur). Idéal pour les événements : compteurs, horodatages, capteurs sans états fixes.",
+    auto_dismiss_section: "Masquage automatique",
     auto_dismiss_after: "Masquer automatiquement après (secondes)",
-    auto_dismiss_after_help: "L'alerte disparaît après N secondes. Laisser vide pour la garder visible jusqu'au prochain changement.",
+    auto_dismiss_after_help: "L'alerte disparaît automatiquement après N secondes. Laisser vide pour la garder toujours visible.",
     show_badge: "Afficher le badge",
     badge_label: "Texte du badge personnalisé",
     badge_label_help: "Laisser vide pour utiliser le texte par défaut du thème",
@@ -763,6 +769,7 @@ const ET = {
     ha_theme: "An HA-Theme anpassen (kompatibel mit Mushroom und allen globalen Themes)",
     swipe_to_snooze: "Nach links wischen zum Schlummern 💤 (ideal für Mobilgeräte)",
     vertical: "Vertikales Layout (Symbol oben, Text unten, zentriert)",
+    text_align_center: "Text zentrieren (nützlich für breites Panel-Layout)",
     show_snooze_bar: "Schlummern-Reaktivierungsleiste anzeigen 💤",
     snooze_default_duration: "Schlummern 💤 Verhalten",
     snooze_default_duration_help: "Dauermenü: Tap auf 💤 öffnet ein Menü zur Auswahl der Dauer. Feste Dauer: Tap auf 💤 schlummert sofort ohne Menü.",
@@ -805,9 +812,10 @@ const ET = {
     icon_color: "Symbolfarbe",
     icon_color_help: "CSS-Farbe: z.B. #ff0000, red, var(--error-color). Leer lassen für Themafarbe.",
     on_change: "Bei Statusänderung auslösen",
-    on_change_help: "Warnung erscheint bei jeder Statusänderung (beliebiger Wert). Operator/Status werden ignoriert.",
+    on_change_help: "Warnung erscheint bei jeder Statusänderung (beliebiger Wert). Ideal für Ereignisse: Zähler, Zeitstempel, Sensoren ohne feste Zustände.",
+    auto_dismiss_section: "Automatisches Ausblenden",
     auto_dismiss_after: "Automatisch ausblenden nach (Sekunden)",
-    auto_dismiss_after_help: "Warnung verschwindet nach N Sekunden. Leer lassen, um sie bis zur nächsten Änderung anzuzeigen.",
+    auto_dismiss_after_help: "Warnung wird automatisch nach N Sekunden ausgeblendet. Leer lassen, um sie immer anzuzeigen.",
     show_badge: "Badge anzeigen",
     badge_label: "Benutzerdefinierter Badge-Text",
     badge_label_help: "Leer lassen für den Standard-Text des Themas",
@@ -894,6 +902,7 @@ const ET = {
     ha_theme: "Aanpassen aan HA-thema (compatibel met Mushroom en alle globale thema's)",
     swipe_to_snooze: "Veeg naar links om te sluimeren 💤 (ideaal voor mobiel)",
     vertical: "Verticale lay-out (icoon boven, tekst onder, gecentreerd)",
+    text_align_center: "Tekst centreren (handig voor breed Panel-layout)",
     show_snooze_bar: "Sluimer-reactiveringsbalk weergeven 💤",
     snooze_default_duration: "Sluimer 💤 gedrag",
     snooze_default_duration_help: "Duurmenu: tik op 💤 opent een menu om de duur te kiezen. Vaste duur: tik op 💤 sluimert direct zonder menu.",
@@ -936,9 +945,10 @@ const ET = {
     icon_color: "Pictogramkleur",
     icon_color_help: "CSS-kleur: bijv. #ff0000, red, var(--error-color). Leeg laten voor themakleur.",
     on_change: "Activeren bij statuswijziging",
-    on_change_help: "Melding verschijnt bij elke statuswijziging (willekeurige waarde). Operator/status worden genegeerd.",
+    on_change_help: "Melding verschijnt bij elke statuswijziging (willekeurige waarde). Ideaal voor gebeurtenissen: tellers, tijdstempels, sensoren zonder vaste toestanden.",
+    auto_dismiss_section: "Automatisch verbergen",
     auto_dismiss_after: "Automatisch verbergen na (seconden)",
-    auto_dismiss_after_help: "Melding verdwijnt na N seconden. Leeg laten om zichtbaar te blijven tot de volgende wijziging.",
+    auto_dismiss_after_help: "Melding verdwijnt automatisch na N seconden. Leeg laten om altijd zichtbaar te blijven.",
     show_badge: "Badge weergeven",
     badge_label: "Aangepaste badge-tekst",
     badge_label_help: "Leeg laten voor de standaardtekst van het thema",
@@ -1025,6 +1035,7 @@ const ET = {
     ha_theme: "Thích ứng với chủ đề HA (tương thích Mushroom và tất cả chủ đề toàn cục)",
     swipe_to_snooze: "Vuốt sang trái để tạm hoãn 💤 (lý tưởng cho di động)",
     vertical: "Bố cục dọc (biểu tượng trên, văn bản dưới, căn giữa)",
+    text_align_center: "Căn giữa văn bản (hữu ích cho layout Panel rộng)",
     show_snooze_bar: "Hiển thị thanh kích hoạt lại tạm hoãn 💤",
     snooze_default_duration: "Hành vi tạm hoãn 💤",
     snooze_default_duration_help: "Menu thời gian: nhấn 💤 mở menu chọn thời lượng. Thời lượng cố định: nhấn 💤 tạm hoãn ngay không cần menu.",
@@ -1067,9 +1078,10 @@ const ET = {
     icon_color: "Màu biểu tượng",
     icon_color_help: "Màu CSS: ví dụ #ff0000, red, var(--error-color). Để trống để dùng màu theme.",
     on_change: "Kích hoạt khi trạng thái thay đổi",
-    on_change_help: "Báo động hiện khi trạng thái thay đổi (bất kỳ giá trị). Bỏ qua toán tử/trạng thái.",
+    on_change_help: "Báo động hiện khi trạng thái thay đổi (bất kỳ giá trị). Phù hợp cho sự kiện: bộ đếm, dấu thời gian, cảm biến không có trạng thái cố định.",
+    auto_dismiss_section: "Tự ẩn",
     auto_dismiss_after: "Tự ẩn sau (giây)",
-    auto_dismiss_after_help: "Báo động biến mất sau N giây. Để trống để hiển thị đến lần thay đổi tiếp theo.",
+    auto_dismiss_after_help: "Báo động tự ẩn sau N giây. Để trống để giữ luôn hiển thị.",
     show_badge: "Hiển thị badge",
     badge_label: "Nhãn badge tùy chỉnh",
     badge_label_help: "Để trống để dùng nhãn mặc định của giao diện",
@@ -1625,6 +1637,17 @@ class AlertTickerCardEditor extends LitElement {
         </div>
       </div>
 
+      <!-- Center text toggle -->
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("text_align_center")}</span>
+          <ha-switch
+            .checked="${cfg.text_align === 'center'}"
+            @change="${(e) => this._fireConfig({ ...this._config, text_align: e.target.checked ? 'center' : undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+
       <!-- Show snooze reactivation bar toggle -->
       <div class="form-row">
         <div class="form-row-inline">
@@ -1909,23 +1932,6 @@ class AlertTickerCardEditor extends LitElement {
                   </ha-formfield>
                   <div class="helper-text">${this._t("on_change_help")}</div>
                 </div>
-                ${alert.on_change ? html`
-                <div>
-                  <ha-textfield
-                    type="number"
-                    .label="${this._t("auto_dismiss_after")}"
-                    .value="${alert.auto_dismiss_after != null ? String(alert.auto_dismiss_after) : ""}"
-                    placeholder=""
-                    min="1"
-                    @change="${(e) => {
-                      const v = parseInt(e.target.value, 10);
-                      this._updateAlert(index, { auto_dismiss_after: v > 0 ? v : undefined });
-                    }}"
-                  ></ha-textfield>
-                  <div class="helper-text">${this._t("auto_dismiss_after_help")}</div>
-                </div>` : ""}
-
-                ${!alert.on_change ? html`
                 <!-- Primary condition: operator + value -->
                 <div class="form-row-2col">
                   <div class="native-select-wrap">
@@ -2032,7 +2038,23 @@ class AlertTickerCardEditor extends LitElement {
                 <button class="btn-add-small" @click="${() => this._addCondition(index)}">
                   + ${this._t("add_condition")}
                 </button>
-                ` : ""} <!-- end !alert.on_change -->
+                <!-- ── AUTO-DISMISS ──────────────────────────────────────── -->
+                <div class="section-divider">⏱ ${this._t("auto_dismiss_section")}</div>
+
+                <div>
+                  <ha-textfield
+                    type="number"
+                    .label="${this._t("auto_dismiss_after")}"
+                    .value="${alert.auto_dismiss_after != null ? String(alert.auto_dismiss_after) : ""}"
+                    placeholder=""
+                    min="1"
+                    @change="${(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      this._updateAlert(index, { auto_dismiss_after: v > 0 ? v : undefined });
+                    }}"
+                  ></ha-textfield>
+                  <div class="helper-text">${this._t("auto_dismiss_after_help")}</div>
+                </div>
 
                 <!-- ── 3. MESSAGGIO ──────────────────────────────────────── -->
                 <div class="section-divider">💬 ${this._t("alert_message")}</div>

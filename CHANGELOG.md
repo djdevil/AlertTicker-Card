@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.13] - 2026-04-16
+
+### Added
+
+- **`auto_dismiss_after` shown for all alerts** — moved from on_change-only to always visible in the editor, after the conditions section. Works for both `on_change` and normal condition-based alerts.
+- **`text_align: center` card option** — centers the message text in all themes. Useful when using the "Panel (1 card)" dashboard layout where the card is very wide and text appears left-aligned. Toggle available in the card editor under the vertical layout setting. ([#41](https://github.com/djdevil/AlertTicker-Card/issues/41))
+
+---
+
 ## [1.1.12] - 2026-04-16
 
 ### Fixed
