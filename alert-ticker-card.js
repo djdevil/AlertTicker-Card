@@ -406,13 +406,16 @@ class AlertTickerCard extends LitElement {
         // State changed — record trigger, clear any previous auto-dismiss
         this._changeTriggers[key] = Date.now();
         this._autoDismissedKeys.delete(key);
-        const ms = (alert.auto_dismiss_after ?? 30) * 1000;
         clearTimeout(this._autoDismissTimers[key]);
-        this._autoDismissTimers[key] = setTimeout(() => {
-          delete this._changeTriggers[key];
-          delete this._autoDismissTimers[key];
-          this.requestUpdate();
-        }, ms);
+        delete this._autoDismissTimers[key];
+        // Start dismiss timer only if explicitly configured
+        if (alert.auto_dismiss_after) {
+          this._autoDismissTimers[key] = setTimeout(() => {
+            delete this._changeTriggers[key];
+            delete this._autoDismissTimers[key];
+            this.requestUpdate();
+          }, alert.auto_dismiss_after * 1000);
+        }
       }
     });
   }

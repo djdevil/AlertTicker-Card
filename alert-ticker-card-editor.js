@@ -414,7 +414,7 @@ const ET = {
     on_change: "Attiva al cambio di stato",
     on_change_help: "L'alert appare ogni volta che lo stato dell'entità cambia (qualunque valore). Non usa operatore/stato.",
     auto_dismiss_after: "Nascondi automaticamente dopo (secondi)",
-    auto_dismiss_after_help: "L'alert scompare dopo N secondi. Con 'Attiva al cambio': default 30s se non specificato.",
+    auto_dismiss_after_help: "L'alert scompare dopo N secondi. Lascia vuoto per tenerlo visibile fino al prossimo cambio.",
     show_badge: "Mostra badge",
     badge_label: "Testo badge personalizzato",
     badge_label_help: "Lascia vuoto per usare il testo di default del tema",
@@ -545,7 +545,7 @@ const ET = {
     on_change: "Trigger on state change",
     on_change_help: "Alert fires whenever the entity state changes (any value). Ignores operator/state fields.",
     auto_dismiss_after: "Auto-hide after (seconds)",
-    auto_dismiss_after_help: "Alert disappears after N seconds. With 'Trigger on change': defaults to 30s if not set.",
+    auto_dismiss_after_help: "Alert disappears after N seconds. Leave empty to keep it visible until the next state change.",
     show_badge: "Show badge",
     badge_label: "Custom badge label",
     badge_label_help: "Leave empty to use the theme default label",
@@ -676,7 +676,7 @@ const ET = {
     on_change: "Déclencher au changement d'état",
     on_change_help: "L'alerte s'affiche à chaque changement d'état (quelle que soit la valeur). Ignore opérateur/état.",
     auto_dismiss_after: "Masquer automatiquement après (secondes)",
-    auto_dismiss_after_help: "L'alerte disparaît après N secondes. Avec 'Déclencher au changement': 30s par défaut.",
+    auto_dismiss_after_help: "L'alerte disparaît après N secondes. Laisser vide pour la garder visible jusqu'au prochain changement.",
     show_badge: "Afficher le badge",
     badge_label: "Texte du badge personnalisé",
     badge_label_help: "Laisser vide pour utiliser le texte par défaut du thème",
@@ -807,7 +807,7 @@ const ET = {
     on_change: "Bei Statusänderung auslösen",
     on_change_help: "Warnung erscheint bei jeder Statusänderung (beliebiger Wert). Operator/Status werden ignoriert.",
     auto_dismiss_after: "Automatisch ausblenden nach (Sekunden)",
-    auto_dismiss_after_help: "Warnung verschwindet nach N Sekunden. Mit 'Statusänderung': Standard 30s.",
+    auto_dismiss_after_help: "Warnung verschwindet nach N Sekunden. Leer lassen, um sie bis zur nächsten Änderung anzuzeigen.",
     show_badge: "Badge anzeigen",
     badge_label: "Benutzerdefinierter Badge-Text",
     badge_label_help: "Leer lassen für den Standard-Text des Themas",
@@ -938,7 +938,7 @@ const ET = {
     on_change: "Activeren bij statuswijziging",
     on_change_help: "Melding verschijnt bij elke statuswijziging (willekeurige waarde). Operator/status worden genegeerd.",
     auto_dismiss_after: "Automatisch verbergen na (seconden)",
-    auto_dismiss_after_help: "Melding verdwijnt na N seconden. Met 'Statuswijziging': standaard 30s.",
+    auto_dismiss_after_help: "Melding verdwijnt na N seconden. Leeg laten om zichtbaar te blijven tot de volgende wijziging.",
     show_badge: "Badge weergeven",
     badge_label: "Aangepaste badge-tekst",
     badge_label_help: "Leeg laten voor de standaardtekst van het thema",
@@ -1069,7 +1069,7 @@ const ET = {
     on_change: "Kích hoạt khi trạng thái thay đổi",
     on_change_help: "Báo động hiện khi trạng thái thay đổi (bất kỳ giá trị). Bỏ qua toán tử/trạng thái.",
     auto_dismiss_after: "Tự ẩn sau (giây)",
-    auto_dismiss_after_help: "Báo động biến mất sau N giây. Với 'Kích hoạt khi thay đổi': mặc định 30s.",
+    auto_dismiss_after_help: "Báo động biến mất sau N giây. Để trống để hiển thị đến lần thay đổi tiếp theo.",
     show_badge: "Hiển thị badge",
     badge_label: "Nhãn badge tùy chỉnh",
     badge_label_help: "Để trống để dùng nhãn mặc định của giao diện",
@@ -1909,12 +1909,13 @@ class AlertTickerCardEditor extends LitElement {
                   </ha-formfield>
                   <div class="helper-text">${this._t("on_change_help")}</div>
                 </div>
+                ${alert.on_change ? html`
                 <div>
                   <ha-textfield
                     type="number"
                     .label="${this._t("auto_dismiss_after")}"
                     .value="${alert.auto_dismiss_after != null ? String(alert.auto_dismiss_after) : ""}"
-                    placeholder="${alert.on_change ? "30" : ""}"
+                    placeholder=""
                     min="1"
                     @change="${(e) => {
                       const v = parseInt(e.target.value, 10);
@@ -1922,7 +1923,7 @@ class AlertTickerCardEditor extends LitElement {
                     }}"
                   ></ha-textfield>
                   <div class="helper-text">${this._t("auto_dismiss_after_help")}</div>
-                </div>
+                </div>` : ""}
 
                 ${!alert.on_change ? html`
                 <!-- Primary condition: operator + value -->
