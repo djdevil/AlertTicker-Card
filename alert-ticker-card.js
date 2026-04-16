@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.10";
+const CARD_VERSION = "1.1.11";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -298,6 +298,11 @@ class AlertTickerCard extends LitElement {
     // Swipe-to-snooze gesture tracking
     this._swipeStartX = 0;
     this._swipeStartY = 0;
+    // on_change / auto_dismiss_after tracking
+    this._prevStates       = {};       // "configIdx:entityId" → previous state string
+    this._changeTriggers   = {};       // "configIdx:entityId" → trigger timestamp (on_change)
+    this._autoDismissTimers = {};      // "configIdx:entityId" → setTimeout ID
+    this._autoDismissedKeys = new Set(); // keys whose auto_dismiss timer has fired
   }
 
   // ---- Lovelace card static helpers ----------------------------------------
@@ -366,6 +371,7 @@ class AlertTickerCard extends LitElement {
   // ---- Hass setter ---------------------------------------------------------
 
   set hass(hass) {
+    const prevHass = this._hass;
     this._hass = hass;
     // Detect language (default to "en" if HA language is not IT)
     const raw = (hass.language || "en").toLowerCase().split("-")[0];
@@ -373,6 +379,7 @@ class AlertTickerCard extends LitElement {
     if (lang !== this._lang) {
       this._lang = lang;
     }
+    if (prevHass) this._trackStateChanges(prevHass);
     this._syncTemplates();
     this._computeActiveAlerts();
   }
@@ -381,6 +388,33 @@ class AlertTickerCard extends LitElement {
 
   _t(key) {
     return (T[this._lang] || T["en"])[key] || key;
+  }
+
+  // ---- on_change / auto_dismiss_after state tracking ----------------------
+
+  _trackStateChanges(prevHass) {
+    if (!this._config) return;
+    (this._config.alerts || []).forEach((alert, idx) => {
+      if (!alert.entity) return;
+      if (!alert.on_change && !alert.auto_dismiss_after) return;
+      const key = `${idx}:${alert.entity}`;
+      const prevState = prevHass.states[alert.entity]?.state;
+      const newState  = this._hass.states[alert.entity]?.state;
+      if (prevState === undefined || newState === undefined) return;
+
+      if (alert.on_change && prevState !== newState) {
+        // State changed — record trigger, clear any previous auto-dismiss
+        this._changeTriggers[key] = Date.now();
+        this._autoDismissedKeys.delete(key);
+        const ms = (alert.auto_dismiss_after ?? 30) * 1000;
+        clearTimeout(this._autoDismissTimers[key]);
+        this._autoDismissTimers[key] = setTimeout(() => {
+          delete this._changeTriggers[key];
+          delete this._autoDismissTimers[key];
+          this.requestUpdate();
+        }, ms);
+      }
+    });
   }
 
   // ---- Active alert computation -------------------------------------------
@@ -395,7 +429,8 @@ class AlertTickerCard extends LitElement {
 
     // Expand entity_filter alerts into one concrete alert per matched entity
     const expandedAlerts = [];
-    for (const alert of this._config.alerts) {
+    for (let idx = 0; idx < this._config.alerts.length; idx++) {
+      const alert = this._config.alerts[idx];
       if (alert.entity_filter && !alert.entity) {
         const matchFn = this._buildFilterMatcher(alert.entity_filter);
         const excluded = new Set(alert.entity_filter_exclude || []);
@@ -408,7 +443,8 @@ class AlertTickerCard extends LitElement {
           const friendlyName = state.attributes.friendly_name || entityId;
           expandedAlerts.push({
             ...alert,
-            _sourceAlert: alert, // preserve reference to original config alert for preview mapping
+            _sourceAlert: alert,
+            _configIdx: idx,
             entity: entityId,
             message: (alert.message || "")
               .replace(/\{entity\}/g, entityId)
@@ -417,7 +453,7 @@ class AlertTickerCard extends LitElement {
           });
         }
       } else {
-        expandedAlerts.push(alert);
+        expandedAlerts.push({ ...alert, _configIdx: idx });
       }
     }
 
@@ -427,25 +463,51 @@ class AlertTickerCard extends LitElement {
       const entityState = this._hass.states[alert.entity];
       if (!entityState) return false;
       if (!testMode) {
-        // Use attribute value if specified, otherwise entity state
-        const stateValue = (alert.attribute != null && alert.attribute !== "")
-          ? String(this._resolveAttrPath(entityState.attributes, alert.attribute) ?? "")
-          : entityState.state;
-        if (!this._matchesState(stateValue, alert)) return false;
-        // Extra AND/OR conditions
-        if (Array.isArray(alert.conditions) && alert.conditions.length > 0) {
-          const logic = alert.conditions_logic || "and";
-          const results = alert.conditions.map((cond) => {
-            if (!cond.entity) return false;
-            const es = this._hass.states[cond.entity];
-            if (!es) return false;
-            const val = (cond.attribute != null && cond.attribute !== "")
-              ? String(this._resolveAttrPath(es.attributes, cond.attribute) ?? "")
-              : es.state;
-            return this._matchesState(val, cond);
-          });
-          const passes = logic === "or" ? results.some(Boolean) : results.every(Boolean);
-          if (!passes) return false;
+        const key = `${alert._configIdx}:${alert.entity}`;
+
+        if (alert.on_change) {
+          // on_change mode: active only while a recent change trigger is live
+          if (!this._changeTriggers[key]) return false;
+        } else {
+          // Normal condition check
+          const stateValue = (alert.attribute != null && alert.attribute !== "")
+            ? String(this._resolveAttrPath(entityState.attributes, alert.attribute) ?? "")
+            : entityState.state;
+          if (!this._matchesState(stateValue, alert)) {
+            // Condition went false — reset auto_dismiss so next activation starts fresh
+            if (alert.auto_dismiss_after) {
+              this._autoDismissedKeys.delete(key);
+              clearTimeout(this._autoDismissTimers[key]);
+              delete this._autoDismissTimers[key];
+            }
+            return false;
+          }
+          // Extra AND/OR conditions
+          if (Array.isArray(alert.conditions) && alert.conditions.length > 0) {
+            const logic = alert.conditions_logic || "and";
+            const results = alert.conditions.map((cond) => {
+              if (!cond.entity) return false;
+              const es = this._hass.states[cond.entity];
+              if (!es) return false;
+              const val = (cond.attribute != null && cond.attribute !== "")
+                ? String(this._resolveAttrPath(es.attributes, cond.attribute) ?? "")
+                : es.state;
+              return this._matchesState(val, cond);
+            });
+            const passes = logic === "or" ? results.some(Boolean) : results.every(Boolean);
+            if (!passes) return false;
+          }
+          // auto_dismiss_after for normal condition alerts
+          if (alert.auto_dismiss_after) {
+            if (this._autoDismissedKeys.has(key)) return false;
+            if (!this._autoDismissTimers[key]) {
+              this._autoDismissTimers[key] = setTimeout(() => {
+                this._autoDismissedKeys.add(key);
+                delete this._autoDismissTimers[key];
+                this.requestUpdate();
+              }, alert.auto_dismiss_after * 1000);
+            }
+          }
         }
         if (this._isSnoozed(alert)) { snoozedCount++; return false; }
       }
@@ -1312,6 +1374,9 @@ class AlertTickerCard extends LitElement {
     for (const unsub of this._tmplUnsubs.values()) { try { unsub(); } catch (_) {} }
     this._tmplUnsubs.clear();
     this._tmplCache.clear();
+    // Cancel all auto_dismiss / on_change timers
+    Object.values(this._autoDismissTimers).forEach(t => clearTimeout(t));
+    this._autoDismissTimers = {};
   }
 
   /** In vertical mode, make the host element fill the HA grid cell height.
@@ -2641,7 +2706,7 @@ class AlertTickerCard extends LitElement {
         align-items: center;
         justify-content: center;
         --mdc-icon-size: 1.6em;
-        color: inherit;
+        color: rgba(255, 255, 255, 0.9);
       }
 
       /* -----------------------------------------------------------------------
@@ -2655,6 +2720,7 @@ class AlertTickerCard extends LitElement {
         overflow: hidden;
         text-overflow: ellipsis;
         font-weight: 400;
+        color: rgba(255, 255, 255, 0.85);
       }
       .atc-filter-label {
         font-size: 0.92rem;

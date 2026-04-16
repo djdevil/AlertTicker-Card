@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.10";
+const CARD_VERSION = "1.1.11";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -411,6 +411,10 @@ const ET = {
     use_ha_icon: "Usa icona Home Assistant (mdi:)",
     icon_color: "Colore icona",
     icon_color_help: "Colore CSS: es. #ff0000, red, var(--error-color). Lascia vuoto per il colore del tema.",
+    on_change: "Attiva al cambio di stato",
+    on_change_help: "L'alert appare ogni volta che lo stato dell'entità cambia (qualunque valore). Non usa operatore/stato.",
+    auto_dismiss_after: "Nascondi automaticamente dopo (secondi)",
+    auto_dismiss_after_help: "L'alert scompare dopo N secondi. Con 'Attiva al cambio': default 30s se non specificato.",
     show_badge: "Mostra badge",
     badge_label: "Testo badge personalizzato",
     badge_label_help: "Lascia vuoto per usare il testo di default del tema",
@@ -538,6 +542,10 @@ const ET = {
     use_ha_icon: "Use Home Assistant icon (mdi:)",
     icon_color: "Icon color",
     icon_color_help: "CSS color: e.g. #ff0000, red, var(--error-color). Leave empty for theme default.",
+    on_change: "Trigger on state change",
+    on_change_help: "Alert fires whenever the entity state changes (any value). Ignores operator/state fields.",
+    auto_dismiss_after: "Auto-hide after (seconds)",
+    auto_dismiss_after_help: "Alert disappears after N seconds. With 'Trigger on change': defaults to 30s if not set.",
     show_badge: "Show badge",
     badge_label: "Custom badge label",
     badge_label_help: "Leave empty to use the theme default label",
@@ -665,6 +673,10 @@ const ET = {
     use_ha_icon: "Utiliser une icône Home Assistant (mdi:)",
     icon_color: "Couleur de l'icône",
     icon_color_help: "Couleur CSS: ex. #ff0000, red, var(--error-color). Laisser vide pour la couleur du thème.",
+    on_change: "Déclencher au changement d'état",
+    on_change_help: "L'alerte s'affiche à chaque changement d'état (quelle que soit la valeur). Ignore opérateur/état.",
+    auto_dismiss_after: "Masquer automatiquement après (secondes)",
+    auto_dismiss_after_help: "L'alerte disparaît après N secondes. Avec 'Déclencher au changement': 30s par défaut.",
     show_badge: "Afficher le badge",
     badge_label: "Texte du badge personnalisé",
     badge_label_help: "Laisser vide pour utiliser le texte par défaut du thème",
@@ -792,6 +804,10 @@ const ET = {
     use_ha_icon: "Home Assistant Symbol verwenden (mdi:)",
     icon_color: "Symbolfarbe",
     icon_color_help: "CSS-Farbe: z.B. #ff0000, red, var(--error-color). Leer lassen für Themafarbe.",
+    on_change: "Bei Statusänderung auslösen",
+    on_change_help: "Warnung erscheint bei jeder Statusänderung (beliebiger Wert). Operator/Status werden ignoriert.",
+    auto_dismiss_after: "Automatisch ausblenden nach (Sekunden)",
+    auto_dismiss_after_help: "Warnung verschwindet nach N Sekunden. Mit 'Statusänderung': Standard 30s.",
     show_badge: "Badge anzeigen",
     badge_label: "Benutzerdefinierter Badge-Text",
     badge_label_help: "Leer lassen für den Standard-Text des Themas",
@@ -919,6 +935,10 @@ const ET = {
     use_ha_icon: "Home Assistant pictogram gebruiken (mdi:)",
     icon_color: "Pictogramkleur",
     icon_color_help: "CSS-kleur: bijv. #ff0000, red, var(--error-color). Leeg laten voor themakleur.",
+    on_change: "Activeren bij statuswijziging",
+    on_change_help: "Melding verschijnt bij elke statuswijziging (willekeurige waarde). Operator/status worden genegeerd.",
+    auto_dismiss_after: "Automatisch verbergen na (seconden)",
+    auto_dismiss_after_help: "Melding verdwijnt na N seconden. Met 'Statuswijziging': standaard 30s.",
     show_badge: "Badge weergeven",
     badge_label: "Aangepaste badge-tekst",
     badge_label_help: "Leeg laten voor de standaardtekst van het thema",
@@ -1046,6 +1066,10 @@ const ET = {
     use_ha_icon: "Dùng biểu tượng Home Assistant (mdi:)",
     icon_color: "Màu biểu tượng",
     icon_color_help: "Màu CSS: ví dụ #ff0000, red, var(--error-color). Để trống để dùng màu theme.",
+    on_change: "Kích hoạt khi trạng thái thay đổi",
+    on_change_help: "Báo động hiện khi trạng thái thay đổi (bất kỳ giá trị). Bỏ qua toán tử/trạng thái.",
+    auto_dismiss_after: "Tự ẩn sau (giây)",
+    auto_dismiss_after_help: "Báo động biến mất sau N giây. Với 'Kích hoạt khi thay đổi': mặc định 30s.",
     show_badge: "Hiển thị badge",
     badge_label: "Nhãn badge tùy chỉnh",
     badge_label_help: "Để trống để dùng nhãn mặc định của giao diện",
@@ -1875,6 +1899,32 @@ class AlertTickerCardEditor extends LitElement {
                 <!-- ── 2. CONDIZIONE ──────────────────────────────────────── -->
                 <div class="section-divider">⚡ ${this._t("conditions_section")}</div>
 
+                <!-- on_change toggle — when active hides operator/state/conditions -->
+                <div>
+                  <ha-formfield .label="${this._t("on_change")}">
+                    <ha-switch
+                      ?checked="${!!alert.on_change}"
+                      @change="${(e) => this._updateAlert(index, { on_change: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </ha-formfield>
+                  <div class="helper-text">${this._t("on_change_help")}</div>
+                </div>
+                <div>
+                  <ha-textfield
+                    type="number"
+                    .label="${this._t("auto_dismiss_after")}"
+                    .value="${alert.auto_dismiss_after != null ? String(alert.auto_dismiss_after) : ""}"
+                    placeholder="${alert.on_change ? "30" : ""}"
+                    min="1"
+                    @change="${(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      this._updateAlert(index, { auto_dismiss_after: v > 0 ? v : undefined });
+                    }}"
+                  ></ha-textfield>
+                  <div class="helper-text">${this._t("auto_dismiss_after_help")}</div>
+                </div>
+
+                ${!alert.on_change ? html`
                 <!-- Primary condition: operator + value -->
                 <div class="form-row-2col">
                   <div class="native-select-wrap">
@@ -1981,6 +2031,7 @@ class AlertTickerCardEditor extends LitElement {
                 <button class="btn-add-small" @click="${() => this._addCondition(index)}">
                   + ${this._t("add_condition")}
                 </button>
+                ` : ""} <!-- end !alert.on_change -->
 
                 <!-- ── 3. MESSAGGIO ──────────────────────────────────────── -->
                 <div class="section-divider">💬 ${this._t("alert_message")}</div>
