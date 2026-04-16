@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.9";
+const CARD_VERSION = "1.1.10";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -5404,6 +5404,59 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme [class$="-icon"] {
         filter: none !important;
         text-shadow: none !important;
+      }
+      /* MDI icon color → readable in both light and dark mode */
+      .atc-ha-theme .atc-ha-icon {
+        color: var(--primary-text-color, inherit) !important;
+      }
+
+      /* ── UI chrome: readable in light mode ── */
+      /* History panel buttons */
+      .atc-ha-theme .atc-history-clear {
+        border-color: var(--divider-color, rgba(0,0,0,0.2)) !important;
+        color: var(--secondary-text-color, rgba(0,0,0,0.55)) !important;
+      }
+      .atc-ha-theme .atc-history-clear:hover {
+        border-color: var(--primary-text-color, rgba(0,0,0,0.6)) !important;
+        color: var(--primary-text-color, rgba(0,0,0,0.85)) !important;
+      }
+      .atc-ha-theme .atc-history-close {
+        color: var(--secondary-text-color, rgba(0,0,0,0.55)) !important;
+      }
+      /* Snooze dropdown menu */
+      .atc-ha-theme .atc-snooze-menu {
+        background: var(--card-background-color, #fff) !important;
+        border-color: var(--divider-color, rgba(0,0,0,0.12)) !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.15) !important;
+      }
+      .atc-ha-theme .atc-snooze-label {
+        color: var(--secondary-text-color, rgba(0,0,0,0.4)) !important;
+      }
+      .atc-ha-theme .atc-snooze-option {
+        background: var(--secondary-background-color, rgba(0,0,0,0.04)) !important;
+        color: var(--primary-text-color, rgba(0,0,0,0.85)) !important;
+      }
+      .atc-ha-theme .atc-snooze-option:hover {
+        background: rgba(var(--rgb-primary-color, 33,150,243), 0.1) !important;
+      }
+      /* Snoozed-all indicator bar */
+      .atc-ha-theme .atc-snoozed-bar {
+        background: var(--secondary-background-color, rgba(0,0,0,0.04)) !important;
+        border-color: var(--divider-color, rgba(0,0,0,0.12)) !important;
+      }
+      .atc-ha-theme .atc-snoozed-text {
+        color: var(--secondary-text-color, rgba(0,0,0,0.55)) !important;
+      }
+      .atc-ha-theme .atc-snoozed-reset {
+        background: var(--secondary-background-color, rgba(0,0,0,0.06)) !important;
+        border-color: var(--divider-color, rgba(0,0,0,0.18)) !important;
+        color: var(--primary-text-color, rgba(0,0,0,0.7)) !important;
+      }
+      /* Snoozed pill (partial snooze) */
+      .atc-ha-theme .atc-snoozed-pill {
+        background: var(--secondary-background-color, rgba(0,0,0,0.08)) !important;
+        border-color: var(--divider-color, rgba(0,0,0,0.15)) !important;
+        color: var(--primary-text-color, inherit) !important;
       }
 
       /* -----------------------------------------------------------------------

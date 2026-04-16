@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.10] - 2026-04-16
+
+### Fixed
+
+- **`ha_theme` broken in HA light mode** — all UI chrome elements used hardcoded dark-mode colours (`rgba(255,255,255,…)`) that became invisible on a light card background. Fixed with `var()` overrides scoped to `.atc-ha-theme` for: MDI icon colour, history panel ✕ and Clear buttons, snooze dropdown menu (background, labels, options), snoozed-all indicator bar and text, snoozed-all reset button, and snoozed pill. All elements now use HA CSS variables (`--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--card-background-color`, `--secondary-background-color`) so they adapt correctly to any HA theme in both light and dark mode. ([#37](https://github.com/djdevil/AlertTicker-Card/issues/37))
+
+---
+
 ## [1.1.9] - 2026-04-16
 
 ### Added
