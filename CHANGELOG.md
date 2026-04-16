@@ -6,12 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.12] - 2026-04-16
+
+### Fixed
+
+- **`on_change` alert disappeared after 30 seconds even without `auto_dismiss_after`** — the dismiss timer now starts only when `auto_dismiss_after` is explicitly set. Without it, an `on_change` alert stays visible until the next state change. ([#39](https://github.com/djdevil/AlertTicker-Card/issues/39))
+
+---
+
 ## [1.1.11] - 2026-04-16
 
 ### Added
 
 - **`on_change: true` — trigger on state change** — when enabled the alert fires whenever the monitored entity's state changes to any value, regardless of the `operator`/`state` fields. Useful for showing a transient notification when a media track changes, a door opens, motion is detected, etc. The alert stays visible until the next state change (or until `auto_dismiss_after` expires). ([#39](https://github.com/djdevil/AlertTicker-Card/issues/39))
 - **`auto_dismiss_after: N` — auto-hide after N seconds** — works on any alert type. For `on_change` alerts: the alert disappears after N seconds (default 30 if not set). For normal condition-based alerts: the alert auto-hides N seconds after the condition first becomes true; the timer resets if the condition goes false and becomes true again. Both fields are configurable in the visual editor with full 6-language support. ([#39](https://github.com/djdevil/AlertTicker-Card/issues/39))
+- **MDI icon invisible in HA light mode even with `ha_theme` off** — `.atc-ha-icon` used `color: inherit` which in HA light mode resolved to a dark colour from the HA global stylesheet, invisible against the card's dark background. Now defaults to `rgba(255,255,255,0.9)` so it is always visible on dark-background themes. `ha_theme` overrides it to `--primary-text-color`; `icon_color` inline style takes precedence over both. ([#37](https://github.com/djdevil/AlertTicker-Card/issues/37))
+- **Secondary entity value text invisible in HA light mode** — `.atc-secondary-value` had no explicit colour, inheriting dark text from HA's global stylesheet in light mode. Now defaults to `rgba(255,255,255,0.85)`. `ha_theme` overrides it to `--secondary-text-color`. ([#37](https://github.com/djdevil/AlertTicker-Card/issues/37))
 
 ---
 
@@ -20,8 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **`ha_theme` broken in HA light mode** — all UI chrome elements used hardcoded dark-mode colours (`rgba(255,255,255,…)`) that became invisible on a light card background. Fixed with `var()` overrides scoped to `.atc-ha-theme` for: MDI icon colour, history panel ✕ and Clear buttons, snooze dropdown menu (background, labels, options), snoozed-all indicator bar and text, snoozed-all reset button, and snoozed pill. All elements now use HA CSS variables (`--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--card-background-color`, `--secondary-background-color`) so they adapt correctly to any HA theme in both light and dark mode. ([#37](https://github.com/djdevil/AlertTicker-Card/issues/37))
-- **MDI icon invisible in HA light mode even with `ha_theme` off** — `.atc-ha-icon` used `color: inherit` which in HA light mode resolved to a dark colour from the HA global stylesheet, invisible against the card's dark background. Now defaults to `rgba(255,255,255,0.9)` so it is always visible on dark-background themes. `ha_theme` overrides it to `--primary-text-color`; `icon_color` inline style takes precedence over both. ([#37](https://github.com/djdevil/AlertTicker-Card/issues/37))
-- **Secondary entity value text invisible in HA light mode** — `.atc-secondary-value` had no explicit colour, inheriting dark text from HA's global stylesheet in light mode. Now defaults to `rgba(255,255,255,0.85)`. `ha_theme` overrides it to `--secondary-text-color`. ([#37](https://github.com/djdevil/AlertTicker-Card/issues/37))
+
 
 ---
 
