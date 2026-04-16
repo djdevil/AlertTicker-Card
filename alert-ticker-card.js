@@ -5405,9 +5405,10 @@ class AlertTickerCard extends LitElement {
         filter: none !important;
         text-shadow: none !important;
       }
-      /* MDI icon color → readable in both light and dark mode */
+      /* MDI icon color → readable in both light and dark mode.
+       * No !important so that per-alert icon_color inline style takes precedence. */
       .atc-ha-theme .atc-ha-icon {
-        color: var(--primary-text-color, inherit) !important;
+        color: var(--primary-text-color, inherit);
       }
 
       /* ── UI chrome: readable in light mode ── */
