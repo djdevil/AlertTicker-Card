@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.14";
+const CARD_VERSION = "1.1.15";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -2594,11 +2594,21 @@ class AlertTickerCard extends LitElement {
           priority: 0,
           entity: null,
           theme: this._config.clear_theme || "success",
+          badge_label: this._config.clear_badge_label || undefined,
         };
+        const clearTapCfg  = this._config.clear_tap_action  || null;
+        const clearHoldCfg = this._config.clear_hold_action || null;
+        const clearHasAction = (clearTapCfg  && clearTapCfg.action  && clearTapCfg.action  !== "none") ||
+                               (clearHoldCfg && clearHoldCfg.action && clearHoldCfg.action !== "none");
+        const clearPd = clearHasAction ? (e) => this._onPointerDown(e, clearTapCfg, clearHoldCfg) : null;
+        const clearPu = clearHasAction ? (e) => this._onPointerUp(e)   : null;
+        const clearPl = clearHasAction ? ()  => this._cancelHold()     : null;
         return html`
           <div class="atc-card-root">
             <div class="${this._hostClass}">
-              <div class="at-fold-wrapper">
+              <div class="at-fold-wrapper${clearHasAction ? " atc-clickable" : ""}"
+                @pointerdown="${clearPd}" @pointerup="${clearPu}"
+                @pointerleave="${clearPl}" @pointercancel="${clearPl}">
                 ${this._renderForTheme(clearAlert.theme, clearAlert)}
               </div>
             </div>

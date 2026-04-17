@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.14";
+const CARD_VERSION = "1.1.15";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -365,6 +365,11 @@ const ET = {
     tab_alerts: "Avvisi",
     cycle_interval: "Intervallo ciclo (secondi)",
     cycle_interval_help: "Secondi tra un avviso e l'altro quando ce ne sono più di uno attivi",
+    section_all_clear: "Card 'tutto ok'",
+    section_layout: "Layout & Aspetto",
+    section_cycling: "Ciclo & Animazione",
+    section_snooze: "Snooze 💤",
+    section_history: "Cronologia",
     show_when_clear: "Mostra quando non ci sono avvisi",
     large_buttons: "Pulsanti grandi sempre visibili (💤 e 📋)",
     ha_theme: "Adatta al tema HA (compatibile con Mushroom e tutti i temi globali)",
@@ -395,6 +400,7 @@ const ET = {
     history_clear: "Svuota",
     history_empty: "Nessun evento registrato",
     clear_message: "Messaggio quando nessun avviso attivo",
+    clear_badge_label: "Etichetta badge (es. 'Tutto ok', lascia vuoto per default)",
     clear_theme: "Tema per stato 'tutto ok'",
     alerts_list: "Lista avvisi configurati",
     add_alert: "Aggiungi avviso",
@@ -412,7 +418,7 @@ const ET = {
     use_ha_icon: "Usa icona Home Assistant (mdi:)",
     icon_color: "Colore icona",
     icon_color_help: "Colore CSS: es. #ff0000, red, var(--error-color). Lascia vuoto per il colore del tema.",
-    on_change: "Attiva al cambio di stato",
+    on_change: "Attiva ad OGNI cambio di stato (ignora le condizioni)",
     on_change_help: "L'alert appare ogni volta che lo stato cambia (qualunque valore). Usa questa opzione per eventi: contatori, timestamp, sensori senza stati fissi.",
     auto_dismiss_section: "Visibilità automatica",
     auto_dismiss_after: "Nascondi automaticamente dopo (secondi)",
@@ -477,6 +483,8 @@ const ET = {
     condition_attribute: "Attributo condizione",
     tap_action_section: "Tap — azione al tocco",
     hold_action_section: "Hold — azione lunga (500ms)",
+    clear_tap_action_section: "Tap sulla card 'tutto ok' — azione al tocco",
+    clear_hold_action_section: "Hold sulla card 'tutto ok' — azione lunga (500ms)",
     snooze_action_section: "Azione snooze 💤 — eseguita al tap sul tasto snooze",
     timer_theme_category: "Timer",
     timer_placeholder_hint: "Usa {timer} nel messaggio per mostrare il countdown (es. 'Disabilitato per {timer}')",
@@ -498,6 +506,11 @@ const ET = {
     tab_alerts: "Alerts",
     cycle_interval: "Cycle interval (seconds)",
     cycle_interval_help: "Seconds between alerts when multiple are active",
+    section_all_clear: "All clear card",
+    section_layout: "Layout & Appearance",
+    section_cycling: "Cycling & Animation",
+    section_snooze: "Snooze 💤",
+    section_history: "History",
     show_when_clear: "Show when no alerts are active",
     large_buttons: "Large always-visible buttons (💤 and 📋)",
     ha_theme: "Adapt to HA theme (compatible with Mushroom and all global themes)",
@@ -528,6 +541,7 @@ const ET = {
     history_clear: "Clear",
     history_empty: "No events recorded yet",
     clear_message: "Message when no alerts active",
+    clear_badge_label: "Badge label (e.g. 'All Good', leave empty for default)",
     clear_theme: "Theme for 'all clear' state",
     alerts_list: "Configured alerts",
     add_alert: "Add alert",
@@ -545,7 +559,7 @@ const ET = {
     use_ha_icon: "Use Home Assistant icon (mdi:)",
     icon_color: "Icon color",
     icon_color_help: "CSS color: e.g. #ff0000, red, var(--error-color). Leave empty for theme default.",
-    on_change: "Trigger on state change",
+    on_change: "Trigger on ANY state change (ignores conditions)",
     on_change_help: "Alert fires whenever the entity state changes (any value). Best for events: counters, timestamps, sensors with no fixed states.",
     auto_dismiss_section: "Auto-dismiss",
     auto_dismiss_after: "Auto-hide after (seconds)",
@@ -610,6 +624,8 @@ const ET = {
     condition_attribute: "Condition attribute",
     tap_action_section: "Tap action",
     hold_action_section: "Hold action (500ms)",
+    clear_tap_action_section: "Tap on 'all clear' card",
+    clear_hold_action_section: "Hold on 'all clear' card (500ms)",
     snooze_action_section: "Snooze action 💤 — executed when the snooze button is tapped",
     timer_theme_category: "Timer",
     timer_placeholder_hint: "Use {timer} in the message to show the countdown (e.g. 'Disabled for {timer}')",
@@ -631,6 +647,11 @@ const ET = {
     tab_alerts: "Alertes",
     cycle_interval: "Intervalle de cycle (secondes)",
     cycle_interval_help: "Secondes entre les alertes quand plusieurs sont actives",
+    section_all_clear: "Carte 'tout va bien'",
+    section_layout: "Disposition & Apparence",
+    section_cycling: "Cycle & Animation",
+    section_snooze: "Snooze 💤",
+    section_history: "Historique",
     show_when_clear: "Afficher quand aucune alerte n'est active",
     large_buttons: "Grands boutons toujours visibles (💤 et 📋)",
     ha_theme: "Adapter au thème HA (compatible Mushroom et tous les thèmes globaux)",
@@ -661,6 +682,7 @@ const ET = {
     history_clear: "Effacer",
     history_empty: "Aucun événement enregistré",
     clear_message: "Message quand aucune alerte active",
+    clear_badge_label: "Étiquette badge (ex. 'Tout va bien', laisser vide par défaut)",
     clear_theme: "Thème pour l'état 'tout va bien'",
     alerts_list: "Liste des alertes configurées",
     add_alert: "Ajouter une alerte",
@@ -678,7 +700,7 @@ const ET = {
     use_ha_icon: "Utiliser une icône Home Assistant (mdi:)",
     icon_color: "Couleur de l'icône",
     icon_color_help: "Couleur CSS: ex. #ff0000, red, var(--error-color). Laisser vide pour la couleur du thème.",
-    on_change: "Déclencher au changement d'état",
+    on_change: "Déclencher à TOUT changement d'état (ignore les conditions)",
     on_change_help: "L'alerte s'affiche à chaque changement d'état (quelle que soit la valeur). Idéal pour les événements : compteurs, horodatages, capteurs sans états fixes.",
     auto_dismiss_section: "Masquage automatique",
     auto_dismiss_after: "Masquer automatiquement après (secondes)",
@@ -743,6 +765,8 @@ const ET = {
     condition_attribute: "Attribut condition",
     tap_action_section: "Action au tap",
     hold_action_section: "Action maintien (500ms)",
+    clear_tap_action_section: "Tap sur la carte 'tout va bien'",
+    clear_hold_action_section: "Maintien sur la carte 'tout va bien' (500ms)",
     snooze_action_section: "Action snooze 💤 — exécutée au tap sur le bouton snooze",
     timer_theme_category: "Timer",
     timer_placeholder_hint: "Utilisez {timer} dans le message pour afficher le compte à rebours (ex. 'Désactivé pour {timer}')",
@@ -764,6 +788,11 @@ const ET = {
     tab_alerts: "Warnungen",
     cycle_interval: "Zyklusintervall (Sekunden)",
     cycle_interval_help: "Sekunden zwischen Warnungen wenn mehrere aktiv sind",
+    section_all_clear: "Karte 'Alles in Ordnung'",
+    section_layout: "Layout & Aussehen",
+    section_cycling: "Zyklus & Animation",
+    section_snooze: "Schlummern 💤",
+    section_history: "Verlauf",
     show_when_clear: "Anzeigen wenn keine Warnung aktiv",
     large_buttons: "Große, immer sichtbare Schaltflächen (💤 und 📋)",
     ha_theme: "An HA-Theme anpassen (kompatibel mit Mushroom und allen globalen Themes)",
@@ -794,6 +823,7 @@ const ET = {
     history_clear: "Leeren",
     history_empty: "Noch keine Ereignisse aufgezeichnet",
     clear_message: "Nachricht wenn keine Warnungen aktiv",
+    clear_badge_label: "Badge-Beschriftung (z.B. 'Alles OK', leer für Standard)",
     clear_theme: "Thema für 'Alles in Ordnung'",
     alerts_list: "Konfigurierte Warnungen",
     add_alert: "Warnung hinzufügen",
@@ -811,7 +841,7 @@ const ET = {
     use_ha_icon: "Home Assistant Symbol verwenden (mdi:)",
     icon_color: "Symbolfarbe",
     icon_color_help: "CSS-Farbe: z.B. #ff0000, red, var(--error-color). Leer lassen für Themafarbe.",
-    on_change: "Bei Statusänderung auslösen",
+    on_change: "Bei JEDER Statusänderung auslösen (ignoriert Bedingungen)",
     on_change_help: "Warnung erscheint bei jeder Statusänderung (beliebiger Wert). Ideal für Ereignisse: Zähler, Zeitstempel, Sensoren ohne feste Zustände.",
     auto_dismiss_section: "Automatisches Ausblenden",
     auto_dismiss_after: "Automatisch ausblenden nach (Sekunden)",
@@ -876,6 +906,8 @@ const ET = {
     condition_attribute: "Bedingungs-Attribut",
     tap_action_section: "Tap-Aktion",
     hold_action_section: "Halten-Aktion (500ms)",
+    clear_tap_action_section: "Tap auf 'Alles in Ordnung'-Karte",
+    clear_hold_action_section: "Halten auf 'Alles in Ordnung'-Karte (500ms)",
     snooze_action_section: "Schlummern-Aktion 💤 — wird beim Tap auf den Schlummern-Button ausgeführt",
     timer_theme_category: "Timer",
     timer_placeholder_hint: "Verwende {timer} in der Nachricht für den Countdown (z.B. 'Deaktiviert für {timer}')",
@@ -897,6 +929,11 @@ const ET = {
     tab_alerts: "Meldingen",
     cycle_interval: "Cyclusinterval (seconden)",
     cycle_interval_help: "Seconden tussen meldingen wanneer meerdere actief zijn",
+    section_all_clear: "Kaart 'alles in orde'",
+    section_layout: "Lay-out & Uiterlijk",
+    section_cycling: "Cyclus & Animatie",
+    section_snooze: "Sluimer 💤",
+    section_history: "Geschiedenis",
     show_when_clear: "Tonen wanneer geen meldingen actief zijn",
     large_buttons: "Grote, altijd zichtbare knoppen (💤 en 📋)",
     ha_theme: "Aanpassen aan HA-thema (compatibel met Mushroom en alle globale thema's)",
@@ -927,6 +964,7 @@ const ET = {
     history_clear: "Wissen",
     history_empty: "Nog geen gebeurtenissen opgeslagen",
     clear_message: "Bericht wanneer geen meldingen actief",
+    clear_badge_label: "Badge-label (bijv. 'Alles OK', leeg voor standaard)",
     clear_theme: "Thema voor 'alles in orde'",
     alerts_list: "Geconfigureerde meldingen",
     add_alert: "Melding toevoegen",
@@ -944,7 +982,7 @@ const ET = {
     use_ha_icon: "Home Assistant pictogram gebruiken (mdi:)",
     icon_color: "Pictogramkleur",
     icon_color_help: "CSS-kleur: bijv. #ff0000, red, var(--error-color). Leeg laten voor themakleur.",
-    on_change: "Activeren bij statuswijziging",
+    on_change: "Activeren bij ELKE statuswijziging (negeert voorwaarden)",
     on_change_help: "Melding verschijnt bij elke statuswijziging (willekeurige waarde). Ideaal voor gebeurtenissen: tellers, tijdstempels, sensoren zonder vaste toestanden.",
     auto_dismiss_section: "Automatisch verbergen",
     auto_dismiss_after: "Automatisch verbergen na (seconden)",
@@ -1009,6 +1047,8 @@ const ET = {
     condition_attribute: "Voorwaarde-attribuut",
     tap_action_section: "Tik-actie",
     hold_action_section: "Houd-actie (500ms)",
+    clear_tap_action_section: "Tikken op 'alles in orde'-kaart",
+    clear_hold_action_section: "Vasthouden op 'alles in orde'-kaart (500ms)",
     snooze_action_section: "Sluimer-actie 💤 — uitgevoerd bij tik op de sluimer-knop",
     timer_theme_category: "Timer",
     timer_placeholder_hint: "Gebruik {timer} in het bericht voor de countdown (bijv. 'Uitgeschakeld voor {timer}')",
@@ -1030,6 +1070,11 @@ const ET = {
     tab_alerts: "Báo động",
     cycle_interval: "Chu kỳ chuyển đổi (giây)",
     cycle_interval_help: "Số giây giữa các báo động khi có nhiều báo động đang hoạt động",
+    section_all_clear: "Thẻ 'mọi thứ ổn'",
+    section_layout: "Bố cục & Giao diện",
+    section_cycling: "Chu kỳ & Hoạt ảnh",
+    section_snooze: "Tạm hoãn 💤",
+    section_history: "Lịch sử",
     show_when_clear: "Hiển thị khi không có báo động",
     large_buttons: "Nút lớn luôn hiển thị (💤 và 📋)",
     ha_theme: "Thích ứng với chủ đề HA (tương thích Mushroom và tất cả chủ đề toàn cục)",
@@ -1060,6 +1105,7 @@ const ET = {
     history_clear: "Xóa",
     history_empty: "Chưa có sự kiện nào",
     clear_message: "Thông báo khi không có báo động",
+    clear_badge_label: "Nhãn badge (ví dụ: 'Ổn rồi', để trống để dùng mặc định)",
     clear_theme: "Giao diện trạng thái 'mọi thứ ổn'",
     alerts_list: "Danh sách báo động đã cài đặt",
     add_alert: "Thêm báo động",
@@ -1077,7 +1123,7 @@ const ET = {
     use_ha_icon: "Dùng biểu tượng Home Assistant (mdi:)",
     icon_color: "Màu biểu tượng",
     icon_color_help: "Màu CSS: ví dụ #ff0000, red, var(--error-color). Để trống để dùng màu theme.",
-    on_change: "Kích hoạt khi trạng thái thay đổi",
+    on_change: "Kích hoạt khi BẤT KỲ thay đổi trạng thái (bỏ qua điều kiện)",
     on_change_help: "Báo động hiện khi trạng thái thay đổi (bất kỳ giá trị). Phù hợp cho sự kiện: bộ đếm, dấu thời gian, cảm biến không có trạng thái cố định.",
     auto_dismiss_section: "Tự ẩn",
     auto_dismiss_after: "Tự ẩn sau (giây)",
@@ -1142,6 +1188,8 @@ const ET = {
     condition_attribute: "Thuộc tính điều kiện",
     tap_action_section: "Hành động nhấn",
     hold_action_section: "Hành động giữ (500ms)",
+    clear_tap_action_section: "Nhấn vào thẻ 'mọi thứ ổn'",
+    clear_hold_action_section: "Giữ thẻ 'mọi thứ ổn' (500ms)",
     snooze_action_section: "Hành động tạm hoãn 💤 — thực hiện khi nhấn nút tạm hoãn",
     timer_theme_category: "Hẹn giờ",
     timer_placeholder_hint: "Dùng {timer} trong thông báo để hiển thị đếm ngược (vd. 'Đã tắt trong {timer}')",
@@ -1521,7 +1569,81 @@ class AlertTickerCardEditor extends LitElement {
     const cfg = this._config;
 
     return html`
-      <!-- Cycle interval -->
+
+      <!-- ── ALL CLEAR CARD ─────────────────────────────────────────────── -->
+      <div class="section-divider">✅ ${this._t("section_all_clear")}</div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("show_when_clear")}</span>
+          <ha-switch
+            .checked="${cfg.show_when_clear === true}"
+            @change="${(e) => this._showWhenClearChanged(e.target.checked)}"
+          ></ha-switch>
+        </div>
+      </div>
+      ${cfg.show_when_clear ? html`
+        <div class="form-row">
+          <ha-textfield
+            .label="${this._t("clear_message")}"
+            .value="${cfg.clear_message || ""}"
+            @change="${(e) => this._clearMessageChanged(e.target.value)}"
+          ></ha-textfield>
+        </div>
+        <div class="form-row">
+          <ha-textfield
+            .label="${this._t("clear_badge_label")}"
+            .value="${cfg.clear_badge_label || ""}"
+            @change="${(e) => this._fireConfig({ ...this._config, clear_badge_label: e.target.value.trim() || undefined })}"
+          ></ha-textfield>
+        </div>
+        <div class="form-row">
+          ${this._renderThemeSelect("clear_theme", cfg.clear_theme || "success", (v) => this._clearThemeChanged(v), true)}
+        </div>
+        ${this._renderCardActionConfig("clear_tap_action",  this._t("clear_tap_action_section"))}
+        ${this._renderCardActionConfig("clear_hold_action", this._t("clear_hold_action_section"))}
+      ` : ""}
+
+      <!-- ── LAYOUT & APPEARANCE ───────────────────────────────────────── -->
+      <div class="section-divider">🖼️ ${this._t("section_layout")}</div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("ha_theme")}</span>
+          <ha-switch
+            .checked="${!!cfg.ha_theme}"
+            @change="${(e) => this._fireConfig({ ...this._config, ha_theme: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("vertical")}</span>
+          <ha-switch
+            .checked="${!!cfg.vertical}"
+            @change="${(e) => this._fireConfig({ ...this._config, vertical: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("text_align_center")}</span>
+          <ha-switch
+            .checked="${cfg.text_align === 'center'}"
+            @change="${(e) => this._fireConfig({ ...this._config, text_align: e.target.checked ? 'center' : undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("large_buttons")}</span>
+          <ha-switch
+            .checked="${!!cfg.large_buttons}"
+            @change="${(e) => this._fireConfig({ ...this._config, large_buttons: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+
+      <!-- ── CYCLING & ANIMATION ───────────────────────────────────────── -->
+      <div class="section-divider">🔄 ${this._t("section_cycling")}</div>
       <div class="form-row">
         <ha-textfield
           .label="${this._t("cycle_interval")}"
@@ -1533,15 +1655,10 @@ class AlertTickerCardEditor extends LitElement {
         ></ha-textfield>
         <div class="helper-text">${this._t("cycle_interval_help")}</div>
       </div>
-
-      <!-- Transition animation -->
       <div class="form-row">
         <div class="native-select-wrap">
           <label class="native-select-label">${this._t("cycle_animation")}</label>
-          <select
-            class="native-select"
-            @change="${(e) => this._cycleAnimationChanged(e.target.value)}"
-          >
+          <select class="native-select" @change="${(e) => this._cycleAnimationChanged(e.target.value)}">
             ${["fold", "slide", "fade", "flip", "zoom", "glitch", "bounce", "swing", "blur", "split", "roll", "curtain"].map((a) => html`
               <option value="${a}" ?selected="${(cfg.cycle_animation || "fold") === a}">
                 ${this._t("anim_" + a)}
@@ -1551,7 +1668,8 @@ class AlertTickerCardEditor extends LitElement {
         </div>
       </div>
 
-      <!-- Snooze settings -->
+      <!-- ── SNOOZE ────────────────────────────────────────────────────── -->
+      <div class="section-divider">💤 ${this._t("section_snooze")}</div>
       <div class="form-row">
         <div class="native-select-wrap">
           <label class="native-select-label">${this._t("snooze_default_duration")}</label>
@@ -1566,8 +1684,27 @@ class AlertTickerCardEditor extends LitElement {
         </div>
         <div class="helper-text">${this._t("snooze_default_duration_help")}</div>
       </div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("swipe_to_snooze")}</span>
+          <ha-switch
+            .checked="${!!cfg.swipe_to_snooze}"
+            @change="${(e) => this._fireConfig({ ...this._config, swipe_to_snooze: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("show_snooze_bar")}</span>
+          <ha-switch
+            .checked="${cfg.show_snooze_bar !== false}"
+            @change="${(e) => this._fireConfig({ ...this._config, show_snooze_bar: e.target.checked ? undefined : false })}"
+          ></ha-switch>
+        </div>
+      </div>
 
-      <!-- History max events -->
+      <!-- ── HISTORY ───────────────────────────────────────────────────── -->
+      <div class="section-divider">📋 ${this._t("section_history")}</div>
       <div class="form-row">
         <div class="native-select-wrap">
           <label class="native-select-label">${this._t("history_max_events")}</label>
@@ -1581,99 +1718,6 @@ class AlertTickerCardEditor extends LitElement {
         </div>
         <div class="helper-text">${this._t("history_max_events_help")}</div>
       </div>
-
-      <!-- Show when clear toggle -->
-      <div class="form-row">
-        <div class="form-row-inline">
-          <span>${this._t("show_when_clear")}</span>
-          <ha-switch
-            .checked="${cfg.show_when_clear === true}"
-            @change="${(e) => this._showWhenClearChanged(e.target.checked)}"
-          ></ha-switch>
-        </div>
-      </div>
-
-      <!-- Large buttons toggle -->
-      <div class="form-row">
-        <div class="form-row-inline">
-          <span>${this._t("large_buttons")}</span>
-          <ha-switch
-            .checked="${!!cfg.large_buttons}"
-            @change="${(e) => this._fireConfig({ ...this._config, large_buttons: e.target.checked || undefined })}"
-          ></ha-switch>
-        </div>
-      </div>
-
-      <!-- HA theme adaptation toggle -->
-      <div class="form-row">
-        <div class="form-row-inline">
-          <span>${this._t("ha_theme")}</span>
-          <ha-switch
-            .checked="${!!cfg.ha_theme}"
-            @change="${(e) => this._fireConfig({ ...this._config, ha_theme: e.target.checked || undefined })}"
-          ></ha-switch>
-        </div>
-      </div>
-
-      <!-- Swipe-to-snooze toggle (mobile gesture) -->
-      <div class="form-row">
-        <div class="form-row-inline">
-          <span>${this._t("swipe_to_snooze")}</span>
-          <ha-switch
-            .checked="${!!cfg.swipe_to_snooze}"
-            @change="${(e) => this._fireConfig({ ...this._config, swipe_to_snooze: e.target.checked || undefined })}"
-          ></ha-switch>
-        </div>
-      </div>
-
-      <!-- Vertical layout toggle -->
-      <div class="form-row">
-        <div class="form-row-inline">
-          <span>${this._t("vertical")}</span>
-          <ha-switch
-            .checked="${!!cfg.vertical}"
-            @change="${(e) => this._fireConfig({ ...this._config, vertical: e.target.checked || undefined })}"
-          ></ha-switch>
-        </div>
-      </div>
-
-      <!-- Center text toggle -->
-      <div class="form-row">
-        <div class="form-row-inline">
-          <span>${this._t("text_align_center")}</span>
-          <ha-switch
-            .checked="${cfg.text_align === 'center'}"
-            @change="${(e) => this._fireConfig({ ...this._config, text_align: e.target.checked ? 'center' : undefined })}"
-          ></ha-switch>
-        </div>
-      </div>
-
-      <!-- Show snooze reactivation bar toggle -->
-      <div class="form-row">
-        <div class="form-row-inline">
-          <span>${this._t("show_snooze_bar")}</span>
-          <ha-switch
-            .checked="${cfg.show_snooze_bar !== false}"
-            @change="${(e) => this._fireConfig({ ...this._config, show_snooze_bar: e.target.checked ? undefined : false })}"
-          ></ha-switch>
-        </div>
-      </div>
-
-      <!-- Clear message + theme (only when show_when_clear is true) -->
-      ${cfg.show_when_clear
-        ? html`
-            <div class="form-row">
-              <ha-textfield
-                .label="${this._t("clear_message")}"
-                .value="${cfg.clear_message || ""}"
-                @change="${(e) => this._clearMessageChanged(e.target.value)}"
-              ></ha-textfield>
-            </div>
-            <div class="form-row">
-              ${this._renderThemeSelect("clear_theme", cfg.clear_theme || "success", (v) => this._clearThemeChanged(v), true)}
-            </div>
-          `
-        : ""}
     `;
   }
 
@@ -1932,6 +1976,7 @@ class AlertTickerCardEditor extends LitElement {
                   </ha-formfield>
                   <div class="helper-text">${this._t("on_change_help")}</div>
                 </div>
+                ${!alert.on_change ? html`
                 <!-- Primary condition: operator + value -->
                 <div class="form-row-2col">
                   <div class="native-select-wrap">
@@ -2038,6 +2083,7 @@ class AlertTickerCardEditor extends LitElement {
                 <button class="btn-add-small" @click="${() => this._addCondition(index)}">
                   + ${this._t("add_condition")}
                 </button>
+                ` : ""} <!-- end !alert.on_change -->
                 <!-- ── AUTO-DISMISS ──────────────────────────────────────── -->
                 <div class="section-divider">⏱ ${this._t("auto_dismiss_section")}</div>
 
@@ -2570,6 +2616,80 @@ class AlertTickerCardEditor extends LitElement {
         ></ha-textfield>
       ` : ""}
     `;
+  }
+
+  /** Card-level action config (clear_tap_action / clear_hold_action) */
+  _renderCardActionConfig(configKey, sectionLabel) {
+    const cfg = this._config[configKey] || { action: "none" };
+    const type = cfg.action || "none";
+    return html`
+      <div class="section-divider">${sectionLabel}</div>
+      <div class="native-select-wrap">
+        <label class="native-select-label">${this._t("action_type")}</label>
+        <select class="native-select"
+          @change="${(e) => this._setCardActionConfig(configKey, "action", e.target.value)}"
+        >
+          ${["none","call-service","navigate","more-info","url"].map((t) => html`
+            <option value="${t}" ?selected="${type === t}">
+              ${this._t("action_" + t.replace("-","_")) || t}
+            </option>
+          `)}
+        </select>
+      </div>
+      ${type === "call-service" ? html`
+        <ha-service-control
+          .hass="${this._hass}"
+          .value="${this._toServiceControlValue(cfg)}"
+          .showAdvanced="${true}"
+          @value-changed="${(e) => { e.stopPropagation(); this._onClearServiceControlChanged(configKey, e.detail.value); }}"
+        ></ha-service-control>
+      ` : ""}
+      ${type === "navigate" ? html`
+        <ha-textfield
+          .label="${this._t("action_navigate_path")}"
+          .value="${cfg.navigation_path || ""}"
+          @change="${(e) => this._setCardActionConfig(configKey, "navigation_path", e.target.value)}"
+        ></ha-textfield>
+      ` : ""}
+      ${type === "more-info" ? html`
+        <ha-entity-picker
+          .label="${this._t("action_target")}"
+          .hass="${this._hass}"
+          .value="${cfg.entity_id || ""}"
+          allow-custom-entity
+          @value-changed="${(e) => this._setCardActionConfig(configKey, "entity_id", e.detail.value || "")}"
+        ></ha-entity-picker>
+      ` : ""}
+      ${type === "url" ? html`
+        <ha-textfield
+          .label="${this._t("action_url_path")}"
+          .value="${cfg.url_path || ""}"
+          @change="${(e) => this._setCardActionConfig(configKey, "url_path", e.target.value)}"
+        ></ha-textfield>
+      ` : ""}
+    `;
+  }
+
+  _setCardActionConfig(configKey, field, value) {
+    this._fireConfig({
+      ...this._config,
+      [configKey]: { ...(this._config[configKey] || { action: "none" }), [field]: value },
+    });
+  }
+
+  _onClearServiceControlChanged(configKey, val) {
+    if (this._initializing) return;
+    const current = this._config[configKey] || { action: "call-service" };
+    this._fireConfig({
+      ...this._config,
+      [configKey]: {
+        ...current,
+        action: "call-service",
+        service: val.action || val.service || current.service || "",
+        target: (val.target && Object.keys(val.target).length) ? val.target : undefined,
+        service_data: (val.data && Object.keys(val.data).length) ? val.data : undefined,
+      },
+    });
   }
 
   _alertThemeChanged(value, index) {

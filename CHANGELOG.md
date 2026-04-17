@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.15] - 2026-04-18
+
+### Added
+
+- **`clear_badge_label` config option** — customize the badge text on the "all clear" card (default: "Resolved"). Configurable via editor under the clear message/theme fields. ([#46](https://github.com/djdevil/AlertTicker-Card/issues/46))
+- **`clear_tap_action` / `clear_hold_action`** — tap and hold actions for the "all clear" card. Supports navigate, call-service, more-info, url. Configurable via editor. ([#45](https://github.com/djdevil/AlertTicker-Card/issues/45))
+- **`on_change` monitors attribute changes** — when `attribute` is set on an alert with `on_change: true`, the trigger fires on attribute value changes instead of entity state changes. Useful for detecting track changes on media players. ([#39](https://github.com/djdevil/AlertTicker-Card/issues/39))
+
+### Improved
+
+- **General settings tab reorganized** — settings are now grouped into labeled sections with emoji headers: ✅ All clear card (moved to top), 🖼️ Layout & Appearance, 🔄 Cycling & Animation, 💤 Snooze, 📋 History. The "all clear" section with its subfields now appears at the very top for easier discovery. ([#41](https://github.com/djdevil/AlertTicker-Card/issues/41))
+- **`on_change` label clarified** — editor label now reads "Trigger on ANY state change (ignores conditions)" to make it clear conditions are bypassed when this is enabled.
+- **Conditions hidden when `on_change` active** — the operator/state condition fields are hidden while `on_change` is enabled, avoiding confusion since they have no effect in that mode. ([#41](https://github.com/djdevil/AlertTicker-Card/issues/41))
+
+---
+
 ## [1.1.14] - 2026-04-17
 
 ### Fixed
