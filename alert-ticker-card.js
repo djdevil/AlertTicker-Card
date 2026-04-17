@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.13";
+const CARD_VERSION = "1.1.14";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -398,9 +398,15 @@ class AlertTickerCard extends LitElement {
       if (!alert.entity) return;
       if (!alert.on_change && !alert.auto_dismiss_after) return;
       const key = `${idx}:${alert.entity}`;
-      const prevState = prevHass.states[alert.entity]?.state;
-      const newState  = this._hass.states[alert.entity]?.state;
-      if (prevState === undefined || newState === undefined) return;
+      const prevEntityState = prevHass.states[alert.entity];
+      const newEntityState  = this._hass.states[alert.entity];
+      if (!prevEntityState || !newEntityState) return;
+      const prevState = (alert.on_change && alert.attribute)
+        ? String(this._resolveAttrPath(prevEntityState.attributes, alert.attribute) ?? "")
+        : prevEntityState.state;
+      const newState = (alert.on_change && alert.attribute)
+        ? String(this._resolveAttrPath(newEntityState.attributes, alert.attribute) ?? "")
+        : newEntityState.state;
 
       if (alert.on_change && prevState !== newState) {
         // State changed — record trigger, clear any previous auto-dismiss
@@ -528,7 +534,7 @@ class AlertTickerCard extends LitElement {
       const configIdx = this._config._preview_index;
       const target = (this._config.alerts || [])[configIdx];
       const pi = target
-        ? active.findIndex(a => a === target || a._sourceAlert === target)
+        ? active.findIndex(a => a._configIdx === configIdx || a._sourceAlert === target)
         : -1;
       if (pi >= 0 && pi !== this._currentIndex) {
         this._currentIndex = pi;
@@ -5339,6 +5345,11 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme [class$="-sub"],
       .atc-ha-theme .atc-secondary-value {
         color: var(--secondary-text-color, rgba(0,0,0,0.6)) !important;
+      }
+      /* Alert counter (e.g. "2/3") → secondary text color */
+      .atc-ha-theme .alert-counter,
+      .atc-ha-theme .alert-counter-overlay {
+        color: var(--secondary-text-color, rgba(0,0,0,0.55)) !important;
       }
 
       /* ── Critical ── */

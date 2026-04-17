@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.14] - 2026-04-17
+
+### Fixed
+
+- **Test mode preview not switching to the selected alert** — the alert match used object reference (`===`) which always failed because expanded alerts are spread copies. Fixed by matching on `_configIdx` instead. ([#43](https://github.com/djdevil/AlertTicker-Card/issues/43))
+- **Alert counter ("2/3") invisible in HA theme light mode** — counter had hardcoded white color. Now uses `var(--secondary-text-color)` when `ha_theme` is active. ([#44](https://github.com/djdevil/AlertTicker-Card/issues/44))
+- **`on_change` now detects attribute changes** — when `attribute` is set on an alert with `on_change: true`, the trigger fires when that attribute value changes (not just the entity state). Enables use cases like "notify when track title changes on a media player". ([#39](https://github.com/djdevil/AlertTicker-Card/issues/39))
+
+---
+
 ## [1.1.13] - 2026-04-16
 
 ### Added
