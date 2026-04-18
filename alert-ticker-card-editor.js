@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.20";
+const CARD_VERSION = "1.1.21";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -376,6 +376,8 @@ const ET = {
     swipe_to_snooze: "Scorri a sinistra per silenziare 💤 (ideale per mobile)",
     vertical: "Layout verticale (icona sopra, testo sotto, centrato)",
     text_align_center: "Testo centrato (utile per layout Panel molto larghi)",
+    card_height: "Altezza fissa card (px)",
+    card_height_help: "Fissa l'altezza per evitare spostamenti del layout quando cambiano gli avvisi. Lascia vuoto per altezza automatica.",
     show_snooze_bar: "Mostra barra di riattivazione snooze 💤",
     snooze_default_duration: "Comportamento snooze 💤",
     snooze_default_duration_help: "Menu durata: tap su 💤 apre il menu per scegliere quanto silenziare. Durata fissa: tap su 💤 silenzia subito senza menu.",
@@ -522,6 +524,8 @@ const ET = {
     swipe_to_snooze: "Swipe left to snooze 💤 (ideal for mobile)",
     vertical: "Vertical layout (icon on top, text below, centered)",
     text_align_center: "Center text (useful for wide Panel layout)",
+    card_height: "Fixed card height (px)",
+    card_height_help: "Locks the height to prevent layout shifts when alerts change. Leave empty for automatic height.",
     show_snooze_bar: "Show snooze reactivation bar 💤",
     snooze_default_duration: "Snooze 💤 behaviour",
     snooze_default_duration_help: "Duration menu: tap on 💤 opens a menu to choose how long to snooze. Fixed duration: tap on 💤 snoozes immediately with no menu.",
@@ -668,6 +672,8 @@ const ET = {
     swipe_to_snooze: "Glisser à gauche pour mettre en veille 💤 (idéal mobile)",
     vertical: "Disposition verticale (icône en haut, texte en bas, centré)",
     text_align_center: "Texte centré (utile pour la disposition Panel large)",
+    card_height: "Hauteur fixe de la carte (px)",
+    card_height_help: "Fixe la hauteur pour éviter les décalages de mise en page lors des changements d'alertes. Laisser vide pour hauteur automatique.",
     show_snooze_bar: "Afficher la barre de réactivation snooze 💤",
     snooze_default_duration: "Comportement snooze 💤",
     snooze_default_duration_help: "Menu de durée: tap sur 💤 ouvre un menu pour choisir la durée. Durée fixe: tap sur 💤 met en veille immédiatement sans menu.",
@@ -814,6 +820,8 @@ const ET = {
     swipe_to_snooze: "Nach links wischen zum Schlummern 💤 (ideal für Mobilgeräte)",
     vertical: "Vertikales Layout (Symbol oben, Text unten, zentriert)",
     text_align_center: "Text zentrieren (nützlich für breites Panel-Layout)",
+    card_height: "Feste Kartenhöhe (px)",
+    card_height_help: "Sperrt die Höhe, um Layoutverschiebungen beim Wechsel von Alerts zu verhindern. Leer lassen für automatische Höhe.",
     show_snooze_bar: "Schlummern-Reaktivierungsleiste anzeigen 💤",
     snooze_default_duration: "Schlummern 💤 Verhalten",
     snooze_default_duration_help: "Dauermenü: Tap auf 💤 öffnet ein Menü zur Auswahl der Dauer. Feste Dauer: Tap auf 💤 schlummert sofort ohne Menü.",
@@ -960,6 +968,8 @@ const ET = {
     swipe_to_snooze: "Veeg naar links om te sluimeren 💤 (ideaal voor mobiel)",
     vertical: "Verticale lay-out (icoon boven, tekst onder, gecentreerd)",
     text_align_center: "Tekst centreren (handig voor breed Panel-layout)",
+    card_height: "Vaste kaarthoogte (px)",
+    card_height_help: "Vergrendelt de hoogte om lay-outverschuivingen bij wisselende meldingen te voorkomen. Leeg laten voor automatische hoogte.",
     show_snooze_bar: "Sluimer-reactiveringsbalk weergeven 💤",
     snooze_default_duration: "Sluimer 💤 gedrag",
     snooze_default_duration_help: "Duurmenu: tik op 💤 opent een menu om de duur te kiezen. Vaste duur: tik op 💤 sluimert direct zonder menu.",
@@ -1106,6 +1116,8 @@ const ET = {
     swipe_to_snooze: "Vuốt sang trái để tạm hoãn 💤 (lý tưởng cho di động)",
     vertical: "Bố cục dọc (biểu tượng trên, văn bản dưới, căn giữa)",
     text_align_center: "Căn giữa văn bản (hữu ích cho layout Panel rộng)",
+    card_height: "Chiều cao cố định (px)",
+    card_height_help: "Khóa chiều cao để ngăn dịch chuyển bố cục khi cảnh báo thay đổi. Để trống để chiều cao tự động.",
     show_snooze_bar: "Hiển thị thanh kích hoạt lại tạm hoãn 💤",
     snooze_default_duration: "Hành vi tạm hoãn 💤",
     snooze_default_duration_help: "Menu thời gian: nhấn 💤 mở menu chọn thời lượng. Thời lượng cố định: nhấn 💤 tạm hoãn ngay không cần menu.",
@@ -1671,6 +1683,21 @@ class AlertTickerCardEditor extends LitElement {
             @change="${(e) => this._fireConfig({ ...this._config, large_buttons: e.target.checked || undefined })}"
           ></ha-switch>
         </div>
+      </div>
+      <div class="form-row">
+        <ha-textfield
+          type="number"
+          .label="${this._t("card_height")}"
+          .value="${cfg.card_height ? String(cfg.card_height) : ""}"
+          min="40"
+          max="800"
+          placeholder="auto"
+          @change="${(e) => {
+            const v = parseInt(e.target.value);
+            this._fireConfig({ ...this._config, card_height: (v > 0 ? v : undefined) });
+          }}"
+        ></ha-textfield>
+        <div class="helper-text">${this._t("card_height_help")}</div>
       </div>
 
       <!-- ── CYCLING & ANIMATION ───────────────────────────────────────── -->

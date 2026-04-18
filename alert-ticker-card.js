@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.20";
+const CARD_VERSION = "1.1.21";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1063,6 +1063,9 @@ class AlertTickerCard extends LitElement {
     try {
       const AudioCtx = window.AudioContext || /** @type {any} */(window).webkitAudioContext;
       const ctx = new AudioCtx();
+      // iOS/Safari suspends AudioContext until a user gesture; resume() unlocks it
+      // when the context was previously warmed by a prior interaction.
+      if (ctx.state === "suspended") ctx.resume();
       const cat = (THEME_META[alert.theme] || {}).category || "info";
       const now = ctx.currentTime;
 
@@ -1445,6 +1448,9 @@ class AlertTickerCard extends LitElement {
     this.toggleAttribute("hidden", isHidden);
     this.style.display = isHidden ? "none" : "";
     this.style.height = this._config?.vertical ? "100%" : "";
+    // Fixed card height — prevents layout shifts when cycling between alerts
+    const cardHeight = this._config?.card_height;
+    this.style.setProperty("--atc-card-height", cardHeight ? `${cardHeight}px` : "");
     this.classList.toggle("atc-center-text", this._config?.text_align === "center");
     this.shadowRoot?.querySelectorAll(".atc-ha-icon").forEach(el => {
       el.parentElement?.classList.add("atc-has-mdi-icon");
@@ -5168,6 +5174,9 @@ class AlertTickerCard extends LitElement {
       .atc-card-root {
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        height: var(--atc-card-height, auto);
+        overflow: hidden;
       }
       .atc-test-mode-banner {
         background: rgba(255, 165, 0, 0.92);

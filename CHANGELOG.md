@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.21] - 2026-04-18
+
+### Added
+
+- **`card_height` config option** — sets a fixed height (in px) on the card, preventing layout shifts when cycling between alerts of different sizes or text lengths. Content is vertically centered and clipped symmetrically if it exceeds the set height. Leave unset for automatic height. Configurable via the editor under 🖼️ Layout & Appearance. ([#52](https://github.com/djdevil/AlertTicker-Card/issues/52))
+
+### Fixed
+
+- **Alert sound silent on iOS / iPad HA companion app** — iOS Safari suspends `AudioContext` until a user gesture. Added `ctx.resume()` before tone generation, which unlocks the context when it was previously warmed by any prior interaction (e.g. a tap on the dashboard). Note: on a completely fresh page load with zero interaction, iOS will still block audio — this is an OS-level restriction. ([#51](https://github.com/djdevil/AlertTicker-Card/issues/51))
+
+---
+
 ## [1.1.20] - 2026-04-18
 
 ### Added
