@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.18";
+const CARD_VERSION = "1.1.19";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1431,13 +1431,11 @@ class AlertTickerCard extends LitElement {
     const isHidden = this._activeAlerts.length === 0 &&
                      !this._config?.show_when_clear &&
                      !(this._snoozedCount > 0 && this._config?.show_snooze_bar !== false);
+    // Use the HTML `hidden` attribute — hui-card observes it and hides the
+    // grid/masonry slot completely (same technique used by HA's own conditional-card fix).
+    // Also set display:none as belt-and-suspenders for older HA versions.
+    this.toggleAttribute("hidden", isHidden);
     this.style.display = isHidden ? "none" : "";
-    // Also hide the HA card wrapper (hui-card / div.card-wrapper) so the
-    // masonry/grid layout reclaims the slot and eliminates the gap entirely.
-    const wrapper = this.parentNode;
-    if (wrapper && wrapper !== this.getRootNode()) {
-      wrapper.style.display = isHidden ? "none" : "";
-    }
     this.style.height = this._config?.vertical ? "100%" : "";
     this.classList.toggle("atc-center-text", this._config?.text_align === "center");
     this.shadowRoot?.querySelectorAll(".atc-ha-icon").forEach(el => {

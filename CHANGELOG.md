@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.19] - 2026-04-18
+
+### Fixed
+
+- **Empty space in sections/grid dashboard when card is hidden** — previous attempts (`display: none` on element and parent) were not enough for HA's CSS grid sections layout. Now uses `toggleAttribute("hidden")` on the host element, which `hui-card` observes to collapse the grid slot entirely — the same technique used by HA's own conditional-card fix (frontend PR #20117). `display: none` is kept as a fallback for older HA versions. ([#50](https://github.com/djdevil/AlertTicker-Card/issues/50))
+
+---
+
 ## [1.1.18] - 2026-04-18
 
 ### Added
