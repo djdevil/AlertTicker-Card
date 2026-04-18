@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.17";
+const CARD_VERSION = "1.1.18";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -914,7 +914,8 @@ class AlertTickerCard extends LitElement {
 
   /**
    * Returns true when the entity's state matches the alert's condition.
-   * Supports: exact string/array (=), != > < >= <= with numeric comparison.
+   * Supports: exact string/array (=), != > < >= <= with numeric comparison,
+   * contains / not_contains with case-insensitive substring matching.
    */
   _matchesState(entityStateValue, alert) {
     const trigger = alert.state;
@@ -932,6 +933,14 @@ class AlertTickerCard extends LitElement {
     }
     if (operator === "!=") {
       return entityStateValue !== triggerStr;
+    }
+
+    // Substring matching (case-insensitive)
+    if (operator === "contains") {
+      return entityStateValue.toLowerCase().includes(triggerStr.toLowerCase());
+    }
+    if (operator === "not_contains") {
+      return !entityStateValue.toLowerCase().includes(triggerStr.toLowerCase());
     }
 
     // Numeric comparison
@@ -1423,6 +1432,12 @@ class AlertTickerCard extends LitElement {
                      !this._config?.show_when_clear &&
                      !(this._snoozedCount > 0 && this._config?.show_snooze_bar !== false);
     this.style.display = isHidden ? "none" : "";
+    // Also hide the HA card wrapper (hui-card / div.card-wrapper) so the
+    // masonry/grid layout reclaims the slot and eliminates the gap entirely.
+    const wrapper = this.parentNode;
+    if (wrapper && wrapper !== this.getRootNode()) {
+      wrapper.style.display = isHidden ? "none" : "";
+    }
     this.style.height = this._config?.vertical ? "100%" : "";
     this.classList.toggle("atc-center-text", this._config?.text_align === "center");
     this.shadowRoot?.querySelectorAll(".atc-ha-icon").forEach(el => {

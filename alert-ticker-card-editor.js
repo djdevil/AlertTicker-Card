@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.17";
+const CARD_VERSION = "1.1.18";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -444,6 +444,8 @@ const ET = {
     op_lt: "< minore di",
     op_gte: "≥ magg. o uguale",
     op_lte: "≤ min. o uguale",
+    op_contains: "⊃ contiene",
+    op_not_contains: "⊅ non contiene",
     cycle_animation: "Animazione transizione",
     anim_fold:    "🃏 Fold — piega 3D",
     anim_slide:   "➡️ Slide — scorrimento",
@@ -587,6 +589,8 @@ const ET = {
     op_lt: "< less than",
     op_gte: "≥ greater or equal",
     op_lte: "≤ less or equal",
+    op_contains: "⊃ contains",
+    op_not_contains: "⊅ doesn't contain",
     cycle_animation: "Transition animation",
     anim_fold:    "🃏 Fold — 3D page turn",
     anim_slide:   "➡️ Slide — horizontal push",
@@ -730,6 +734,8 @@ const ET = {
     op_lt: "< inférieur à",
     op_gte: "≥ supérieur ou égal",
     op_lte: "≤ inférieur ou égal",
+    op_contains: "⊃ contient",
+    op_not_contains: "⊅ ne contient pas",
     cycle_animation: "Animation de transition",
     anim_fold:    "🃏 Fold — pliage 3D",
     anim_slide:   "➡️ Slide — défilement",
@@ -873,6 +879,8 @@ const ET = {
     op_lt: "< kleiner als",
     op_gte: "≥ größer oder gleich",
     op_lte: "≤ kleiner oder gleich",
+    op_contains: "⊃ enthält",
+    op_not_contains: "⊅ enthält nicht",
     cycle_animation: "Übergangsanimation",
     anim_fold:    "🃏 Fold — 3D-Seitenumbruch",
     anim_slide:   "➡️ Slide — seitlich schieben",
@@ -1016,6 +1024,8 @@ const ET = {
     op_lt: "< kleiner dan",
     op_gte: "≥ groter of gelijk",
     op_lte: "≤ kleiner of gelijk",
+    op_contains: "⊃ bevat",
+    op_not_contains: "⊅ bevat niet",
     cycle_animation: "Overgangsanimatie",
     anim_fold:    "🃏 Fold — 3D-paginavouw",
     anim_slide:   "➡️ Slide — horizontaal schuiven",
@@ -1159,6 +1169,8 @@ const ET = {
     op_lt: "< nhỏ hơn",
     op_gte: "≥ lớn hơn hoặc bằng",
     op_lte: "≤ nhỏ hơn hoặc bằng",
+    op_contains: "⊃ chứa",
+    op_not_contains: "⊅ không chứa",
     cycle_animation: "Hiệu ứng chuyển đổi",
     anim_fold:    "🃏 Fold — lật trang 3D",
     anim_slide:   "➡️ Slide — trượt ngang",
@@ -1999,12 +2011,14 @@ class AlertTickerCardEditor extends LitElement {
                       @change="${(e) => this._alertOperatorChanged(e.target.value, index)}"
                     >
                       ${[
-                        ["=",  "op_eq"],
-                        ["!=", "op_ne"],
-                        [">",  "op_gt"],
-                        ["<",  "op_lt"],
-                        [">=", "op_gte"],
-                        ["<=", "op_lte"],
+                        ["=",           "op_eq"],
+                        ["!=",          "op_ne"],
+                        [">",           "op_gt"],
+                        ["<",           "op_lt"],
+                        [">=",          "op_gte"],
+                        ["<=",          "op_lte"],
+                        ["contains",     "op_contains"],
+                        ["not_contains", "op_not_contains"],
                       ].map(([op, key]) => html`
                         <option value="${op}" ?selected="${(alert.operator || "=") === op}">
                           ${this._t(key)}
@@ -2080,7 +2094,7 @@ class AlertTickerCardEditor extends LitElement {
                           class="native-select"
                           @change="${(e) => this._updateCondition(index, ci, { operator: e.target.value })}"
                         >
-                          ${[["=","op_eq"],["!=","op_ne"],[">","op_gt"],["<","op_lt"],[">=","op_gte"],["<=","op_lte"]].map(([op, key]) => html`
+                          ${[["=","op_eq"],["!=","op_ne"],[">","op_gt"],["<","op_lt"],[">=","op_gte"],["<=","op_lte"],["contains","op_contains"],["not_contains","op_not_contains"]].map(([op, key]) => html`
                             <option value="${op}" ?selected="${(cond.operator || "=") === op}">${this._t(key)}</option>
                           `)}
                         </select>

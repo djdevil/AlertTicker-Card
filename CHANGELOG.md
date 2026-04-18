@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.18] - 2026-04-18
+
+### Added
+
+- **`contains` / `not_contains` operators** — substring matching for state and attribute values (case-insensitive). Available on both the main alert condition and additional conditions. Useful for filtering out placeholder values like "none", "unavailable", or ad markers. ([#39](https://github.com/djdevil/AlertTicker-Card/issues/39))
+
+### Fixed
+
+- **Residual gap in masonry/grid layout when card is hidden** — hiding only the custom element itself was not enough; the HA card wrapper (`hui-card`) still held its grid slot. Now both the element and its parent wrapper are set to `display: none`, fully removing the card from the layout with no gap. ([#50](https://github.com/djdevil/AlertTicker-Card/issues/50))
+
+---
+
 ## [1.1.17] - 2026-04-18
 
 ### Fixed
