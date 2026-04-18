@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.15";
+const CARD_VERSION = "1.1.16";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -482,8 +482,10 @@ const ET = {
     condition_entity: "Entità condizione",
     condition_attribute: "Attributo condizione",
     tap_action_section: "Tap — azione al tocco",
+    double_tap_action_section: "Doppio tap — azione al doppio tocco",
     hold_action_section: "Hold — azione lunga (500ms)",
     clear_tap_action_section: "Tap sulla card 'tutto ok' — azione al tocco",
+    clear_double_tap_action_section: "Doppio tap sulla card 'tutto ok'",
     clear_hold_action_section: "Hold sulla card 'tutto ok' — azione lunga (500ms)",
     snooze_action_section: "Azione snooze 💤 — eseguita al tap sul tasto snooze",
     timer_theme_category: "Timer",
@@ -623,8 +625,10 @@ const ET = {
     condition_entity: "Condition entity",
     condition_attribute: "Condition attribute",
     tap_action_section: "Tap action",
+    double_tap_action_section: "Double tap action",
     hold_action_section: "Hold action (500ms)",
     clear_tap_action_section: "Tap on 'all clear' card",
+    clear_double_tap_action_section: "Double tap on 'all clear' card",
     clear_hold_action_section: "Hold on 'all clear' card (500ms)",
     snooze_action_section: "Snooze action 💤 — executed when the snooze button is tapped",
     timer_theme_category: "Timer",
@@ -764,8 +768,10 @@ const ET = {
     condition_entity: "Entité condition",
     condition_attribute: "Attribut condition",
     tap_action_section: "Action au tap",
+    double_tap_action_section: "Action double tap",
     hold_action_section: "Action maintien (500ms)",
     clear_tap_action_section: "Tap sur la carte 'tout va bien'",
+    clear_double_tap_action_section: "Double tap sur la carte 'tout va bien'",
     clear_hold_action_section: "Maintien sur la carte 'tout va bien' (500ms)",
     snooze_action_section: "Action snooze 💤 — exécutée au tap sur le bouton snooze",
     timer_theme_category: "Timer",
@@ -905,8 +911,10 @@ const ET = {
     condition_entity: "Bedingungs-Entität",
     condition_attribute: "Bedingungs-Attribut",
     tap_action_section: "Tap-Aktion",
+    double_tap_action_section: "Doppeltipp-Aktion",
     hold_action_section: "Halten-Aktion (500ms)",
     clear_tap_action_section: "Tap auf 'Alles in Ordnung'-Karte",
+    clear_double_tap_action_section: "Doppeltipp auf 'Alles in Ordnung'-Karte",
     clear_hold_action_section: "Halten auf 'Alles in Ordnung'-Karte (500ms)",
     snooze_action_section: "Schlummern-Aktion 💤 — wird beim Tap auf den Schlummern-Button ausgeführt",
     timer_theme_category: "Timer",
@@ -1046,8 +1054,10 @@ const ET = {
     condition_entity: "Voorwaarde-entiteit",
     condition_attribute: "Voorwaarde-attribuut",
     tap_action_section: "Tik-actie",
+    double_tap_action_section: "Dubbel tik-actie",
     hold_action_section: "Houd-actie (500ms)",
     clear_tap_action_section: "Tikken op 'alles in orde'-kaart",
+    clear_double_tap_action_section: "Dubbel tikken op 'alles in orde'-kaart",
     clear_hold_action_section: "Vasthouden op 'alles in orde'-kaart (500ms)",
     snooze_action_section: "Sluimer-actie 💤 — uitgevoerd bij tik op de sluimer-knop",
     timer_theme_category: "Timer",
@@ -1187,8 +1197,10 @@ const ET = {
     condition_entity: "Thực thể điều kiện",
     condition_attribute: "Thuộc tính điều kiện",
     tap_action_section: "Hành động nhấn",
+    double_tap_action_section: "Hành động nhấn đôi",
     hold_action_section: "Hành động giữ (500ms)",
     clear_tap_action_section: "Nhấn vào thẻ 'mọi thứ ổn'",
+    clear_double_tap_action_section: "Nhấn đôi vào thẻ 'mọi thứ ổn'",
     clear_hold_action_section: "Giữ thẻ 'mọi thứ ổn' (500ms)",
     snooze_action_section: "Hành động tạm hoãn 💤 — thực hiện khi nhấn nút tạm hoãn",
     timer_theme_category: "Hẹn giờ",
@@ -1599,8 +1611,9 @@ class AlertTickerCardEditor extends LitElement {
         <div class="form-row">
           ${this._renderThemeSelect("clear_theme", cfg.clear_theme || "success", (v) => this._clearThemeChanged(v), true)}
         </div>
-        ${this._renderCardActionConfig("clear_tap_action",  this._t("clear_tap_action_section"))}
-        ${this._renderCardActionConfig("clear_hold_action", this._t("clear_hold_action_section"))}
+        ${this._renderCardActionConfig("clear_tap_action",        this._t("clear_tap_action_section"))}
+        ${this._renderCardActionConfig("clear_double_tap_action", this._t("clear_double_tap_action_section"))}
+        ${this._renderCardActionConfig("clear_hold_action",       this._t("clear_hold_action_section"))}
       ` : ""}
 
       <!-- ── LAYOUT & APPEARANCE ───────────────────────────────────────── -->
@@ -2259,8 +2272,9 @@ class AlertTickerCardEditor extends LitElement {
                 ` : ""}
 
                 <!-- Tap action / Hold action / Snooze action -->
-                ${this._renderActionConfig(alert, index, "tap_action", this._t("tap_action_section"))}
-                ${this._renderActionConfig(alert, index, "hold_action", this._t("hold_action_section"))}
+                ${this._renderActionConfig(alert, index, "tap_action",        this._t("tap_action_section"))}
+                ${this._renderActionConfig(alert, index, "double_tap_action", this._t("double_tap_action_section"))}
+                ${this._renderActionConfig(alert, index, "hold_action",       this._t("hold_action_section"))}
                 ${this._renderActionConfig(alert, index, "snooze_action", this._t("snooze_action_section"))}
 
 

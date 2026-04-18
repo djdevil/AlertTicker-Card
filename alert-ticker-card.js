@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.15";
+const CARD_VERSION = "1.1.16";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -298,6 +298,8 @@ class AlertTickerCard extends LitElement {
     // Swipe-to-snooze gesture tracking
     this._swipeStartX = 0;
     this._swipeStartY = 0;
+    // Double-tap detection
+    this._doubleTapTimer = null;
     // on_change / auto_dismiss_after tracking
     this._prevStates       = {};       // "configIdx:entityId" → previous state string
     this._changeTriggers   = {};       // "configIdx:entityId" → trigger timestamp (on_change)
@@ -1287,10 +1289,11 @@ class AlertTickerCard extends LitElement {
   }
 
   /** Start hold timer on pointer down */
-  _onPointerDown(e, tapCfg, holdCfg) {
+  _onPointerDown(e, tapCfg, holdCfg, doubleTapCfg) {
     if (e.button !== undefined && e.button !== 0) return;
     this._holdFired = false;
     this._pendingTapCfg = tapCfg;
+    this._pendingDoubleTapCfg = doubleTapCfg || null;
     if (holdCfg && holdCfg.action && holdCfg.action !== "none") {
       this._holdTimer = setTimeout(() => {
         this._holdFired = true;
@@ -1299,15 +1302,36 @@ class AlertTickerCard extends LitElement {
     }
   }
 
-  /** Fire tap action on pointer up (if hold didn't fire) */
+  /** Fire tap / double-tap action on pointer up (if hold didn't fire) */
   _onPointerUp(e) {
     this._cancelHold();
     if (!this._holdFired) {
       e.stopPropagation();
-      this._handleAction(this._pendingTapCfg);
+      const hasDoubleTap = this._pendingDoubleTapCfg &&
+                           this._pendingDoubleTapCfg.action &&
+                           this._pendingDoubleTapCfg.action !== "none";
+      if (hasDoubleTap) {
+        if (this._doubleTapTimer) {
+          clearTimeout(this._doubleTapTimer);
+          this._doubleTapTimer = null;
+          this._handleAction(this._pendingDoubleTapCfg);
+        } else {
+          const tapCfg = this._pendingTapCfg;
+          const dblCfg = this._pendingDoubleTapCfg;
+          this._doubleTapTimer = setTimeout(() => {
+            this._doubleTapTimer = null;
+            this._handleAction(tapCfg);
+          }, 300);
+          // keep dblCfg available for next click
+          this._pendingDoubleTapCfg = dblCfg;
+        }
+      } else {
+        this._handleAction(this._pendingTapCfg);
+      }
     }
     this._holdFired = false;
     this._pendingTapCfg = null;
+    if (!this._doubleTapTimer) this._pendingDoubleTapCfg = null;
   }
 
   _cancelHold() {
@@ -2596,11 +2620,13 @@ class AlertTickerCard extends LitElement {
           theme: this._config.clear_theme || "success",
           badge_label: this._config.clear_badge_label || undefined,
         };
-        const clearTapCfg  = this._config.clear_tap_action  || null;
-        const clearHoldCfg = this._config.clear_hold_action || null;
-        const clearHasAction = (clearTapCfg  && clearTapCfg.action  && clearTapCfg.action  !== "none") ||
-                               (clearHoldCfg && clearHoldCfg.action && clearHoldCfg.action !== "none");
-        const clearPd = clearHasAction ? (e) => this._onPointerDown(e, clearTapCfg, clearHoldCfg) : null;
+        const clearTapCfg    = this._config.clear_tap_action       || null;
+        const clearHoldCfg   = this._config.clear_hold_action      || null;
+        const clearDblTapCfg = this._config.clear_double_tap_action || null;
+        const clearHasAction = (clearTapCfg    && clearTapCfg.action    && clearTapCfg.action    !== "none") ||
+                               (clearHoldCfg   && clearHoldCfg.action   && clearHoldCfg.action   !== "none") ||
+                               (clearDblTapCfg && clearDblTapCfg.action && clearDblTapCfg.action !== "none");
+        const clearPd = clearHasAction ? (e) => this._onPointerDown(e, clearTapCfg, clearHoldCfg, clearDblTapCfg) : null;
         const clearPu = clearHasAction ? (e) => this._onPointerUp(e)   : null;
         const clearPl = clearHasAction ? ()  => this._cancelHold()     : null;
         return html`
@@ -2650,13 +2676,15 @@ class AlertTickerCard extends LitElement {
 
     const inner = this._renderForTheme(current.theme || "emergency", current);
 
-    // tap_action / hold_action — backwards-compat: old "action" key maps to tap call-service
-    const tapCfg  = current.tap_action  || (current.action ? { action: "call-service", ...current.action } : null);
-    const holdCfg = current.hold_action || null;
-    const hasInteraction = (tapCfg  && tapCfg.action  && tapCfg.action  !== "none") ||
-                           (holdCfg && holdCfg.action && holdCfg.action !== "none");
+    // tap_action / double_tap_action / hold_action — backwards-compat: old "action" key maps to tap call-service
+    const tapCfg    = current.tap_action        || (current.action ? { action: "call-service", ...current.action } : null);
+    const holdCfg   = current.hold_action       || null;
+    const dblTapCfg = current.double_tap_action || null;
+    const hasInteraction = (tapCfg    && tapCfg.action    && tapCfg.action    !== "none") ||
+                           (holdCfg   && holdCfg.action   && holdCfg.action   !== "none") ||
+                           (dblTapCfg && dblTapCfg.action && dblTapCfg.action !== "none");
 
-    const pdHandler = hasInteraction ? (e) => this._onPointerDown(e, tapCfg, holdCfg) : null;
+    const pdHandler = hasInteraction ? (e) => this._onPointerDown(e, tapCfg, holdCfg, dblTapCfg) : null;
     const puHandler = hasInteraction ? (e) => this._onPointerUp(e)                    : null;
     const plHandler = hasInteraction ? ()  => this._cancelHold()                      : null;
 

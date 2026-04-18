@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.16] - 2026-04-18
+
+### Added
+
+- **`double_tap_action`** — double-tap gesture on any alert card fires a separate action (navigate, call-service, more-info, url). When a `double_tap_action` is configured, a single tap waits 300 ms before firing to distinguish the two gestures. Configurable in the visual editor alongside tap/hold actions. ([#45](https://github.com/djdevil/AlertTicker-Card/issues/45))
+- **`clear_double_tap_action`** — same double-tap support for the "all clear" card. Appears in the editor under the ✅ All clear card section. ([#45](https://github.com/djdevil/AlertTicker-Card/issues/45))
+
+---
+
 ## [1.1.15] - 2026-04-18
 
 ### Added
