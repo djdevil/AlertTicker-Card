@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.16";
+const CARD_VERSION = "1.1.17";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1418,6 +1418,11 @@ class AlertTickerCard extends LitElement {
    *  browser support, covers both -icon and -icon-wrap class patterns). */
   updated(changedProps) {
     super.updated(changedProps);
+    // Completely remove card from layout when hidden (no active alerts, no clear card, no snooze bar)
+    const isHidden = this._activeAlerts.length === 0 &&
+                     !this._config?.show_when_clear &&
+                     !(this._snoozedCount > 0 && this._config?.show_snooze_bar !== false);
+    this.style.display = isHidden ? "none" : "";
     this.style.height = this._config?.vertical ? "100%" : "";
     this.classList.toggle("atc-center-text", this._config?.text_align === "center");
     this.shadowRoot?.querySelectorAll(".atc-ha-icon").forEach(el => {

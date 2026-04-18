@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.17] - 2026-04-18
+
+### Fixed
+
+- **Empty space when card is hidden** — when there are no active alerts and `show_when_clear` is off, the card now sets `display: none` on the host element so it takes up zero space in the dashboard layout. Previously the card returned an empty template but still occupied a small amount of vertical space, pushing other cards downward. ([#50](https://github.com/djdevil/AlertTicker-Card/issues/50))
+
+---
+
 ## [1.1.16] - 2026-04-18
 
 ### Added
