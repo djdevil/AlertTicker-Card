@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.20] - 2026-04-18
+
+### Added
+
+- **`{device}` message placeholder** — resolves the HA device name for the alert's entity directly from the device registry (`hass.devices`), with no WebSocket template subscription required. Eliminates flickering when using `device_name()` Jinja2 templates across many entities. Use `{device}` alongside `{name}`, `{state}`, and `{entity}` in the message field. ([#47](https://github.com/djdevil/AlertTicker-Card/issues/47))
+
+---
+
 ## [1.1.19] - 2026-04-18
 
 ### Fixed

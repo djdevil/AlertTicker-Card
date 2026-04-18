@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.19";
+const CARD_VERSION = "1.1.20";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -860,8 +860,8 @@ class AlertTickerCard extends LitElement {
       const { remainingStr } = this._getTimerData(alert);
       msg = msg.replace(/\{timer\}/g, remainingStr);
     }
-    // {state}, {name}, {entity} — live entity values for any alert
-    if (alert.entity && this._hass && (msg.includes("{state}") || msg.includes("{name}") || msg.includes("{entity}"))) {
+    // {state}, {name}, {entity}, {device} — live entity values for any alert
+    if (alert.entity && this._hass && (msg.includes("{state}") || msg.includes("{name}") || msg.includes("{entity}") || msg.includes("{device}"))) {
       const es = this._hass.states[alert.entity];
       if (es) {
         const translatedState = this._formatStateValue(es, alert.attribute);
@@ -870,6 +870,14 @@ class AlertTickerCard extends LitElement {
           .replace(/\{state\}/g, translatedState)
           .replace(/\{name\}/g, name)
           .replace(/\{entity\}/g, alert.entity);
+      }
+      // {device} — resolved from the device registry (hass.entities + hass.devices)
+      if (msg.includes("{device}")) {
+        const entityEntry = this._hass.entities?.[alert.entity];
+        const deviceId = entityEntry?.device_id;
+        const device = deviceId ? this._hass.devices?.[deviceId] : null;
+        const deviceName = device?.name_by_user || device?.name || alert.entity;
+        msg = msg.replace(/\{device\}/g, deviceName);
       }
     }
     return msg;

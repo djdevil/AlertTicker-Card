@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.19";
+const CARD_VERSION = "1.1.20";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -491,6 +491,7 @@ const ET = {
     clear_hold_action_section: "Hold sulla card 'tutto ok' — azione lunga (500ms)",
     snooze_action_section: "Azione snooze 💤 — eseguita al tap sul tasto snooze",
     timer_theme_category: "Timer",
+    message_placeholder_hint: "Segnaposto: {name} nome entità, {state} stato, {entity} ID entità, {device} nome dispositivo",
     timer_placeholder_hint: "Usa {timer} nel messaggio per mostrare il countdown (es. 'Disabilitato per {timer}')",
     action_type: "Tipo azione",
     action_none: "Nessuna",
@@ -636,6 +637,7 @@ const ET = {
     clear_hold_action_section: "Hold on 'all clear' card (500ms)",
     snooze_action_section: "Snooze action 💤 — executed when the snooze button is tapped",
     timer_theme_category: "Timer",
+    message_placeholder_hint: "Placeholders: {name} entity name, {state} state, {entity} entity ID, {device} device name",
     timer_placeholder_hint: "Use {timer} in the message to show the countdown (e.g. 'Disabled for {timer}')",
     action_type: "Action type",
     action_none: "None",
@@ -781,6 +783,7 @@ const ET = {
     clear_hold_action_section: "Maintien sur la carte 'tout va bien' (500ms)",
     snooze_action_section: "Action snooze 💤 — exécutée au tap sur le bouton snooze",
     timer_theme_category: "Timer",
+    message_placeholder_hint: "Variables : {name} nom entité, {state} état, {entity} ID entité, {device} nom appareil",
     timer_placeholder_hint: "Utilisez {timer} dans le message pour afficher le compte à rebours (ex. 'Désactivé pour {timer}')",
     action_type: "Type d'action",
     action_none: "Aucune",
@@ -926,6 +929,7 @@ const ET = {
     clear_hold_action_section: "Halten auf 'Alles in Ordnung'-Karte (500ms)",
     snooze_action_section: "Schlummern-Aktion 💤 — wird beim Tap auf den Schlummern-Button ausgeführt",
     timer_theme_category: "Timer",
+    message_placeholder_hint: "Platzhalter: {name} Entitätsname, {state} Zustand, {entity} Entitäts-ID, {device} Gerätename",
     timer_placeholder_hint: "Verwende {timer} in der Nachricht für den Countdown (z.B. 'Deaktiviert für {timer}')",
     action_type: "Aktionstyp",
     action_none: "Keine",
@@ -1071,6 +1075,7 @@ const ET = {
     clear_hold_action_section: "Vasthouden op 'alles in orde'-kaart (500ms)",
     snooze_action_section: "Sluimer-actie 💤 — uitgevoerd bij tik op de sluimer-knop",
     timer_theme_category: "Timer",
+    message_placeholder_hint: "Plaatshouders: {name} entiteitsnaam, {state} toestand, {entity} entiteits-ID, {device} apparaatnaam",
     timer_placeholder_hint: "Gebruik {timer} in het bericht voor de countdown (bijv. 'Uitgeschakeld voor {timer}')",
     action_type: "Actietype",
     action_none: "Geen",
@@ -1216,6 +1221,7 @@ const ET = {
     clear_hold_action_section: "Giữ thẻ 'mọi thứ ổn' (500ms)",
     snooze_action_section: "Hành động tạm hoãn 💤 — thực hiện khi nhấn nút tạm hoãn",
     timer_theme_category: "Hẹn giờ",
+    message_placeholder_hint: "Biến: {name} tên thực thể, {state} trạng thái, {entity} ID thực thể, {device} tên thiết bị",
     timer_placeholder_hint: "Dùng {timer} trong thông báo để hiển thị đếm ngược (vd. 'Đã tắt trong {timer}')",
     action_type: "Loại hành động",
     action_none: "Không có",
@@ -1885,6 +1891,7 @@ class AlertTickerCardEditor extends LitElement {
                     </ha-select>
                   </div>
                 </div>
+                <div class="helper-text">${this._t("message_placeholder_hint")}</div>
                 ${(alert.entity || "").startsWith("timer.") ? html`
                   <div class="helper-text">${this._t("timer_placeholder_hint")}</div>
                 ` : ""}
