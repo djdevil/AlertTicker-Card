@@ -795,6 +795,7 @@ The card automatically detects the language from your Home Assistant settings.
 | Dutch | `nl` | — |
 | Vietnamese | `vi` | — |
 | Russian | `ru` | — |
+| Danish | `da` | — |
 
 ---
 
