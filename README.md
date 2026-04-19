@@ -14,6 +14,8 @@ A custom Lovelace card to display alerts and notifications based on entity state
 
 A special thank you to **[@edwardtich1](https://github.com/edwardtich1)** for contributing the full **Russian (RU) language** translation — covering all card labels, editor UI, theme defaults, and operator names. ([#53](https://github.com/djdevil/AlertTicker-Card/issues/53))
 
+A special thank you to **[@vdt2210](https://github.com/vdt2210)** for contributing the **Vietnamese (VI) language** translation. ([#12](https://github.com/djdevil/AlertTicker-Card/pull/12))
+
 ---
 
 ## Video Tutorial
