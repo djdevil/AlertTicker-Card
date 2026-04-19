@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.1.22-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)  [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
@@ -64,6 +64,8 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Swipe to snooze** | Swipe left on the card to snooze — no conflict with `tap_action` |
 | **Vertical layout** | Stack icon on top, message below, centered — all 40 themes |
 | **HA theme adaptation** | `ha_theme: true` adapts colors to any active HA global theme |
+| **Overlay notification** | Global floating banner — fires from any dashboard view, with top / center / bottom position and auto-dismiss |
+| **Card border** | Toggle to show the standard HA border around the card — always visible, off by default |
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
 | **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian |
@@ -457,6 +459,39 @@ When enabled:
 
 All 40 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
 
+### Overlay / toast notification
+
+Enable a global floating banner that fires when a new alert triggers — **visible from any dashboard view**, not just the one where the card lives:
+
+```yaml
+overlay_mode: true
+overlay_position: top     # top | center | bottom
+overlay_duration: 8       # seconds before auto-dismiss (0 = manual close only)
+```
+
+How it works:
+- When the card's view is **currently visible**, the banner is suppressed (no redundant notification — the card itself already shows the alert).
+- When you navigate away to another view (or the card is off-screen), an independent watcher reads entity states from the always-present `<home-assistant>` element every 2 seconds and fires the banner automatically.
+- A 10-second deduplication window prevents the same alert from firing twice.
+- The banner is styled according to the alert category (Critical / Warning / Info / OK / Style / Timer) and dismisses automatically after `overlay_duration` seconds, or manually via the × button.
+
+Position options:
+| Value | Behavior |
+|-------|----------|
+| `top` | Slides in from the top of the screen |
+| `center` | Pops in at the center of the screen (scale animation) |
+| `bottom` | Slides in from the bottom of the screen |
+
+### Card border
+
+Enable a persistent visible border around the card using the standard HA border style:
+
+```yaml
+card_border: true
+```
+
+Default: `false` (off). Uses `--ha-card-border-width` and `--ha-card-border-color` from the active HA theme. Configurable via the editor toggle under 🖼️ Layout & Appearance.
+
 ### Test mode
 
 Force all configured alerts to display as active — useful for previewing the card appearance without waiting for real conditions:
@@ -495,7 +530,7 @@ In the visual editor, open the **Alerts tab** → enable **Test mode** at the bo
 
 ## Visual Editor
 
-No YAML knowledge required. The editor has two tabs:
+No YAML knowledge required. The editor has three tabs:
 
 ### General tab
 
@@ -513,6 +548,18 @@ No YAML knowledge required. The editor has two tabs:
 | **Vertical layout** | Stack icon on top, message below, centered |
 | **Adapt to HA theme** | Adapt colors to the active HA global theme |
 | **History max events** | How many history entries to keep (25 / 50 / 100 / 200) |
+| **Fixed card height** | Lock the card height in px to prevent layout shifts |
+| **Card border** | Toggle to show the standard HA border around the card (off by default) |
+
+### 🔔 Overlay tab
+
+| Field | Description |
+|-------|-------------|
+| **Enable overlay** | Toggle the global floating banner notification |
+| **Position** | `Top` / `Center` / `Bottom` — where the banner appears on screen |
+| **Duration** | Seconds before auto-dismiss (0 = manual close only) |
+
+The tab shows an **ON** badge when overlay mode is active.
 
 ### Alerts tab
 
@@ -560,6 +607,11 @@ You can **reorder** alerts with ↑ / ↓ buttons.
 | `vertical` | `boolean` | `false` | Vertical layout — icon on top, message centered below |
 | `ha_theme` | `boolean` | `false` | Adapt card colors to the active HA global theme |
 | `history_max_events` | `number` | `50` | Max history entries to keep |
+| `card_height` | `number` | *(auto)* | Fixed card height in px — prevents layout shifts when cycling |
+| `card_border` | `boolean` | `false` | Show the standard HA border around the card at all times |
+| `overlay_mode` | `boolean` | `false` | Show a floating banner when a new alert triggers — visible from any dashboard view |
+| `overlay_position` | `string` | `top` | Banner position: `top`, `center`, or `bottom` |
+| `overlay_duration` | `number` | `8` | Seconds before auto-dismiss (0 = manual close only) |
 | `test_mode` | `boolean` | `false` | Show all alerts as active (ignore conditions) — for editor preview only |
 | `alerts` | `list` | `[]` | List of alert objects |
 
