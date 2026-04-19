@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.22] - 2026-04-19
+
+### Added
+
+- **Russian (RU) language support** — full translation of all card labels and editor UI strings into Russian, contributed by community member [@edwardtich1](https://github.com/edwardtich1). Covers all themes, operators, action types, snooze, history, and every editor field including `{device}`, `card_height`, `contains`/`not_contains`, and `double_tap_action`. ([#53](https://github.com/djdevil/AlertTicker-Card/issues/53))
+
+---
+
 ## [1.1.21] - 2026-04-18
 
 ### Added

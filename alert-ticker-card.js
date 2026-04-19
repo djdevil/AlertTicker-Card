@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.1.21";
+const CARD_VERSION = "1.1.22";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -87,7 +87,7 @@ const THEME_META = {
 };
 
 // ---------------------------------------------------------------------------
-// Translations (IT / EN / FR / DE / NL / VI)
+// Translations (IT / EN / FR / DE / NL / VI / RU)
 // ---------------------------------------------------------------------------
 const T = {
   it: {
@@ -251,6 +251,33 @@ const T = {
     timer_active: "Đang chạy",
     timer_done: "Hết hạn",
     test_mode_active: "CHẾ ĐỘ THỬ ĐANG BẬT — tắt trước khi lưu",
+  },
+  ru: {
+    alerts: "Оповещения",
+    critical: "Критично",
+    warning_label: "Внимание",
+    info_label: "Информация",
+    success_label: "Норма",
+    no_alerts: "Нет активных оповещений",
+    all_clear: "Всё в порядке",
+    priority_short: "П",
+    alert_system: "СИСТЕМА ОПОВЕЩЕНИЙ",
+    cmd_prefix: "root@ha:~$",
+    cmd_read: "alert --читать",
+    snooze: "Отложить",
+    snoozed: "Отложено",
+    snooze_1h: "1 час",
+    snooze_4h: "4 часа",
+    snooze_8h: "8 часов",
+    snooze_24h: "24 часа",
+    snooze_reset: "Восстановить все",
+    alerts_snoozed: "оповещений отложено",
+    history: "История",
+    history_clear: "Очистить",
+    history_empty: "Событий пока нет",
+    timer_active: "Идёт",
+    timer_done: "Истёк",
+    test_mode_active: "РЕЖИМ ТЕСТИРОВАНИЯ — отключите перед сохранением",
   },
 };
 

@@ -3,10 +3,16 @@
 A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.1.21-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.1.22-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)  [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
+
+---
+
+## Community Contributors
+
+A special thank you to **[@edwardtich1](https://github.com/edwardtich1)** for contributing the full **Russian (RU) language** translation — covering all card labels, editor UI, theme defaults, and operator names. ([#53](https://github.com/djdevil/AlertTicker-Card/issues/53))
 
 ---
 
@@ -58,7 +64,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **HA theme adaptation** | `ha_theme: true` adapts colors to any active HA global theme |
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
-| **Languages** | Italian, English, French, German, Dutch, Vietnamese |
+| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
 ---
@@ -734,6 +740,7 @@ The card automatically detects the language from your Home Assistant settings.
 | German | `de` | — |
 | Dutch | `nl` | — |
 | Vietnamese | `vi` | — |
+| Russian | `ru` | — |
 
 ---
 
