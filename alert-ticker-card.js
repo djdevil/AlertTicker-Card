@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.2.0";
+const CARD_VERSION = "1.2.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -710,7 +710,6 @@ const _ATC_OVERLAY = (() => {
     if (!hass) return;
     for (const [id, reg] of _regs) {
       try {
-        if (reg.disconnected) continue;
         if (!reg.config?.overlay_mode) continue;
         const prevMap  = _prevS.get(id) || new Map();
         const newMap   = new Map();
@@ -843,12 +842,6 @@ const _ATC_OVERLAY = (() => {
         const reg = _regs.get(id);
         if (reg) reg.disconnected = true;
         _lastKey = ""; _lastAt = 0;
-        // Stop the watcher interval if no active registrations remain
-        const anyActive = [..._regs.values()].some(r => !r.disconnected);
-        if (!anyActive && _watchInterval) {
-          clearInterval(_watchInterval);
-          _watchInterval = null;
-        }
       } catch (_) {}
     },
     updateConfig(id, config) {
