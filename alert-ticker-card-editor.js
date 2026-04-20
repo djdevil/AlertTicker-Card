@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.1.22";
+const CARD_VERSION = "1.2.0";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -43,6 +43,7 @@ const THEME_META = {
   temperature:  { icon: "🌡️", category: "warning"  },
   battery:      { icon: "🔋", category: "warning"  },
   door:         { icon: "🚪", category: "warning"  },
+  window:       { icon: "🪟", category: "warning"  },
   hologram:     { icon: "🔷", category: "info"     },
   presence:     { icon: "🏠", category: "info"     },
   update:       { icon: "🔄", category: "info"     },
@@ -99,6 +100,7 @@ const DEFAULT_MSG = {
     temperature:  "Temperatura critica",
     battery:      "Batteria scarica",
     door:         "Porta aperta",
+    window:       "Finestra aperta",
     hologram:     "Proiezione sistema",
     presence:     "Presenza rilevata",
     update:       "Aggiornamento in corso",
@@ -146,6 +148,7 @@ const DEFAULT_MSG = {
     temperature:  "Critical temperature",
     battery:      "Low battery",
     door:         "Door open",
+    window:       "Window open",
     hologram:     "System projection",
     presence:     "Presence detected",
     update:       "Update in progress",
@@ -193,6 +196,7 @@ const DEFAULT_MSG = {
     temperature:  "Température critique",
     battery:      "Batterie faible",
     door:         "Porte ouverte",
+    window:       "Fenêtre ouverte",
     hologram:     "Projection système",
     presence:     "Présence détectée",
     update:       "Mise à jour en cours",
@@ -240,6 +244,7 @@ const DEFAULT_MSG = {
     temperature:  "Kritische Temperatur",
     battery:      "Batterie schwach",
     door:         "Tür offen",
+    window:       "Fenster offen",
     hologram:     "Systemprojektion",
     presence:     "Anwesenheit erkannt",
     update:       "Aktualisierung läuft",
@@ -287,6 +292,7 @@ const DEFAULT_MSG = {
     temperature:  "Kritieke temperatuur",
     battery:      "Batterij laag",
     door:         "Deur open",
+    window:       "Raam open",
     hologram:     "Systeemprojectie",
     presence:     "Aanwezigheid gedetecteerd",
     update:       "Update bezig",
@@ -334,6 +340,7 @@ const DEFAULT_MSG = {
     temperature:  "Quá nhiệt",
     battery:      "Pin yếu",
     door:         "Cửa đang mở",
+    window:       "Cửa sổ đang mở",
     hologram:     "Trình chiếu hệ thống",
     presence:     "Phát hiện hiện diện",
     update:       "Đang cập nhật",
@@ -381,6 +388,7 @@ const DEFAULT_MSG = {
     temperature:  "Критическая температура",
     battery:      "Низкий заряд батареи",
     door:         "Дверь открыта",
+    window:       "Окно открыто",
     hologram:     "Системная проекция",
     presence:     "Обнаружено присутствие",
     update:       "Идёт обновление",
@@ -428,6 +436,7 @@ const DEFAULT_MSG = {
     temperature:  "Kritisk temperatur",
     battery:      "Lavt batteri",
     door:         "Dør åben",
+    window:       "Vindue åbent",
     hologram:     "Systemprojektion",
     presence:     "Tilstedeværelse registreret",
     update:       "Opdatering i gang",
@@ -457,6 +466,24 @@ const ET = {
   it: {
     tab_general: "Generale",
     tab_alerts: "Avvisi",
+    tab_overlay: "Overlay",
+    tab_allclear: "Tutto Ok",
+    back: "Indietro",
+    all_clear_disabled_help: "Abilita 'Tutto Ok' per configurare il messaggio di assenza avvisi.",
+    tab_layout: "Layout",
+    hub_desc_general: "Ciclo, snooze e cronologia",
+    hub_desc_layout: "Tema, altezza card e aspetto visivo",
+    hub_desc_overlay: "Banner globale su tutti i dashboard",
+    hub_desc_alerts: "Gestisci le condizioni di avviso",
+    hub_desc_allclear: "Messaggio quando non ci sono avvisi",
+    hub_report_issue: "Segnala un problema",
+    hub_welcome: "Benvenuto! Configura la tua card selezionando una sezione qui sotto.",
+    clear_display_mode_label: "Modalità di visualizzazione",
+    clear_mode_message: "💬 Messaggio personalizzato",
+    clear_mode_clock: "🕐 Orologio",
+    clear_mode_weather: "🌤 Meteo",
+    clear_mode_weather_clock: "🌤🕐 Meteo + Orologio",
+    clear_weather_entity_label: "Entità meteo (weather.*)",
     cycle_interval: "Intervallo ciclo (secondi)",
     cycle_interval_help: "Secondi tra un avviso e l'altro quando ce ne sono più di uno attivi",
     section_all_clear: "Card 'tutto ok'",
@@ -472,6 +499,8 @@ const ET = {
     text_align_center: "Testo centrato (utile per layout Panel molto larghi)",
     card_height: "Altezza fissa card (px)",
     card_height_help: "Fissa l'altezza per evitare spostamenti del layout quando cambiano gli avvisi. Lascia vuoto per altezza automatica.",
+    card_border: "Mostra bordo e nome card",
+    card_border_help: "Aggiunge il bordo standard di Home Assistant attorno alla card. Quando non ci sono avvisi attivi, mostra un segnaposto con il nome della card invece di nasconderla completamente.",
     show_snooze_bar: "Mostra barra di riattivazione snooze 💤",
     snooze_default_duration: "Comportamento snooze 💤",
     snooze_default_duration_help: "Menu durata: tap su 💤 apre il menu per scegliere quanto silenziare. Durata fissa: tap su 💤 silenzia subito senza menu.",
@@ -506,11 +535,15 @@ const ET = {
     alert_state_help: "es. 'on', '80' (numerico con operatore > < >= <=)",
     current_state: "Stato attuale",
     alert_message: "Messaggio da visualizzare",
+    alert_name: "Nome / Etichetta",
+    alert_name_placeholder: "es. Sensori movimento piano",
+    alert_name_help: "Etichetta opzionale mostrata come prefisso al messaggio (es. 'Sensori movimento: corridoio attivo'). Utile con entity_filter per distinguere gruppi di alert.",
     alert_message_help: "Usa {state} valore live, {name} nome, {entity} ID entità, {device} nome dispositivo. Supporta anche template HA completi: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Priorità",
     alert_theme: "Tema",
     alert_icon: "Icona",
-    alert_icon_help: "Emoji: lascia vuoto per icona automatica. Con icona HA: usa il selettore icone nativo.",
+    alert_icon_help: "Lascia vuoto per usare l'emoji del tema. Inserisci un'emoji personalizzata. Attiva 'Usa icona HA' per mostrare automaticamente l'icona MDI dell'entità (o sceglierne una con il selettore).",
+    auto_icon_preview: "Icona automatica dall'entità",
     use_ha_icon: "Usa icona Home Assistant (mdi:)",
     icon_color: "Colore icona",
     icon_color_help: "Colore CSS: es. #ff0000, red, var(--error-color). Lascia vuoto per il colore del tema.",
@@ -556,7 +589,7 @@ const ET = {
     anim_roll:    "🎲 Roll — rotolamento",
     anim_curtain: "🎭 Curtain — sipario",
     entity_filter: "Filtro entità (testo)",
-    entity_filter_help: "Cerca tutte le entità il cui ID o nome contiene questo testo. Supporta wildcard * (es. sensor.battery_*_level). Clicca sul conteggio per vedere la lista e usare 'Inverti selezione'. Usa {name}, {entity}, {state} nel messaggio.",
+    entity_filter_help: "Cerca tutte le entità il cui ID o nome contiene questo testo. Supporta wildcard * (es. sensor.battery_*_level). Clicca sul conteggio per vedere la lista e usare 'Inverti selezione'. Usa {name}, {entity}, {state}, {device} nel messaggio.",
     entity_filter_count: "entità corrispondono",
     entity_filter_excluded: "escluse",
     entity_filter_zero: "Nessuna entità corrisponde",
@@ -601,10 +634,51 @@ const ET = {
     action_navigate_path: "Percorso (es. /lovelace/home)",
     action_url_path: "URL da aprire",
     delete_item: "Elimina",
+    section_overlay: "Overlay Notifica 🔔",
+    overlay_mode: "Mostra banner overlay quando scatta un avviso",
+    overlay_mode_help: "Mostra un banner fisso in cima allo schermo quando un nuovo avviso si attiva — visibile da qualsiasi vista del dashboard.",
+    overlay_position: "Posizione",
+    overlay_pos_top: "In alto",
+    overlay_pos_bottom: "In basso",
+    overlay_pos_center: "Al centro",
+    overlay_duration: "Durata (secondi, 0 = solo chiusura manuale)",
+    overlay_duration_help: "Secondi prima che il banner scompaia automaticamente. 0 = rimane fino alla chiusura manuale.",
+    overlay_how_works: "Il banner appare solo quando la card non è visibile a schermo — su un'altra vista o fuori dalla finestra. Nessun banner ridondante quando l'avviso è già visibile.",
+    visible_to_section: "👤 Visibilità utente",
+    visible_to_label: "Visibile a",
+    visible_to_all: "Tutti (default)",
+    visible_to_admin: "Solo amministratori",
+    visible_to_non_admin: "Solo utenti normali",
+    visible_to_custom: "Utenti specifici...",
+    visible_to_help: "Filtra questo avviso per tipo di utente HA. Con 'Utenti specifici' inserisci un nome o una lista separata da virgola.",
+    visible_to_users_label: "Nomi utente (separati da virgola)",
+    visible_to_loading: "Caricamento utenti...",
+    time_range_section: "🕐 Orario di attivazione",
+    time_range_from: "Dalle (HH:MM)",
+    time_range_to: "Alle (HH:MM)",
+    time_range_help: "Mostra l'avviso solo nell'intervallo orario indicato. Supporta la mezzanotte (es. 22:00–06:00). Lascia vuoto per nessun limite.",
   },
   en: {
     tab_general: "General",
     tab_alerts: "Alerts",
+    tab_overlay: "Overlay",
+    tab_allclear: "All Clear",
+    back: "Back",
+    all_clear_disabled_help: "Enable 'All Clear' to configure the no-alerts message.",
+    tab_layout: "Layout",
+    hub_desc_general: "Cycle, snooze & history",
+    hub_desc_layout: "Theme, card height & visual appearance",
+    hub_desc_overlay: "Global banner across all dashboards",
+    hub_desc_alerts: "Manage alert conditions",
+    hub_desc_allclear: "Message when no alerts are active",
+    hub_report_issue: "Report an issue",
+    hub_welcome: "Welcome! Configure your card by selecting a section below.",
+    clear_display_mode_label: "Display mode",
+    clear_mode_message: "💬 Custom message",
+    clear_mode_clock: "🕐 Clock",
+    clear_mode_weather: "🌤 Weather",
+    clear_mode_weather_clock: "🌤🕐 Weather + Clock",
+    clear_weather_entity_label: "Weather entity (weather.*)",
     cycle_interval: "Cycle interval (seconds)",
     cycle_interval_help: "Seconds between alerts when multiple are active",
     section_all_clear: "All clear card",
@@ -620,6 +694,8 @@ const ET = {
     text_align_center: "Center text (useful for wide Panel layout)",
     card_height: "Fixed card height (px)",
     card_height_help: "Locks the height to prevent layout shifts when alerts change. Leave empty for automatic height.",
+    card_border: "Show card border & name",
+    card_border_help: "Adds the standard Home Assistant border around the card. When no alerts are active, shows a placeholder with the card name instead of hiding completely.",
     show_snooze_bar: "Show snooze reactivation bar 💤",
     snooze_default_duration: "Snooze 💤 behaviour",
     snooze_default_duration_help: "Duration menu: tap on 💤 opens a menu to choose how long to snooze. Fixed duration: tap on 💤 snoozes immediately with no menu.",
@@ -654,11 +730,15 @@ const ET = {
     alert_state_help: "e.g. 'on', '80' (numeric with > < >= <=)",
     current_state: "Current state",
     alert_message: "Message to display",
+    alert_name: "Name / Label",
+    alert_name_placeholder: "e.g. Motion sensors floor 1",
+    alert_name_help: "Optional label shown as a prefix to the message (e.g. 'Motion sensors: hallway active'). Useful with entity_filter to distinguish alert groups.",
     alert_message_help: "Use {state} live value, {name} name, {entity} entity ID, {device} device name. Also supports full HA templates: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Priority",
     alert_theme: "Theme",
     alert_icon: "Icon",
-    alert_icon_help: "Emoji: leave empty for automatic. HA icon: use the native icon picker.",
+    alert_icon_help: "Leave empty to use the theme emoji. Enter a custom emoji. Enable 'Use HA icon' to automatically show the entity's MDI icon from HA (or pick one with the selector).",
+    auto_icon_preview: "Auto icon from entity",
     use_ha_icon: "Use Home Assistant icon (mdi:)",
     icon_color: "Icon color",
     icon_color_help: "CSS color: e.g. #ff0000, red, var(--error-color). Leave empty for theme default.",
@@ -704,7 +784,7 @@ const ET = {
     anim_roll:    "🎲 Roll — rotateY + slide",
     anim_curtain: "🎭 Curtain — theater open",
     entity_filter: "Entity filter (text)",
-    entity_filter_help: "Matches all entities whose ID or name contains this text. Supports wildcard * (e.g. sensor.battery_*_level). Click the count to preview the list and use 'Invert selection'. Use {name}, {entity}, {state} in the message.",
+    entity_filter_help: "Matches all entities whose ID or name contains this text. Supports wildcard * (e.g. sensor.battery_*_level). Click the count to preview the list and use 'Invert selection'. Use {name}, {entity}, {state}, {device} in the message.",
     entity_filter_count: "entities match",
     entity_filter_excluded: "excluded",
     entity_filter_zero: "No entities match",
@@ -749,10 +829,51 @@ const ET = {
     action_navigate_path: "Path (e.g. /lovelace/home)",
     action_url_path: "URL to open",
     delete_item: "Delete",
+    section_overlay: "Overlay Notification 🔔",
+    overlay_mode: "Show overlay banner when an alert triggers",
+    overlay_mode_help: "Displays a fixed banner at the top of the screen when a new alert becomes active — visible from any dashboard view.",
+    overlay_position: "Position",
+    overlay_pos_top: "Top",
+    overlay_pos_bottom: "Bottom",
+    overlay_pos_center: "Center",
+    overlay_duration: "Duration (seconds, 0 = manual dismiss only)",
+    overlay_duration_help: "Seconds before the banner auto-dismisses. Set to 0 to require manual close.",
+    overlay_how_works: "The banner appears only when the card is not visible on screen — on a different view or scrolled out of sight. No redundant banner when the alert is already visible.",
+    visible_to_section: "👤 User Visibility",
+    visible_to_label: "Visible to",
+    visible_to_all: "Everyone (default)",
+    visible_to_admin: "Admins only",
+    visible_to_non_admin: "Non-admins only",
+    visible_to_custom: "Specific users...",
+    visible_to_help: "Filter this alert by HA user type. With 'Specific users' enter a name or comma-separated list of names.",
+    visible_to_users_label: "User names (comma-separated)",
+    visible_to_loading: "Loading users...",
+    time_range_section: "🕐 Active time range",
+    time_range_from: "From (HH:MM)",
+    time_range_to: "To (HH:MM)",
+    time_range_help: "Show this alert only within the specified time window. Supports midnight crossing (e.g. 22:00–06:00). Leave blank for no restriction.",
   },
   fr: {
     tab_general: "Général",
     tab_alerts: "Alertes",
+    tab_overlay: "Overlay",
+    tab_allclear: "Tout est OK",
+    back: "Retour",
+    all_clear_disabled_help: "Activez 'Tout est OK' pour configurer le message d'absence d'alerte.",
+    tab_layout: "Mise en page",
+    hub_desc_general: "Cycle, répétition et historique",
+    hub_desc_layout: "Thème, hauteur de carte et apparence",
+    hub_desc_overlay: "Bannière globale sur tous les tableaux de bord",
+    hub_desc_alerts: "Gérer les conditions d'alerte",
+    hub_desc_allclear: "Message quand aucune alerte n'est active",
+    hub_report_issue: "Signaler un problème",
+    hub_welcome: "Bienvenue ! Configurez votre carte en sélectionnant une section ci-dessous.",
+    clear_display_mode_label: "Mode d'affichage",
+    clear_mode_message: "💬 Message personnalisé",
+    clear_mode_clock: "🕐 Horloge",
+    clear_mode_weather: "🌤 Météo",
+    clear_mode_weather_clock: "🌤🕐 Météo + Horloge",
+    clear_weather_entity_label: "Entité météo (weather.*)",
     cycle_interval: "Intervalle de cycle (secondes)",
     cycle_interval_help: "Secondes entre les alertes quand plusieurs sont actives",
     section_all_clear: "Carte 'tout va bien'",
@@ -768,6 +889,8 @@ const ET = {
     text_align_center: "Texte centré (utile pour la disposition Panel large)",
     card_height: "Hauteur fixe de la carte (px)",
     card_height_help: "Fixe la hauteur pour éviter les décalages de mise en page lors des changements d'alertes. Laisser vide pour hauteur automatique.",
+    card_border: "Afficher la bordure et le nom",
+    card_border_help: "Ajoute la bordure standard de Home Assistant autour de la carte. Quand aucune alerte n'est active, affiche un espace réservé avec le nom de la carte au lieu de la masquer complètement.",
     show_snooze_bar: "Afficher la barre de réactivation snooze 💤",
     snooze_default_duration: "Comportement snooze 💤",
     snooze_default_duration_help: "Menu de durée: tap sur 💤 ouvre un menu pour choisir la durée. Durée fixe: tap sur 💤 met en veille immédiatement sans menu.",
@@ -802,11 +925,15 @@ const ET = {
     alert_state_help: "ex. 'on', '80' (numérique avec > < >= <=)",
     current_state: "État actuel",
     alert_message: "Message à afficher",
+    alert_name: "Nom / Étiquette",
+    alert_name_placeholder: "ex. Capteurs de mouvement étage",
+    alert_name_help: "Étiquette optionnelle affichée comme préfixe du message (ex. 'Capteurs mouvement: couloir actif'). Utile avec entity_filter pour distinguer des groupes d'alertes.",
     alert_message_help: "Utilisez {state} valeur live, {name} nom, {entity} ID entité, {device} nom appareil. Supporte aussi les templates HA complets : {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Priorité",
     alert_theme: "Thème",
     alert_icon: "Icône",
-    alert_icon_help: "Emoji: laisser vide pour icône automatique. Icône HA: utiliser le sélecteur d'icônes natif.",
+    alert_icon_help: "Laisser vide pour utiliser l'emoji du thème. Saisir un emoji personnalisé. Activer 'Utiliser icône HA' pour afficher automatiquement l'icône MDI de l'entité (ou en choisir une).",
+    auto_icon_preview: "Icône automatique depuis l'entité",
     use_ha_icon: "Utiliser une icône Home Assistant (mdi:)",
     icon_color: "Couleur de l'icône",
     icon_color_help: "Couleur CSS: ex. #ff0000, red, var(--error-color). Laisser vide pour la couleur du thème.",
@@ -852,7 +979,7 @@ const ET = {
     anim_roll:    "🎲 Roll — roulement",
     anim_curtain: "🎭 Curtain — rideau de théâtre",
     entity_filter: "Filtre entité (texte)",
-    entity_filter_help: "Correspond à toutes les entités dont l'ID ou le nom contient ce texte. Supporte le wildcard * (ex. sensor.battery_*_level). Cliquez sur le compteur pour prévisualiser et utiliser 'Inverser la sélection'. Utilisez {name}, {entity}, {state} dans le message.",
+    entity_filter_help: "Correspond à toutes les entités dont l'ID ou le nom contient ce texte. Supporte le wildcard * (ex. sensor.battery_*_level). Cliquez sur le compteur pour prévisualiser et utiliser 'Inverser la sélection'. Utilisez {name}, {entity}, {state}, {device} dans le message.",
     entity_filter_count: "entités correspondent",
     entity_filter_excluded: "exclues",
     entity_filter_zero: "Aucune entité ne correspond",
@@ -897,10 +1024,51 @@ const ET = {
     action_navigate_path: "Chemin (ex. /lovelace/home)",
     action_url_path: "URL à ouvrir",
     delete_item: "Supprimer",
+    section_overlay: "Notification Overlay 🔔",
+    overlay_mode: "Afficher un banner overlay lorsqu'une alerte se déclenche",
+    overlay_mode_help: "Affiche un banner fixe en haut de l'écran lorsqu'une nouvelle alerte devient active — visible depuis n'importe quelle vue du tableau de bord.",
+    overlay_position: "Position",
+    overlay_pos_top: "En haut",
+    overlay_pos_bottom: "En bas",
+    overlay_pos_center: "Au centre",
+    overlay_duration: "Durée (secondes, 0 = fermeture manuelle)",
+    overlay_duration_help: "Secondes avant la disparition automatique du banner. 0 = reste jusqu'à la fermeture manuelle.",
+    overlay_how_works: "Le banner apparaît uniquement quand la carte n'est pas visible à l'écran — sur une autre vue ou hors de la fenêtre. Pas de banner redondant quand l'alerte est déjà visible.",
+    visible_to_section: "👤 Visibilité utilisateur",
+    visible_to_label: "Visible pour",
+    visible_to_all: "Tout le monde (défaut)",
+    visible_to_admin: "Administrateurs uniquement",
+    visible_to_non_admin: "Utilisateurs non-admin",
+    visible_to_custom: "Utilisateurs spécifiques...",
+    visible_to_help: "Filtre cette alerte par type d'utilisateur HA. Avec 'Utilisateurs spécifiques', entrez un nom ou une liste séparée par des virgules.",
+    visible_to_users_label: "Noms d'utilisateurs (séparés par virgule)",
+    visible_to_loading: "Chargement des utilisateurs...",
+    time_range_section: "🕐 Plage horaire d'activation",
+    time_range_from: "De (HH:MM)",
+    time_range_to: "À (HH:MM)",
+    time_range_help: "Affiche cette alerte uniquement dans la plage horaire indiquée. Gère le passage minuit (ex. 22:00–06:00). Laisser vide pour aucune restriction.",
   },
   de: {
     tab_general: "Allgemein",
     tab_alerts: "Warnungen",
+    tab_overlay: "Overlay",
+    tab_allclear: "Alles OK",
+    back: "Zurück",
+    all_clear_disabled_help: "Aktiviere 'Alles OK', um die Meldung bei keinen Warnungen zu konfigurieren.",
+    tab_layout: "Layout",
+    hub_desc_general: "Zyklus, Schlummern und Verlauf",
+    hub_desc_layout: "Thema, Kartenhöhe und visuelles Aussehen",
+    hub_desc_overlay: "Globales Banner auf allen Dashboards",
+    hub_desc_alerts: "Warnbedingungen verwalten",
+    hub_desc_allclear: "Nachricht wenn keine Warnungen aktiv sind",
+    hub_report_issue: "Problem melden",
+    hub_welcome: "Willkommen! Konfiguriere deine Karte, indem du einen Bereich auswählst.",
+    clear_display_mode_label: "Anzeigemodus",
+    clear_mode_message: "💬 Benutzerdefinierte Nachricht",
+    clear_mode_clock: "🕐 Uhr",
+    clear_mode_weather: "🌤 Wetter",
+    clear_mode_weather_clock: "🌤🕐 Wetter + Uhr",
+    clear_weather_entity_label: "Wetter-Entität (weather.*)",
     cycle_interval: "Zyklusintervall (Sekunden)",
     cycle_interval_help: "Sekunden zwischen Warnungen wenn mehrere aktiv sind",
     section_all_clear: "Karte 'Alles in Ordnung'",
@@ -916,6 +1084,8 @@ const ET = {
     text_align_center: "Text zentrieren (nützlich für breites Panel-Layout)",
     card_height: "Feste Kartenhöhe (px)",
     card_height_help: "Sperrt die Höhe, um Layoutverschiebungen beim Wechsel von Alerts zu verhindern. Leer lassen für automatische Höhe.",
+    card_border: "Rahmen und Namen anzeigen",
+    card_border_help: "Fügt den Standard-Home-Assistant-Rahmen um die Karte hinzu. Wenn keine Alerts aktiv sind, wird ein Platzhalter mit dem Kartennamen angezeigt, anstatt die Karte vollständig auszublenden.",
     show_snooze_bar: "Schlummern-Reaktivierungsleiste anzeigen 💤",
     snooze_default_duration: "Schlummern 💤 Verhalten",
     snooze_default_duration_help: "Dauermenü: Tap auf 💤 öffnet ein Menü zur Auswahl der Dauer. Feste Dauer: Tap auf 💤 schlummert sofort ohne Menü.",
@@ -950,11 +1120,15 @@ const ET = {
     alert_state_help: "z.B. 'on', '80' (numerisch mit > < >= <=)",
     current_state: "Aktueller Zustand",
     alert_message: "Anzuzeigende Nachricht",
+    alert_name: "Name / Bezeichnung",
+    alert_name_placeholder: "z.B. Bewegungssensoren EG",
+    alert_name_help: "Optionale Bezeichnung als Präfix der Nachricht (z.B. 'Bewegungssensoren: Flur aktiv'). Nützlich mit entity_filter zur Unterscheidung von Warngruppen.",
     alert_message_help: "Verwende {state} Live-Wert, {name} Name, {entity} Entitäts-ID, {device} Gerätename. Unterstützt auch vollständige HA-Templates: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Priorität",
     alert_theme: "Thema",
     alert_icon: "Symbol",
-    alert_icon_help: "Emoji: leer lassen für automatisch. HA-Symbol: nativen Icon-Picker verwenden.",
+    alert_icon_help: "Leer lassen für Theme-Emoji. Eigenes Emoji eingeben. 'HA-Symbol verwenden' aktivieren, um automatisch das MDI-Symbol der Entität anzuzeigen (oder eines auswählen).",
+    auto_icon_preview: "Automatisches Symbol von Entität",
     use_ha_icon: "Home Assistant Symbol verwenden (mdi:)",
     icon_color: "Symbolfarbe",
     icon_color_help: "CSS-Farbe: z.B. #ff0000, red, var(--error-color). Leer lassen für Themafarbe.",
@@ -1000,7 +1174,7 @@ const ET = {
     anim_roll:    "🎲 Roll — Rollen",
     anim_curtain: "🎭 Curtain — Theatervorhang",
     entity_filter: "Entitätsfilter (Text)",
-    entity_filter_help: "Findet alle Entitäten, deren ID oder Name diesen Text enthält. Unterstützt Wildcard * (z.B. sensor.battery_*_level). Klicke auf die Anzahl für die Vorschau und 'Auswahl umkehren'. Verwende {name}, {entity}, {state} in der Nachricht.",
+    entity_filter_help: "Findet alle Entitäten, deren ID oder Name diesen Text enthält. Unterstützt Wildcard * (z.B. sensor.battery_*_level). Klicke auf die Anzahl für die Vorschau und 'Auswahl umkehren'. Verwende {name}, {entity}, {state}, {device} in der Nachricht.",
     entity_filter_count: "Entitäten gefunden",
     entity_filter_excluded: "ausgeschlossen",
     entity_filter_zero: "Keine Entitäten gefunden",
@@ -1045,10 +1219,51 @@ const ET = {
     action_navigate_path: "Pfad (z.B. /lovelace/home)",
     action_url_path: "Zu öffnende URL",
     delete_item: "Löschen",
+    section_overlay: "Overlay-Benachrichtigung 🔔",
+    overlay_mode: "Overlay-Banner anzeigen wenn ein Alert ausgelöst wird",
+    overlay_mode_help: "Zeigt ein fixiertes Banner oben auf dem Bildschirm an, wenn ein neuer Alert aktiv wird — sichtbar aus jeder Dashboard-Ansicht.",
+    overlay_position: "Position",
+    overlay_pos_top: "Oben",
+    overlay_pos_bottom: "Unten",
+    overlay_pos_center: "Mitte",
+    overlay_duration: "Dauer (Sekunden, 0 = manuelles Schließen)",
+    overlay_duration_help: "Sekunden bis das Banner automatisch verschwindet. 0 = bleibt bis zum manuellen Schließen.",
+    overlay_how_works: "Das Banner erscheint nur, wenn die Karte nicht auf dem Bildschirm sichtbar ist — in einer anderen Ansicht oder außerhalb des Sichtbereichs. Kein redundantes Banner, wenn der Alert bereits sichtbar ist.",
+    visible_to_section: "👤 Benutzersichtbarkeit",
+    visible_to_label: "Sichtbar für",
+    visible_to_all: "Alle (Standard)",
+    visible_to_admin: "Nur Administratoren",
+    visible_to_non_admin: "Nur Nicht-Admins",
+    visible_to_custom: "Bestimmte Benutzer...",
+    visible_to_help: "Filtert diese Benachrichtigung nach HA-Benutzertyp. Mit 'Bestimmte Benutzer' einen Namen oder kommagetrennte Liste eingeben.",
+    visible_to_users_label: "Benutzernamen (kommagetrennt)",
+    visible_to_loading: "Benutzer werden geladen...",
+    time_range_section: "🕐 Aktivierungszeitbereich",
+    time_range_from: "Von (HH:MM)",
+    time_range_to: "Bis (HH:MM)",
+    time_range_help: "Zeigt diese Benachrichtigung nur im angegebenen Zeitfenster. Unterstützt Mitternachtsübergang (z.B. 22:00–06:00). Leer lassen für keine Einschränkung.",
   },
   nl: {
     tab_general: "Algemeen",
     tab_alerts: "Meldingen",
+    tab_overlay: "Overlay",
+    tab_allclear: "Alles Oké",
+    back: "Terug",
+    all_clear_disabled_help: "Schakel 'Alles Oké' in om de melding bij geen actieve alarmen in te stellen.",
+    tab_layout: "Lay-out",
+    hub_desc_general: "Cyclus, sluimer en geschiedenis",
+    hub_desc_layout: "Thema, kaardhoogte en visueel uiterlijk",
+    hub_desc_overlay: "Globale banner op alle dashboards",
+    hub_desc_alerts: "Beheer meldingsvoorwaarden",
+    hub_desc_allclear: "Bericht wanneer er geen meldingen actief zijn",
+    hub_report_issue: "Probleem melden",
+    hub_welcome: "Welkom! Configureer je kaart door een sectie hieronder te selecteren.",
+    clear_display_mode_label: "Weergavemodus",
+    clear_mode_message: "💬 Aangepast bericht",
+    clear_mode_clock: "🕐 Klok",
+    clear_mode_weather: "🌤 Weer",
+    clear_mode_weather_clock: "🌤🕐 Weer + Klok",
+    clear_weather_entity_label: "Weerentiteit (weather.*)",
     cycle_interval: "Cyclusinterval (seconden)",
     cycle_interval_help: "Seconden tussen meldingen wanneer meerdere actief zijn",
     section_all_clear: "Kaart 'alles in orde'",
@@ -1064,6 +1279,8 @@ const ET = {
     text_align_center: "Tekst centreren (handig voor breed Panel-layout)",
     card_height: "Vaste kaarthoogte (px)",
     card_height_help: "Vergrendelt de hoogte om lay-outverschuivingen bij wisselende meldingen te voorkomen. Leeg laten voor automatische hoogte.",
+    card_border: "Toon rand en naam",
+    card_border_help: "Voegt de standaard Home Assistant rand toe rond de kaart. Wanneer er geen meldingen actief zijn, wordt een tijdelijke aanduiding met de kaartnaam weergegeven in plaats van de kaart volledig te verbergen.",
     show_snooze_bar: "Sluimer-reactiveringsbalk weergeven 💤",
     snooze_default_duration: "Sluimer 💤 gedrag",
     snooze_default_duration_help: "Duurmenu: tik op 💤 opent een menu om de duur te kiezen. Vaste duur: tik op 💤 sluimert direct zonder menu.",
@@ -1098,11 +1315,15 @@ const ET = {
     alert_state_help: "bijv. 'on', '80' (numeriek met > < >= <=)",
     current_state: "Huidige toestand",
     alert_message: "Te tonen bericht",
+    alert_name: "Naam / Label",
+    alert_name_placeholder: "bijv. Bewegingssensoren verdieping",
+    alert_name_help: "Optioneel label als prefix van het bericht (bijv. 'Bewegingssensoren: gang actief'). Handig met entity_filter om alertgroepen te onderscheiden.",
     alert_message_help: "Gebruik {state} live waarde, {name} naam, {entity} entiteits-ID, {device} apparaatnaam. Ondersteunt ook volledige HA-templates: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Prioriteit",
     alert_theme: "Thema",
     alert_icon: "Pictogram",
-    alert_icon_help: "Emoji: leeg laten voor automatisch. HA-pictogram: gebruik de native pictogramselector.",
+    alert_icon_help: "Leeg laten voor thema-emoji. Eigen emoji invoeren. 'HA-pictogram gebruiken' inschakelen om automatisch het MDI-pictogram van de entiteit te tonen (of er een kiezen).",
+    auto_icon_preview: "Automatisch pictogram van entiteit",
     use_ha_icon: "Home Assistant pictogram gebruiken (mdi:)",
     icon_color: "Pictogramkleur",
     icon_color_help: "CSS-kleur: bijv. #ff0000, red, var(--error-color). Leeg laten voor themakleur.",
@@ -1148,7 +1369,7 @@ const ET = {
     anim_roll:    "🎲 Roll — rollen",
     anim_curtain: "🎭 Curtain — theatergordijn",
     entity_filter: "Entiteitsfilter (tekst)",
-    entity_filter_help: "Vindt alle entiteiten waarvan het ID of de naam deze tekst bevat. Ondersteunt wildcard * (bijv. sensor.battery_*_level). Klik op het aantal voor de voorvertoning en 'Selectie omdraaien'. Gebruik {name}, {entity}, {state} in het bericht.",
+    entity_filter_help: "Vindt alle entiteiten waarvan het ID of de naam deze tekst bevat. Ondersteunt wildcard * (bijv. sensor.battery_*_level). Klik op het aantal voor de voorvertoning en 'Selectie omdraaien'. Gebruik {name}, {entity}, {state}, {device} in het bericht.",
     entity_filter_count: "entiteiten gevonden",
     entity_filter_excluded: "uitgesloten",
     entity_filter_zero: "Geen entiteiten gevonden",
@@ -1193,10 +1414,51 @@ const ET = {
     action_navigate_path: "Pad (bijv. /lovelace/home)",
     action_url_path: "Te openen URL",
     delete_item: "Verwijderen",
+    section_overlay: "Overlay-melding 🔔",
+    overlay_mode: "Toon overlay-banner wanneer een melding activeert",
+    overlay_mode_help: "Toont een vast banner bovenaan het scherm wanneer een nieuwe melding actief wordt — zichtbaar vanuit elke dashboardweergave.",
+    overlay_position: "Positie",
+    overlay_pos_top: "Bovenaan",
+    overlay_pos_bottom: "Onderaan",
+    overlay_pos_center: "Midden",
+    overlay_duration: "Duur (seconden, 0 = handmatig sluiten)",
+    overlay_duration_help: "Seconden voordat het banner automatisch verdwijnt. 0 = blijft tot handmatig sluiten.",
+    overlay_how_works: "Het banner verschijnt alleen wanneer de kaart niet zichtbaar is op het scherm — op een andere weergave of buiten het zichtbare gebied. Geen redundant banner als de melding al zichtbaar is.",
+    visible_to_section: "👤 Gebruikerszichtbaarheid",
+    visible_to_label: "Zichtbaar voor",
+    visible_to_all: "Iedereen (standaard)",
+    visible_to_admin: "Alleen beheerders",
+    visible_to_non_admin: "Alleen niet-beheerders",
+    visible_to_custom: "Specifieke gebruikers...",
+    visible_to_help: "Filtert deze melding op HA-gebruikerstype. Met 'Specifieke gebruikers' voer een naam of kommagescheiden lijst in.",
+    visible_to_users_label: "Gebruikersnamen (kommagescheiden)",
+    visible_to_loading: "Gebruikers laden...",
+    time_range_section: "🕐 Actief tijdvenster",
+    time_range_from: "Van (HH:MM)",
+    time_range_to: "Tot (HH:MM)",
+    time_range_help: "Toon deze melding alleen binnen het opgegeven tijdvenster. Ondersteunt middernachtovergang (bv. 22:00–06:00). Leeg laten voor geen beperking.",
   },
   vi: {
     tab_general: "Chung",
     tab_alerts: "Báo động",
+    tab_overlay: "Overlay",
+    tab_allclear: "Tất cả ổn",
+    back: "Quay lại",
+    all_clear_disabled_help: "Bật 'Tất cả ổn' để cấu hình thông báo khi không có báo động.",
+    tab_layout: "Bố cục",
+    hub_desc_general: "Chu kỳ, báo lại và lịch sử",
+    hub_desc_layout: "Chủ đề, chiều cao thẻ và giao diện",
+    hub_desc_overlay: "Banner toàn cục trên tất cả dashboard",
+    hub_desc_alerts: "Quản lý điều kiện báo động",
+    hub_desc_allclear: "Thông báo khi không có báo động nào",
+    hub_report_issue: "Báo cáo sự cố",
+    hub_welcome: "Chào mừng! Cấu hình thẻ của bạn bằng cách chọn một mục bên dưới.",
+    clear_display_mode_label: "Chế độ hiển thị",
+    clear_mode_message: "💬 Tin nhắn tùy chỉnh",
+    clear_mode_clock: "🕐 Đồng hồ",
+    clear_mode_weather: "🌤 Thời tiết",
+    clear_mode_weather_clock: "🌤🕐 Thời tiết + Đồng hồ",
+    clear_weather_entity_label: "Thực thể thời tiết (weather.*)",
     cycle_interval: "Chu kỳ chuyển đổi (giây)",
     cycle_interval_help: "Số giây giữa các báo động khi có nhiều báo động đang hoạt động",
     section_all_clear: "Thẻ 'mọi thứ ổn'",
@@ -1212,6 +1474,8 @@ const ET = {
     text_align_center: "Căn giữa văn bản (hữu ích cho layout Panel rộng)",
     card_height: "Chiều cao cố định (px)",
     card_height_help: "Khóa chiều cao để ngăn dịch chuyển bố cục khi cảnh báo thay đổi. Để trống để chiều cao tự động.",
+    card_border: "Hiển thị viền và tên card",
+    card_border_help: "Thêm viền chuẩn Home Assistant xung quanh card. Khi không có cảnh báo nào hoạt động, hiển thị placeholder với tên card thay vì ẩn hoàn toàn.",
     show_snooze_bar: "Hiển thị thanh kích hoạt lại tạm hoãn 💤",
     snooze_default_duration: "Hành vi tạm hoãn 💤",
     snooze_default_duration_help: "Menu thời gian: nhấn 💤 mở menu chọn thời lượng. Thời lượng cố định: nhấn 💤 tạm hoãn ngay không cần menu.",
@@ -1246,11 +1510,15 @@ const ET = {
     alert_state_help: "vd. 'on', '80' (số với > < >= <=)",
     current_state: "Trạng thái hiện tại",
     alert_message: "Thông báo hiển thị",
+    alert_name: "Tên / Nhãn",
+    alert_name_placeholder: "vd. Cảm biến chuyển động tầng 1",
+    alert_name_help: "Nhãn tùy chọn hiển thị làm tiền tố thông báo (vd. 'Cảm biến chuyển động: hành lang hoạt động'). Hữu ích với entity_filter để phân biệt nhóm cảnh báo.",
     alert_message_help: "Dùng {state} giá trị live, {name} tên, {entity} ID thực thể, {device} tên thiết bị. Cũng hỗ trợ template HA đầy đủ: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Mức ưu tiên",
     alert_theme: "Giao diện",
     alert_icon: "Biểu tượng",
-    alert_icon_help: "Emoji: để trống để tự động. Biểu tượng HA: dùng bộ chọn biểu tượng gốc.",
+    alert_icon_help: "Để trống để dùng emoji chủ đề. Nhập emoji tùy chỉnh. Bật 'Dùng biểu tượng HA' để tự động hiển thị biểu tượng MDI của thực thể (hoặc chọn một biểu tượng).",
+    auto_icon_preview: "Biểu tượng tự động từ thực thể",
     use_ha_icon: "Dùng biểu tượng Home Assistant (mdi:)",
     icon_color: "Màu biểu tượng",
     icon_color_help: "Màu CSS: ví dụ #ff0000, red, var(--error-color). Để trống để dùng màu theme.",
@@ -1296,7 +1564,7 @@ const ET = {
     anim_roll:    "🎲 Roll — cuộn",
     anim_curtain: "🎭 Curtain — màn sân khấu",
     entity_filter: "Bộ lọc thực thể (văn bản)",
-    entity_filter_help: "Tìm tất cả thực thể có ID hoặc tên chứa văn bản này. Hỗ trợ wildcard * (vd. sensor.battery_*_level). Nhấn số kết quả để xem danh sách và dùng 'Đảo ngược lựa chọn'. Dùng {name}, {entity}, {state} trong thông báo.",
+    entity_filter_help: "Tìm tất cả thực thể có ID hoặc tên chứa văn bản này. Hỗ trợ wildcard * (vd. sensor.battery_*_level). Nhấn số kết quả để xem danh sách và dùng 'Đảo ngược lựa chọn'. Dùng {name}, {entity}, {state}, {device} trong thông báo.",
     entity_filter_count: "thực thể phù hợp",
     entity_filter_excluded: "đã loại trừ",
     entity_filter_zero: "Không tìm thấy thực thể nào",
@@ -1341,10 +1609,51 @@ const ET = {
     action_navigate_path: "Đường dẫn (vd. /lovelace/home)",
     action_url_path: "URL cần mở",
     delete_item: "Xóa",
+    section_overlay: "Thông báo Overlay 🔔",
+    overlay_mode: "Hiển thị banner overlay khi có báo động mới",
+    overlay_mode_help: "Hiển thị banner cố định ở đầu màn hình khi một báo động mới kích hoạt — hiển thị từ bất kỳ chế độ xem nào của dashboard.",
+    overlay_position: "Vị trí",
+    overlay_pos_top: "Trên cùng",
+    overlay_pos_bottom: "Dưới cùng",
+    overlay_pos_center: "Giữa màn hình",
+    overlay_duration: "Thời lượng (giây, 0 = chỉ đóng thủ công)",
+    overlay_duration_help: "Số giây trước khi banner tự động đóng. 0 = giữ đến khi đóng thủ công.",
+    overlay_how_works: "Banner chỉ xuất hiện khi thẻ không hiển thị trên màn hình — trên chế độ xem khác hoặc ngoài vùng hiển thị. Không hiển thị banner dư thừa khi cảnh báo đã hiển thị.",
+    visible_to_section: "👤 Hiển thị theo người dùng",
+    visible_to_label: "Hiển thị cho",
+    visible_to_all: "Tất cả (mặc định)",
+    visible_to_admin: "Chỉ quản trị viên",
+    visible_to_non_admin: "Chỉ người dùng thường",
+    visible_to_custom: "Người dùng cụ thể...",
+    visible_to_help: "Lọc cảnh báo này theo loại người dùng HA. Với 'Người dùng cụ thể', nhập tên hoặc danh sách cách nhau bằng dấu phẩy.",
+    visible_to_users_label: "Tên người dùng (cách nhau bằng dấu phẩy)",
+    visible_to_loading: "Đang tải người dùng...",
+    time_range_section: "🕐 Khung giờ kích hoạt",
+    time_range_from: "Từ (HH:MM)",
+    time_range_to: "Đến (HH:MM)",
+    time_range_help: "Chỉ hiển thị cảnh báo này trong khung giờ được chỉ định. Hỗ trợ vượt nửa đêm (vd. 22:00–06:00). Để trống để không giới hạn.",
   },
   ru: {
     tab_general: "Основное",
     tab_alerts: "Оповещения",
+    tab_overlay: "Оверлей",
+    tab_allclear: "Всё в порядке",
+    back: "Назад",
+    all_clear_disabled_help: "Включите «Всё в порядке», чтобы настроить сообщение при отсутствии оповещений.",
+    tab_layout: "Макет",
+    hub_desc_general: "Цикл, отложить и история",
+    hub_desc_layout: "Тема, высота карточки и внешний вид",
+    hub_desc_overlay: "Глобальный баннер на всех панелях",
+    hub_desc_alerts: "Управление условиями оповещений",
+    hub_desc_allclear: "Сообщение при отсутствии оповещений",
+    hub_report_issue: "Сообщить о проблеме",
+    hub_welcome: "Добро пожаловать! Настройте карточку, выбрав раздел ниже.",
+    clear_display_mode_label: "Режим отображения",
+    clear_mode_message: "💬 Пользовательское сообщение",
+    clear_mode_clock: "🕐 Часы",
+    clear_mode_weather: "🌤 Погода",
+    clear_mode_weather_clock: "🌤🕐 Погода + Часы",
+    clear_weather_entity_label: "Объект погоды (weather.*)",
     cycle_interval: "Интервал цикла (секунды)",
     cycle_interval_help: "Секунды между оповещениями при наличии нескольких активных",
     section_all_clear: "Карточка 'всё в порядке'",
@@ -1360,6 +1669,8 @@ const ET = {
     text_align_center: "Текст по центру (полезно для широких макетов Panel)",
     card_height: "Фиксированная высота карточки (px)",
     card_height_help: "Фиксирует высоту для предотвращения смещений при смене оповещений. Оставьте пустым для автоматической высоты.",
+    card_border: "Показывать рамку и название",
+    card_border_help: "Добавляет стандартную рамку Home Assistant вокруг карточки. Когда нет активных оповещений, отображается заполнитель с названием карточки вместо полного скрытия.",
     show_snooze_bar: "Показывать полосу восстановления отложенных 💤",
     snooze_default_duration: "Поведение при откладывании 💤",
     snooze_default_duration_help: "Меню длительности: нажатие 💤 открывает меню выбора времени. Фиксированная длительность: нажатие 💤 откладывает сразу без меню.",
@@ -1394,11 +1705,15 @@ const ET = {
     alert_state_help: "например 'on', '80' (числовое с > < >= <=)",
     current_state: "Текущее состояние",
     alert_message: "Отображаемое сообщение",
+    alert_name: "Имя / Метка",
+    alert_name_placeholder: "напр. Датчики движения 1 этаж",
+    alert_name_help: "Необязательная метка, отображаемая как префикс сообщения (напр. 'Датчики движения: коридор активен'). Полезно с entity_filter для различения групп оповещений.",
     alert_message_help: "Используйте {state} для текущего значения, {name} для имени, {entity} для ID объекта, {device} для имени устройства. Поддерживаются шаблоны HA: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Приоритет",
     alert_theme: "Тема",
     alert_icon: "Иконка",
-    alert_icon_help: "Эмодзи: оставьте пустым для автоматической. Иконка HA: используйте встроенный выбор иконок.",
+    alert_icon_help: "Оставьте пустым для эмодзи темы. Введите собственный эмодзи. Включите «Использовать иконку HA» для автоматического отображения MDI-иконки сущности (или выберите вручную).",
+    auto_icon_preview: "Автоматическая иконка из сущности",
     use_ha_icon: "Использовать иконку Home Assistant (mdi:)",
     icon_color: "Цвет иконки",
     icon_color_help: "CSS цвет: например #ff0000, red, var(--error-color). Оставьте пустым для цвета темы.",
@@ -1444,7 +1759,7 @@ const ET = {
     anim_roll:    "🎲 Roll — прокрутка",
     anim_curtain: "🎭 Curtain — сценический занавес",
     entity_filter: "Фильтр объектов (текст)",
-    entity_filter_help: "Найти все объекты, ID или имя которых содержит этот текст. Поддерживает шаблоны * (например sensor.battery_*_level). Нажмите на количество результатов для просмотра списка. Используйте {name}, {entity}, {state} в сообщениях.",
+    entity_filter_help: "Найти все объекты, ID или имя которых содержит этот текст. Поддерживает шаблоны * (например sensor.battery_*_level). Нажмите на количество результатов для просмотра списка. Используйте {name}, {entity}, {state}, {device} в сообщениях.",
     entity_filter_count: "подходящих объектов",
     entity_filter_excluded: "исключено",
     entity_filter_zero: "Объекты не найдены",
@@ -1489,10 +1804,51 @@ const ET = {
     action_navigate_path: "Путь (например /lovelace/home)",
     action_url_path: "URL для открытия",
     delete_item: "Удалить",
+    section_overlay: "Оверлей-уведомление 🔔",
+    overlay_mode: "Показывать оверлей-баннер при срабатывании оповещения",
+    overlay_mode_help: "Отображает фиксированный баннер в верхней части экрана при появлении нового оповещения — виден из любого вида дашборда.",
+    overlay_position: "Позиция",
+    overlay_pos_top: "Вверху",
+    overlay_pos_bottom: "Внизу",
+    overlay_pos_center: "По центру",
+    overlay_duration: "Длительность (секунды, 0 = только ручное закрытие)",
+    overlay_duration_help: "Секунды до автоматического закрытия баннера. 0 = остаётся до ручного закрытия.",
+    overlay_how_works: "Баннер появляется только когда карточка не видна на экране — на другом виде или за пределами окна. Баннер не показывается, если оповещение уже видно.",
+    visible_to_section: "👤 Видимость по пользователю",
+    visible_to_label: "Видно для",
+    visible_to_all: "Все (по умолчанию)",
+    visible_to_admin: "Только администраторы",
+    visible_to_non_admin: "Только обычные пользователи",
+    visible_to_custom: "Конкретные пользователи...",
+    visible_to_help: "Фильтрует это оповещение по типу пользователя HA. С 'Конкретными пользователями' введите имя или список через запятую.",
+    visible_to_users_label: "Имена пользователей (через запятую)",
+    visible_to_loading: "Загрузка пользователей...",
+    time_range_section: "🕐 Временной диапазон активации",
+    time_range_from: "С (ЧЧ:ММ)",
+    time_range_to: "До (ЧЧ:ММ)",
+    time_range_help: "Показывать это оповещение только в указанном временном окне. Поддерживает переход через полночь (например, 22:00–06:00). Оставьте пустым без ограничений.",
   },
   da: {
     tab_general: "Generelt",
     tab_alerts: "Advarsler",
+    tab_overlay: "Overlay",
+    tab_allclear: "Alt OK",
+    back: "Tilbage",
+    all_clear_disabled_help: "Aktivér 'Alt OK' for at konfigurere beskeden når der ingen advarsler er.",
+    tab_layout: "Layout",
+    hub_desc_general: "Cyklus, slumre og historik",
+    hub_desc_layout: "Tema, korthøjde og visuelt udseende",
+    hub_desc_overlay: "Globalt banner på alle dashboards",
+    hub_desc_alerts: "Administrer advarselbetingelser",
+    hub_desc_allclear: "Besked når der ikke er aktive advarsler",
+    hub_report_issue: "Rapporter et problem",
+    hub_welcome: "Velkommen! Konfigurer dit kort ved at vælge en sektion nedenfor.",
+    clear_display_mode_label: "Visningstilstand",
+    clear_mode_message: "💬 Tilpasset besked",
+    clear_mode_clock: "🕐 Ur",
+    clear_mode_weather: "🌤 Vejr",
+    clear_mode_weather_clock: "🌤🕐 Vejr + Ur",
+    clear_weather_entity_label: "Vejrentitet (weather.*)",
     cycle_interval: "Rotations interval (sekunder)",
     cycle_interval_help: "Sekunder mellem advarsler, når flere er aktive",
     section_all_clear: "Alt er i orden‑kort",
@@ -1542,16 +1898,20 @@ const ET = {
     alert_state_help: "f.eks. 'on', '80' (tal med > < >= <=)",
     current_state: "Nuværende tilstand",
     alert_message: "Besked der skal vises",
+    alert_name: "Navn / Etiket",
+    alert_name_placeholder: "fx. Bevægelsessensorer etage 1",
+    alert_name_help: "Valgfri etiket vist som præfiks til beskeden (fx 'Bevægelsessensorer: gang aktiv'). Nyttigt med entity_filter til at skelne mellem advarselsgrupper.",
     alert_message_help: "Brug {state} for live‑værdi, {name} for venlig navn, {entity} for enheds‑ID. Understøtter også fulde HA‑skabeloner: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
     alert_priority: "Prioritet",
     alert_theme: "Tema",
     alert_icon: "Ikon",
-    alert_icon_help: "Emoji: lad stå tom for automatisk. HA‑ikon: brug den native ikon‑vælger.",
+    alert_icon_help: "Lad stå tomt for tema-emoji. Indtast en brugerdefineret emoji. Aktivér 'Brug HA-ikon' for automatisk at vise entitetens MDI-ikon (eller vælg et manuelt).",
+    auto_icon_preview: "Automatisk ikon fra entitet",
     use_ha_icon: "Brug Home Assistant‑ikon (mdi:)",
     icon_color: "Ikonfarve",
     icon_color_help: "CSS‑farve: f.eks. #ff0000, red, var(--error-color). Lad stå tom for tema‑standard.",
     on_change: "Udløs ved enhver tilstandsændring (ignorerer betingelser)",
-    on_change_help: "Advarsel udløser, når enhedens tilstand ændrer sig (enhver værdi). Bedst til hændelser: tællere, tidsstemple, sensorer uden faste tilstande.",
+    on_change_help: "Advarsel udløser, når enhedens tilstand ændrer sig (enhver værdi). Bedst til hændelser: tællere, tidsstemle, sensorer uden faste tilstande.",
     auto_dismiss_section: "Auto‑luk",
     auto_dismiss_after: "Auto‑skjul efter (sekunder)",
     auto_dismiss_after_help: "Advarsel skjules automatisk efter N sekunder. Lad stå tom for at holde den altid synlig.",
@@ -1633,10 +1993,35 @@ const ET = {
     action_url: "Åbn URL",
     action_service: "HA‑service",
     action_target: "Mål‑enhed",
-    action_service: "Ekstra data (valgfrit JSON)",
+    action_service_data: "Ekstra data (valgfrit JSON)",
     action_navigate_path: "Sti (f.eks. /lovelace/home)",
     action_url_path: "URL der skal åbnes",
     delete_item: "Slet",
+    section_overlay: "Overlay-notifikation 🔔",
+    overlay_mode: "Vis overlay-banner, når en advarsel udløses",
+    overlay_mode_help: "Viser et fast banner øverst på skærmen, når en ny advarsel aktiveres — synligt fra enhver dashboard-visning.",
+    overlay_position: "Position",
+    overlay_pos_top: "Øverst",
+    overlay_pos_bottom: "Nederst",
+    overlay_pos_center: "Midt på",
+    overlay_duration: "Varighed (sekunder, 0 = kun manuel lukning)",
+    overlay_duration_help: "Sekunder før banneret automatisk lukkes. 0 = forbliver åbent til manuel lukning.",
+    overlay_how_works: "Banneret vises kun, når kortet ikke er synligt — på en anden visning. Vises ikke, hvis advarslen allerede er synlig på kortet.",
+    visible_to_section: "👤 Brugersynlighed",
+    visible_to_label: "Synlig for",
+    visible_to_all: "Alle (standard)",
+    visible_to_admin: "Kun administratorer",
+    visible_to_non_admin: "Kun ikke-administratorer",
+    visible_to_custom: "Bestemte brugere...",
+    visible_to_help: "Filtrerer denne advarsel efter HA-brugertype. Med 'Bestemte brugere' angiv et navn eller kommasepareret liste.",
+    visible_to_users_label: "Brugernavne (kommasepareret)",
+    visible_to_loading: "Indlæser brugere...",
+    time_range_section: "🕐 Aktivt tidsvindue",
+    time_range_from: "Fra (HH:MM)",
+    time_range_to: "Til (HH:MM)",
+    time_range_help: "Vis kun denne alarm inden for det angivne tidsvindue. Understøtter midnatovergang (f.eks. 22:00–06:00). Lad være tomt for ingen begrænsning.",
+    card_border: "Vis kortramme og navn",
+    card_border_help: "Tilføjer den standard Home Assistant-ramme rundt om kortet. Når der ingen aktive advarsler er, vises en pladsholder med kortnavnet i stedet for at skjule det helt.",
   },
 };
 
@@ -1645,64 +2030,65 @@ const ET = {
 // vi falls back to en for technical terms
 // ---------------------------------------------------------------------------
 const THEME_DESC_I18N = {
-  emergency:    { it: "Pulsante rosso",        en: "Red button",           fr: "Bouton rouge",          de: "Roter Knopf",           nl: "Rode knop",             da: "Rød knap"              },
-  fire:         { it: "Fiamma",                en: "Flame",                fr: "Flamme",                de: "Flamme",                nl: "Vlam",                  da: "Flamme"                },
-  alarm:        { it: "Strobo",                en: "Strobe",               fr: "Stroboscope",           de: "Stroboskop",            nl: "Stroboscoop",           da: "Stroboskop"            },
-  lightning:    { it: "Fulmine",               en: "Lightning bolt",       fr: "Éclair",                de: "Blitz",                 nl: "Bliksem",               da: "Lyn"                   },
-  nuclear:      { it: "Radiazione",            en: "Radiation",            fr: "Radiation",             de: "Strahlung",             nl: "Straling",              da: "Stråling"              },
-  flood:        { it: "Onde animate",          en: "Animated waves",       fr: "Vagues animées",        de: "Wellen animiert",       nl: "Geanimeerde golven",    da: "Animerede bølger"      },
-  motion:       { it: "Night-vision scan",     en: "Night-vision scan",    fr: "Scan vision nocturne",  de: "Nachtsicht-Scan",       nl: "Nachtzicht scan",       da: "Nattesyn-scan"         },
-  intruder:     { it: "Sirena rossa",          en: "Red siren",            fr: "Sirène rouge",          de: "Rote Sirene",           nl: "Rode sirene",           da: "Rød sirene"            },
-  toxic:        { it: "Bolle verdi",           en: "Green bubbles",        fr: "Bulles vertes",         de: "Grüne Blasen",          nl: "Groene bellen",         da: "Grønne bobler"         },
-  warning:      { it: "Bordo ambra",           en: "Amber border",         fr: "Bordure ambrée",        de: "Bernsteinrahmen",       nl: "Amber rand",            da: "Jægergrøn ramme"       },
-  caution:      { it: "Nastro giallo",         en: "Yellow tape",          fr: "Ruban jaune",           de: "Gelbes Band",           nl: "Geel lint",             da: "Gult bånd"             },
-  radar:        { it: "Sonar sweep",           en: "Sonar sweep",          fr: "Balayage sonar",        de: "Sonar-Scan",            nl: "Sonar sweep",           da: "Sonar-sweep"           },
-  temperature:  { it: "Termometro",            en: "Thermometer",          fr: "Thermomètre",           de: "Thermometer",           nl: "Thermometer",           da: "Termometer"            },
-  battery:      { it: "Scarica",               en: "Draining",             fr: "En décharge",           de: "Entladen",              nl: "Ontladen",              da: "Drænes"                },
-  door:         { it: "Porta aperta",          en: "Open door",            fr: "Porte ouverte",         de: "Offene Tür",            nl: "Open deur",             da: "Åben dør"              },
-  smoke:        { it: "Fumo grigio",           en: "Grey smoke",           fr: "Fumée grise",           de: "Grauer Rauch",          nl: "Grijze rook",           da: "Grå røg"               },
-  wind:         { it: "Raffiche",              en: "Gusts",                fr: "Rafales",               de: "Böen",                  nl: "Windvlagen",            da: "Vindstød"              },
-  leak:         { it: "Gocce",                 en: "Drops",                fr: "Gouttes",               de: "Tropfen",               nl: "Druppels",              da: "Dråber"                },
-  info:         { it: "Bordo blu",             en: "Blue border",          fr: "Bordure bleue",         de: "Blauer Rand",           nl: "Blauwe rand",           da: "Blå ramme"             },
-  notification: { it: "Bubble",                en: "Bubble",               fr: "Bulle",                 de: "Blase",                 nl: "Ballon",                da: "Boble"                 },
-  aurora:       { it: "Animato",               en: "Animated",             fr: "Animé",                 de: "Animiert",              nl: "Geanimeerd",            da: "Animerede"             },
-  hologram:     { it: "Olografico",            en: "Holographic",          fr: "Holographique",         de: "Holografisch",          nl: "Holografisch",          da: "Holografisk"           },
-  presence:     { it: "Ping radar",            en: "Radar ping",           fr: "Ping radar",            de: "Radar-Ping",            nl: "Radar ping",            da: "Radar ping"            },
-  update:       { it: "Anello rotante",        en: "Rotating ring",        fr: "Anneau rotatif",        de: "Rotierender Ring",      nl: "Roterende ring",        da: "Roterende ring"        },
-  cloud:        { it: "Nuvola",                en: "Cloud puff",           fr: "Nuage",                 de: "Wolke",                 nl: "Wolk",                  da: "Sky"                   },
-  satellite:    { it: "Segnale",               en: "Signal",               fr: "Signal",                de: "Signal",                nl: "Signaal",               da: "Signal"                },
-  tips:         { it: "Consiglio",             en: "Tip",                  fr: "Conseil",               de: "Tipp",                  nl: "Tip",                   da: "Tip"                   },
-  success:      { it: "Verde",                 en: "Green",                fr: "Vert",                  de: "Grün",                  nl: "Groen",                 da: "Grøn"                  },
-  check:        { it: "Anello pulsante",       en: "Pulsing ring",         fr: "Anneau pulsant",        de: "Pulsierender Ring",     nl: "Pulserende ring",       da: "Pulserende ring"       },
-  confetti:     { it: "Coriandoli",            en: "Confetti",             fr: "Confettis",             de: "Konfetti",              nl: "Confetti",              da: "Konfetti"              },
-  heartbeat:    { it: "ECG pulsante",          en: "Pulsing ECG",          fr: "ECG pulsant",           de: "Pulsierendes EKG",      nl: "Pulserend ECG",         da: "Pulserende EKG"        },
-  shield:       { it: "Scudo + scan",          en: "Shield scan",          fr: "Bouclier + scan",       de: "Schild-Scan",           nl: "Schild scan",           da: "Skjold-scan"           },
-  power:        { it: "Fulmine verde",         en: "Green bolt",           fr: "Éclair vert",           de: "Grüner Blitz",          nl: "Groene bliksem",        da: "Grønt lyn"             },
-  sunrise:      { it: "Alba",                  en: "Sunrise glow",         fr: "Lueur de l'aube",       de: "Sonnenaufgang",         nl: "Ochtendgloren",         da: "Solopgangsglød"        },
-  plant:        { it: "Crescita",              en: "Growing",              fr: "Croissance",            de: "Wachstum",              nl: "Groeiend",              da: "Voksende"              },
-  lock:         { it: "Sicuro",                en: "Secure",               fr: "Sécurisé",              de: "Gesichert",             nl: "Beveiligd",             da: "Sikker"                },
-  ticker:       { it: "Scorrevole",            en: "Scrolling",            fr: "Défilant",              de: "Laufschrift",           nl: "Scrollend",             da: "Rullende"              },
-  neon:         { it: "Cyberpunk",             en: "Cyberpunk",            fr: "Cyberpunk",             de: "Cyberpunk",             nl: "Cyberpunk",             da: "Cyberpunk"             },
-  glass:        { it: "Glassmorphism",         en: "Glassmorphism",        fr: "Glassmorphism",         de: "Glassmorphism",         nl: "Glassmorphism",         da: "Glassmorphism"         },
-  matrix:       { it: "Terminale",             en: "Terminal",             fr: "Terminal",              de: "Terminal",              nl: "Terminal",              da: "Terminal"              },
-  minimal:      { it: "Pulito",                en: "Clean",                fr: "Épuré",                 de: "Aufgeräumt",            nl: "Opgeruimd",             da: "Rent"                  },
-  retro:        { it: "CRT fosforescente",     en: "Phosphor CRT",         fr: "CRT phosphore",         de: "Phosphor-CRT",          nl: "Fosfor CRT",            da: "Fosfor CRT"            },
-  cyberpunk:    { it: "Neon viola/cyan",       en: "Purple/cyan neon",     fr: "Néon violet/cyan",      de: "Lila/Cyan Neon",        nl: "Paars/cyan neon",       da: "Lilla/cyan neon"       },
-  vapor:        { it: "Vaporwave grid",        en: "Vaporwave grid",       fr: "Vaporwave grid",        de: "Vaporwave-Raster",      nl: "Vaporwave raster",      da: "Vaporwave gitter"      },
-  lava:         { it: "Blob arancio",          en: "Orange blob",          fr: "Blob orange",           de: "Orangefarbener Blob",   nl: "Oranje blob",           da: "Orange klump"          },
-  countdown:    { it: "Barra progressiva",     en: "Progress bar",         fr: "Barre de progression",  de: "Fortschrittsbalken",    nl: "Voortgangsbalk",        da: "Fremskridtsbjælke"     },
-  hourglass:    { it: "Riempimento verticale", en: "Vertical fill",        fr: "Remplissage vertical",  de: "Vertikale Füllung",     nl: "Verticale vulling",     da: "Vertikal fyldning"     },
-  timer_pulse:  { it: "Pulsante veloce",       en: "Fast pulse",           fr: "Pulsation rapide",      de: "Schneller Puls",        nl: "Snelle puls",           da: "Hurtig puls"           },
-  timer_ring:   { it: "Anello SVG",            en: "SVG ring",             fr: "Anneau SVG",            de: "SVG-Ring",              nl: "SVG ring",              da: "SVG-ring"              },
+  emergency:    { it: "Pulsante rosso",        en: "Red button",           fr: "Bouton rouge",          de: "Roter Knopf",           nl: "Rode knop"            },
+  fire:         { it: "Fiamma",                en: "Flame",                fr: "Flamme",                de: "Flamme",                nl: "Vlam"                 },
+  alarm:        { it: "Strobo",                en: "Strobe",               fr: "Stroboscope",           de: "Stroboskop",            nl: "Stroboscoop"          },
+  lightning:    { it: "Fulmine",               en: "Lightning bolt",       fr: "Éclair",                de: "Blitz",                 nl: "Bliksem"              },
+  nuclear:      { it: "Radiazione",            en: "Radiation",            fr: "Radiation",             de: "Strahlung",             nl: "Straling"             },
+  flood:        { it: "Onde animate",          en: "Animated waves",       fr: "Vagues animées",        de: "Wellen animiert",       nl: "Geanimeerde golven"   },
+  motion:       { it: "Night-vision scan",     en: "Night-vision scan",    fr: "Scan vision nocturne",  de: "Nachtsicht-Scan",       nl: "Nachtzicht scan"      },
+  intruder:     { it: "Sirena rossa",          en: "Red siren",            fr: "Sirène rouge",          de: "Rote Sirene",           nl: "Rode sirene"          },
+  toxic:        { it: "Bolle verdi",           en: "Green bubbles",        fr: "Bulles vertes",         de: "Grüne Blasen",          nl: "Groene bellen"        },
+  warning:      { it: "Bordo ambra",           en: "Amber border",         fr: "Bordure ambrée",        de: "Bernsteinrahmen",       nl: "Amber rand"           },
+  caution:      { it: "Nastro giallo",         en: "Yellow tape",          fr: "Ruban jaune",           de: "Gelbes Band",           nl: "Geel lint"            },
+  radar:        { it: "Sonar sweep",           en: "Sonar sweep",          fr: "Balayage sonar",        de: "Sonar-Scan",            nl: "Sonar sweep"          },
+  temperature:  { it: "Termometro",            en: "Thermometer",          fr: "Thermomètre",           de: "Thermometer",           nl: "Thermometer"          },
+  battery:      { it: "Scarica",               en: "Draining",             fr: "En décharge",           de: "Entladen",              nl: "Ontladen"             },
+  door:         { it: "Porta aperta",          en: "Open door",            fr: "Porte ouverte",         de: "Offene Tür",            nl: "Open deur"            },
+  window:       { it: "Finestra aperta",       en: "Open window",          fr: "Fenêtre ouverte",       de: "Offenes Fenster",       nl: "Open raam"            },
+  smoke:        { it: "Fumo grigio",           en: "Grey smoke",           fr: "Fumée grise",           de: "Grauer Rauch",          nl: "Grijze rook"          },
+  wind:         { it: "Raffiche",              en: "Gusts",                fr: "Rafales",               de: "Böen",                  nl: "Windvlagen"           },
+  leak:         { it: "Gocce",                 en: "Drops",                fr: "Gouttes",               de: "Tropfen",               nl: "Druppels"             },
+  info:         { it: "Bordo blu",             en: "Blue border",          fr: "Bordure bleue",         de: "Blauer Rand",           nl: "Blauwe rand"          },
+  notification: { it: "Bubble",                en: "Bubble",               fr: "Bulle",                 de: "Blase",                 nl: "Ballon"               },
+  aurora:       { it: "Animato",               en: "Animated",             fr: "Animé",                 de: "Animiert",              nl: "Geanimeerd"           },
+  hologram:     { it: "Olografico",            en: "Holographic",          fr: "Holographique",         de: "Holografisch",          nl: "Holografisch"         },
+  presence:     { it: "Ping radar",            en: "Radar ping",           fr: "Ping radar",            de: "Radar-Ping",            nl: "Radar ping"           },
+  update:       { it: "Anello rotante",        en: "Rotating ring",        fr: "Anneau rotatif",        de: "Rotierender Ring",      nl: "Roterende ring"       },
+  cloud:        { it: "Nuvola",                en: "Cloud puff",           fr: "Nuage",                 de: "Wolke",                 nl: "Wolk"                 },
+  satellite:    { it: "Segnale",               en: "Signal",               fr: "Signal",                de: "Signal",                nl: "Signaal"              },
+  tips:         { it: "Consiglio",             en: "Tip",                  fr: "Conseil",               de: "Tipp",                  nl: "Tip"                  },
+  success:      { it: "Verde",                 en: "Green",                fr: "Vert",                  de: "Grün",                  nl: "Groen"                },
+  check:        { it: "Anello pulsante",       en: "Pulsing ring",         fr: "Anneau pulsant",        de: "Pulsierender Ring",     nl: "Pulserende ring"      },
+  confetti:     { it: "Coriandoli",            en: "Confetti",             fr: "Confettis",             de: "Konfetti",              nl: "Confetti"             },
+  heartbeat:    { it: "ECG pulsante",          en: "Pulsing ECG",          fr: "ECG pulsant",           de: "Pulsierendes EKG",      nl: "Pulserend ECG"        },
+  shield:       { it: "Scudo + scan",          en: "Shield scan",          fr: "Bouclier + scan",       de: "Schild-Scan",           nl: "Schild scan"          },
+  power:        { it: "Fulmine verde",         en: "Green bolt",           fr: "Éclair vert",           de: "Grüner Blitz",          nl: "Groene bliksem"       },
+  sunrise:      { it: "Alba",                  en: "Sunrise glow",         fr: "Lueur de l'aube",       de: "Sonnenaufgang",         nl: "Ochtendgloren"        },
+  plant:        { it: "Crescita",              en: "Growing",              fr: "Croissance",            de: "Wachstum",              nl: "Groeiend"             },
+  lock:         { it: "Sicuro",                en: "Secure",               fr: "Sécurisé",              de: "Gesichert",             nl: "Beveiligd"            },
+  ticker:       { it: "Scorrevole",            en: "Scrolling",            fr: "Défilant",              de: "Laufschrift",           nl: "Scrollend"            },
+  neon:         { it: "Cyberpunk",             en: "Cyberpunk",            fr: "Cyberpunk",             de: "Cyberpunk",             nl: "Cyberpunk"            },
+  glass:        { it: "Glassmorphism",         en: "Glassmorphism",        fr: "Glassmorphism",         de: "Glassmorphism",         nl: "Glassmorphism"        },
+  matrix:       { it: "Terminale",             en: "Terminal",             fr: "Terminal",              de: "Terminal",              nl: "Terminal"             },
+  minimal:      { it: "Pulito",                en: "Clean",                fr: "Épuré",                 de: "Aufgeräumt",            nl: "Opgeruimd"            },
+  retro:        { it: "CRT fosforescente",     en: "Phosphor CRT",         fr: "CRT phosphore",         de: "Phosphor-CRT",          nl: "Fosfor CRT"           },
+  cyberpunk:    { it: "Neon viola/cyan",       en: "Purple/cyan neon",     fr: "Néon violet/cyan",      de: "Lila/Cyan Neon",        nl: "Paars/cyan neon"      },
+  vapor:        { it: "Vaporwave grid",        en: "Vaporwave grid",       fr: "Vaporwave grid",        de: "Vaporwave-Raster",      nl: "Vaporwave raster"     },
+  lava:         { it: "Blob arancio",          en: "Orange blob",          fr: "Blob orange",           de: "Orangefarbener Blob",   nl: "Oranje blob"          },
+  countdown:    { it: "Barra progressiva",     en: "Progress bar",         fr: "Barre de progression",  de: "Fortschrittsbalken",    nl: "Voortgangsbalk"       },
+  hourglass:    { it: "Riempimento verticale", en: "Vertical fill",        fr: "Remplissage vertical",  de: "Vertikale Füllung",     nl: "Verticale vulling"    },
+  timer_pulse:  { it: "Pulsante veloce",       en: "Fast pulse",           fr: "Pulsation rapide",      de: "Schneller Puls",        nl: "Snelle puls"          },
+  timer_ring:   { it: "Anello SVG",            en: "SVG ring",             fr: "Anneau SVG",            de: "SVG-Ring",              nl: "SVG ring"             },
 };
 
 // Category group name translations
 const THEME_GROUP_I18N = {
-  critical: { it: "Critico",      en: "Critical",  fr: "Critique",     de: "Kritisch",   nl: "Kritiek",       vi: "Nghiêm trọng", ru: "Критично",    da: "Kritisk"     },
-  warning:  { it: "Attenzione",   en: "Warning",   fr: "Attention",    de: "Warnung",    nl: "Waarschuwing",  vi: "Cảnh báo",     ru: "Внимание",    da: "Advarsel"    },
-  info:     { it: "Informazione", en: "Info",      fr: "Information",  de: "Info",       nl: "Informatie",    vi: "Thông tin",    ru: "Информация",  da: "Information" },
-  ok:       { it: "Tutto OK",     en: "All Clear", fr: "Tout va bien", de: "Alles OK",   nl: "Alles OK",      vi: "Tất cả ổn",    ru: "Всё OK",      da: "Alt OK"      },
-  style:    { it: "Stile",        en: "Style",     fr: "Style",        de: "Stil",       nl: "Stijl",         vi: "Phong cách",   ru: "Стиль",       da: "Stil"        },
+  critical: { it: "Critico",      en: "Critical",  fr: "Critique",     de: "Kritisch",   nl: "Kritiek",       vi: "Nghiêm trọng", ru: "Критично"   },
+  warning:  { it: "Attenzione",   en: "Warning",   fr: "Attention",    de: "Warnung",    nl: "Waarschuwing",  vi: "Cảnh báo",     ru: "Внимание"   },
+  info:     { it: "Informazione", en: "Info",      fr: "Information",  de: "Info",       nl: "Informatie",    vi: "Thông tin",    ru: "Информация" },
+  ok:       { it: "Tutto OK",     en: "All Clear", fr: "Tout va bien", de: "Alles OK",   nl: "Alles OK",      vi: "Tất cả ổn",    ru: "Всё OK"     },
+  style:    { it: "Stile",        en: "Style",     fr: "Style",        de: "Stil",       nl: "Stijl",         vi: "Phong cách",   ru: "Стиль"      },
 };
 
 // ---------------------------------------------------------------------------
@@ -1725,6 +2111,7 @@ const THEME_OPTIONS = [
   { value: "temperature"  },
   { value: "battery"      },
   { value: "door"         },
+  { value: "window"       },
   { value: "smoke"        },
   { value: "wind"         },
   { value: "leak"         },
@@ -1769,20 +2156,69 @@ class AlertTickerCardEditor extends LitElement {
     return {
       _config: { type: Object },
       _hass: {},
-      _activeTab: { type: String },
-      _editingIndex: { type: Number },   // index of alert currently being edited, -1 = none
+      _activeSection: { type: String },
+      _editingIndex: { type: Number },
       _filterPreviewOpen: { type: Object },
       _lang: { type: String },
+      _haUsers: { type: Array },
     };
   }
 
   constructor() {
     super();
-    this._activeTab = "general";
+    this._activeSection = null; // null = hub
     this._editingIndex = -1;            // -1 = no alert being edited
     this._filterPreviewOpen = new Set();
     this._lang = "en";
     this._initializing = false;         // true during first render microtask burst
+    this._haUsers = null;               // null = not yet fetched, [] = fetch failed/empty
+    this._haUsersFetching = false;
+  }
+
+  _onTimeInput(e) {
+    const inp = e.target.shadowRoot?.querySelector("input") || e.target;
+    const pos = inp.selectionStart;
+    const raw = inp.value;
+    const digits = raw.replace(/\D/g, "").slice(0, 4);
+    let formatted = digits;
+    if (digits.length > 2) formatted = digits.slice(0, 2) + ":" + digits.slice(2);
+    if (inp.value !== formatted) {
+      inp.value = formatted;
+      // keep cursor after the colon when auto-inserted
+      const newPos = formatted.length === 3 && pos === 2 ? 3 : Math.min(pos, formatted.length);
+      try { inp.setSelectionRange(newPos, newPos); } catch (_) {}
+    }
+  }
+
+  _saveTimeField(e, alert, index, field) {
+    const inp = e.target.shadowRoot?.querySelector("input") || e.target;
+    let val = (inp.value || "").trim();
+    const m = val.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (m) {
+      const h   = Math.min(parseInt(m[1], 10), 23);
+      const min = Math.min(parseInt(m[2], 10), 59);
+      val = String(h).padStart(2, "0") + ":" + String(min).padStart(2, "0");
+      inp.value = val;
+    } else {
+      val = "";
+      inp.value = "";
+    }
+    const cur = alert.time_range || {};
+    const other = field === "from" ? "to" : "from";
+    const updated = val ? { ...cur, [field]: val } : (cur[other] ? { [other]: cur[other] } : undefined);
+    this._updateAlert(index, { time_range: updated });
+  }
+
+  async _fetchHaUsers() {
+    if (this._haUsersFetching || !this._hass) return;
+    this._haUsersFetching = true;
+    try {
+      const users = await this._hass.callWS({ type: "config/auth/list" });
+      this._haUsers = (users || []).filter(u => u.is_active && !u.system_generated);
+    } catch (_) {
+      this._haUsers = [];
+    }
+    this._haUsersFetching = false;
   }
 
   // Select or deselect an alert for editing.
@@ -1887,7 +2323,7 @@ class AlertTickerCardEditor extends LitElement {
       emergency: "🚨", fire: "🔥", alarm: "🔴", lightning: "🌩️", nuclear: "☢️",
       flood: "🌊", motion: "👁️", intruder: "🚷", toxic: "☠️",
       warning: "⚠️", caution: "🟡", radar: "🎯", temperature: "🌡️",
-      battery: "🔋", door: "🚪", smoke: "🌫️", wind: "💨", leak: "💧",
+      battery: "🔋", door: "🚪", window: "🪟", smoke: "🌫️", wind: "💨", leak: "💧",
       info: "ℹ️", notification: "🔔", aurora: "🌌", hologram: "🔷",
       presence: "🏠", update: "🔄", cloud: "☁️", satellite: "📡", tips: "💡",
       success: "✅", check: "🟢", confetti: "🎉", heartbeat: "💓",
@@ -1921,34 +2357,90 @@ class AlertTickerCardEditor extends LitElement {
   // -------------------------------------------------------------------------
   render() {
     if (!this._config) return html``;
-
+    const s = this._activeSection;
     return html`
       <div class="editor-wrapper">
-        ${this._renderTabs()}
-        ${this._activeTab === "general" ? this._renderGeneralTab() : this._renderAlertsTab()}
+        ${s === null       ? this._renderHub()        :
+          s === "general"  ? this._renderGeneralTab()  :
+          s === "layout"   ? this._renderLayoutTab()   :
+          s === "overlay"  ? this._renderOverlayTab()  :
+          s === "allclear" ? this._renderAllClearTab()  :
+          this._renderAlertsTab()}
         <div class="version-badge">${this._t("version")}: ${CARD_VERSION}</div>
       </div>
     `;
   }
 
-  _renderTabs() {
+  _renderHub() {
+    const cfg = this._config;
+    const alertCount = (cfg.alerts || []).length;
+    const overlayOn  = !!cfg.overlay_mode;
+    const clearOn    = !!cfg.show_when_clear;
     return html`
-      <div class="tabs">
-        <button
-          class="tab-btn ${this._activeTab === "general" ? "active" : ""}"
-          @click="${() => this._tabChanged("general")}"
-        >
-          ${this._t("tab_general")}
+      <div class="hub-header">
+        <span class="hub-title">🚨 Alert Ticker Card</span>
+        <span class="hub-version">v${CARD_VERSION}</span>
+      </div>
+
+      <div class="hub-welcome">
+        <p class="hub-welcome-text">${this._t("hub_welcome")}</p>
+      </div>
+
+      <!-- Alerts — full width -->
+      <button class="hub-tile hub-tile--wide" @click="${() => this._sectionChanged("alerts")}">
+        <span class="hub-tile-icon">🚨</span>
+        <div class="hub-tile-text">
+          <span class="hub-tile-label">${this._t("tab_alerts")}</span>
+          <span class="hub-tile-desc">${this._t("hub_desc_alerts")}</span>
+        </div>
+        ${alertCount > 0 ? html`<span class="hub-badge hub-badge--alerts">${alertCount}</span>` : ""}
+      </button>
+
+      <!-- 2×2 grid -->
+      <div class="hub-grid">
+        <button class="hub-tile" @click="${() => this._sectionChanged("general")}">
+          <span class="hub-tile-icon">⚙️</span>
+          <span class="hub-tile-label">${this._t("tab_general")}</span>
+          <span class="hub-tile-desc">${this._t("hub_desc_general")}</span>
         </button>
-        <button
-          class="tab-btn ${this._activeTab === "alerts" ? "active" : ""}"
-          @click="${() => this._tabChanged("alerts")}"
-        >
-          ${this._t("tab_alerts")}
-          ${this._config.alerts && this._config.alerts.length > 0
-            ? html`<span class="tab-count">(${this._config.alerts.length})</span>`
-            : ""}
+        <button class="hub-tile" @click="${() => this._sectionChanged("layout")}">
+          <span class="hub-tile-icon">🖼️</span>
+          <span class="hub-tile-label">${this._t("tab_layout")}</span>
+          <span class="hub-tile-desc">${this._t("hub_desc_layout")}</span>
         </button>
+        <button class="hub-tile" @click="${() => this._sectionChanged("overlay")}">
+          <span class="hub-tile-icon">🔔</span>
+          <span class="hub-tile-label">${this._t("tab_overlay")}</span>
+          <span class="hub-tile-desc">${this._t("hub_desc_overlay")}</span>
+          ${overlayOn ? html`<span class="hub-badge hub-badge--on">ON</span>` : ""}
+        </button>
+        <button class="hub-tile" @click="${() => this._sectionChanged("allclear")}">
+          <span class="hub-tile-icon">✅</span>
+          <span class="hub-tile-label">${this._t("tab_allclear")}</span>
+          <span class="hub-tile-desc">${this._t("hub_desc_allclear")}</span>
+          ${clearOn ? html`<span class="hub-badge hub-badge--on">ON</span>` : ""}
+        </button>
+      </div>
+
+      <div class="hub-footer">
+        <span class="hub-footer-love">Made with ❤️ by <strong>djdevil</strong></span>
+        <span class="hub-footer-links">
+          <a class="hub-footer-link" href="https://github.com/djdevil/AlertTicker-Card/issues" target="_blank" rel="noopener">🐛 ${this._t("hub_report_issue")}</a>
+          <a class="hub-footer-bmc" href="https://www.buymeacoffee.com/divil17f" target="_blank" rel="noopener">
+            <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" />
+          </a>
+        </span>
+      </div>
+    `;
+  }
+
+  _renderSectionHeader(titleKey) {
+    return html`
+      <div class="section-header">
+        <button class="section-back-btn" @click="${() => this._sectionChanged(null)}">
+          &#8592; <span>${this._t("back")}</span>
+        </button>
+        <span class="section-header-title">${this._t(titleKey)}</span>
       </div>
     `;
   }
@@ -1997,46 +2489,11 @@ class AlertTickerCardEditor extends LitElement {
     `;
   }
 
-  _renderGeneralTab() {
+  _renderLayoutTab() {
     const cfg = this._config;
-
     return html`
+      ${this._renderSectionHeader("tab_layout")}
 
-      <!-- ── ALL CLEAR CARD ─────────────────────────────────────────────── -->
-      <div class="section-divider">✅ ${this._t("section_all_clear")}</div>
-      <div class="form-row">
-        <div class="form-row-inline">
-          <span>${this._t("show_when_clear")}</span>
-          <ha-switch
-            .checked="${cfg.show_when_clear === true}"
-            @change="${(e) => this._showWhenClearChanged(e.target.checked)}"
-          ></ha-switch>
-        </div>
-      </div>
-      ${cfg.show_when_clear ? html`
-        <div class="form-row">
-          <ha-textfield
-            .label="${this._t("clear_message")}"
-            .value="${cfg.clear_message || ""}"
-            @change="${(e) => this._clearMessageChanged(e.target.value)}"
-          ></ha-textfield>
-        </div>
-        <div class="form-row">
-          <ha-textfield
-            .label="${this._t("clear_badge_label")}"
-            .value="${cfg.clear_badge_label || ""}"
-            @change="${(e) => this._fireConfig({ ...this._config, clear_badge_label: e.target.value.trim() || undefined })}"
-          ></ha-textfield>
-        </div>
-        <div class="form-row">
-          ${this._renderThemeSelect("clear_theme", cfg.clear_theme || "success", (v) => this._clearThemeChanged(v), true)}
-        </div>
-        ${this._renderCardActionConfig("clear_tap_action",        this._t("clear_tap_action_section"))}
-        ${this._renderCardActionConfig("clear_double_tap_action", this._t("clear_double_tap_action_section"))}
-        ${this._renderCardActionConfig("clear_hold_action",       this._t("clear_hold_action_section"))}
-      ` : ""}
-
-      <!-- ── LAYOUT & APPEARANCE ───────────────────────────────────────── -->
       <div class="section-divider">🖼️ ${this._t("section_layout")}</div>
       <div class="form-row">
         <div class="form-row-inline">
@@ -2089,6 +2546,24 @@ class AlertTickerCardEditor extends LitElement {
         ></ha-textfield>
         <div class="helper-text">${this._t("card_height_help")}</div>
       </div>
+      <div class="form-row">
+        <div class="toggle-row">
+          <span>${this._t("card_border")}</span>
+          <ha-switch
+            .checked="${!!cfg.card_border}"
+            @change="${(e) => this._fireConfig({ ...this._config, card_border: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+        <div class="helper-text">${this._t("card_border_help")}</div>
+      </div>
+    `;
+  }
+
+  _renderGeneralTab() {
+    const cfg = this._config;
+
+    return html`
+      ${this._renderSectionHeader("tab_general")}
 
       <!-- ── CYCLING & ANIMATION ───────────────────────────────────────── -->
       <div class="section-divider">🔄 ${this._t("section_cycling")}</div>
@@ -2169,10 +2644,145 @@ class AlertTickerCardEditor extends LitElement {
     `;
   }
 
+  _renderAllClearTab() {
+    const cfg = this._config;
+    return html`
+      ${this._renderSectionHeader("tab_allclear")}
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("show_when_clear")}</span>
+          <ha-switch
+            .checked="${cfg.show_when_clear === true}"
+            @change="${(e) => this._showWhenClearChanged(e.target.checked)}"
+          ></ha-switch>
+        </div>
+      </div>
+      ${cfg.show_when_clear ? html`
+        <!-- Display mode -->
+        <div class="form-row">
+          <div class="native-select-wrap">
+            <label class="native-select-label">${this._t("clear_display_mode_label")}</label>
+            <select class="native-select"
+              @change="${(e) => this._fireConfig({ ...this._config, clear_display_mode: e.target.value })}"
+            >
+              <option value="message"       ?selected="${(cfg.clear_display_mode || 'message') === 'message'}">${this._t("clear_mode_message")}</option>
+              <option value="clock"         ?selected="${cfg.clear_display_mode === 'clock'}">${this._t("clear_mode_clock")}</option>
+              <option value="weather"       ?selected="${cfg.clear_display_mode === 'weather'}">${this._t("clear_mode_weather")}</option>
+              <option value="weather_clock" ?selected="${cfg.clear_display_mode === 'weather_clock'}">${this._t("clear_mode_weather_clock")}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Weather entity (only for weather/weather_clock modes) -->
+        ${(cfg.clear_display_mode === 'weather' || cfg.clear_display_mode === 'weather_clock') ? html`
+          <div class="form-row">
+            <ha-entity-picker
+              .hass="${this._hass}"
+              .value="${cfg.clear_weather_entity || ''}"
+              .includeDomains="${['weather']}"
+              .label="${this._t("clear_weather_entity_label")}"
+              allow-custom-entity
+              @value-changed="${(e) => this._fireConfig({ ...this._config, clear_weather_entity: e.detail.value || undefined })}"
+            ></ha-entity-picker>
+          </div>
+        ` : ''}
+
+        <!-- Message fields (only for message mode) -->
+        ${(!cfg.clear_display_mode || cfg.clear_display_mode === 'message') ? html`
+        <div class="form-row">
+          <ha-textfield
+            .label="${this._t("clear_message")}"
+            .value="${cfg.clear_message || ""}"
+            @change="${(e) => this._clearMessageChanged(e.target.value)}"
+          ></ha-textfield>
+        </div>
+        <div class="form-row">
+          <ha-textfield
+            .label="${this._t("clear_badge_label")}"
+            .value="${cfg.clear_badge_label || ""}"
+            @change="${(e) => this._fireConfig({ ...this._config, clear_badge_label: e.target.value.trim() || undefined })}"
+          ></ha-textfield>
+        </div>
+        <div class="form-row">
+          ${this._renderThemeSelect("clear_theme", cfg.clear_theme || "success", (v) => this._clearThemeChanged(v), true)}
+        </div>
+        ${this._renderCardActionConfig("clear_tap_action",        this._t("clear_tap_action_section"))}
+        ${this._renderCardActionConfig("clear_double_tap_action", this._t("clear_double_tap_action_section"))}
+        ${this._renderCardActionConfig("clear_hold_action",       this._t("clear_hold_action_section"))}
+        ` : ''}
+      ` : html`
+        <div class="helper-text" style="margin-top:8px">${this._t("all_clear_disabled_help")}</div>
+      `}
+    `;
+  }
+
+  _renderOverlayTab() {
+    const cfg = this._config;
+    const pos = cfg.overlay_position || "top";
+    return html`
+      ${this._renderSectionHeader("tab_overlay")}
+      <div class="tab-content">
+        <div class="overlay-box ${cfg.overlay_mode ? "overlay-box--active" : ""}">
+          <div class="overlay-box-header">
+            <div class="overlay-box-icon">🔔</div>
+            <div class="overlay-box-text">
+              <div class="overlay-box-title">
+                ${this._t("section_overlay")}
+                <span class="overlay-box-badge">NEW</span>
+              </div>
+              <div class="overlay-box-desc">${this._t("overlay_mode_help")}</div>
+            </div>
+            <ha-switch
+              ?checked="${!!cfg.overlay_mode}"
+              @change="${(e) => this._fireConfig({ ...this._config, overlay_mode: e.target.checked })}"
+            ></ha-switch>
+          </div>
+          ${cfg.overlay_mode ? html`
+          <div class="overlay-preview-wrap">
+            <div class="overlay-preview-toast">
+              <span style="font-size:22px">🚨</span>
+              <div style="flex:1;min-width:0">
+                <div class="overlay-preview-badge">CRITICAL</div>
+                <div class="overlay-preview-msg">${this._t("overlay_mode")}</div>
+              </div>
+              <span style="opacity:.5;font-size:14px">✕</span>
+            </div>
+          </div>
+          <div class="overlay-how-it-works">💡 ${this._t("overlay_how_works")}</div>
+          <div class="overlay-controls">
+            <div class="native-select-wrap">
+              <label class="native-select-label">${this._t("overlay_position")}</label>
+              <select class="native-select"
+                @change="${(e) => this._fireConfig({ ...this._config, overlay_position: e.target.value })}"
+              >
+                <option value="top"    ?selected="${pos === "top"}">${this._t("overlay_pos_top")}</option>
+                <option value="center" ?selected="${pos === "center"}">${this._t("overlay_pos_center")}</option>
+                <option value="bottom" ?selected="${pos === "bottom"}">${this._t("overlay_pos_bottom")}</option>
+              </select>
+            </div>
+            <ha-textfield
+              type="number"
+              .label="${this._t("overlay_duration")}"
+              .value="${cfg.overlay_duration != null ? String(cfg.overlay_duration) : "8"}"
+              min="0" max="60" placeholder="8"
+              @change="${(e) => {
+                const v = parseInt(e.target.value);
+                this._fireConfig({ ...this._config, overlay_duration: (isNaN(v) || v < 0) ? 8 : v });
+              }}"
+            ></ha-textfield>
+            <div class="helper-text">${this._t("overlay_duration_help")}</div>
+          </div>
+          ` : ""}
+        </div>
+      </div>
+    `;
+  }
+
   _renderAlertsTab() {
     const alerts = this._config.alerts || [];
 
     return html`
+      ${this._renderSectionHeader("tab_alerts")}
       <div class="alerts-header">
         <span>${this._t("alerts_list")}</span>
         <span class="alerts-count">${alerts.length} ${alerts.length === 1 ? "item" : "items"}</span>
@@ -2243,8 +2853,9 @@ class AlertTickerCardEditor extends LitElement {
         </div>
         <span class="alert-icon-badge">${icon}</span>
         <div class="alert-summary-text">
-          <div class="alert-entity-label">${this._t("alert_num")} ${index + 1}: ${entityLabel}</div>
-          ${msgSnippet ? html`<div class="alert-msg-label">${msgSnippet}</div>` : ""}
+          <div class="alert-entity-label">${this._t("alert_num")} ${index + 1}: ${alert.name || entityLabel}</div>
+          ${!alert.name && msgSnippet ? html`<div class="alert-msg-label">${msgSnippet}</div>` : ""}
+          ${alert.name ? html`<div class="alert-msg-label">${entityLabel}</div>` : ""}
         </div>
         <span class="alert-prio-badge prio-${prio}">P${prio}</span>
         <div class="alert-actions">
@@ -2311,6 +2922,15 @@ class AlertTickerCardEditor extends LitElement {
                 ${(alert.entity || "").startsWith("timer.") ? html`
                   <div class="helper-text">${this._t("timer_placeholder_hint")}</div>
                 ` : ""}
+
+                <!-- ── NOME / ETICHETTA (editor only) ───────────────────── -->
+                <ha-textfield
+                  .label="${this._t("alert_name")}"
+                  .value="${alert.name || ""}"
+                  .placeholder="${this._t("alert_name_placeholder")}"
+                  @change="${(e) => this._updateAlert(index, { name: e.target.value.trim() || undefined })}"
+                ></ha-textfield>
+                <div class="helper-text">${this._t("alert_name_help")}</div>
 
                 <!-- ── 1. ENTITÀ ─────────────────────────────────────────── -->
                 <div class="section-divider">🔍 ${this._t("alert_entity")}</div>
@@ -2552,7 +3172,7 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="helper-text">${this._t("auto_dismiss_after_help")}</div>
                 </div>
 
-                <!-- ── 3. MESSAGGIO ──────────────────────────────────────── -->
+                <!-- ── 4. MESSAGGIO ──────────────────────────────────────── -->
                 <div class="section-divider">💬 ${this._t("alert_message")}</div>
 
                 <ha-textfield
@@ -2571,12 +3191,21 @@ class AlertTickerCardEditor extends LitElement {
                       @change="${(e) => this._alertHaIconToggled(e.target.checked, index)}"
                     ></ha-switch>
                   </ha-formfield>
-                  ${alert.use_ha_icon
-                    ? html`<ha-icon-picker
+                  ${alert.use_ha_icon ? html`
+                      <ha-icon-picker
                         .label="${this._t("alert_icon")}"
                         .value="${alert.icon || ""}"
                         @value-changed="${(e) => this._alertIconChanged(e.detail.value, index)}"
                       ></ha-icon-picker>
+                      ${(() => {
+                        if (alert.icon) return "";
+                        const stateObj = this._hass?.states?.[alert.entity];
+                        if (!stateObj) return "";
+                        return html`<div class="auto-icon-preview">
+                          <ha-state-icon .hass="${this._hass}" .stateObj="${stateObj}"></ha-state-icon>
+                          <span>${this._t("auto_icon_preview")}</span>
+                        </div>`;
+                      })()}
                       <div class="icon-color-row">
                         <input
                           type="color"
@@ -2595,15 +3224,9 @@ class AlertTickerCardEditor extends LitElement {
                           }}"
                         ></ha-textfield>
                       </div>
-                      <div class="helper-text">${this._t("icon_color_help")}</div>`
-                    : html`<ha-textfield
-                        .label="${this._t("alert_icon")}"
-                        .value="${alert.icon || ""}"
-                        .placeholder="🔔"
-                        @change="${(e) => this._alertIconChanged(e.target.value, index)}"
-                      ></ha-textfield>`
-                  }
-                  <div class="helper-text">${this._t("alert_icon_help")}</div>
+                      <div class="helper-text">${this._t("icon_color_help")}</div>
+                      <div class="helper-text">${this._t("alert_icon_help")}</div>
+                  ` : ""}
                 </div>
 
                 <!-- Badge -->
@@ -2708,6 +3331,101 @@ class AlertTickerCardEditor extends LitElement {
                   </div>
                 ` : ""}
 
+                <!-- User visibility filter -->
+                ${(() => {
+                  const vt = alert.visible_to;
+                  const isCustom = vt && vt !== "admin" && vt !== "non_admin";
+                  const selectVal = !vt ? "all" : isCustom ? "custom" : vt;
+                  // Trigger user list fetch when custom is active
+                  if (selectVal === "custom" && this._haUsers === null) this._fetchHaUsers();
+                  const selectedNames = isCustom
+                    ? (Array.isArray(vt) ? vt : (vt ? [vt] : []))
+                    : [];
+                  return html`
+                    <div class="section-divider">${this._t("visible_to_section")}</div>
+                    <div class="form-row">
+                      <ha-select
+                        .label="${this._t("visible_to_label")}"
+                        .value="${selectVal}"
+                        fixedMenuPosition naturalMenuWidth
+                        @closed="${(e) => e.stopPropagation()}"
+                      >
+                        ${["all","admin","non_admin","custom"].map(opt => html`
+                          <mwc-list-item value="${opt}" ?selected="${selectVal === opt}"
+                            @request-selected="${(e) => {
+                              if (e.detail.source !== "interaction") return;
+                              const v = e.target.getAttribute("value");
+                              if (v === "custom" && this._haUsers === null) this._fetchHaUsers();
+                              const newVal = v === "all" ? null : v === "custom" ? [] : v;
+                              this._updateAlert(index, { visible_to: newVal });
+                            }}"
+                          >${this._t("visible_to_" + opt)}</mwc-list-item>
+                        `)}
+                      </ha-select>
+                      <div class="helper-text">${this._t("visible_to_help")}</div>
+                    </div>
+                    ${selectVal === "custom" ? html`
+                      <div class="form-row">
+                        ${this._haUsers === null ? html`
+                          <div class="helper-text">⏳ ${this._t("visible_to_loading")}</div>
+                        ` : this._haUsers.length === 0 ? html`
+                          <ha-textfield
+                            .label="${this._t("visible_to_users_label")}"
+                            .value="${selectedNames.join(", ")}"
+                            @change="${(e) => {
+                              const parts = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+                              this._updateAlert(index, { visible_to: parts.length === 1 ? parts[0] : parts.length > 1 ? parts : undefined });
+                            }}"
+                          ></ha-textfield>
+                        ` : html`
+                          <div class="visible-to-user-list">
+                            ${this._haUsers.map(u => {
+                              const checked = selectedNames.includes(u.name);
+                              return html`
+                                <ha-formfield .label="${u.name}${u.is_admin ? " ★" : ""}">
+                                  <ha-checkbox
+                                    ?checked="${checked}"
+                                    @change="${(e) => {
+                                      const names = [...selectedNames];
+                                      if (e.target.checked) { if (!names.includes(u.name)) names.push(u.name); }
+                                      else { const i = names.indexOf(u.name); if (i !== -1) names.splice(i, 1); }
+                                      this._updateAlert(index, { visible_to: names.length === 0 ? undefined : names.length === 1 ? names[0] : names });
+                                    }}"
+                                  ></ha-checkbox>
+                                </ha-formfield>
+                              `;
+                            })}
+                          </div>
+                        `}
+                      </div>
+                    ` : ""}
+                  `;
+                })()}
+
+                <!-- Time range -->
+                <div class="section-divider">${this._t("time_range_section")}</div>
+                <div class="form-row form-row--two-col">
+                  <ha-textfield
+                    .label="${this._t("time_range_from")}"
+                    .value="${alert.time_range?.from || ""}"
+                    placeholder="HH:MM"
+                    maxlength="5"
+                    inputmode="numeric"
+                    @input="${(e) => this._onTimeInput(e)}"
+                    @blur="${(e) => this._saveTimeField(e, alert, index, "from")}"
+                  ></ha-textfield>
+                  <ha-textfield
+                    .label="${this._t("time_range_to")}"
+                    .value="${alert.time_range?.to || ""}"
+                    placeholder="HH:MM"
+                    maxlength="5"
+                    inputmode="numeric"
+                    @input="${(e) => this._onTimeInput(e)}"
+                    @blur="${(e) => this._saveTimeField(e, alert, index, "to")}"
+                  ></ha-textfield>
+                </div>
+                <div class="helper-text">${this._t("time_range_help")}</div>
+
                 <!-- Tap action / Hold action / Snooze action -->
                 ${this._renderActionConfig(alert, index, "tap_action",        this._t("tap_action_section"))}
                 ${this._renderActionConfig(alert, index, "double_tap_action", this._t("double_tap_action_section"))}
@@ -2762,8 +3480,8 @@ class AlertTickerCardEditor extends LitElement {
   // -------------------------------------------------------------------------
   // Event handlers — tabs & general
   // -------------------------------------------------------------------------
-  _tabChanged(tab) {
-    this._activeTab = tab;
+  _sectionChanged(section) {
+    this._activeSection = section;
     this.requestUpdate();
   }
 
@@ -2898,9 +3616,11 @@ class AlertTickerCardEditor extends LitElement {
   _alertHaIconToggled(checked, index) {
     const alert = (this._config.alerts || [])[index] || {};
     if (checked) {
-      // Try to read the mdi icon from the entity's attributes
-      const entityIcon = this._hass?.states[alert.entity]?.attributes?.icon || "";
-      this._updateAlert(index, { use_ha_icon: true, icon: entityIcon });
+      // Pre-fill icon from entity registry or state attributes; leave empty if none found
+      const entityIcon = this._hass?.entities?.[alert.entity]?.icon
+                      || this._hass?.states?.[alert.entity]?.attributes?.icon
+                      || "";
+      this._updateAlert(index, { use_ha_icon: true, icon: entityIcon || undefined });
     } else {
       // Restore the theme default emoji, clear icon_color
       const themeIcon = (THEME_META[alert.theme] || {}).icon || "";
@@ -3233,6 +3953,239 @@ class AlertTickerCardEditor extends LitElement {
         font-size: 0.9rem;
         opacity: 0.75;
       }
+      .tab-count--on {
+        background: var(--primary-color, #03a9f4);
+        color: #fff;
+        border-radius: 8px;
+        padding: 1px 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        opacity: 1;
+        letter-spacing: 0.5px;
+      }
+
+      /* ---- Hub welcome ---- */
+      .hub-welcome {
+        padding: 10px 2px 6px;
+      }
+      .hub-welcome-text {
+        font-size: 0.82rem;
+        color: var(--secondary-text-color, #888);
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      /* ---- Hub header & footer ---- */
+      .hub-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 4px 0 12px;
+        border-bottom: 2px solid var(--primary-color, #03a9f4);
+        margin-bottom: 4px;
+      }
+      .hub-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--primary-text-color, #212121);
+        letter-spacing: 0.3px;
+      }
+      .hub-version {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--primary-color, #03a9f4);
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 12%, transparent);
+        padding: 1px 7px;
+        border-radius: 10px;
+      }
+      .hub-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 0 4px;
+        margin-top: 8px;
+        border-top: 1px solid var(--divider-color, #ddd);
+      }
+      .hub-footer-love {
+        font-size: 0.8rem;
+        color: var(--secondary-text-color, #888);
+      }
+      .hub-footer-love strong {
+        color: var(--primary-text-color, #212121);
+      }
+      .hub-footer-links {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .hub-footer-link {
+        font-size: 0.78rem;
+        color: var(--primary-color, #03a9f4);
+        text-decoration: none;
+        padding: 4px 10px;
+        border: 1px solid var(--primary-color, #03a9f4);
+        border-radius: 14px;
+        transition: background 0.15s;
+      }
+      .hub-footer-link:hover {
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 10%, transparent);
+      }
+      .hub-footer-bmc img {
+        height: 32px;
+        display: block;
+        border-radius: 6px;
+      }
+
+      /* ---- Hub & spoke navigation ---- */
+      .hub-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 8px 0 4px;
+      }
+      .hub-tile {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 18px 8px;
+        border: 1px solid var(--divider-color, #ddd);
+        border-radius: 12px;
+        background: var(--card-background-color, #fff);
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+        font-family: inherit;
+      }
+      .hub-tile:hover {
+        background: var(--secondary-background-color, #f5f5f5);
+        border-color: var(--primary-color, #03a9f4);
+      }
+      .hub-tile--wide {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 14px;
+        padding: 14px 16px;
+        width: 100%;
+        margin-top: 6px;
+        margin-bottom: 10px;
+        border-color: var(--primary-color, #03a9f4);
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 6%, var(--card-background-color, #fff));
+        box-sizing: border-box;
+      }
+      .hub-tile--wide:hover {
+        background: color-mix(in srgb, var(--primary-color, #03a9f4) 14%, var(--card-background-color, #fff));
+      }
+      .hub-tile--wide .hub-tile-icon {
+        font-size: 2rem;
+        flex-shrink: 0;
+      }
+      .hub-tile-text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+      }
+      .hub-tile--wide .hub-tile-label {
+        text-align: left;
+        font-size: 0.95rem;
+      }
+      .hub-tile--wide .hub-tile-desc {
+        text-align: left;
+      }
+      .hub-badge--alerts {
+        position: relative;
+        top: auto;
+        right: auto;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        border-radius: 11px;
+        background: var(--primary-color, #03a9f4);
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .hub-tile-icon {
+        font-size: 1.8rem;
+        line-height: 1;
+      }
+      .hub-tile-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary-text-color, #212121);
+        text-align: center;
+      }
+      .hub-tile-desc {
+        font-size: 0.7rem;
+        color: var(--secondary-text-color, #888);
+        text-align: center;
+        line-height: 1.3;
+      }
+      .hub-badge {
+        position: absolute;
+        top: 6px;
+        right: 8px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: var(--secondary-text-color, #888);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+      .hub-badge--on {
+        background: var(--success-color, #4caf50);
+      }
+
+      /* ---- Section header (back button) ---- */
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--divider-color, #ddd);
+      }
+      .section-back-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border: 1px solid var(--divider-color, #ddd);
+        border-radius: 20px;
+        background: none;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: var(--primary-color, #03a9f4);
+        font-family: inherit;
+        transition: background 0.15s;
+      }
+      .section-back-btn:hover {
+        background: var(--secondary-background-color, #f5f5f5);
+      }
+      .section-header-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--primary-text-color, #212121);
+      }
 
       /* ---- Form rows ---- */
       .form-row {
@@ -3242,6 +4195,13 @@ class AlertTickerCardEditor extends LitElement {
       .form-row ha-textfield {
         width: 100%;
       }
+
+      .form-row--two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .form-row--two-col ha-textfield { width: 100%; }
 
       .form-row-inline {
         display: flex;
@@ -3253,6 +4213,21 @@ class AlertTickerCardEditor extends LitElement {
         font-size: 0.85rem;
         color: var(--secondary-text-color, #888);
         margin-top: 4px;
+      }
+      .auto-icon-preview {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+        padding: 4px 10px 4px 6px;
+        border-radius: 12px;
+        background: var(--primary-color, #03a9f4);
+        color: var(--text-primary-color, #fff);
+        font-size: 0.8rem;
+        opacity: 0.85;
+      }
+      .auto-icon-preview ha-icon {
+        --mdc-icon-size: 16px;
       }
       .icon-color-row {
         display: flex;
@@ -3446,6 +4421,17 @@ class AlertTickerCardEditor extends LitElement {
         font-size: 0.7rem;
         color: var(--secondary-text-color, #888);
       }
+      .visible-to-user-list {
+        margin-top: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        border: 1px solid var(--divider-color, #e0e0e0);
+        border-radius: 6px;
+        padding: 4px 8px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
       .filter-entity-list {
         margin-top: 6px;
         border: 1px solid var(--divider-color, #e0e0e0);
@@ -3638,6 +4624,106 @@ class AlertTickerCardEditor extends LitElement {
         padding: 6px 14px;
         text-align: center;
         letter-spacing: 0.02em;
+      }
+
+      /* ---- Overlay feature box ---- */
+      .overlay-box {
+        margin: 16px 0;
+        border-radius: 12px;
+        border: 2px solid rgba(3,169,244,0.25);
+        background: linear-gradient(135deg, rgba(3,169,244,0.06), rgba(3,169,244,0.02));
+        overflow: hidden;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .overlay-box--active {
+        border-color: rgba(3,169,244,0.6);
+        background: linear-gradient(135deg, rgba(3,169,244,0.12), rgba(3,169,244,0.04));
+      }
+      .overlay-box-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+      }
+      .overlay-box-icon {
+        font-size: 1.6rem;
+        flex-shrink: 0;
+      }
+      .overlay-box-text {
+        flex: 1;
+        min-width: 0;
+      }
+      .overlay-box-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--primary-text-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .overlay-box-badge {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        background: var(--primary-color, #03a9f4);
+        color: #fff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        line-height: 1.6;
+      }
+      .overlay-box-desc {
+        font-size: 0.78rem;
+        color: var(--secondary-text-color, #888);
+        margin-top: 3px;
+        line-height: 1.4;
+      }
+      .overlay-preview-wrap {
+        background: rgba(0,0,0,0.1);
+        padding: 10px 16px;
+        display: flex;
+        justify-content: center;
+      }
+      .overlay-preview-toast {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg,#b71c1c,#c62828);
+        border-left: 3px solid #ff5252;
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: #fff;
+        font-size: 12px;
+        max-width: 340px;
+        width: 100%;
+      }
+      .overlay-preview-badge {
+        font-size: 9px;
+        opacity: 0.75;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 2px;
+      }
+      .overlay-preview-msg {
+        font-weight: 600;
+        font-size: 12px;
+        line-height: 1.3;
+      }
+      .overlay-how-it-works {
+        font-size: 0.8rem;
+        color: var(--primary-color, #03a9f4);
+        padding: 8px 16px;
+        line-height: 1.4;
+        border-top: 1px solid rgba(3,169,244,0.15);
+      }
+      .overlay-controls {
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        border-top: 1px solid rgba(3,169,244,0.15);
+      }
+      .overlay-controls ha-textfield {
+        width: 100%;
       }
 
       /* ---- Empty state ---- */

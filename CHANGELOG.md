@@ -6,6 +6,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-04-19
+
+### Added
+
+- **Global overlay / toast notification** — new `overlay_mode` option that shows a floating banner **anywhere on the dashboard** when a new alert triggers, regardless of which view or tab is currently open. A smart visibility check suppresses the banner when the card itself is already visible on screen (no redundant notification). A lightweight independent watcher (`setInterval` 2 s) reads entity states directly from the always-present `<home-assistant>` element, so the overlay fires even when the card's view is not mounted. Dedup mechanism prevents double-firing on both same-view and cross-view paths. Configurable via the visual editor: position (`top` / `center` / `bottom`), auto-dismiss duration in seconds (0 = manual close only). All 7 languages translated. Falls back silently if anything fails.
+
+- **Overlay banner center position** — new `center` option for `overlay_position` displays the banner in the middle of the screen with a pop-in scale animation instead of the slide-from-top used by the `top` position.
+
+- **Dedicated Overlay tab in editor** — overlay notification settings moved from the General tab into their own **🔔 Overlay** tab between General and Alerts, with an "ON" badge on the tab when active, for faster discovery and cleaner layout.
+- **`card_border` toggle** — simple on/off switch that shows the standard Home Assistant border (`--ha-card-border-width` / `--ha-card-border-color`) around the card at all times, solving the discoverability problem of the hover-only edit border. Default: off. Configurable via the editor under 🖼️ Layout & Appearance. ([#56](https://github.com/djdevil/AlertTicker-Card/issues/56))
+
+- **Placeholder frame when no alerts are active** — when `card_border` is enabled and no alerts are active (and "Show when clear" is off), the card now renders a subtle dashed-border placeholder with a 🔔 icon and "AlertTicker Card" label instead of being completely invisible. Makes the card discoverable and editable for new users who have just added it. Without `card_border`, the original collapse-the-grid-slot behaviour (issue [#50](https://github.com/djdevil/AlertTicker-Card/issues/50)) is preserved. ([#56](https://github.com/djdevil/AlertTicker-Card/issues/56))
+
+- **Animated `door` and `window` themes** — the `door` theme now renders an animated `mdi:door-open` icon that pivots on its hinge (CSS `perspective rotateY`) to simulate a door swinging open and closed. New `window` theme added with `mdi:window-open-variant` and a top-pivot swing animation (`rotateX`). Both run automatically when the theme is selected — no `use_ha_icon` setting needed. Custom icons and `icon_color` still fully supported. ([#59](https://github.com/djdevil/AlertTicker-Card/issues/59))
+
+- **Per-alert `visible_to` filter** — each alert can now be restricted to specific HA users without needing separate cards or conditional visibility wrappers. Accepts `admin` (admins only), `non_admin` (non-admin users only), a single user display-name string, or a list of names. Omit the field (or leave it empty) to show the alert to everyone. Works for both the card display and the overlay banner. Fully configurable in the editor under a dedicated 👤 User Visibility section per alert. ([#58](https://github.com/djdevil/AlertTicker-Card/issues/58))
+
+- **Manual alert navigation (◀ ▶ buttons + swipe)** — when 2 or more alerts are active, `◀` and `▶` buttons appear on the left/right edges of the card on hover (and on first touch on mobile). Clicking them immediately jumps to the previous/next alert and resets the auto-cycle timer so it counts from zero. On mobile, left/right swipe also navigates (swipe left = next, swipe right = prev). If `swipe_to_snooze: true` is enabled, left swipe keeps its existing snooze behaviour and only right swipe navigates. The swipe gesture is now always registered regardless of `swipe_to_snooze`. ([#65](https://github.com/djdevil/AlertTicker-Card/issues/65))
+
+- **Per-alert `time_range` filter** — each alert can now be restricted to a specific time window using `from` and `to` fields (format `HH:MM`). Supports midnight crossing (e.g. `22:00`–`06:00`). When both fields are empty the alert is always active. The card re-evaluates the condition automatically at each minute boundary so alerts appear and disappear on time without any entity state change. Configurable via the editor under a dedicated 🕐 section per alert. All 8 languages translated. ([#61](https://github.com/djdevil/AlertTicker-Card/issues/61))
+
+- **Per-alert `name` label** — optional `name` field on each alert that replaces the generic "Alert N: entity" header in the editor panel with a descriptive custom name (e.g. "Motion sensors floor 1"). The entity ID is shown as a subtitle when a name is set. Purely an editor UI label — does not affect the card display. Configurable as the first field in the alert panel. All 8 languages translated. ([#64](https://github.com/djdevil/AlertTicker-Card/issues/64))
+
+- **Auto-icon from HA entity** — when no `icon` is set on an alert, the card now automatically uses the entity's icon from Home Assistant (entity registry override or `attributes.icon`). Any `mdi:` / `hass:` icon is rendered as a native `<ha-icon>` element and respects `icon_color`. Particularly useful with `entity_filter` alerts (e.g. multiple trash sensors) where each entity already has a distinct icon in HA — no manual `icon` field needed per alert. Falls back to the theme emoji or 🔔 if the entity has no icon. ([#62](https://github.com/djdevil/AlertTicker-Card/issues/62))
+
+- **Danish (DA) language support** — full translation of all card labels, editor UI strings, theme default messages, operator names, and overlay notification strings into Danish, contributed by [@kgn3400](https://github.com/kgn3400). ([#57](https://github.com/djdevil/AlertTicker-Card/pull/57))
+
+- **Clear widget — animated weather & clock display** — when `show_when_clear` is enabled, a new `clear_display_mode` option replaces the static all-clear message with a live display. Modes: `message` (default, unchanged), `clock` (digital clock updated every second), `weather` (animated weather background + condition + temperature + wind speed + humidity), `weather_clock` (weather + clock together). Weather backgrounds include full particle animations for sun, stars/moon/aurora, clouds, fog, wind, rain, snow, hail, lightning, and exceptional. Content is shown in frosted-glass corner badges (weather info top-left, clock top-right) so the animated sky stays fully visible. Configure the weather entity via a `ha-entity-picker` filtered to `weather.*` in the editor. Placeholder shown if no entity is selected. All 8 languages translated. ([#63](https://github.com/djdevil/AlertTicker-Card/issues/63))
+
+- **Editor hub redesign** — the hub (main menu) is completely redesigned: an Alerts tile spans the full width at the top; a welcome/description text appears between the header and tiles; each tile shows a short description label in 8 languages; a new 🖼️ Layout & Appearance tile is extracted from the General tile (ha_theme, vertical, text_align, large_buttons, card_height, card_border) so the two concerns are cleanly separated; the hub shows a header with the card title + version badge and a footer with author credit, a Buy-Me-a-Coffee badge, and a GitHub issues link.
+
+### Fixed
+
+- **Snooze menu closes on tap outside** — previously the snooze duration menu could only be dismissed by tapping the 💤 button again, which was awkward especially on mobile. Now a `pointerdown` listener is registered on `document` (capture phase) when the menu opens and uses `composedPath()` to detect taps outside the menu wrapper across the shadow DOM boundary — closing the menu immediately on any outside interaction. The listener self-removes on close and is also cleaned up in `disconnectedCallback` to prevent memory leaks.
+
+- **Tap/hold/double-tap actions blocked on first touch on mobile** — on touch devices the snooze and history buttons are hidden until the card is hovered (CSS `:hover`), but mobile browsers simulate hover on the first tap. This caused the first tap that revealed the buttons to simultaneously fire `tap_action` or start the hold timer. Fixed with a two-step touch model: the first touch on a card that has actions activates a `atc-touch-active` state (revealing buttons) without firing any action; subsequent touches behave normally. The active state auto-resets after 3 seconds of inactivity.
+
+- **`tap_action: toggle` silently did nothing** — `_handleAction` was missing the `toggle` case entirely. Added `homeassistant.toggle` service call with entity resolution from `cfg.entity` falling back to the current alert's entity.
+
+- **`setPointerCapture` on shadow host broke `pointerup` handler** — `this.setPointerCapture(e.pointerId)` captured pointer events to the custom element host, so subsequent `pointerup` events were dispatched to the host rather than the inner div where `_onPointerUp` was registered. Changed to `e.currentTarget.setPointerCapture(e.pointerId)` to capture on the actual listener element.
+
+- **`more-info` action ignored `entity` field** — `_handleAction` for `more-info` only checked `cfg.entity_id`, but the standard YAML key is `entity`. Now checks `cfg.entity` first, then `cfg.entity_id`, then falls back to the current alert's entity.
+
+- **Snooze menu clipped by card container** — the snooze duration menu was cut off or hidden behind adjacent dashboard cards. Root cause: `overflow: hidden` on the outermost card wrapper also clipped absolutely-positioned overlays (snooze menu, history button). Fixed by introducing an inner `.atc-inner-clip` wrapper that clips only the content area, leaving the snooze menu free to extend beyond the card's visual boundary. ([#60](https://github.com/djdevil/AlertTicker-Card/issues/60))
+
+- **Tap bleed-through on `navigate` actions** — using `double_tap_action` or `hold_action` with `action: navigate` could inadvertently trigger an element on the newly loaded view at the same screen coordinates (ghost click). Fixed by: (1) calling `setPointerCapture()` in `pointerdown` to anchor the pointer event stream to the card element; (2) calling `preventDefault()` on `pointerup` to suppress the browser's synthetic `click` event; (3) temporarily disabling pointer events on the document for 350 ms after a hold-navigate fires, covering the window between the hold firing and the user lifting their finger. ([#45](https://github.com/djdevil/AlertTicker-Card/issues/45))
+
+- **Inconsistent card height across themes** — different themes (fire, rain, confetti, door, etc.) rendered at slightly different heights due to varying internal padding and icon sizes. All themes now share a common `min-height: 68 px` on the `ha-card` wrapper, ensuring a uniform baseline height across every theme. Cards with `card_height` set are unaffected (explicit height takes precedence).
+
+---
+
 ## [1.1.22] - 2026-04-19
 
 ### Added
