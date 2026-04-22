@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.0.5
+ * AlertTicker Card Editor v1.2.2
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.2.1";
+const CARD_VERSION = "1.2.2";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -524,6 +524,7 @@ const ET = {
     hub_desc_overlay: "Banner globale su tutti i dashboard",
     hub_desc_alerts: "Gestisci le condizioni di avviso",
     hub_desc_allclear: "Messaggio quando non ci sono avvisi",
+    hub_star_github: "Lascia una stella su GitHub",
     hub_report_issue: "Segnala un problema",
     hub_welcome: "Benvenuto! Configura la tua card selezionando una sezione qui sotto.",
     clear_display_mode_label: "Modalità di visualizzazione",
@@ -532,8 +533,25 @@ const ET = {
     clear_mode_weather: "🌤 Meteo",
     clear_mode_weather_clock: "🌤🕐 Meteo + Orologio",
     clear_weather_entity_label: "Entità meteo (weather.*)",
+    clear_clock_show_date: "Mostra data",
+    clear_clock_date_label: "Posizione data",
+    clear_clock_style_label: "Stile orologio",
+    clear_weather_style_label: "Stile badge meteo",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Sopra l'ora",
+    date_position_below: "⬇ Sotto l'ora",
     cycle_interval: "Intervallo ciclo (secondi)",
     cycle_interval_help: "Secondi tra un avviso e l'altro quando ce ne sono più di uno attivi",
+    show_widget_in_cycle: "Mostra meteo/ora nel ciclo",
     section_all_clear: "Card 'tutto ok'",
     section_layout: "Layout & Aspetto",
     section_cycling: "Ciclo & Animazione",
@@ -564,6 +582,30 @@ const ET = {
     alert_sound: "Suono abilitato per questo avviso",
     alert_sound_url: "URL audio personalizzato per questo avviso",
     alert_sound_url_help: "Sovrascrive l'URL globale. Lascia vuoto per usare quello globale.",
+    tab_tts: "Sintesi vocale",
+    hub_desc_tts: "Leggi gli avvisi ad alta voce",
+    tts_how_works: "Come funziona",
+    tts_how_standard: "Standard (Google Home, Sonos, Piper…): scegli il media player e il motore TTS. Il motore viene auto-rilevato se non impostato.",
+    tts_how_alexa: "Alexa / notify / mobile: scegli il servizio notify corrispondente. Il card chiama direttamente notify.NOME senza bisogno di un motore TTS.",
+    tts_how_peralert: "Ogni avviso può abilitare TTS con il toggle 🗣️ nel pannello di configurazione dell'avviso, e sovrascrivere speaker, motore o servizio notify.",
+    tts_master_toggle: "Abilita sintesi vocale (TTS)",
+    tts_master_toggle_help: "Interruttore master. Se disattivato, nessun avviso legge il messaggio ad alta voce, anche se il TTS è abilitato sul singolo avviso.",
+    section_tts: "🗣️ Sintesi vocale (TTS)",
+    tts_entity_global: "Speaker predefinito (media player)",
+    tts_entity_global_help: "Media player usato di default per tutti gli avvisi TTS. Può essere sovrascritto per singolo avviso.",
+    tts_engine_global: "Motore TTS (opzionale)",
+    tts_engine_global_help: "Entità TTS da usare (es. tts.piper, tts.home_assistant_cloud). Se non impostato, viene rilevato automaticamente.",
+    tts_notify_service: "Servizio notify alternativo (Alexa / mobile)",
+    tts_notify_service_help: "Nome del servizio notify da usare al posto di tts.speak (es. alexa_media_echo_cucina). Quando impostato, i campi speaker e motore TTS vengono ignorati.",
+    alert_tts: "Annuncio vocale TTS",
+    alert_tts_help: "Quando l'avviso si attiva, il testo viene letto ad alta voce tramite il media player o il servizio notify configurato.",
+    alert_tts_entity: "Speaker TTS (sovrascrive il globale)",
+    alert_tts_engine: "Motore TTS (sovrascrive il globale)",
+    alert_tts_notify_service: "Servizio notify (sovrascrive il globale)",
+    alert_tts_message: "Testo TTS personalizzato",
+    alert_tts_message_help: "Testo alternativo da leggere. Se vuoto, usa il messaggio dell'avviso.",
+    alert_camera_entity: "Camera per snapshot nell'overlay",
+    alert_camera_entity_help: "Quando l'avviso scatta, mostra uno snapshot di questa camera nel banner overlay. Visibile solo nell'overlay, non nella card.",
     test_mode: "Modalità test",
     test_mode_desc: "Mostra tutti gli avvisi come attivi, ignorando le condizioni. L'animazione di scorrimento è sospesa — apri un avviso nell'editor per vederlo subito sulla card.",
     test_mode_warning: "Ricordati di disattivare la modalità test prima di salvare!",
@@ -580,7 +622,7 @@ const ET = {
     alert_entity: "Entità",
     alert_operator: "Condizione",
     alert_state: "Valore",
-    alert_state_help: "es. 'on', '80' (numerico con operatore > < >= <=)",
+    alert_state_help: "es. 'on', '80' (numerico con > < >= <=). Supporta template: {{ states('input_number.x') }}",
     current_state: "Stato attuale",
     alert_message: "Messaggio da visualizzare",
     alert_name: "Nome / Etichetta",
@@ -643,6 +685,8 @@ const ET = {
     entity_filter_zero: "Nessuna entità corrisponde",
     entity_filter_exclude_tip: "Clicca su un'entità per escluderla — clicca di nuovo per includerla",
     entity_filter_invert: "Inverti selezione",
+    device_class: "Classe dispositivo (opzionale)",
+    device_class_help: "es. smoke, battery, motion — crea un alert per ogni entità con questa device_class. Alternativo al filtro testo.",
     alert_attribute: "Attributo (opzionale)",
     alert_attribute_help: "es. battery_level — lascia vuoto per usare lo stato entità. Supporta percorsi annidati: es. activity.0.forecast",
     secondary_entity: "Entità valore secondario (opzionale)",
@@ -691,6 +735,8 @@ const ET = {
     overlay_pos_center: "Al centro",
     overlay_duration: "Durata (secondi, 0 = solo chiusura manuale)",
     overlay_duration_help: "Secondi prima che il banner scompaia automaticamente. 0 = rimane fino alla chiusura manuale.",
+    overlay_scale: "Dimensione banner",
+    overlay_scale_help: "Scala testo e icona per una migliore visibilità a distanza.",
     overlay_how_works: "Il banner appare solo quando la card non è visibile a schermo — su un'altra vista o fuori dalla finestra. Nessun banner ridondante quando l'avviso è già visibile.",
     visible_to_section: "👤 Visibilità utente",
     visible_to_label: "Visibile a",
@@ -719,6 +765,7 @@ const ET = {
     hub_desc_overlay: "Global banner across all dashboards",
     hub_desc_alerts: "Manage alert conditions",
     hub_desc_allclear: "Message when no alerts are active",
+    hub_star_github: "Star on GitHub",
     hub_report_issue: "Report an issue",
     hub_welcome: "Welcome! Configure your card by selecting a section below.",
     clear_display_mode_label: "Display mode",
@@ -727,8 +774,25 @@ const ET = {
     clear_mode_weather: "🌤 Weather",
     clear_mode_weather_clock: "🌤🕐 Weather + Clock",
     clear_weather_entity_label: "Weather entity (weather.*)",
+    clear_clock_show_date: "Show date",
+    clear_clock_date_label: "Date position",
+    clear_clock_style_label: "Clock style",
+    clear_weather_style_label: "Weather badge style",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Above time",
+    date_position_below: "⬇ Below time",
     cycle_interval: "Cycle interval (seconds)",
     cycle_interval_help: "Seconds between alerts when multiple are active",
+    show_widget_in_cycle: "Show weather/time in cycle",
     section_all_clear: "All clear card",
     section_layout: "Layout & Appearance",
     section_cycling: "Cycling & Animation",
@@ -759,6 +823,30 @@ const ET = {
     alert_sound: "Sound enabled for this alert",
     alert_sound_url: "Custom audio URL for this alert",
     alert_sound_url_help: "Overrides the global URL. Leave empty to use the global one.",
+    tab_tts: "Text-to-Speech",
+    hub_desc_tts: "Read alerts aloud",
+    tts_how_works: "How it works",
+    tts_how_standard: "Standard (Google Home, Sonos, Piper…): choose a media player and a TTS engine. The engine is auto-detected if not set.",
+    tts_how_alexa: "Alexa / notify / mobile: choose the matching notify service. The card calls notify.NAME directly — no TTS engine needed.",
+    tts_how_peralert: "Each alert can enable TTS with the 🗣️ toggle in its configuration panel, and override the speaker, engine or notify service.",
+    tts_master_toggle: "Enable Text-to-Speech (TTS)",
+    tts_master_toggle_help: "Master switch. When off, no alert reads its message aloud, even if TTS is enabled on individual alerts.",
+    section_tts: "🗣️ Text-to-Speech (TTS)",
+    tts_entity_global: "Default TTS speaker (media player)",
+    tts_entity_global_help: "Media player used as the default speaker for all TTS-enabled alerts. Can be overridden per alert.",
+    tts_engine_global: "TTS engine (optional)",
+    tts_engine_global_help: "TTS entity to use (e.g. tts.piper, tts.home_assistant_cloud). Auto-detected if not set.",
+    tts_notify_service: "Notify service (Alexa / mobile)",
+    tts_notify_service_help: "Notify service name to use instead of tts.speak (e.g. alexa_media_echo_kitchen). When set, speaker and engine fields are ignored.",
+    alert_tts: "TTS voice announcement",
+    alert_tts_help: "When the alert becomes active, the message is read aloud via the configured media player or notify service.",
+    alert_tts_entity: "TTS speaker (overrides global)",
+    alert_tts_engine: "TTS engine (overrides global)",
+    alert_tts_notify_service: "Notify service (overrides global)",
+    alert_tts_message: "Custom TTS text",
+    alert_tts_message_help: "Alternative text to read aloud. If empty, uses the alert message.",
+    alert_camera_entity: "Camera snapshot in overlay",
+    alert_camera_entity_help: "When the alert triggers, shows a snapshot from this camera in the overlay banner. Only visible in the overlay, not in the card.",
     test_mode: "Test mode",
     test_mode_desc: "Shows all alerts as active, ignoring conditions. Cycling animation is paused — expand an alert in the editor to preview it instantly on the card.",
     test_mode_warning: "Remember to disable test mode before saving!",
@@ -775,7 +863,7 @@ const ET = {
     alert_entity: "Entity",
     alert_operator: "Condition",
     alert_state: "Value",
-    alert_state_help: "e.g. 'on', '80' (numeric with > < >= <=)",
+    alert_state_help: "e.g. 'on', '80' (numeric with > < >= <=). Supports templates: {{ states('input_number.x') }}",
     current_state: "Current state",
     alert_message: "Message to display",
     alert_name: "Name / Label",
@@ -838,6 +926,8 @@ const ET = {
     entity_filter_zero: "No entities match",
     entity_filter_exclude_tip: "Click an entity to exclude it — click again to re-include it",
     entity_filter_invert: "Invert selection",
+    device_class: "Device class (optional)",
+    device_class_help: "e.g. smoke, battery, motion — creates one alert per entity with this device_class. Alternative to the text filter.",
     alert_attribute: "Attribute (optional)",
     alert_attribute_help: "e.g. battery_level — leave empty to use entity state. Supports nested paths: e.g. activity.0.forecast",
     secondary_entity: "Secondary value entity (optional)",
@@ -886,6 +976,8 @@ const ET = {
     overlay_pos_center: "Center",
     overlay_duration: "Duration (seconds, 0 = manual dismiss only)",
     overlay_duration_help: "Seconds before the banner auto-dismisses. Set to 0 to require manual close.",
+    overlay_scale: "Banner size",
+    overlay_scale_help: "Scale text and icon for better visibility from a distance.",
     overlay_how_works: "The banner appears only when the card is not visible on screen — on a different view or scrolled out of sight. No redundant banner when the alert is already visible.",
     visible_to_section: "👤 User Visibility",
     visible_to_label: "Visible to",
@@ -914,6 +1006,7 @@ const ET = {
     hub_desc_overlay: "Bannière globale sur tous les tableaux de bord",
     hub_desc_alerts: "Gérer les conditions d'alerte",
     hub_desc_allclear: "Message quand aucune alerte n'est active",
+    hub_star_github: "Étoile sur GitHub",
     hub_report_issue: "Signaler un problème",
     hub_welcome: "Bienvenue ! Configurez votre carte en sélectionnant une section ci-dessous.",
     clear_display_mode_label: "Mode d'affichage",
@@ -922,8 +1015,25 @@ const ET = {
     clear_mode_weather: "🌤 Météo",
     clear_mode_weather_clock: "🌤🕐 Météo + Horloge",
     clear_weather_entity_label: "Entité météo (weather.*)",
+    clear_clock_show_date: "Afficher la date",
+    clear_clock_date_label: "Position de la date",
+    clear_clock_style_label: "Style horloge",
+    clear_weather_style_label: "Style badges météo",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Au-dessus de l'heure",
+    date_position_below: "⬇ En-dessous de l'heure",
     cycle_interval: "Intervalle de cycle (secondes)",
     cycle_interval_help: "Secondes entre les alertes quand plusieurs sont actives",
+    show_widget_in_cycle: "Afficher météo/heure dans le cycle",
     section_all_clear: "Carte 'tout va bien'",
     section_layout: "Disposition & Apparence",
     section_cycling: "Cycle & Animation",
@@ -954,6 +1064,30 @@ const ET = {
     alert_sound: "Son activé pour cette alerte",
     alert_sound_url: "URL audio personnalisée pour cette alerte",
     alert_sound_url_help: "Remplace l'URL globale. Laisser vide pour utiliser celle globale.",
+    tab_tts: "Synthèse vocale",
+    hub_desc_tts: "Lire les alertes à voix haute",
+    tts_how_works: "Comment ça fonctionne",
+    tts_how_standard: "Standard (Google Home, Sonos, Piper…): choisissez un lecteur multimédia et un moteur TTS. Le moteur est auto-détecté si non défini.",
+    tts_how_alexa: "Alexa / notify / mobile: choisissez le service notify correspondant. La carte appelle directement notify.NOM sans moteur TTS.",
+    tts_how_peralert: "Chaque alerte peut activer le TTS via le toggle 🗣️ dans son panneau de configuration, et remplacer le haut-parleur, le moteur ou le service notify.",
+    tts_master_toggle: "Activer la synthèse vocale (TTS)",
+    tts_master_toggle_help: "Interrupteur principal. Si désactivé, aucune alerte ne lira son message à voix haute, même si le TTS est activé sur chaque alerte.",
+    section_tts: "🗣️ Synthèse vocale (TTS)",
+    tts_entity_global: "Haut-parleur TTS par défaut (media player)",
+    tts_entity_global_help: "Lecteur multimédia utilisé par défaut pour toutes les alertes avec TTS activé. Peut être remplacé par alerte.",
+    tts_engine_global: "Moteur TTS (optionnel)",
+    tts_engine_global_help: "Entité TTS à utiliser (ex. tts.piper, tts.home_assistant_cloud). Détecté automatiquement si non défini.",
+    tts_notify_service: "Service notify (Alexa / mobile)",
+    tts_notify_service_help: "Nom du service notify à utiliser à la place de tts.speak (ex. alexa_media_echo_cuisine). Quand défini, les champs haut-parleur et moteur sont ignorés.",
+    alert_tts: "Annonce vocale TTS",
+    alert_tts_help: "Quand l'alerte s'active, le texte est lu à voix haute via le lecteur multimédia ou le service notify configuré.",
+    alert_tts_entity: "Haut-parleur TTS (remplace le global)",
+    alert_tts_engine: "Moteur TTS (remplace le global)",
+    alert_tts_notify_service: "Service notify (remplace le global)",
+    alert_tts_message: "Texte TTS personnalisé",
+    alert_tts_message_help: "Texte alternatif à lire. Si vide, utilise le message de l'alerte.",
+    alert_camera_entity: "Caméra snapshot dans l'overlay",
+    alert_camera_entity_help: "Quand l'alerte se déclenche, affiche un snapshot de cette caméra dans le banner overlay. Visible uniquement dans l'overlay, pas dans la carte.",
     test_mode: "Mode test",
     test_mode_desc: "Affiche toutes les alertes comme actives, en ignorant leurs conditions. L'animation de défilement est suspendue — ouvrez une alerte dans l'éditeur pour la voir immédiatement sur la carte.",
     test_mode_warning: "N'oubliez pas de désactiver le mode test avant de sauvegarder !",
@@ -970,7 +1104,7 @@ const ET = {
     alert_entity: "Entité",
     alert_operator: "Condition",
     alert_state: "Valeur",
-    alert_state_help: "ex. 'on', '80' (numérique avec > < >= <=)",
+    alert_state_help: "ex. 'on', '80' (numérique avec > < >= <=). Supporte les templates : {{ states('input_number.x') }}",
     current_state: "État actuel",
     alert_message: "Message à afficher",
     alert_name: "Nom / Étiquette",
@@ -1033,6 +1167,8 @@ const ET = {
     entity_filter_zero: "Aucune entité ne correspond",
     entity_filter_exclude_tip: "Cliquez sur une entité pour l'exclure — cliquez à nouveau pour la réinclure",
     entity_filter_invert: "Inverser la sélection",
+    device_class: "Classe d'appareil (optionnel)",
+    device_class_help: "ex. smoke, battery, motion — crée une alerte par entité avec cette device_class. Alternatif au filtre texte.",
     alert_attribute: "Attribut (optionnel)",
     alert_attribute_help: "ex. battery_level — laisser vide pour utiliser l'état de l'entité. Supporte les chemins imbriqués : ex. activity.0.forecast",
     secondary_entity: "Entité valeur secondaire (optionnel)",
@@ -1081,6 +1217,8 @@ const ET = {
     overlay_pos_center: "Au centre",
     overlay_duration: "Durée (secondes, 0 = fermeture manuelle)",
     overlay_duration_help: "Secondes avant la disparition automatique du banner. 0 = reste jusqu'à la fermeture manuelle.",
+    overlay_scale: "Taille du banner",
+    overlay_scale_help: "Mise à l'échelle du texte et de l'icône pour une meilleure visibilité à distance.",
     overlay_how_works: "Le banner apparaît uniquement quand la carte n'est pas visible à l'écran — sur une autre vue ou hors de la fenêtre. Pas de banner redondant quand l'alerte est déjà visible.",
     visible_to_section: "👤 Visibilité utilisateur",
     visible_to_label: "Visible pour",
@@ -1109,6 +1247,7 @@ const ET = {
     hub_desc_overlay: "Globales Banner auf allen Dashboards",
     hub_desc_alerts: "Warnbedingungen verwalten",
     hub_desc_allclear: "Nachricht wenn keine Warnungen aktiv sind",
+    hub_star_github: "Auf GitHub bewerten",
     hub_report_issue: "Problem melden",
     hub_welcome: "Willkommen! Konfiguriere deine Karte, indem du einen Bereich auswählst.",
     clear_display_mode_label: "Anzeigemodus",
@@ -1117,8 +1256,25 @@ const ET = {
     clear_mode_weather: "🌤 Wetter",
     clear_mode_weather_clock: "🌤🕐 Wetter + Uhr",
     clear_weather_entity_label: "Wetter-Entität (weather.*)",
+    clear_clock_show_date: "Datum anzeigen",
+    clear_clock_date_label: "Datumsposition",
+    clear_clock_style_label: "Uhr-Stil",
+    clear_weather_style_label: "Wetter-Badge-Stil",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Über der Uhrzeit",
+    date_position_below: "⬇ Unter der Uhrzeit",
     cycle_interval: "Zyklusintervall (Sekunden)",
     cycle_interval_help: "Sekunden zwischen Warnungen wenn mehrere aktiv sind",
+    show_widget_in_cycle: "Wetter/Uhrzeit im Zyklus anzeigen",
     section_all_clear: "Karte 'Alles in Ordnung'",
     section_layout: "Layout & Aussehen",
     section_cycling: "Zyklus & Animation",
@@ -1149,6 +1305,30 @@ const ET = {
     alert_sound: "Ton für diese Warnung aktiviert",
     alert_sound_url: "Benutzerdefinierte Audio-URL für diese Warnung",
     alert_sound_url_help: "Überschreibt die globale URL. Leer lassen, um die globale zu verwenden.",
+    tab_tts: "Text-to-Speech",
+    hub_desc_tts: "Warnungen laut vorlesen",
+    tts_how_works: "So funktioniert es",
+    tts_how_standard: "Standard (Google Home, Sonos, Piper…): Mediaplayer und TTS-Engine wählen. Engine wird automatisch erkannt, wenn nicht angegeben.",
+    tts_how_alexa: "Alexa / notify / Mobil: den passenden Notify-Dienst wählen. Die Karte ruft direkt notify.NAME auf — keine TTS-Engine nötig.",
+    tts_how_peralert: "Jede Warnung kann TTS mit dem 🗣️ Schalter im Konfigurationsbereich aktivieren und Lautsprecher, Engine oder Notify-Dienst überschreiben.",
+    tts_master_toggle: "Text-to-Speech (TTS) aktivieren",
+    tts_master_toggle_help: "Hauptschalter. Wenn deaktiviert, liest keine Warnung ihre Nachricht vor, auch wenn TTS für einzelne Warnungen aktiviert ist.",
+    section_tts: "🗣️ Text-to-Speech (TTS)",
+    tts_entity_global: "Standard-TTS-Lautsprecher (Media Player)",
+    tts_entity_global_help: "Mediaplayer, der als Standard-Lautsprecher für alle TTS-Warnungen verwendet wird. Kann pro Warnung überschrieben werden.",
+    tts_engine_global: "TTS-Engine (optional)",
+    tts_engine_global_help: "TTS-Entität (z.B. tts.piper, tts.home_assistant_cloud). Wird automatisch erkannt, wenn nicht angegeben.",
+    tts_notify_service: "Notify-Dienst (Alexa / Mobil)",
+    tts_notify_service_help: "Name des Notify-Dienstes statt tts.speak (z.B. alexa_media_echo_kueche). Wenn gesetzt, werden Lautsprecher und Engine ignoriert.",
+    alert_tts: "TTS-Sprachansage",
+    alert_tts_help: "Wenn die Warnung aktiv wird, wird der Text über den konfigurierten Mediaplayer oder Notify-Dienst vorgelesen.",
+    alert_tts_entity: "TTS-Lautsprecher (überschreibt global)",
+    alert_tts_engine: "TTS-Engine (überschreibt global)",
+    alert_tts_notify_service: "Notify-Dienst (überschreibt global)",
+    alert_tts_message: "Benutzerdefinierter TTS-Text",
+    alert_tts_message_help: "Alternativer Text zum Vorlesen. Wenn leer, wird der Warnungstext verwendet.",
+    alert_camera_entity: "Kamera-Snapshot im Overlay",
+    alert_camera_entity_help: "Wenn die Warnung ausgelöst wird, zeigt einen Snapshot dieser Kamera im Overlay-Banner. Nur im Overlay sichtbar, nicht in der Karte.",
     test_mode: "Testmodus",
     test_mode_desc: "Zeigt alle Warnungen als aktiv an, unabhängig von ihren Bedingungen. Die Scroll-Animation ist angehalten — öffne eine Warnung im Editor, um sie sofort auf der Karte anzuzeigen.",
     test_mode_warning: "Denk daran, den Testmodus vor dem Speichern zu deaktivieren!",
@@ -1165,7 +1345,7 @@ const ET = {
     alert_entity: "Entität",
     alert_operator: "Bedingung",
     alert_state: "Wert",
-    alert_state_help: "z.B. 'on', '80' (numerisch mit > < >= <=)",
+    alert_state_help: "z.B. 'on', '80' (numerisch mit > < >= <=). Unterstützt Templates: {{ states('input_number.x') }}",
     current_state: "Aktueller Zustand",
     alert_message: "Anzuzeigende Nachricht",
     alert_name: "Name / Bezeichnung",
@@ -1228,6 +1408,8 @@ const ET = {
     entity_filter_zero: "Keine Entitäten gefunden",
     entity_filter_exclude_tip: "Entität anklicken zum Ausschließen — erneut klicken zum Einschließen",
     entity_filter_invert: "Auswahl umkehren",
+    device_class: "Geräteklasse (optional)",
+    device_class_help: "z.B. smoke, battery, motion — erstellt eine Warnung pro Entität mit dieser device_class. Alternativ zum Textfilter.",
     alert_attribute: "Attribut (optional)",
     alert_attribute_help: "z.B. battery_level — leer lassen für Entity-Zustand. Unterstützt verschachtelte Pfade: z.B. activity.0.forecast",
     secondary_entity: "Sekundärwert-Entität (optional)",
@@ -1276,6 +1458,8 @@ const ET = {
     overlay_pos_center: "Mitte",
     overlay_duration: "Dauer (Sekunden, 0 = manuelles Schließen)",
     overlay_duration_help: "Sekunden bis das Banner automatisch verschwindet. 0 = bleibt bis zum manuellen Schließen.",
+    overlay_scale: "Bannergröße",
+    overlay_scale_help: "Text und Symbol skalieren für bessere Sichtbarkeit aus der Ferne.",
     overlay_how_works: "Das Banner erscheint nur, wenn die Karte nicht auf dem Bildschirm sichtbar ist — in einer anderen Ansicht oder außerhalb des Sichtbereichs. Kein redundantes Banner, wenn der Alert bereits sichtbar ist.",
     visible_to_section: "👤 Benutzersichtbarkeit",
     visible_to_label: "Sichtbar für",
@@ -1304,6 +1488,7 @@ const ET = {
     hub_desc_overlay: "Globale banner op alle dashboards",
     hub_desc_alerts: "Beheer meldingsvoorwaarden",
     hub_desc_allclear: "Bericht wanneer er geen meldingen actief zijn",
+    hub_star_github: "Ster op GitHub",
     hub_report_issue: "Probleem melden",
     hub_welcome: "Welkom! Configureer je kaart door een sectie hieronder te selecteren.",
     clear_display_mode_label: "Weergavemodus",
@@ -1312,8 +1497,25 @@ const ET = {
     clear_mode_weather: "🌤 Weer",
     clear_mode_weather_clock: "🌤🕐 Weer + Klok",
     clear_weather_entity_label: "Weerentiteit (weather.*)",
+    clear_clock_show_date: "Datum weergeven",
+    clear_clock_date_label: "Datumpositie",
+    clear_clock_style_label: "Klokstijl",
+    clear_weather_style_label: "Weer badge stijl",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Boven de tijd",
+    date_position_below: "⬇ Onder de tijd",
     cycle_interval: "Cyclusinterval (seconden)",
     cycle_interval_help: "Seconden tussen meldingen wanneer meerdere actief zijn",
+    show_widget_in_cycle: "Weer/tijd weergeven in cyclus",
     section_all_clear: "Kaart 'alles in orde'",
     section_layout: "Lay-out & Uiterlijk",
     section_cycling: "Cyclus & Animatie",
@@ -1344,7 +1546,31 @@ const ET = {
     alert_sound: "Geluid ingeschakeld voor deze melding",
     alert_sound_url: "Aangepaste audio-URL voor deze melding",
     alert_sound_url_help: "Overschrijft de globale URL. Leeg laten om de globale te gebruiken.",
-    test_mode: "Testmodus",
+    tab_tts: "Tekst-naar-spraak",
+    hub_desc_tts: "Meldingen hardop voorlezen",
+    tts_how_works: "Hoe het werkt",
+    tts_how_standard: "Standaard (Google Home, Sonos, Piper…): kies een mediaspeler en een TTS-engine. De engine wordt automatisch gedetecteerd als niet ingesteld.",
+    tts_how_alexa: "Alexa / notify / mobiel: kies de bijbehorende notify-service. De kaart roept notify.NAAM rechtstreeks aan — geen TTS-engine nodig.",
+    tts_how_peralert: "Elke melding kan TTS inschakelen via de 🗣️ schakelaar in het configuratiepaneel en luidspreker, engine of notify-service overschrijven.",
+    tts_master_toggle: "Tekst-naar-spraak (TTS) inschakelen",
+    tts_master_toggle_help: "Hoofdschakelaar. Als uitgeschakeld, leest geen melding haar bericht hardop voor, ook als TTS is ingeschakeld op afzonderlijke meldingen.",
+    section_tts: "🗣️ Tekst-naar-spraak (TTS)",
+    tts_entity_global: "Standaard TTS-luidspreker (media player)",
+    tts_entity_global_help: "Mediaspeler die als standaardluidspreker wordt gebruikt voor alle TTS-meldingen. Kan per melding worden overschreven.",
+    tts_engine_global: "TTS-engine (optioneel)",
+    tts_engine_global_help: "TTS-entiteit (bijv. tts.piper, tts.home_assistant_cloud). Automatisch gedetecteerd als niet ingesteld.",
+    tts_notify_service: "Notify-service (Alexa / mobiel)",
+    tts_notify_service_help: "Naam van de notify-service in plaats van tts.speak (bijv. alexa_media_echo_keuken). Als ingesteld, worden luidspreker en engine genegeerd.",
+    alert_tts: "TTS-spraakmelding",
+    alert_tts_help: "Wanneer de melding actief wordt, wordt de tekst hardop gelezen via de geconfigureerde mediaspeler of notify-service.",
+    alert_tts_entity: "TTS-luidspreker (overschrijft globaal)",
+    alert_tts_engine: "TTS-engine (overschrijft globaal)",
+    alert_tts_notify_service: "Notify-service (overschrijft globaal)",
+    alert_tts_message: "Aangepaste TTS-tekst",
+    alert_tts_message_help: "Alternatieve tekst om voor te lezen. Als leeg, wordt de meldingstekst gebruikt.",
+    alert_camera_entity: "Camera snapshot in overlay",
+    alert_camera_entity_help: "Wanneer de melding activeert, toont een snapshot van deze camera in de overlay banner. Alleen zichtbaar in de overlay, niet in de kaart.",
+    test_mode:"Testmodus",
     test_mode_desc: "Toont alle meldingen als actief, ongeacht hun voorwaarden. De scroll-animatie is gepauzeerd — open een melding in de editor om deze direct op de kaart te zien.",
     test_mode_warning: "Vergeet niet de testmodus uit te schakelen voor het opslaan!",
     history_max_events: "Geschiedenis — maximale gebeurtenissen",
@@ -1360,7 +1586,7 @@ const ET = {
     alert_entity: "Entiteit",
     alert_operator: "Conditie",
     alert_state: "Waarde",
-    alert_state_help: "bijv. 'on', '80' (numeriek met > < >= <=)",
+    alert_state_help: "bijv. 'on', '80' (numeriek met > < >= <=). Ondersteunt templates: {{ states('input_number.x') }}",
     current_state: "Huidige toestand",
     alert_message: "Te tonen bericht",
     alert_name: "Naam / Label",
@@ -1423,6 +1649,8 @@ const ET = {
     entity_filter_zero: "Geen entiteiten gevonden",
     entity_filter_exclude_tip: "Klik op een entiteit om het uit te sluiten — klik opnieuw om het in te sluiten",
     entity_filter_invert: "Selectie omdraaien",
+    device_class: "Apparaatklasse (optioneel)",
+    device_class_help: "bijv. smoke, battery, motion — maakt één melding per entiteit met deze device_class. Alternatief voor het tekstfilter.",
     alert_attribute: "Attribuut (optioneel)",
     alert_attribute_help: "bijv. battery_level — leeg laten voor entiteitstoestand. Ondersteunt geneste paden: bijv. activity.0.forecast",
     secondary_entity: "Secundaire waarde-entiteit (optioneel)",
@@ -1471,6 +1699,8 @@ const ET = {
     overlay_pos_center: "Midden",
     overlay_duration: "Duur (seconden, 0 = handmatig sluiten)",
     overlay_duration_help: "Seconden voordat het banner automatisch verdwijnt. 0 = blijft tot handmatig sluiten.",
+    overlay_scale: "Bannergrootte",
+    overlay_scale_help: "Tekst en icoon schalen voor betere zichtbaarheid op afstand.",
     overlay_how_works: "Het banner verschijnt alleen wanneer de kaart niet zichtbaar is op het scherm — op een andere weergave of buiten het zichtbare gebied. Geen redundant banner als de melding al zichtbaar is.",
     visible_to_section: "👤 Gebruikerszichtbaarheid",
     visible_to_label: "Zichtbaar voor",
@@ -1499,6 +1729,7 @@ const ET = {
     hub_desc_overlay: "Banner toàn cục trên tất cả dashboard",
     hub_desc_alerts: "Quản lý điều kiện báo động",
     hub_desc_allclear: "Thông báo khi không có báo động nào",
+    hub_star_github: "Gắn sao trên GitHub",
     hub_report_issue: "Báo cáo sự cố",
     hub_welcome: "Chào mừng! Cấu hình thẻ của bạn bằng cách chọn một mục bên dưới.",
     clear_display_mode_label: "Chế độ hiển thị",
@@ -1507,8 +1738,25 @@ const ET = {
     clear_mode_weather: "🌤 Thời tiết",
     clear_mode_weather_clock: "🌤🕐 Thời tiết + Đồng hồ",
     clear_weather_entity_label: "Thực thể thời tiết (weather.*)",
+    clear_clock_show_date: "Hiển thị ngày",
+    clear_clock_date_label: "Vị trí ngày",
+    clear_clock_style_label: "Kiểu đồng hồ",
+    clear_weather_style_label: "Kiểu badge thời tiết",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Trên giờ",
+    date_position_below: "⬇ Dưới giờ",
     cycle_interval: "Chu kỳ chuyển đổi (giây)",
     cycle_interval_help: "Số giây giữa các báo động khi có nhiều báo động đang hoạt động",
+    show_widget_in_cycle: "Hiển thị thời tiết/giờ trong chu kỳ",
     section_all_clear: "Thẻ 'mọi thứ ổn'",
     section_layout: "Bố cục & Giao diện",
     section_cycling: "Chu kỳ & Hoạt ảnh",
@@ -1539,6 +1787,30 @@ const ET = {
     alert_sound: "Âm thanh bật cho báo động này",
     alert_sound_url: "URL âm thanh tùy chỉnh cho báo động này",
     alert_sound_url_help: "Ghi đè URL toàn cục. Để trống để dùng URL toàn cục.",
+    tab_tts: "Văn bản thành giọng nói",
+    hub_desc_tts: "Đọc to các báo động",
+    tts_how_works: "Cách hoạt động",
+    tts_how_standard: "Chuẩn (Google Home, Sonos, Piper…): chọn media player và bộ máy TTS. Bộ máy được tự động phát hiện nếu không đặt.",
+    tts_how_alexa: "Alexa / notify / di động: chọn dịch vụ notify tương ứng. Card gọi trực tiếp notify.TÊN — không cần bộ máy TTS.",
+    tts_how_peralert: "Mỗi báo động có thể bật TTS bằng nút 🗣️ trong bảng cấu hình và ghi đè loa, bộ máy hoặc dịch vụ notify.",
+    tts_master_toggle: "Bật chuyển văn bản thành giọng nói (TTS)",
+    tts_master_toggle_help: "Công tắc chính. Khi tắt, không có báo động nào đọc to tin nhắn, ngay cả khi TTS được bật cho từng báo động.",
+    section_tts: "🗣️ Chuyển văn bản thành giọng nói (TTS)",
+    tts_entity_global: "Loa TTS mặc định (media player)",
+    tts_entity_global_help: "Media player dùng làm loa mặc định cho tất cả báo động có TTS. Có thể ghi đè cho từng báo động.",
+    tts_engine_global: "Bộ máy TTS (tùy chọn)",
+    tts_engine_global_help: "Thực thể TTS (vd. tts.piper, tts.home_assistant_cloud). Tự động phát hiện nếu không đặt.",
+    tts_notify_service: "Dịch vụ notify (Alexa / di động)",
+    tts_notify_service_help: "Tên dịch vụ notify thay cho tts.speak (vd. alexa_media_echo_bep). Khi đặt, loa và bộ máy TTS bị bỏ qua.",
+    alert_tts: "Thông báo giọng nói TTS",
+    alert_tts_help: "Khi báo động kích hoạt, văn bản được đọc to qua media player hoặc dịch vụ notify được cấu hình.",
+    alert_tts_entity: "Loa TTS (ghi đè toàn cục)",
+    alert_tts_engine: "Bộ máy TTS (ghi đè toàn cục)",
+    alert_tts_notify_service: "Dịch vụ notify (ghi đè toàn cục)",
+    alert_tts_message: "Văn bản TTS tùy chỉnh",
+    alert_tts_message_help: "Văn bản thay thế để đọc. Nếu trống, dùng thông điệp báo động.",
+    alert_camera_entity: "Camera snapshot trong overlay",
+    alert_camera_entity_help: "Khi báo động kích hoạt, hiển thị snapshot từ camera này trong banner overlay. Chỉ hiện trong overlay, không trong card.",
     test_mode: "Chế độ thử",
     test_mode_desc: "Hiển thị tất cả báo động như đang hoạt động, bỏ qua điều kiện. Hoạt ảnh cuộn bị tạm dừng — mở một báo động trong trình chỉnh sửa để xem ngay trên thẻ.",
     test_mode_warning: "Nhớ tắt chế độ thử trước khi lưu!",
@@ -1555,7 +1827,7 @@ const ET = {
     alert_entity: "Thực thể (Entity)",
     alert_operator: "Điều kiện",
     alert_state: "Giá trị",
-    alert_state_help: "vd. 'on', '80' (số với > < >= <=)",
+    alert_state_help: "vd. 'on', '80' (số với > < >= <=). Hỗ trợ template: {{ states('input_number.x') }}",
     current_state: "Trạng thái hiện tại",
     alert_message: "Thông báo hiển thị",
     alert_name: "Tên / Nhãn",
@@ -1618,6 +1890,8 @@ const ET = {
     entity_filter_zero: "Không tìm thấy thực thể nào",
     entity_filter_exclude_tip: "Nhấn vào thực thể để loại trừ — nhấn lại để đưa vào",
     entity_filter_invert: "Đảo ngược lựa chọn",
+    device_class: "Lớp thiết bị (tùy chọn)",
+    device_class_help: "vd. smoke, battery, motion — tạo một cảnh báo cho mỗi thực thể có device_class này. Thay thế cho bộ lọc văn bản.",
     alert_attribute: "Thuộc tính (tùy chọn)",
     alert_attribute_help: "vd. battery_level — để trống để dùng trạng thái thực thể. Hỗ trợ đường dẫn lồng nhau: vd. activity.0.forecast",
     secondary_entity: "Thực thể giá trị phụ (tùy chọn)",
@@ -1666,6 +1940,8 @@ const ET = {
     overlay_pos_center: "Giữa màn hình",
     overlay_duration: "Thời lượng (giây, 0 = chỉ đóng thủ công)",
     overlay_duration_help: "Số giây trước khi banner tự động đóng. 0 = giữ đến khi đóng thủ công.",
+    overlay_scale: "Kích thước banner",
+    overlay_scale_help: "Phóng to văn bản và biểu tượng để dễ nhìn hơn từ xa.",
     overlay_how_works: "Banner chỉ xuất hiện khi thẻ không hiển thị trên màn hình — trên chế độ xem khác hoặc ngoài vùng hiển thị. Không hiển thị banner dư thừa khi cảnh báo đã hiển thị.",
     visible_to_section: "👤 Hiển thị theo người dùng",
     visible_to_label: "Hiển thị cho",
@@ -1694,6 +1970,7 @@ const ET = {
     hub_desc_overlay: "Глобальный баннер на всех панелях",
     hub_desc_alerts: "Управление условиями оповещений",
     hub_desc_allclear: "Сообщение при отсутствии оповещений",
+    hub_star_github: "Поставить звезду на GitHub",
     hub_report_issue: "Сообщить о проблеме",
     hub_welcome: "Добро пожаловать! Настройте карточку, выбрав раздел ниже.",
     clear_display_mode_label: "Режим отображения",
@@ -1702,8 +1979,25 @@ const ET = {
     clear_mode_weather: "🌤 Погода",
     clear_mode_weather_clock: "🌤🕐 Погода + Часы",
     clear_weather_entity_label: "Объект погоды (weather.*)",
+    clear_clock_show_date: "Показать дату",
+    clear_clock_date_label: "Позиция даты",
+    clear_clock_style_label: "Стиль часов",
+    clear_weather_style_label: "Стиль значка погоды",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Над временем",
+    date_position_below: "⬇ Под временем",
     cycle_interval: "Интервал цикла (секунды)",
     cycle_interval_help: "Секунды между оповещениями при наличии нескольких активных",
+    show_widget_in_cycle: "Показать погоду/время в цикле",
     section_all_clear: "Карточка 'всё в порядке'",
     section_layout: "Макет и внешний вид",
     section_cycling: "Цикл и анимация",
@@ -1734,6 +2028,30 @@ const ET = {
     alert_sound: "Звук включён для этого оповещения",
     alert_sound_url: "Пользовательский URL аудио для этого оповещения",
     alert_sound_url_help: "Переопределяет глобальный URL. Оставьте пустым для использования глобального.",
+    tab_tts: "Синтез речи",
+    hub_desc_tts: "Читать оповещения вслух",
+    tts_how_works: "Как это работает",
+    tts_how_standard: "Стандартный (Google Home, Sonos, Piper…): выберите медиаплеер и движок TTS. Движок определяется автоматически, если не указан.",
+    tts_how_alexa: "Alexa / notify / мобильный: выберите соответствующий notify-сервис. Карточка вызывает notify.ИМЯ напрямую — движок TTS не нужен.",
+    tts_how_peralert: "Каждое оповещение может включить TTS через переключатель 🗣️ в панели настройки и переопределить динамик, движок или notify-сервис.",
+    tts_master_toggle: "Включить синтез речи (TTS)",
+    tts_master_toggle_help: "Главный переключатель. Когда выключен, ни одно оповещение не зачитывает сообщение вслух, даже если TTS включён для отдельных оповещений.",
+    section_tts: "🗣️ Синтез речи (TTS)",
+    tts_entity_global: "Динамик TTS по умолчанию (media player)",
+    tts_entity_global_help: "Медиаплеер, используемый по умолчанию для всех оповещений с TTS. Может быть переопределён для каждого оповещения.",
+    tts_engine_global: "Движок TTS (опционально)",
+    tts_engine_global_help: "Сущность TTS (напр. tts.piper, tts.home_assistant_cloud). Определяется автоматически, если не указан.",
+    tts_notify_service: "Notify-сервис (Alexa / мобильный)",
+    tts_notify_service_help: "Имя notify-сервиса вместо tts.speak (напр. alexa_media_echo_kuhnya). При указании поля динамика и движка игнорируются.",
+    alert_tts: "Голосовое объявление TTS",
+    alert_tts_help: "Когда оповещение активируется, текст читается вслух через настроенный медиаплеер или notify-сервис.",
+    alert_tts_entity: "Динамик TTS (переопределяет глобальный)",
+    alert_tts_engine: "Движок TTS (переопределяет глобальный)",
+    alert_tts_notify_service: "Notify-сервис (переопределяет глобальный)",
+    alert_tts_message: "Пользовательский текст TTS",
+    alert_tts_message_help: "Альтернативный текст для чтения. Если пусто, используется сообщение оповещения.",
+    alert_camera_entity: "Снимок камеры в оверлее",
+    alert_camera_entity_help: "При срабатывании оповещения показывает снимок с этой камеры в баннере оверлея. Видно только в оверлее, не в карточке.",
     test_mode: "Режим тестирования",
     test_mode_desc: "Показывает все оповещения как активные, игнорируя условия. Анимация прокрутки остановлена — откройте оповещение в редакторе, чтобы сразу увидеть его на карточке.",
     test_mode_warning: "Не забудьте отключить режим тестирования перед сохранением!",
@@ -1750,7 +2068,7 @@ const ET = {
     alert_entity: "Объект",
     alert_operator: "Условие",
     alert_state: "Значение",
-    alert_state_help: "например 'on', '80' (числовое с > < >= <=)",
+    alert_state_help: "например 'on', '80' (числовое с > < >= <=). Поддерживает шаблоны: {{ states('input_number.x') }}",
     current_state: "Текущее состояние",
     alert_message: "Отображаемое сообщение",
     alert_name: "Имя / Метка",
@@ -1813,6 +2131,8 @@ const ET = {
     entity_filter_zero: "Объекты не найдены",
     entity_filter_exclude_tip: "Нажмите на объект для исключения — нажмите снова для включения",
     entity_filter_invert: "Инвертировать выбор",
+    device_class: "Класс устройства (необязательно)",
+    device_class_help: "например smoke, battery, motion — создаёт одно оповещение на объект с этим device_class. Альтернатива текстовому фильтру.",
     alert_attribute: "Атрибут (необязательно)",
     alert_attribute_help: "например battery_level — оставьте пустым для использования состояния объекта. Поддерживает вложенные пути: например activity.0.forecast",
     secondary_entity: "Вторичный объект значения (необязательно)",
@@ -1861,6 +2181,8 @@ const ET = {
     overlay_pos_center: "По центру",
     overlay_duration: "Длительность (секунды, 0 = только ручное закрытие)",
     overlay_duration_help: "Секунды до автоматического закрытия баннера. 0 = остаётся до ручного закрытия.",
+    overlay_scale: "Размер баннера",
+    overlay_scale_help: "Масштаб текста и иконки для лучшей видимости на расстоянии.",
     overlay_how_works: "Баннер появляется только когда карточка не видна на экране — на другом виде или за пределами окна. Баннер не показывается, если оповещение уже видно.",
     visible_to_section: "👤 Видимость по пользователю",
     visible_to_label: "Видно для",
@@ -1889,6 +2211,7 @@ const ET = {
     hub_desc_overlay: "Globalt banner på alle dashboards",
     hub_desc_alerts: "Administrer advarselbetingelser",
     hub_desc_allclear: "Besked når der ikke er aktive advarsler",
+    hub_star_github: "Gi en stjerne på GitHub",
     hub_report_issue: "Rapporter et problem",
     hub_welcome: "Velkommen! Konfigurer dit kort ved at vælge en sektion nedenfor.",
     clear_display_mode_label: "Visningstilstand",
@@ -1897,8 +2220,25 @@ const ET = {
     clear_mode_weather: "🌤 Vejr",
     clear_mode_weather_clock: "🌤🕐 Vejr + Ur",
     clear_weather_entity_label: "Vejrentitet (weather.*)",
+    clear_clock_show_date: "Vis dato",
+    clear_clock_date_label: "Datoposition",
+    clear_clock_style_label: "Ur-stil",
+    clear_weather_style_label: "Vejr badge stil",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Over klokkeslættet",
+    date_position_below: "⬇ Under klokkeslættet",
     cycle_interval: "Rotations interval (sekunder)",
     cycle_interval_help: "Sekunder mellem advarsler, når flere er aktive",
+    show_widget_in_cycle: "Vis vejr/tid i cyklus",
     section_all_clear: "Alt er i orden‑kort",
     section_layout: "Layout og udseende",
     section_cycling: "Rotation og animation",
@@ -1927,6 +2267,30 @@ const ET = {
     alert_sound: "Lyd aktiveret for denne advarsel",
     alert_sound_url: "Brugerdefineret lyd‑URL for denne advarsel",
     alert_sound_url_help: "Overstyrer den globale URL. Lad stå tom for at bruge den globale.",
+    tab_tts: "Tekst-til-tale",
+    hub_desc_tts: "Læs advarsler højt",
+    tts_how_works: "Sådan fungerer det",
+    tts_how_standard: "Standard (Google Home, Sonos, Piper…): vælg en medieafspiller og en TTS-motor. Motoren registreres automatisk hvis ikke angivet.",
+    tts_how_alexa: "Alexa / notify / mobil: vælg den tilsvarende notify-tjeneste. Kortet kalder notify.NAVN direkte — ingen TTS-motor nødvendig.",
+    tts_how_peralert: "Hver advarsel kan aktivere TTS med 🗣️ knappen i konfigurationspanelet og tilsidesætte højttaler, motor eller notify-tjeneste.",
+    tts_master_toggle: "Aktivér tekst-til-tale (TTS)",
+    tts_master_toggle_help: "Hovedkontakt. Når slået fra, læser ingen advarsel sin besked højt, selv hvis TTS er aktiveret på individuelle advarsler.",
+    section_tts: "🗣️ Tekst-til-tale (TTS)",
+    tts_entity_global: "Standard TTS-højttaler (media player)",
+    tts_entity_global_help: "Medieafspiller brugt som standard-højttaler for alle TTS-advarsler. Kan tilsidesættes pr. advarsel.",
+    tts_engine_global: "TTS-motor (valgfri)",
+    tts_engine_global_help: "TTS-entitet (f.eks. tts.piper, tts.home_assistant_cloud). Registreres automatisk hvis ikke angivet.",
+    tts_notify_service: "Notify-tjeneste (Alexa / mobil)",
+    tts_notify_service_help: "Navn på notify-tjeneste i stedet for tts.speak (f.eks. alexa_media_echo_koekkenet). Når angivet ignoreres højttaler og motor.",
+    alert_tts: "TTS-stemmemeddelelse",
+    alert_tts_help: "Når advarslen aktiveres, læses teksten højt via den konfigurerede medieafspiller eller notify-tjeneste.",
+    alert_tts_entity: "TTS-højttaler (tilsidesætter global)",
+    alert_tts_engine: "TTS-motor (tilsidesætter global)",
+    alert_tts_notify_service: "Notify-tjeneste (tilsidesætter global)",
+    alert_tts_message: "Brugerdefineret TTS-tekst",
+    alert_tts_message_help: "Alternativ tekst der skal læses. Hvis tom, bruges advarslens besked.",
+    alert_camera_entity: "Kamera-snapshot i overlay",
+    alert_camera_entity_help: "Når advarslen udløses, vises et snapshot fra dette kamera i overlay-banneret. Kun synligt i overlay, ikke i kortet.",
     test_mode: "Testtilstand",
     test_mode_desc: "Viser alle advarsler som aktive og ignorerer betingelser. Cykling og animation er pauset – udvid en advarsel i editoren for at se den med det samme på kortet.",
     test_mode_warning: "Husk at deaktivere testtilstand, før du gemmer!",
@@ -1943,7 +2307,7 @@ const ET = {
     alert_entity: "Enhed",
     alert_operator: "Betingelse",
     alert_state: "Værdi",
-    alert_state_help: "f.eks. 'on', '80' (tal med > < >= <=)",
+    alert_state_help: "f.eks. 'on', '80' (tal med > < >= <=). Understøtter skabeloner: {{ states('input_number.x') }}",
     current_state: "Nuværende tilstand",
     alert_message: "Besked der skal vises",
     alert_name: "Navn / Etiket",
@@ -2006,6 +2370,8 @@ const ET = {
     entity_filter_zero: "Ingen enheder matcher",
     entity_filter_exclude_tip: "Klik på en enhed for at ekskludere den — klik igen for at gen‑inkludere",
     entity_filter_invert: "Invertér markering",
+    device_class: "Enhedsklasse (valgfri)",
+    device_class_help: "fx smoke, battery, motion — opretter én advarsel pr. enhed med denne device_class. Alternativ til tekstfilteret.",
     alert_attribute: "Attribut (valgfri)",
     alert_attribute_help: "f.eks. battery_level — lad stå tom for at bruge enheds‑tilstand. Understøtter nøstede stier: f.eks. activity.0.forecast",
     secondary_entity: "Sekundær værdi‑enhed (valgfri)",
@@ -2054,6 +2420,8 @@ const ET = {
     overlay_pos_center: "Midt på",
     overlay_duration: "Varighed (sekunder, 0 = kun manuel lukning)",
     overlay_duration_help: "Sekunder før banneret automatisk lukkes. 0 = forbliver åbent til manuel lukning.",
+    overlay_scale: "Bannerstørrelse",
+    overlay_scale_help: "Skalér tekst og ikon for bedre synlighed på afstand.",
     overlay_how_works: "Banneret vises kun, når kortet ikke er synligt — på en anden visning. Vises ikke, hvis advarslen allerede er synlig på kortet.",
     visible_to_section: "👤 Brugersynlighed",
     visible_to_label: "Synlig for",
@@ -2084,16 +2452,34 @@ const ET = {
     hub_desc_overlay: "Překryvné upozornění na všech panelech",
     hub_desc_alerts: "Nastavení jednotlivých varování",
     hub_desc_allclear: "Pokud není aktivní žádné varování",
+    hub_star_github: "Dát hvězdu na GitHubu",
     hub_report_issue: "Nahlásit chybu",
     hub_welcome: "Vítejte! Nastavte svou kartu pomocí tlačítek níže.",
-    clear_display_mode_label: "Display mode",
+    clear_display_mode_label: "Režim zobrazení",
     clear_mode_message: "💬 Vlastní zpráva",
     clear_mode_clock: "🕐 Hodiny",
     clear_mode_weather: "🌤 Počasí",
     clear_mode_weather_clock: "🌤🕐 Počasí + hodiny",
     clear_weather_entity_label: "Entita počasí (weather.*)",
+    clear_clock_show_date: "Zobrazit datum",
+    clear_clock_date_label: "Pozice data",
+    date_position_above: "⬆ Nad časem",
+    date_position_below: "⬇ Pod časem",
+    clear_clock_style_label: "Styl hodin",
+    clear_weather_style_label: "Styl widgetu počasí",
+    style_default: "Default",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
     cycle_interval: "Interval rotace (sekundy)",
     cycle_interval_help: "Sekundy mezi rotací varování, pokud je jich více aktivních",
+    show_widget_in_cycle: "Zobrazit počasí/čas v cyklu",
     section_all_clear: "Karta Vše OK",
     section_layout: "Vzhled & rozložení",
     section_cycling: "Rotace & animace",
@@ -2124,6 +2510,30 @@ const ET = {
     alert_sound: "Zvuk povolen pro toto varování",
     alert_sound_url: "Vlastní URL zvuku pro toto varování",
     alert_sound_url_help: "Přepíše globální nastavení URL. Ponechte prázdné pro použití globálního URL.",
+    tab_tts: "Převod textu na řeč",
+    hub_desc_tts: "Číst varování nahlas",
+    tts_how_works: "Jak to funguje",
+    tts_how_standard: "Standardní (Google Home, Sonos, Piper…): vyberte přehrávač médií a TTS engine. Engine je automaticky zjištěn pokud není nastaven.",
+    tts_how_alexa: "Alexa / notify / mobil: vyberte odpovídající notify službu. Karta volá notify.NÁZEV přímo — TTS engine není potřeba.",
+    tts_how_peralert: "Každé varování může aktivovat TTS přepínačem 🗣️ ve svém panelu nastavení a přepsat reproduktor, engine nebo notify službu.",
+    tts_master_toggle: "Povolit převod textu na řeč (TTS)",
+    tts_master_toggle_help: "Hlavní přepínač. Když je vypnutý, žádné varování nečte zprávu nahlas, i když je TTS povoleno pro jednotlivá varování.",
+    section_tts: "🗣️ Převod textu na řeč (TTS)",
+    tts_entity_global: "Výchozí TTS reproduktor (media player)",
+    tts_entity_global_help: "Přehrávač médií použitý jako výchozí reproduktor pro všechna TTS varování. Lze přepsat pro každé varování.",
+    tts_engine_global: "TTS engine (volitelné)",
+    tts_engine_global_help: "TTS entita (např. tts.piper, tts.home_assistant_cloud). Automaticky zjištěno pokud není nastaveno.",
+    tts_notify_service: "Notify služba (Alexa / mobil)",
+    tts_notify_service_help: "Název notify služby místo tts.speak (např. alexa_media_echo_kuchyne). Když je nastaveno, reproduktor a engine jsou ignorovány.",
+    alert_tts: "TTS hlasové oznámení",
+    alert_tts_help: "Když je varování aktivní, text je přečten nahlas přes nakonfigurovaný přehrávač médií nebo notify službu.",
+    alert_tts_entity: "TTS reproduktor (přepíše globální)",
+    alert_tts_engine: "TTS engine (přepíše globální)",
+    alert_tts_notify_service: "Notify služba (přepíše globální)",
+    alert_tts_message: "Vlastní TTS text",
+    alert_tts_message_help: "Alternativní text k přečtení. Pokud prázdné, použije se zpráva varování.",
+    alert_camera_entity: "Snímek kamery v overlay",
+    alert_camera_entity_help: "Když se varování aktivuje, zobrazí snímek z této kamery v overlay banneru. Viditelné pouze v overlay, ne v kartě.",
     test_mode: "Testovací režim",
     test_mode_desc: "Zobrazí všechna varování jako aktivní, bez ohledu na nastavené podmínky. Rotace varování je pozastavena. Rozklikni varování v editoru pro jeho zobrazení.",
     test_mode_warning: "Nezapomeňte vypnout testovací režim před uložením!",
@@ -2140,7 +2550,7 @@ const ET = {
     alert_entity: "Entita",
     alert_operator: "Podmínka",
     alert_state: "Hodnota",
-    alert_state_help: "např. 'on', '80' (čísla s možností > < >= <=)",
+    alert_state_help: "např. 'on', '80' (čísla s možností > < >= <=). Podporuje šablony: {{ states('input_number.x') }}",
     current_state: "Aktuální stav",
     alert_message: "Zpráva k zobrazení",
     alert_name: "Název",
@@ -2183,7 +2593,7 @@ const ET = {
     op_lte: "≤ menší nebo rovno",
     op_contains: "⊃ obsahuje",
     op_not_contains: "⊅ neobsahuje",
-    cycle_animation: "Animace rotace ",
+    cycle_animation: "Animace rotace",
     anim_fold:    "🃏 Fold — 3D otočení stránky",
     anim_slide:   "➡️ Slide — horizontální odsunutí",
     anim_fade:    "🌫️ Fade — prolnutí",
@@ -2203,8 +2613,10 @@ const ET = {
     entity_filter_zero: "Žádné odpovídající entity",
     entity_filter_exclude_tip: "Klikni na entitu pro vyloučení. Klikni znovu pro navrácení.",
     entity_filter_invert: "Inverzní výběr",
+    device_class: "Třída zařízení (volitelné)",
+    device_class_help: "např. smoke, battery, motion — vytvoří jedno upozornění pro každou entitu s touto device_class. Alternativa k textovému filtru.",
     alert_attribute: "Atribut (volitelné)",
-    alert_attribute_help: "např. battery_level. Ponechte prázdné empty pro použití stavu entity. Podporuje vnořené cesty k atributu: např. activity.0.forecast",
+    alert_attribute_help: "např. battery_level. Ponechte prázdné pro použití stavu entity. Podporuje vnořené cesty k atributu: např. activity.0.forecast",
     secondary_entity: "Hodnota sekundární entity (volitelné)",
     secondary_entity_help: "Zobrazí aktuální hodnotu zvolené entity na extra řádku pod hlavní zprávou varování, např. seznam dotčených zón nebo jinou informaci k varování.",
     secondary_text: "Sekundární statický text (volitelné)",
@@ -2218,7 +2630,7 @@ const ET = {
     logic_and: "AND — vše musí být splněno",
     logic_or: "OR — alespoň jedna musí být splněna",
     add_condition: "Přidat podmínku",
-    condition_entity: "Entita pro podmínku ",
+    condition_entity: "Entita pro podmínku",
     condition_attribute: "Atribut pro podmínku",
     tap_action_section: "Akce při doteku",
     double_tap_action_section: "Akce při dvojdoteku",
@@ -2251,6 +2663,8 @@ const ET = {
     overlay_pos_center: "Uprostřed",
     overlay_duration: "Doba zobrazení (sekundy, 0 = ruční zavření)",
     overlay_duration_help: "Počet sekund před automatickým skrytím baneru. Nastavte na 0 pro ruční zavření.",
+    overlay_scale: "Velikost baneru",
+    overlay_scale_help: "Zvětšení textu a ikony pro lepší viditelnost na dálku.",
     overlay_how_works: "Baner se zobrazí pouze pokud karta s varováními není na obrazovce viditelná - uživatel je na jiném ovládícím panelu nebo je karta mimo obrazovku. Nezobrazuje se redundantně.",
     visible_to_section: "👤 Zobrazit pro uživatele",
     visible_to_label: "Viditelné pro",
@@ -2265,6 +2679,8 @@ const ET = {
     time_range_from: "Od (HH:MM)",
     time_range_to: "Do (HH:MM)",
     time_range_help: "Zobrazí varování pouze v nastaveném časovém intervalu. Podporuje přechod přes půlnoc mezi dny (např. 22:00–06:00). Ponechte prázdné pro zobrazení varování kdykoli.",
+    card_border: "Zobrazit okraje a název",
+    card_border_help: "Přidá standardní okraje Home Assistenta okolo karty. Zobrazí kartu, pokud nejsou aktivní žádná varování, namísto úplného schování karty.",
   },
 };
 
@@ -2512,7 +2928,18 @@ class AlertTickerCardEditor extends LitElement {
         return newAlert;
       });
     }
+    // Capture the current alert reference BEFORE overwriting _config.
+    const prevAlert = this._editingIndex >= 0 ? this._config?.alerts?.[this._editingIndex] : null;
     this._config = merged;
+    // If the alert edit panel is open and the alert content changed from outside
+    // (e.g. YAML paste), force a full panel re-render by briefly closing and
+    // reopening — MWC components (ha-textfield, ha-service-control) ignore
+    // property updates after first render without this.
+    if (this._editingIndex >= 0 && prevAlert !== merged.alerts?.[this._editingIndex]) {
+      const idx = this._editingIndex;
+      this._editingIndex = -1;
+      this.updateComplete.then(() => { this._editingIndex = idx; });
+    }
   }
 
   set hass(hass) {
@@ -2657,7 +3084,7 @@ class AlertTickerCardEditor extends LitElement {
           <span class="hub-tile-desc">${this._t("hub_desc_overlay")}</span>
           ${overlayOn ? html`<span class="hub-badge hub-badge--on">ON</span>` : ""}
         </button>
-        <button class="hub-tile" @click="${() => this._sectionChanged("allclear")}">
+<button class="hub-tile" @click="${() => this._sectionChanged("allclear")}">
           <span class="hub-tile-icon">✅</span>
           <span class="hub-tile-label">${this._t("tab_allclear")}</span>
           <span class="hub-tile-desc">${this._t("hub_desc_allclear")}</span>
@@ -2667,6 +3094,9 @@ class AlertTickerCardEditor extends LitElement {
 
       <div class="hub-footer">
         <span class="hub-footer-love">Made with ❤️ by <strong>djdevil</strong></span>
+        <a class="hub-footer-star" href="https://github.com/djdevil/AlertTicker-Card" target="_blank" rel="noopener">
+          ⭐ ${this._t("hub_star_github")}
+        </a>
         <span class="hub-footer-links">
           <a class="hub-footer-link" href="https://github.com/djdevil/AlertTicker-Card/issues" target="_blank" rel="noopener">🐛 ${this._t("hub_report_issue")}</a>
           <a class="hub-footer-bmc" href="https://www.buymeacoffee.com/divil17f" target="_blank" rel="noopener">
@@ -2869,6 +3299,19 @@ class AlertTickerCardEditor extends LitElement {
         </div>
       </div>
 
+      <!-- ── TTS MASTER ───────────────────────────────────────────────── -->
+      <div class="section-divider">${this._t("section_tts")}</div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("tts_master_toggle")}</span>
+          <ha-switch
+            .checked="${cfg.tts_enabled !== false}"
+            @change="${(e) => this._fireConfig({ ...this._config, tts_enabled: e.target.checked ? undefined : false })}"
+          ></ha-switch>
+        </div>
+        <div class="helper-text">${this._t("tts_master_toggle_help")}</div>
+      </div>
+
       <!-- ── HISTORY ───────────────────────────────────────────────────── -->
       <div class="section-divider">📋 ${this._t("section_history")}</div>
       <div class="form-row">
@@ -2929,6 +3372,80 @@ class AlertTickerCardEditor extends LitElement {
             ></ha-entity-picker>
           </div>
         ` : ''}
+
+        <!-- Date toggle + position (only for clock/weather_clock modes) -->
+        ${(cfg.clear_display_mode === 'clock' || cfg.clear_display_mode === 'weather_clock') ? html`
+          <div class="form-row">
+            <div class="switch-row">
+              <span class="switch-label">${this._t("clear_clock_show_date")}</span>
+              <ha-switch
+                .checked="${cfg.clear_clock_show_date !== false}"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_clock_show_date: e.target.checked })}"
+              ></ha-switch>
+            </div>
+          </div>
+          ${cfg.clear_clock_show_date !== false ? html`
+          <div class="form-row">
+            <div class="native-select-wrap">
+              <label class="native-select-label">${this._t("clear_clock_date_label")}</label>
+              <select class="native-select"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_clock_date_position: e.target.value })}"
+              >
+                <option value="below" ?selected="${(cfg.clear_clock_date_position || 'below') === 'below'}">${this._t("date_position_below")}</option>
+                <option value="above" ?selected="${cfg.clear_clock_date_position === 'above'}">${this._t("date_position_above")}</option>
+              </select>
+            </div>
+          </div>
+          ` : ''}
+
+        ` : ''}
+
+        <!-- Clock style (only for clock mode) -->
+        ${cfg.clear_display_mode === 'clock' ? html`
+          <div class="form-row">
+            <div class="native-select-wrap">
+              <label class="native-select-label">${this._t("clear_clock_style_label")}</label>
+              <select class="native-select"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_clock_style: e.target.value })}"
+              >
+                <option value="default" ?selected="${!cfg.clear_clock_style || cfg.clear_clock_style === 'default'}">${this._t("style_default")}</option>
+                <option value="aurora"  ?selected="${cfg.clear_clock_style === 'aurora'}">${this._t("style_aurora")}</option>
+                <option value="gold"    ?selected="${cfg.clear_clock_style === 'gold'}">${this._t("style_gold")}</option>
+                <option value="matrix"  ?selected="${cfg.clear_clock_style === 'matrix'}">${this._t("style_matrix")}</option>
+              </select>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Weather badge style (only for weather/weather_clock) -->
+        ${(cfg.clear_display_mode === 'weather' || cfg.clear_display_mode === 'weather_clock') ? html`
+          <div class="form-row">
+            <div class="native-select-wrap">
+              <label class="native-select-label">${this._t("clear_weather_style_label")}</label>
+              <select class="native-select"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_weather_style: e.target.value })}"
+              >
+                <option value="default"  ?selected="${!cfg.clear_weather_style || cfg.clear_weather_style === 'default'}">${this._t("style_default")}</option>
+                <option value="frosted"  ?selected="${cfg.clear_weather_style === 'frosted'}">${this._t("style_frosted")}</option>
+                <option value="solid"    ?selected="${cfg.clear_weather_style === 'solid'}">${this._t("style_solid")}</option>
+                <option value="minimal"  ?selected="${cfg.clear_weather_style === 'minimal'}">${this._t("style_minimal")}</option>
+                <option value="stage"     ?selected="${cfg.clear_weather_style === 'stage'}">${this._t("style_stage")}</option>
+                <option value="split"    ?selected="${cfg.clear_weather_style === 'split'}">${this._t("style_split")}</option>
+                <option value="cinematic" ?selected="${cfg.clear_weather_style === 'cinematic'}">${this._t("style_cinematic")}</option>
+              </select>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Show widget in alert cycle -->
+        ${(cfg.clear_display_mode && cfg.clear_display_mode !== 'message') ? html`
+        <div class="form-row toggle-row">
+          <span class="toggle-label">${this._t("show_widget_in_cycle")}</span>
+          <ha-switch
+            ?checked="${!!cfg.show_widget_in_cycle}"
+            @change="${(e) => this._fireConfig({ ...this._config, show_widget_in_cycle: e.target.checked })}"
+          ></ha-switch>
+        </div>` : ''}
 
         <!-- Message fields (only for message mode) -->
         ${(!cfg.clear_display_mode || cfg.clear_display_mode === 'message') ? html`
@@ -3014,6 +3531,17 @@ class AlertTickerCardEditor extends LitElement {
               }}"
             ></ha-textfield>
             <div class="helper-text">${this._t("overlay_duration_help")}</div>
+            <div class="native-select-wrap" style="margin-top:8px">
+              <label class="native-select-label">${this._t("overlay_scale")}</label>
+              <select class="native-select"
+                @change="${(e) => this._fireConfig({ ...this._config, overlay_scale: parseFloat(e.target.value) || undefined })}"
+              >
+                ${[["1", "1×"], ["1.5", "1.5×"], ["2", "2×"], ["3", "3×"]].map(([v, l]) => html`
+                  <option value="${v}" ?selected="${String(cfg.overlay_scale || 1) === v}">${l}</option>
+                `)}
+              </select>
+            </div>
+            <div class="helper-text">${this._t("overlay_scale_help")}</div>
           </div>
           ` : ""}
         </div>
@@ -3064,11 +3592,13 @@ class AlertTickerCardEditor extends LitElement {
     const isEditing = this._editingIndex === index;
     const prio = alert.priority || 1;
     const rawIcon = alert.icon || (THEME_META[alert.theme] || {}).icon || "🔔";
-    const icon = (alert.use_ha_icon && rawIcon && (rawIcon.startsWith("mdi:") || rawIcon.startsWith("hass:")))
+    const icon = (rawIcon && /^[\w-]+:/.test(rawIcon))
       ? html`<ha-icon icon="${rawIcon}" style="--mdc-icon-size:1.2em;vertical-align:middle;"></ha-icon>`
       : rawIcon;
     const entityLabel = alert.entity_filter
       ? `[${this._t("entity_filter")}: "${alert.entity_filter}"]`
+      : alert.device_class
+      ? `[${this._t("device_class")}: "${alert.device_class}"]`
       : alert.entity || (this._lang === "it" ? "(non impostato)" : "(not set)");
     const msgSnippet = alert.message
       ? alert.message.length > 40
@@ -3178,8 +3708,8 @@ class AlertTickerCardEditor extends LitElement {
                 <!-- ── 1. ENTITÀ ─────────────────────────────────────────── -->
                 <div class="section-divider">🔍 ${this._t("alert_entity")}</div>
 
-                <!-- Entity filter (text) — expands to one alert per matched entity -->
-                <div>
+                <!-- Entity filter (text) — expands to one alert per matched entity; hidden when device_class is set -->
+                ${!alert.device_class ? html`<div>
                   <ha-textfield
                     .label="${this._t("entity_filter")}"
                     .value="${alert.entity_filter || ""}"
@@ -3235,10 +3765,74 @@ class AlertTickerCardEditor extends LitElement {
                         `;
                     })() : this._t("entity_filter_help")}
                   </div>
-                </div>
+                </div>` : ""}
 
-                <!-- Entity picker — hidden when entity_filter is active -->
-                ${!alert.entity_filter ? html`
+                <!-- Device class filter — hidden when entity_filter is set -->
+                ${!alert.entity_filter ? html`<div>
+                  <div class="native-select-wrap">
+                    <label class="native-select-label">${this._t("device_class")}</label>
+                    <select class="native-select" @change="${(e) => {
+                      const v = e.target.value || undefined;
+                      this._updateAlert(index, { device_class: v, entity: v ? undefined : alert.entity });
+                    }}">
+                      <option value="" ?selected="${!alert.device_class}">—</option>
+                      ${this._hass ? [...new Set(Object.values(this._hass.states)
+                          .map(s => s.attributes.device_class).filter(Boolean))].sort()
+                        .map(dc => html`<option value="${dc}" ?selected="${alert.device_class === dc}">${dc}</option>`)
+                      : ""}
+                    </select>
+                  </div>
+                  <div class="helper-text">
+                    ${alert.device_class && this._hass ? (() => {
+                      const excluded = new Set(alert.entity_filter_exclude || []);
+                      const allMatched = Object.entries(this._hass.states).filter(([id, s]) =>
+                        s.attributes.device_class === alert.device_class
+                      );
+                      const activeCount = allMatched.filter(([id]) => !excluded.has(id)).length;
+                      const excludedCount = excluded.size;
+                      const previewKey = `dc_${index}`;
+                      const previewOpen = this._filterPreviewOpen.has(previewKey);
+                      return allMatched.length === 0
+                        ? html`<span style="color:var(--error-color,#db4437)">${this._t("entity_filter_zero")}</span>`
+                        : html`
+                          <button class="filter-count-btn" @click="${() => {
+                            const next = new Set(this._filterPreviewOpen);
+                            if (next.has(previewKey)) next.delete(previewKey); else next.add(previewKey);
+                            this._filterPreviewOpen = next;
+                            this.requestUpdate();
+                          }}">
+                            <span style="color:var(--success-color,#43a047)"><b>${activeCount}</b> ${this._t("entity_filter_count")}</span>
+                            ${excludedCount ? html`<span style="color:var(--error-color,#db4437);margin-left:4px">(${excludedCount} ${this._t("entity_filter_excluded")})</span>` : ""}
+                            <span class="filter-count-chevron">${previewOpen ? "▲" : "▼"}</span>
+                          </button>
+                          ${previewOpen ? html`
+                            <div class="filter-entity-list">
+                              <div class="filter-entity-tip">${this._t("entity_filter_exclude_tip")}</div>
+                              <button class="filter-invert-btn" @click="${() => {
+                                const newExcluded = allMatched.filter(([id]) => !excluded.has(id)).map(([id]) => id);
+                                this._updateAlert(index, { entity_filter_exclude: newExcluded.length ? newExcluded : undefined });
+                              }}">⇄ ${this._t("entity_filter_invert")}</button>
+                              ${allMatched.map(([id, s]) => {
+                                const isExcluded = excluded.has(id);
+                                return html`
+                                  <div class="filter-entity-row ${isExcluded ? "filter-entity-excluded" : ""}"
+                                    @click="${() => this._toggleFilterExclude(index, id)}">
+                                    <span class="filter-entity-toggle">${isExcluded ? "✗" : "✓"}</span>
+                                    <span class="filter-entity-name">${s.attributes.friendly_name || id}</span>
+                                    <span class="filter-entity-id">${id}</span>
+                                    <span class="filter-entity-state">${s.state}</span>
+                                  </div>
+                                `;
+                              })}
+                            </div>
+                          ` : ""}
+                        `;
+                    })() : this._t("device_class_help")}
+                  </div>
+                </div>` : ""}
+
+                <!-- Entity picker — hidden when entity_filter or device_class is active -->
+                ${!alert.entity_filter && !alert.device_class ? html`
                 <ha-entity-picker
                   .label="${this._t("alert_entity")}"
                   .hass="${this._hass}"
@@ -3258,8 +3852,8 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="helper-text">${this._t("alert_attribute_help")}</div>
                 </div>
 
-                <!-- show_filter_name / show_filter_state toggles — only when entity_filter is set -->
-                ${alert.entity_filter ? html`
+                <!-- show_filter_name / show_filter_state toggles — when entity_filter or device_class is set -->
+                ${(alert.entity_filter || alert.device_class) ? html`
                   <ha-formfield .label="${this._t("show_filter_name")}">
                     <ha-switch
                       ?checked="${alert.show_filter_name !== false}"
@@ -3573,6 +4167,76 @@ class AlertTickerCardEditor extends LitElement {
                     <div class="helper-text">${this._t("alert_sound_url_help")}</div>
                   </div>
                 ` : ""}
+
+                <!-- TTS per alert -->
+                <div class="section-divider">${this._t("section_tts")}</div>
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("alert_tts")}</span>
+                    <ha-switch
+                      .checked="${!!alert.tts}"
+                      @change="${(e) => this._updateAlert(index, { tts: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </div>
+                  <div class="helper-text">${this._t("alert_tts_help")}</div>
+                </div>
+                ${alert.tts ? html`
+                  <div class="form-row">
+                    <ha-entity-picker
+                      .hass="${this._hass}"
+                      .value="${alert.tts_entity || ''}"
+                      .includeDomains="${['media_player']}"
+                      .label="${this._t('alert_tts_entity')}"
+                      allow-custom-entity
+                      @value-changed="${(e) => this._updateAlert(index, { tts_entity: e.detail.value || undefined })}"
+                    ></ha-entity-picker>
+                  </div>
+                  <div class="form-row">
+                    <ha-entity-picker
+                      .hass="${this._hass}"
+                      .value="${alert.tts_engine || ''}"
+                      .includeDomains="${['tts']}"
+                      .label="${this._t('alert_tts_engine')}"
+                      allow-custom-entity
+                      @value-changed="${(e) => this._updateAlert(index, { tts_engine: e.detail.value || undefined })}"
+                    ></ha-entity-picker>
+                  </div>
+                  <div class="form-row">
+                    <div class="native-select-wrap">
+                      <label class="native-select-label">${this._t('alert_tts_notify_service')}</label>
+                      <select class="native-select"
+                        @change="${(e) => this._updateAlert(index, { tts_notify_service: e.target.value || undefined })}"
+                      >
+                        <option value="" ?selected="${!alert.tts_notify_service}">—</option>
+                        ${Object.keys(this._hass?.services?.notify || {}).sort().map((svc) => html`
+                          <option value="${svc}" ?selected="${alert.tts_notify_service === svc}">notify.${svc}</option>
+                        `)}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <ha-textfield
+                      .label="${this._t("alert_tts_message")}"
+                      .value="${alert.tts_message || ''}"
+                      @change="${(e) => this._updateAlert(index, { tts_message: e.target.value || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("alert_tts_message_help")}</div>
+                  </div>
+                ` : ""}
+
+                <!-- Camera snapshot in overlay -->
+                <div class="section-divider">📷 ${this._t("alert_camera_entity")}</div>
+                <div class="form-row">
+                  <ha-entity-picker
+                    .hass="${this._hass}"
+                    .value="${alert.camera_entity || ''}"
+                    .includeDomains="${['camera']}"
+                    .label="${this._t('alert_camera_entity')}"
+                    allow-custom-entity
+                    @value-changed="${(e) => this._updateAlert(index, { camera_entity: e.detail.value || undefined })}"
+                  ></ha-entity-picker>
+                  <div class="helper-text">${this._t("alert_camera_entity_help")}</div>
+                </div>
 
                 <!-- User visibility filter -->
                 ${(() => {
@@ -4275,6 +4939,25 @@ class AlertTickerCardEditor extends LitElement {
       }
       .hub-footer-link:hover {
         background: color-mix(in srgb, var(--primary-color, #03a9f4) 10%, transparent);
+      }
+      .hub-footer-star {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(90deg, #f7a92b 0%, #f4731a 100%);
+        text-decoration: none;
+        padding: 6px 18px;
+        border-radius: 20px;
+        box-shadow: 0 2px 8px rgba(244,115,26,0.35);
+        transition: filter 0.15s, transform 0.15s;
+        letter-spacing: 0.01em;
+      }
+      .hub-footer-star:hover {
+        filter: brightness(1.1);
+        transform: scale(1.04);
       }
       .hub-footer-bmc img {
         height: 32px;
