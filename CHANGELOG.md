@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.3] - 2026-04-23
+
+### Fixed
+
+- **Full Jinja2 support in overlay banner** — the overlay watcher now resolves any Jinja2 template expression via HA's WebSocket `render_template` API. Simple patterns (`{{ state_attr(...) }}`, `{{ states(...) }}`) are evaluated synchronously from `hass.states` with no delay; complex expressions (filters, math, `now()`, `{% if %}` blocks, etc.) are sent to the HA template engine and resolved before the banner is shown. Fallback to plain text on timeout (3 s) or error. Previously all `{{ }}` expressions were unconditionally replaced with `…`.
+
+- **Snooze menu clipped by card boundary** — removed `overflow: hidden` from `.atc-card-root` (added in 1.2.2 to fix cinematic overflow). The clip is now applied via `atc-inner-clip` (already `overflow: hidden; position: relative`) which wraps the clear widget in every render path. The snooze dropdown can now extend beyond the card edge as intended.
+
+- **Cinematic clear widget potentially overflowing** — clear widget render path now wraps the widget in `atc-inner-clip`, consistent with alert render paths. `overflow: visible` override on `.atc-cw-style--cinematic` removed; clipping is handled at the `atc-inner-clip` level.
+
+---
+
 ## [1.2.2] - 2026-04-22
 
 ### Added

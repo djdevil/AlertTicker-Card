@@ -21,7 +21,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.2.2";
+const CARD_VERSION = "1.2.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -841,16 +841,24 @@ const _ATC_OVERLAY = (() => {
     const deviceId   = a.entity ? hass.entities?.[a.entity]?.device_id : null;
     const dev        = deviceId ? hass.devices?.[deviceId] : null;
     const deviceName = dev ? (dev.name_by_user || dev.name || "") : "";
+    // Resolve {placeholders} first so _evalTemplate sees real entity IDs
     msg = msg
-      .replace(/\{%-?\s*[\s\S]*?-?%\}/g, "")   // strip {% ... %} control blocks
-      .replace(/\{\{[\s\S]*?\}\}/g, "…")         // replace {{ ... }} expressions with …
       .replace(/\{state\}/g,  es ? _ovFmtState(hass, es, null) : "")
       .replace(/\{name\}/g,   es?.attributes?.friendly_name || a.entity || "")
       .replace(/\{entity\}/g, a.entity || "")
       .replace(/\{device\}/g, deviceName)
-      .replace(/\{timer\}/g,  "")
-      .replace(/\s+/g, " ");
-    return msg.trim() || a.badge_label || es?.attributes?.friendly_name || a.entity || "";
+      .replace(/\{timer\}/g,  "");
+    // Try to evaluate supported {{ }} template patterns directly from hass.states
+    const evaluated = _evalTemplate(hass, msg);
+    if (evaluated !== null) {
+      msg = evaluated;
+    } else {
+      // Unsupported syntax — strip control blocks, replace remaining {{ }} with …
+      msg = msg
+        .replace(/\{%-?\s*[\s\S]*?-?%\}/g, "")
+        .replace(/\{\{[\s\S]*?\}\}/g, "…");
+    }
+    return msg.replace(/\s+/g, " ").trim() || a.badge_label || es?.attributes?.friendly_name || a.entity || "";
   }
 
   // Evaluates common HA template patterns directly from hass.states — no WebSocket needed.
@@ -876,6 +884,54 @@ const _ATC_OVERLAY = (() => {
     });
     if (/\{\{/.test(r)) return null; // unsupported syntax remains
     return r.trim();
+  }
+
+  // Resolves {placeholders} only — used to pre-substitute before sending to HA engine.
+  function _resolvePlaceholders(hass, a, raw) {
+    const es = a.entity ? hass.states[a.entity] : null;
+    const deviceId   = a.entity ? hass.entities?.[a.entity]?.device_id : null;
+    const dev        = deviceId ? hass.devices?.[deviceId] : null;
+    const deviceName = dev ? (dev.name_by_user || dev.name || "") : "";
+    return raw
+      .replace(/\{state\}/g,  es ? _ovFmtState(hass, es, null) : "")
+      .replace(/\{name\}/g,   es?.attributes?.friendly_name || a.entity || "")
+      .replace(/\{entity\}/g, a.entity || "")
+      .replace(/\{device\}/g, deviceName)
+      .replace(/\{timer\}/g,  "");
+  }
+
+  // Resolves the alert message asynchronously, using HA's WebSocket render_template
+  // for complex Jinja2 expressions. Falls back to synchronous _resolveMsg on error/timeout.
+  function _resolveMsgAsync(hass, a) {
+    const fallback = _resolveMsg(hass, a);
+    const raw = a.message || "";
+    if (!raw.includes("{{")) return Promise.resolve(fallback);
+    // Substitute {placeholders} before sending to HA so {entity} becomes the real ID
+    const tpl = _resolvePlaceholders(hass, a, raw);
+    // Fast synchronous path for simple supported patterns
+    const quick = _evalTemplate(hass, tpl);
+    if (quick !== null) return Promise.resolve(quick.replace(/\s+/g, " ").trim() || fallback);
+    // Complex template — render server-side via WebSocket
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (val) => { if (!done) { done = true; resolve(val || fallback); } };
+      const timer = setTimeout(() => finish(fallback), 3000);
+      try {
+        let unsubFn;
+        hass.connection.subscribeMessage(
+          (result) => {
+            clearTimeout(timer);
+            try { unsubFn?.(); } catch (_) {}
+            finish((result.result ?? "").replace(/\s+/g, " ").trim());
+          },
+          { type: "render_template", template: tpl, variables: {}, strict: false }
+        ).then(u => {
+          unsubFn = u;
+          // Unsubscribe after first result — we only need a one-shot render
+          setTimeout(() => { try { u(); } catch (_) {} }, 500);
+        }).catch(() => finish(fallback));
+      } catch (_) { finish(fallback); }
+    });
   }
 
   function _tick() {
@@ -925,26 +981,27 @@ const _ATC_OVERLAY = (() => {
           const badge  = a.show_badge === false ? "" : (a.badge_label || ({ critical: tLang.critical, warning: tLang.warning_label, ok: tLang.success_label }[cat] ?? tLang.info_label));
 
           // For entity_filter / device_class alerts: find the triggering entity and resolve msg/secondary
-          let msg, filterSecondary = "";
+          let msgPromise, filterSecondary = "";
           if ((a.entity_filter || a.device_class) && !a.entity) {
             const match = _findFilterMatch(hass, a);
             if (match) {
               const [eid, fes] = match;
               const fname = fes.attributes?.friendly_name || eid;
               const fstate = _ovFmtState(hass, fes, a.attribute || null);
-              msg = (a.message || "")
-                .replace(/\{%-?\s*[\s\S]*?-?%\}/g, "")
-                .replace(/\{\{[\s\S]*?\}\}/g, "…")
-                .replace(/\{state\}/g, fstate)
-                .replace(/\{name\}/g, fname)
-                .replace(/\{entity\}/g, eid)
-                .replace(/\{device\}/g, "").replace(/\{timer\}/g, "").replace(/\s+/g, " ").trim() || fname || "";
+              const rawFilter = (a.message || "")
+                .replace(/\{state\}/g, fstate).replace(/\{name\}/g, fname)
+                .replace(/\{entity\}/g, eid).replace(/\{device\}/g, "").replace(/\{timer\}/g, "");
+              const quickFilter = _evalTemplate(hass, rawFilter);
+              const filterMsg = quickFilter !== null
+                ? quickFilter.replace(/\s+/g, " ").trim() || fname
+                : rawFilter.replace(/\{%-?\s*[\s\S]*?-?%\}/g, "").replace(/\{\{[\s\S]*?\}\}/g, "…").replace(/\s+/g, " ").trim() || fname;
+              msgPromise = Promise.resolve(filterMsg);
               if (a.show_filter_name !== false) {
                 filterSecondary = a.show_filter_state ? `${fname}: ${fstate}` : fname;
               }
-            } else { msg = a.message || ""; }
+            } else { msgPromise = Promise.resolve(a.message || ""); }
           } else {
-            msg = _resolveMsg(hass, a);
+            msgPromise = _resolveMsgAsync(hass, a);
           }
 
           const entityPart = (() => {
@@ -970,8 +1027,11 @@ const _ATC_OVERLAY = (() => {
           if (filterSecondary) parts.push(filterSecondary);
           if (entityPart)      parts.push(entityPart);
           const camUrl = a.camera_entity ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
-          try { _paint(icon, cat, badge, msg, reg.config, a.theme, parts.join("\n"), camUrl); } catch (_) {}
-          newBases.add(i); // mark as notified — next tick picks up the next queued alert
+          const paintCfg = reg.config, paintTheme = a.theme, paintParts = parts.join("\n");
+          newBases.add(i); // mark as notified synchronously — prevents re-firing on next tick
+          msgPromise.then(resolvedMsg => {
+            try { _paint(icon, cat, badge, resolvedMsg, paintCfg, paintTheme, paintParts, camUrl); } catch (_) {}
+          });
           break; // one overlay per tick
         }
       } catch (_) {}
@@ -3959,7 +4019,7 @@ class AlertTickerCard extends LitElement {
       if (this._config.show_when_clear) {
         const widget = this._renderClearWidget();
         if (widget) {
-          return html`<div class="atc-card-root"><div class="${this._hostClass}">${widget}</div></div>`;
+          return html`<div class="atc-card-root"><div class="${this._hostClass}"><div class="atc-inner-clip">${widget}</div></div></div>`;
         }
         // Build a virtual "all clear" alert and render it with the chosen clear theme
         const clearAlert = {
@@ -6672,7 +6732,6 @@ class AlertTickerCard extends LitElement {
         outline: var(--atc-card-outline, none);
         outline-offset: -1px;
         border-radius: inherit;
-        overflow: hidden;
       }
       .atc-inner-clip {
         overflow: hidden;
@@ -7598,11 +7657,9 @@ class AlertTickerCard extends LitElement {
       }
 
       /* ── WEATHER STYLE: cinematic ──────────────────────────────────────── */
-      /* Animated bg fills card; corners pinned bottom via absolute pos.
-         overflow:visible escapes widget clip; atc-card-root clips at card boundary. */
+      /* Animated bg fills card; clipped by atc-inner-clip (overflow:hidden, position:relative). */
       .atc-cw-style--cinematic.atc-clear-weather {
         min-height: 90px;
-        overflow: visible;
       }
       .atc-cw-style--cinematic .atc-cw-corners {
         position: absolute;
