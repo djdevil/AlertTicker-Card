@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -21,6 +21,8 @@ A special thank you to **[@edwardtich1](https://github.com/edwardtich1)** for co
 A special thank you to **[@vdt2210](https://github.com/vdt2210)** for contributing the **Vietnamese (VI) language** translation. ([#12](https://github.com/djdevil/AlertTicker-Card/pull/12))
 
 A special thank you to **[@kgn3400](https://github.com/kgn3400)** for contributing the full **Danish (DA) language** translation — covering all card labels, editor UI, theme defaults, operator names, and overlay strings. ([#57](https://github.com/djdevil/AlertTicker-Card/pull/57))
+
+A special thank you to **[@feixm1](https://github.com/feixm1)** for contributing the full **Czech (CS) language** translation — covering all card labels, editor UI, theme defaults, operator names, and overlay strings. ([#74](https://github.com/djdevil/AlertTicker-Card/pull/74))
 
 ---
 
@@ -62,8 +64,11 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **visible_to** | Restrict alert visibility to specific HA users (`admin`, `non_admin`, or by display name) |
 | **secondary_entity** | Live entity value shown below the message |
 | **Jinja2 templates** | Full HA template syntax in messages — rendered server-side with live updates |
+| **Jinja2 in `state`** | Trigger threshold driven by a helper entity via `{{ states(...) }}` template |
 | **entity_filter** | Text filter — one alert per matched entity, with exclude list and wildcard `*` support |
+| **device_class** | Auto-discover all entities with a given HA device class (e.g. `smoke`, `battery`, `motion`) |
 | **Auto-icon** | Automatically uses the entity's HA icon when no icon is set |
+| **Custom icon namespaces** | Any icon namespace works: `mdi:`, `hass:`, `hue:`, `phu:`, `cil:` and more |
 | **Alert navigation** | ◀ ▶ buttons + left/right swipe to jump between active alerts |
 | **Snooze** | Suspend any alert — fixed duration or menu — persisted in localStorage |
 | **snooze_action** | Execute a Lovelace action when the 💤 button is tapped |
@@ -71,17 +76,106 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Timer themes** | 4 animated themes for `timer.*` entities with live countdown |
 | **HA icons** | Use any `mdi:` icon per alert via native icon picker |
 | **Sound notifications** | Per-alert audio — auto-generated tones or custom URL |
+| **🔊 TTS announcements** | **NEW** — read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (9 languages) |
+| **📷 Camera snapshot** | **NEW** — attach a live camera frame to the overlay banner, scaled proportionally with overlay zoom |
+| **Overlay scale** | Enlarge the overlay banner up to 3× for wall-mounted displays |
+| **Weather/time in cycle** | Insert the clock/weather widget as a slide in the alert rotation |
 | **Large buttons** | Always-visible pill-shaped 💤 and 📋 buttons |
 | **Swipe to snooze** | Swipe left on the card to snooze — no conflict with `tap_action` |
+| **Invisible touch zone** | Right-side tap zone shows action buttons on mobile without interfering with `tap_action` |
 | **Vertical layout** | Stack icon on top, message below, centered — all 40 themes |
 | **HA theme adaptation** | `ha_theme: true` adapts colors to any active HA global theme |
 | **Overlay notification** | Global floating banner — fires from any dashboard view, with top / center / bottom position and auto-dismiss |
 | **Clear widget** | Animated clock or weather display (condition + temp + wind + humidity) when no alerts are active |
+| **6 new clear styles** | Clock: `aurora`, `gold`, `matrix` — Weather badge: `stage`, `split`, `cinematic` |
 | **Card border** | Toggle to show the standard HA border around the card — always visible, off by default |
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
-| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish |
+| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
+
+---
+
+## 🔊 Text-to-Speech Announcements *(new in 1.2.2)*
+
+Make Home Assistant read your alerts aloud the moment they trigger — on any speaker, Alexa Echo device, or Google Home.
+
+```yaml
+# Standard HA TTS (media_player + TTS engine)
+alerts:
+  - entity: binary_sensor.smoke_detector
+    state: "on"
+    message: "Smoke detected!"
+    theme: fire
+    tts: true                            # enable TTS for this alert
+    tts_entity: media_player.living_room # speaker to use
+    # tts_engine: tts.google_en_com      # auto-detected if omitted
+```
+
+```yaml
+# Alexa Echo (via notify service)
+alerts:
+  - entity: binary_sensor.front_door
+    state: "on"
+    message: "Front door open"
+    tts: true
+    tts_notify_service: alexa_media_echo_dot_kitchen
+    tts_message: "Attention — the front door is open"   # optional custom sentence
+```
+
+### How it works
+
+- Enable `tts: true` on any individual alert.
+- If no `tts_message` is set, the card **auto-generates a natural sentence** from a built-in dictionary in 9 languages, based on the alert's theme category. For example, a `critical` theme in Italian produces *"Allarme critico: Sensore fumo cucina"*.
+- The spoken language is read from `hass.language` and falls back to English automatically.
+- Set a global **master toggle** (`tts_enabled: false`) in the General tab to disable all TTS at once without losing per-alert settings.
+
+### TTS service options
+
+| Method | When to use | Config |
+|--------|-------------|--------|
+| **Standard TTS** | HA media players, Sonos, Chromecast | `tts_entity` (speaker) + optional `tts_engine` |
+| **notify service** | Alexa, Google Home via notify, mobile push | `tts_notify_service` (any `notify.*` service) |
+
+Per-alert fields override global card-level defaults, so you can have one speaker for most alerts and a different one for critical alerts.
+
+### Card-level TTS options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `tts_enabled` | `boolean` | `true` | Master toggle — set `false` to silence all TTS globally |
+| `tts_entity` | `string` | — | Default `media_player.*` speaker entity |
+| `tts_engine` | `string` | *(auto)* | TTS engine entity (auto-detected from first `tts.*` state) |
+| `tts_notify_service` | `string` | — | Default notify service for Alexa / push |
+| `tts_language` | `string` | — | Language code passed to `tts.speak` (e.g. `it-IT`) |
+
+### Per-alert TTS options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `tts` | `boolean` | Enable TTS for this alert |
+| `tts_entity` | `string` | Override the global speaker for this alert |
+| `tts_engine` | `string` | Override the global TTS engine |
+| `tts_notify_service` | `string` | Override the global notify service |
+| `tts_message` | `string` | Custom spoken text (supports `{name}`, `{state}`, Jinja2) |
+
+---
+
+## 📷 Camera Snapshot in Overlay Banner *(new in 1.2.2)*
+
+Attach a **live camera frame** to the overlay toast — the moment a motion sensor, door contact, or intruder alert fires, the banner shows who or what triggered it.
+
+```yaml
+alerts:
+  - entity: binary_sensor.front_door_motion
+    state: "on"
+    message: "Motion at front door"
+    theme: intruder
+    camera_entity: camera.front_door     # live snapshot shown in the overlay
+    overlay_mode: true                   # enable at card level
+```
+
+The camera image appears **below the alert header row** inside the toast. The snapshot height scales proportionally with the `overlay_scale` setting, so it is never cropped at any zoom level. If the camera snapshot fails to load, the image is silently removed and the banner stays intact.
 
 ---
 
@@ -295,6 +389,42 @@ Restrict an alert to specific Home Assistant users without separate cards or con
 | `["Name1", "Name2"]` | Multiple users by display name |
 | *(omit)* | Shown to everyone |
 
+### device_class — auto-discover by device class
+
+Instead of listing individual entities or writing a text filter, specify a HA device class. The card auto-discovers every entity with that class and creates one alert per match:
+
+```yaml
+- device_class: smoke
+  state: "on"
+  message: "Smoke detected: {name}"
+  theme: fire
+  priority: 1
+
+- device_class: battery
+  attribute: battery_level
+  operator: "<="
+  state: "15"
+  message: "Low battery: {name} ({state}%)"
+  theme: battery
+  device_class_exclude:
+    - sensor.battery_test_device
+```
+
+Supports the same `include`/`exclude` panel as `entity_filter` and all the same message placeholders (`{name}`, `{state}`, `{entity}`, `{device}`).
+
+### Jinja2 in the `state` trigger field
+
+The trigger threshold itself can be a Jinja2 template — useful when the threshold is stored in a helper entity:
+
+```yaml
+- entity: sensor.outdoor_temperature
+  operator: ">"
+  state: "{{ states('input_number.temp_alert_threshold') }}"
+  message: "Temperature too high: {state}°"
+```
+
+Any HA template that evaluates to a string or number works here.
+
 ### All-clear widget (clock / weather)
 
 When `show_when_clear: true` is set and no alerts are active, the card can show an animated clock or live weather display instead of a plain text message:
@@ -313,6 +443,75 @@ clear_weather_entity: weather.home
 | `weather_clock` | Weather background + clock badge in top-right corner |
 
 Weather modes show full animated particle backgrounds (sun rays, stars/moon/aurora, floating clouds, fog, wind streaks, rain, snow, hail, lightning, exceptional). All weather info and the clock are rendered as frosted-glass corner badges so the animated sky stays fully visible.
+
+#### Clock styles (`clear_display_mode: clock`)
+
+| Style | Visual |
+|-------|--------|
+| *(default)* | Deep navy background, blue glow digits |
+| `aurora` | Animated northern-lights gradient background, green glow |
+| `gold` | Warm golden hue, thin weight digits |
+| `matrix` | Black background, monospace green digits with scanline glow |
+
+#### Weather badge styles (`clear_display_mode: weather` or `weather_clock`)
+
+| Style | Layout |
+|-------|--------|
+| *(default)* | Animated sky, frosted corner badges |
+| `stage` | Large centered clock on top; weather compacted into a single horizontal frosted pill below |
+| `split` | Card divided into two equal full-height panels — left: weather icon + temperature, right: clock |
+| `cinematic` | Animated weather background fills the entire card; all info condensed into a transparent caption bar pinned to the bottom |
+
+Configure these in the editor (All Clear tab). Use `clear_clock_show_date` to toggle the date display, and `clear_clock_date_position` (`above` / `below`) to choose its position relative to the time.
+
+### Weather/time as a slide in the alert cycle
+
+Insert the configured clear widget (clock / weather / weather+clock) as an extra slide in the alert rotation — displayed between alerts like any other:
+
+```yaml
+show_widget_in_cycle: true
+clear_display_mode: weather_clock
+clear_weather_entity: weather.home
+```
+
+The widget uses the same `cycle_animation` and `cycle_interval` as alerts. Enable this in the editor (Cycling & Animation section), visible only when `clear_display_mode` is already configured.
+
+### Overlay / toast notification
+
+Enable a global floating banner that fires when a new alert triggers — **visible from any dashboard view**, not just the one where the card lives:
+
+```yaml
+overlay_mode: true
+overlay_position: top     # top | center | bottom
+overlay_duration: 8       # seconds before auto-dismiss (0 = manual close only)
+overlay_scale: 1.5        # 1 | 1.5 | 2 | 3 — enlarge for wall displays
+```
+
+How it works:
+- When the card's view is **currently visible**, the banner is suppressed (no redundant notification — the card itself already shows the alert).
+- When you navigate away to another view (or the card is off-screen), an independent watcher reads entity states from the always-present `<home-assistant>` element every 2 seconds and fires the banner automatically.
+- A 10-second deduplication window prevents the same alert from firing twice.
+- The banner is styled according to the alert category (Critical / Warning / Info / OK / Style / Timer) and dismisses automatically after `overlay_duration` seconds, or manually via the × button.
+
+#### Overlay scale
+
+Use `overlay_scale` to enlarge the entire banner for wall-mounted tablets or TVs:
+
+| Value | Effect |
+|-------|--------|
+| `1` | Default size |
+| `1.5` | 50% larger — font, icon, padding, border-radius all scale |
+| `2` | Double size — ideal for wall tablets |
+| `3` | Triple size — for TV or kiosk displays |
+
+The max-width grows with the scale while staying within the viewport. Camera snapshot images (if set) also scale proportionally.
+
+Position options:
+| Value | Behavior |
+|-------|----------|
+| `top` | Slides in from the top of the screen |
+| `center` | Pops in at the center of the screen (scale animation) |
+| `bottom` | Slides in from the bottom of the screen |
 
 ### Snooze
 
@@ -470,6 +669,8 @@ Supported operators: `=` (default), `!=`, `>`, `<`, `>=`, `<=`, `contains`, `not
 
 Enable the `use_ha_icon` toggle per alert to use a native HA icon instead of an emoji. When enabled, the card first reads the entity's icon from the HA entity registry — so you get the correct icon automatically without setting it manually. You can also pick any `mdi:` or `hass:` icon from the native HA icon picker in the editor. Combine with `icon_color` to tint the icon with any CSS color.
 
+Any icon namespace is accepted — not just `mdi:` and `hass:`. Icons from `hue:`, `phu:`, `cil:`, and any other custom set registered via `extra_module_url` work automatically.
+
 ### Message placeholders
 
 `{state}`, `{name}`, `{entity}`, and `{device}` work in the `message` field of **any** alert that has an entity set — not just `entity_filter` alerts:
@@ -533,6 +734,10 @@ swipe_to_snooze: true
 
 Swipe at least 60 px horizontally to trigger. Uses the configured `snooze_duration` (or 1 h if none is set).
 
+### Invisible touch zone (mobile)
+
+A 22%-wide invisible zone on the right side of the card reveals the action buttons (snooze / history / nav arrows) on the first tap. The buttons auto-hide after 4 seconds. Never interferes with `tap_action`, `hold_action`, or `double_tap_action`.
+
 ### Vertical layout
 
 Stack the icon on top and the message below, centered — useful for narrow columns or square card grids:
@@ -560,29 +765,6 @@ When enabled:
 - OK badges/borders → `--success-color`
 
 All 40 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
-
-### Overlay / toast notification
-
-Enable a global floating banner that fires when a new alert triggers — **visible from any dashboard view**, not just the one where the card lives:
-
-```yaml
-overlay_mode: true
-overlay_position: top     # top | center | bottom
-overlay_duration: 8       # seconds before auto-dismiss (0 = manual close only)
-```
-
-How it works:
-- When the card's view is **currently visible**, the banner is suppressed (no redundant notification — the card itself already shows the alert).
-- When you navigate away to another view (or the card is off-screen), an independent watcher reads entity states from the always-present `<home-assistant>` element every 2 seconds and fires the banner automatically.
-- A 10-second deduplication window prevents the same alert from firing twice.
-- The banner is styled according to the alert category (Critical / Warning / Info / OK / Style / Timer) and dismisses automatically after `overlay_duration` seconds, or manually via the × button.
-
-Position options:
-| Value | Behavior |
-|-------|----------|
-| `top` | Slides in from the top of the screen |
-| `center` | Pops in at the center of the screen (scale animation) |
-| `bottom` | Slides in from the bottom of the screen |
 
 ### Card border
 
@@ -642,9 +824,10 @@ For each alert:
 |-------|-------------|
 | **Name** | Optional display label for this alert in the editor panel (e.g. "Motion sensor floor 1") |
 | **Entity filter** | Text filter with wildcard `*` — auto-expands to one alert per matched entity |
+| **Device class** | Auto-discover all entities with a given HA device class |
 | **Entity** | Single entity from your HA instance (hidden when filter is active) |
 | **Attribute** | Optional — check attribute instead of entity state (dot-notation supported) |
-| **Condition** | Operator + trigger value |
+| **Condition** | Operator + trigger value (supports Jinja2 templates) |
 | **on_change** | Trigger on any state change (ignores condition fields) |
 | **auto_dismiss_after** | Auto-hide the alert N seconds after it fires |
 | **time_range** | Show alert only within a time window (`from`/`to` in HH:MM) |
@@ -659,6 +842,8 @@ For each alert:
 | **Badge** | Show/hide category badge or set a custom label |
 | **Snooze duration** | Per-alert override of global snooze setting |
 | **Sound** | Enable audio notification + optional custom URL |
+| **TTS** | Enable voice announcement — speaker, engine, notify service, custom message |
+| **Camera** | Camera entity for live snapshot in the overlay banner |
 | **Extra conditions** | AND/OR additional entity conditions |
 | **Tap action** | Action executed on tap (native service control) |
 | **Hold action** | Action executed on hold (500 ms) |
@@ -673,9 +858,11 @@ You can **reorder** alerts with ↑ / ↓ buttons.
 |-------|-------------|
 | **Cycle interval** | Seconds between alerts when multiple are active (default: 5) |
 | **Transition animation** | Animation played when switching alerts (12 options) — preview plays on change |
+| **Show widget in cycle** | Insert the clear widget as a slide in the alert rotation |
 | **Snooze behaviour** | Fixed duration or menu (30min / 1h / 4h / 8h / 24h) |
 | **Show snooze bar** | Toggle the amber snooze reactivation bar |
 | **History max events** | How many history entries to keep (25 / 50 / 100 / 200) |
+| **TTS enabled** | Master toggle to enable or disable all TTS announcements |
 
 ### 🖼️ Layout & Appearance tab
 
@@ -695,6 +882,7 @@ You can **reorder** alerts with ↑ / ↓ buttons.
 | **Enable overlay** | Toggle the global floating banner notification |
 | **Position** | `Top` / `Center` / `Bottom` — where the banner appears on screen |
 | **Duration** | Seconds before auto-dismiss (0 = manual close only) |
+| **Scale** | `1` / `1.5` / `2` / `3` — enlarge the banner for wall displays |
 
 The tab shows an **ON** badge when overlay mode is active.
 
@@ -704,6 +892,10 @@ The tab shows an **ON** badge when overlay mode is active.
 |-------|-------------|
 | **Show when no alerts** | Toggle to keep the card visible when everything is OK |
 | **Display mode** | `Message` · `Clock` · `Weather` · `Weather + Clock` |
+| **Clock style** | Style variant for clock-only mode (`aurora`, `gold`, `matrix`) |
+| **Weather badge style** | Layout variant for weather modes (`stage`, `split`, `cinematic`) |
+| **Show date** | Toggle date display in clock / weather+clock mode |
+| **Date position** | `Above` or `Below` the time digits |
 | **Weather entity** | `weather.*` entity (shown when mode is Weather or Weather + Clock) |
 | **Message when clear** | Text to show in message mode |
 | **Theme for all-clear** | Visual theme for the all-clear card (OK themes only) |
@@ -724,11 +916,16 @@ The tab shows an **ON** badge when overlay mode is active.
 | `clear_message` | `string` | `""` | Message shown in all-clear state (message mode) |
 | `clear_theme` | `string` | `success` | Theme for all-clear (`success`, `check`, `confetti`, …) |
 | `clear_display_mode` | `string` | `message` | All-clear widget: `message`, `clock`, `weather`, `weather_clock` |
+| `clear_clock_style` | `string` | — | Clock style: `aurora`, `gold`, `matrix` |
+| `clear_weather_style` | `string` | — | Weather badge style: `stage`, `split`, `cinematic` |
+| `clear_clock_show_date` | `boolean` | `true` | Show or hide the date in clock / weather+clock mode |
+| `clear_clock_date_position` | `string` | `below` | Date position relative to time: `above` or `below` |
 | `clear_weather_entity` | `string` | `null` | `weather.*` entity for weather/weather_clock modes |
 | `clear_badge_label` | `string` | `"Resolved"` | Badge text on the all-clear card |
 | `clear_tap_action` | `object` | — | Tap action for the all-clear card |
 | `clear_hold_action` | `object` | — | Hold action for the all-clear card |
 | `clear_double_tap_action` | `object` | — | Double-tap action for the all-clear card |
+| `show_widget_in_cycle` | `boolean` | `false` | Insert the clear widget as a slide in the alert cycle |
 | `snooze_default_duration` | `number` | *(menu)* | Fixed snooze duration in hours (`0.5`, `1`, `4`, `8`, `24`). Omit for menu. |
 | `show_snooze_bar` | `boolean` | `true` | Set `false` to hide the amber snooze reactivation bar and pill |
 | `large_buttons` | `boolean` | `false` | Always-visible pill-shaped 💤 and 📋 buttons |
@@ -742,6 +939,12 @@ The tab shows an **ON** badge when overlay mode is active.
 | `overlay_mode` | `boolean` | `false` | Show a floating banner when a new alert triggers — visible from any dashboard view |
 | `overlay_position` | `string` | `top` | Banner position: `top`, `center`, or `bottom` |
 | `overlay_duration` | `number` | `8` | Seconds before auto-dismiss (0 = manual close only) |
+| `overlay_scale` | `number` | `1` | Banner zoom factor: `1`, `1.5`, `2`, or `3` |
+| `tts_enabled` | `boolean` | `true` | Master toggle — set `false` to silence all TTS globally |
+| `tts_entity` | `string` | — | Default `media_player.*` speaker entity |
+| `tts_engine` | `string` | *(auto)* | TTS engine entity (auto-detected from first `tts.*` state if omitted) |
+| `tts_notify_service` | `string` | — | Default notify service for Alexa / push (e.g. `alexa_media_echo_dot`) |
+| `tts_language` | `string` | — | Language code passed to `tts.speak` (e.g. `it-IT`) |
 | `test_mode` | `boolean` | `false` | Show all alerts as active (ignore conditions) — for editor preview only |
 | `alerts` | `list` | `[]` | List of alert objects |
 
@@ -753,10 +956,12 @@ The tab shows an **ON** badge when overlay mode is active.
 | `entity` | `string` | ✅* | Entity ID |
 | `entity_filter` | `string` | ✅* | Text filter — supports `*` wildcard (replaces `entity`) |
 | `entity_filter_exclude` | `list` | ❌ | Entity IDs to exclude from filter |
+| `device_class` | `string` | ✅* | HA device class (e.g. `smoke`, `battery`, `motion`) — auto-discovers all matching entities |
+| `device_class_exclude` | `list` | ❌ | Entity IDs to exclude from device class match |
 | `show_filter_name` | `boolean` | `true` | Set `false` to hide the entity friendly name below the message |
 | `attribute` | `string` | ❌ | Attribute to check instead of state — supports dot-notation (e.g. `activity.0.forecast`) |
 | `operator` | `string` | ❌ | `=` `!=` `>` `<` `>=` `<=` `contains` `not_contains` (default: `=`) |
-| `state` | `string` | ✅ | Trigger value |
+| `state` | `string` | ✅ | Trigger value — supports Jinja2 templates (e.g. `{{ states('input_number.threshold') }}`) |
 | `on_change` | `boolean` | `false` | Trigger on any state change — ignores `operator`/`state` |
 | `auto_dismiss_after` | `number` | ❌ | Auto-hide after N seconds. For `on_change`: starts on trigger. For condition alerts: starts when condition first becomes true. |
 | `time_range` | `object` | ❌ | `{from: "HH:MM", to: "HH:MM"}` — restrict to a time window (midnight crossing supported) |
@@ -777,6 +982,12 @@ The tab shows an **ON** badge when overlay mode is active.
 | `snooze_duration` | `number\|null` | ❌ | Override global snooze: hours, `null` for menu, omit to use global |
 | `sound` | `boolean` | `false` | Play a sound when this alert becomes active |
 | `sound_url` | `string` | ❌ | Custom `.mp3`/`.wav` URL — omit for auto-generated tone |
+| `tts` | `boolean` | `false` | Read the alert aloud when it becomes active |
+| `tts_entity` | `string` | ❌ | Override the global `media_player.*` speaker for this alert |
+| `tts_engine` | `string` | ❌ | Override the global TTS engine entity |
+| `tts_notify_service` | `string` | ❌ | Override the global notify service (for Alexa / push) |
+| `tts_message` | `string` | ❌ | Custom spoken text — omit for auto-generated multilingual sentence |
+| `camera_entity` | `string` | ❌ | Camera entity whose live snapshot appears in the overlay banner |
 | `conditions_logic` | `string` | ❌ | `and` or `or` for extra conditions |
 | `conditions` | `list` | ❌ | Extra entity conditions |
 | `tap_action` | `object` | ❌ | Action on tap |
@@ -784,7 +995,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `double_tap_action` | `object` | ❌ | Action on double-tap (single tap waits 300 ms to distinguish) |
 | `snooze_action` | `object` | ❌ | Action executed when 💤 is tapped |
 
-*Either `entity` or `entity_filter` is required.
+*One of `entity`, `entity_filter`, or `device_class` is required.
 
 ### Action object (`tap_action`, `hold_action`, `double_tap_action`, `snooze_action`, `clear_*_action`)
 
@@ -817,6 +1028,63 @@ alerts:
     priority: 2
     entity_filter_exclude:
       - sensor.battery_test_device
+```
+
+### Smoke detector with TTS + camera snapshot
+
+```yaml
+type: custom:alert-ticker-card
+overlay_mode: true
+overlay_scale: 1.5
+tts_entity: media_player.living_room
+alerts:
+  - entity: binary_sensor.smoke_detector
+    state: "on"
+    message: "Smoke detected!"
+    theme: fire
+    priority: 1
+    tts: true
+    camera_entity: camera.kitchen
+```
+
+### Alexa TTS announcement on door open
+
+```yaml
+type: custom:alert-ticker-card
+alerts:
+  - entity: binary_sensor.front_door
+    state: "on"
+    message: "Front door is open"
+    theme: door
+    tts: true
+    tts_notify_service: alexa_media_echo_dot_hallway
+    tts_message: "Attention — the front door has been opened"
+```
+
+### All smoke detectors via device_class
+
+```yaml
+type: custom:alert-ticker-card
+alerts:
+  - device_class: smoke
+    state: "on"
+    message: "Smoke detected: {name}"
+    theme: fire
+    priority: 1
+    tts: true
+    tts_entity: media_player.all_speakers
+```
+
+### Dynamic threshold from helper entity
+
+```yaml
+type: custom:alert-ticker-card
+alerts:
+  - entity: sensor.outdoor_temperature
+    operator: ">"
+    state: "{{ states('input_number.temp_alert_threshold') }}"
+    message: "Temperature too high: {state}°"
+    theme: temperature
 ```
 
 ### Timer with countdown
@@ -897,13 +1165,14 @@ alerts:
     theme: warning
 ```
 
-### All-clear with animated weather
+### All-clear with animated weather + widget in cycle
 
 ```yaml
 type: custom:alert-ticker-card
 show_when_clear: true
 clear_display_mode: weather_clock
 clear_weather_entity: weather.home
+show_widget_in_cycle: true
 alerts:
   - entity: binary_sensor.smoke_detector
     state: "on"
@@ -961,6 +1230,9 @@ The card automatically detects the language from your Home Assistant settings.
 | Vietnamese | `vi` | — |
 | Russian | `ru` | — |
 | Danish | `da` | — |
+| Czech | `cs` | — |
+
+TTS fallback messages (auto-generated when no `tts_message` is set) are available in all 9 languages and adapt automatically to the alert's theme category (critical / warning / info / ok / timer).
 
 ---
 
@@ -990,6 +1262,12 @@ The card automatically detects the language from your Home Assistant settings.
 
 **Weather widget shows placeholder but entity is configured**
 - Make sure `clear_display_mode` is set to `weather` or `weather_clock` AND `clear_weather_entity` points to a valid `weather.*` entity.
+
+**TTS not playing**
+- Check that `tts_enabled` is not `false`. For standard TTS, ensure `tts_entity` is a valid `media_player.*`. For Alexa, set `tts_notify_service` to the correct `alexa_media_*` service name (visible in Developer Tools → Services). The TTS engine is auto-detected from the first `tts.*` state — if none is found, set `tts_engine` explicitly.
+
+**Camera image not appearing in overlay**
+- Verify the `camera_entity` entity exists and has an `entity_picture` attribute in Developer Tools → States. The image is loaded directly from the HA proxied URL — no extra authentication needed on the local network.
 
 ---
 
