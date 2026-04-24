@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AlertTicker Card v1.2.2
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 36 visual themes with per-alert theme assignment, priority ordering,
@@ -13,7 +13,9 @@
 // LitElement bootstrap — resolves against the running HA instance
 // ---------------------------------------------------------------------------
 const LitElement = Object.getPrototypeOf(
-  customElements.get("ha-panel-lovelace") || customElements.get("hui-view")
+  customElements.get("ha-panel-lovelace") ||
+  customElements.get("hui-view") ||
+  customElements.get("ha-card")
 );
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
@@ -21,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.2.3";
+const CARD_VERSION = "1.2.5";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -58,6 +60,7 @@ const THEME_META = {
   cloud:        { icon: "☁️", category: "info",     color: "#82b1ff", bg: "linear-gradient(135deg,#001433,#002e66)" },
   satellite:    { icon: "📡", category: "info",     color: "#40c4ff", bg: "linear-gradient(135deg,#001433,#002e66)" },
   tips:         { icon: "💡", category: "info",     color: "#ffeb3b", bg: "linear-gradient(135deg,#1a1400,#2e2600)" },
+  light:        { icon: "🔆", category: "info",     color: "#ffd600", bg: "linear-gradient(135deg,#0d0b00,#1a1500)" },
   // --- OK / Success ---
   success:      { icon: "✅", category: "ok",       color: "#69f0ae", bg: "linear-gradient(135deg,#1b5e20,#2e7d32)" },
   check:        { icon: "🟢", category: "ok",       color: "#69f0ae", bg: "linear-gradient(135deg,#001a00,#003300)" },
@@ -160,6 +163,14 @@ const TTS_PREFIXES = {
     ok:       (name) => `${name}: zpět na normální stav`,
     timer:    (name) => `Časovač: ${name}`,
     _default: (name) => `Varování: ${name}`,
+  },
+  pt: {
+    critical: (name) => `Alerta crítico: ${name}`,
+    warning:  (name) => `Aviso: ${name}`,
+    info:     (name) => `Notificação: ${name}`,
+    ok:       (name) => `${name}: voltou ao normal`,
+    timer:    (name) => `Temporizador: ${name}`,
+    _default: (name) => `Alerta: ${name}`,
   },
 };
 
@@ -464,6 +475,39 @@ const T = {
     "weather.exceptional": "Mimořádné",
     clear_weather_entity_label: "Vyberte entitu s počasím",
   },
+  pt: {
+    alerts: "Alertas",
+    critical: "Crítico",
+    warning_label: "Aviso",
+    info_label: "Informação",
+    success_label: "Resolvido",
+    no_alerts: "Nenhum alerta ativo",
+    all_clear: "Tudo limpo",
+    priority_short: "P",
+    alert_system: "SISTEMA DE ALERTAS",
+    cmd_prefix: "root@ha:~$",
+    cmd_read: "alert --read",
+    snooze: "Silenciar",
+    snoozed: "Silenciado",
+    snooze_1h: "1 hora",
+    snooze_4h: "4 horas",
+    snooze_8h: "8 horas",
+    snooze_24h: "24 horas",
+    snooze_reset: "Retomar todos",
+    alerts_snoozed: "alertas silenciados",
+    history: "Histórico",
+    history_clear: "Limpar",
+    history_empty: "Nenhum evento registrado ainda",
+    timer_active: "Em execução",
+    timer_done: "Expirado",
+    test_mode_active: "MODO TESTE ATIVO — desative antes de salvar",
+    "weather.sunny": "Ensolarado", "weather.clear-night": "Noite clara", "weather.partlycloudy": "Parcialmente nublado",
+    "weather.cloudy": "Nublado", "weather.fog": "Nebuloso", "weather.windy": "Ventoso", "weather.windy-variant": "Muito ventoso",
+    "weather.rainy": "Chuvoso", "weather.snowy-rainy": "Aguaneve", "weather.pouring": "Chuva forte",
+    "weather.snowy": "Neve", "weather.hail": "Granizo", "weather.lightning": "Relâmpagos", "weather.lightning-rainy": "Trovoada",
+    "weather.exceptional": "Excepcional",
+    clear_weather_entity_label: "Selecione a entidade de clima",
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -759,6 +803,9 @@ const _ATC_OVERLAY = (() => {
   let _bases       = new Map();
   let _prevS       = new Map();
   let _watchInterval = null;
+  // trigger_delay tracking for overlay (mirrors card-side logic for when card is not mounted)
+  const _ovDelayTimers = new Map(); // "cardId:i" → setTimeout ID
+  const _ovDelayActive = new Set(); // "cardId:i" keys whose delay has elapsed
 
   function _getHass() {
     try { return document.querySelector("home-assistant")?.hass ?? null; } catch (_) { return null; }
@@ -793,17 +840,31 @@ const _ATC_OVERLAY = (() => {
     }
   }
 
-  // Returns [entityId, entityState] for the first entity_filter / device_class match, or null.
+  // Returns [entityId, entityState] for the first entity_filter / device_class / label / area match, or null.
   function _findFilterMatch(hass, a) {
     const f = (a.entity_filter || "").toLowerCase();
     const hasWild = f.includes("*");
     const re = hasWild ? new RegExp("^" + f.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$") : null;
     const matchFn = f ? ((t) => hasWild ? re.test(t.toLowerCase()) : t.toLowerCase().includes(f)) : null;
     const excluded = new Set(a.entity_filter_exclude || []);
+    const labelFilter = a.label_filter ? (Array.isArray(a.label_filter) ? a.label_filter : [a.label_filter]) : null;
+    const areaFilter  = a.area_filter  ? (Array.isArray(a.area_filter)  ? a.area_filter  : [a.area_filter])  : null;
     for (const [eid, es] of Object.entries(hass.states)) {
       if (excluded.has(eid)) continue;
       if (a.device_class && es.attributes?.device_class !== a.device_class) continue;
       if (matchFn && !matchFn(eid) && !matchFn(es.attributes?.friendly_name || "")) continue;
+      // Label filter — match against HA entity registry labels
+      if (labelFilter) {
+        const entityLabels = hass.entities?.[eid]?.labels || [];
+        if (!labelFilter.some(l => entityLabels.includes(l))) continue;
+      }
+      // Area filter — entity area first, then device area as fallback
+      if (areaFilter) {
+        const meta = hass.entities?.[eid];
+        const entityArea = meta?.area_id;
+        const deviceArea = meta?.device_id ? hass.devices?.[meta.device_id]?.area_id : null;
+        if (!areaFilter.some(ar => ar === entityArea || ar === deviceArea)) continue;
+      }
       let actual = es.state;
       if (a.attribute) {
         let v = es.attributes; for (const p of String(a.attribute).split(".")) v = v?.[p];
@@ -818,7 +879,7 @@ const _ATC_OVERLAY = (() => {
 
   function _evalAlert(hass, a, prevMap) {
     if (!_evalVisibleTo(hass, a)) return false;
-    if ((a.entity_filter || a.device_class) && !a.entity) return _evalFilterAlert(hass, a);
+    if ((a.entity_filter || a.device_class || a.label_filter || a.area_filter) && !a.entity) return _evalFilterAlert(hass, a);
     if (!a.entity) return false;
     if (a.on_change) {
       const key = a.entity + (a.attribute || "");
@@ -827,11 +888,12 @@ const _ATC_OVERLAY = (() => {
       return cur != null && prev !== undefined && cur !== prev;
     }
     const actual = _getVal(hass, a.entity, a.attribute);
-    if (!_matchOp(actual, a.operator || "=", a.state ?? "on")) return false;
+    const primaryOk = _matchOp(actual, a.operator || "=", a.state ?? "on");
     if (a.conditions?.length) {
+      const logic = a.conditions_logic || "and";
       const res = a.conditions.map(c => _matchOp(_getVal(hass, c.entity, c.attribute), c.operator || "=", c.state ?? "on"));
-      if ((a.conditions_logic || "and") === "and" ? !res.every(Boolean) : !res.some(Boolean)) return false;
-    }
+      if (logic === "or" ? !(primaryOk || res.some(Boolean)) : !(primaryOk && res.every(Boolean))) return false;
+    } else if (!primaryOk) return false;
     return true;
   }
 
@@ -949,7 +1011,31 @@ const _ATC_OVERLAY = (() => {
         _prevS.set(id, newMap);
 
         const curActive = new Set();
-        reg.alerts.forEach((a, i) => { try { if (_evalAlert(hass, a, prevMap)) curActive.add(i); } catch (_) {} });
+        reg.alerts.forEach((a, i) => {
+          try {
+            if (!_evalAlert(hass, a, prevMap)) {
+              // Condition false — cancel any pending trigger_delay
+              const dk = id + ":" + i;
+              if (_ovDelayTimers.has(dk)) { clearTimeout(_ovDelayTimers.get(dk)); _ovDelayTimers.delete(dk); }
+              _ovDelayActive.delete(dk);
+              return;
+            }
+            if (a.trigger_delay) {
+              const dk = id + ":" + i;
+              if (_ovDelayActive.has(dk)) {
+                curActive.add(i); // delay already elapsed
+              } else if (!_ovDelayTimers.has(dk)) {
+                _ovDelayTimers.set(dk, setTimeout(() => {
+                  _ovDelayActive.add(dk);
+                  _ovDelayTimers.delete(dk);
+                }, a.trigger_delay * 1000));
+              }
+              // still waiting — don't add to curActive yet
+            } else {
+              curActive.add(i);
+            }
+          } catch (_) {}
+        });
 
         const prevActive = _bases.get(id) || new Set();
         // newBases = (prevActive ∩ curActive): keeps already-notified active alerts,
@@ -964,8 +1050,14 @@ const _ATC_OVERLAY = (() => {
         if (isFirst) continue;
 
         // Card is visible on the current view — watcher must not fire.
+        // Also stamp all currently-active alerts into bases so a brief unmount
+        // (e.g. config save in editor) doesn't re-fire already-visible alerts.
         const el = reg.element;
-        if (el && el._mounted) continue;
+        if (el && el._mounted) {
+          for (const i of curActive) newBases.add(i);
+          _bases.set(id, newBases);
+          continue;
+        }
 
         for (const i of curActive) {
           if (newBases.has(i)) continue; // already notified or was already active
@@ -982,7 +1074,7 @@ const _ATC_OVERLAY = (() => {
 
           // For entity_filter / device_class alerts: find the triggering entity and resolve msg/secondary
           let msgPromise, filterSecondary = "";
-          if ((a.entity_filter || a.device_class) && !a.entity) {
+          if ((a.entity_filter || a.device_class || a.label_filter || a.area_filter) && !a.entity) {
             const match = _findFilterMatch(hass, a);
             if (match) {
               const [eid, fes] = match;
@@ -1011,26 +1103,31 @@ const _ATC_OVERLAY = (() => {
             const st = _ovFmtState(hass, es, a.secondary_attribute || null);
             return a.show_secondary_name ? `${es.attributes?.friendly_name || a.secondary_entity} ${st}` : st;
           })();
-          // Resolve secondary_text: evaluate common HA template patterns inline
-          let secondaryText = "";
+          // Resolve secondary_text — async if it contains {{ }} (same engine as msgPromise)
+          let secondaryTextPromise;
           if (a.secondary_text) {
             if (/\{\{/.test(a.secondary_text)) {
-              const rendered = _evalTemplate(hass, a.secondary_text);
-              secondaryText = rendered !== null ? rendered :
-                a.secondary_text.replace(/\{%-?\s*[\s\S]*?-?%\}/g, "").replace(/\{\{[\s\S]*?\}\}/g, "…").replace(/\s+/g, " ").trim();
+              const quick = _evalTemplate(hass, a.secondary_text);
+              secondaryTextPromise = quick !== null
+                ? Promise.resolve(quick.replace(/\s+/g, " ").trim())
+                : _resolveMsgAsync(hass, { ...a, message: a.secondary_text });
             } else {
-              secondaryText = a.secondary_text.replace(/\{%-?\s*[\s\S]*?-?%\}/g, "").replace(/\s+/g, " ").trim();
+              secondaryTextPromise = Promise.resolve(
+                a.secondary_text.replace(/\{%-?\s*[\s\S]*?-?%\}/g, "").replace(/\s+/g, " ").trim()
+              );
             }
+          } else {
+            secondaryTextPromise = Promise.resolve("");
           }
-          const parts = [];
-          if (secondaryText)   parts.push(secondaryText);
-          if (filterSecondary) parts.push(filterSecondary);
-          if (entityPart)      parts.push(entityPart);
           const camUrl = a.camera_entity ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
-          const paintCfg = reg.config, paintTheme = a.theme, paintParts = parts.join("\n");
+          const paintCfg = reg.config, paintTheme = a.theme;
           newBases.add(i); // mark as notified synchronously — prevents re-firing on next tick
-          msgPromise.then(resolvedMsg => {
-            try { _paint(icon, cat, badge, resolvedMsg, paintCfg, paintTheme, paintParts, camUrl); } catch (_) {}
+          Promise.all([msgPromise, secondaryTextPromise]).then(([resolvedMsg, resolvedSecondary]) => {
+            const resolvedParts = [];
+            if (resolvedSecondary) resolvedParts.push(resolvedSecondary);
+            if (filterSecondary)   resolvedParts.push(filterSecondary);
+            if (entityPart)        resolvedParts.push(entityPart);
+            try { _paint(icon, cat, badge, resolvedMsg, paintCfg, paintTheme, resolvedParts.join("\n"), camUrl); } catch (_) {}
           });
           break; // one overlay per tick
         }
@@ -1069,6 +1166,14 @@ const _ATC_OVERLAY = (() => {
             _regs.delete(oid); _prevS.delete(oid); _bases.delete(oid);
           }
         }
+        // If the alerts array changed (entity set or order), reset state so stale
+        // indices don't cause already-notified alerts to re-fire after an edit.
+        const existing = _regs.get(id);
+        if (existing) {
+          const oldSig = (existing.alerts || []).map((a, i) => i + ":" + (a.entity || a.entity_filter || "")).join("|");
+          const newSig = (alerts || []).map((a, i) => i + ":" + (a.entity || a.entity_filter || "")).join("|");
+          if (oldSig !== newSig) { _bases.delete(id); _prevS.delete(id); }
+        }
         _regs.set(id, { alerts: alerts || [], config, lang, element, disconnected: false });
         if (!_watchInterval) _watchInterval = setInterval(_tick, 2000);
       } catch (_) {}
@@ -1078,6 +1183,13 @@ const _ATC_OVERLAY = (() => {
         const reg = _regs.get(id);
         if (reg) reg.disconnected = true;
         _lastKey = ""; _lastAt = 0;
+        // Clean up overlay trigger_delay timers for this card
+        for (const [dk, t] of _ovDelayTimers) {
+          if (dk.startsWith(id + ":")) { clearTimeout(t); _ovDelayTimers.delete(dk); }
+        }
+        for (const dk of _ovDelayActive) {
+          if (dk.startsWith(id + ":")) _ovDelayActive.delete(dk);
+        }
       } catch (_) {}
     },
     updateConfig(id, config) {
@@ -1154,6 +1266,9 @@ class AlertTickerCard extends LitElement {
     this._changeTriggers   = {};       // "configIdx:entityId" → trigger timestamp (on_change)
     this._autoDismissTimers = {};      // "configIdx:entityId" → setTimeout ID
     this._autoDismissedKeys = new Set(); // keys whose auto_dismiss timer has fired
+    // trigger_delay: show alert only after condition has been true for N seconds
+    this._triggerDelayTimers = {};     // key → setTimeout ID (pending)
+    this._triggerDelayActive  = new Set(); // keys whose trigger_delay has elapsed
     // Unique ID for overlay manager registration
     this._cardId = "atc-" + Date.now() + "-" + Math.random().toString(36).slice(2);
   }
@@ -1302,15 +1417,27 @@ class AlertTickerCard extends LitElement {
     const expandedAlerts = [];
     for (let idx = 0; idx < this._config.alerts.length; idx++) {
       const alert = this._config.alerts[idx];
-      if ((alert.entity_filter || alert.device_class) && !alert.entity) {
+      if ((alert.entity_filter || alert.device_class || alert.label_filter || alert.area_filter) && !alert.entity) {
         const matchFn = alert.entity_filter ? this._buildFilterMatcher(alert.entity_filter) : null;
         const excluded = new Set(alert.entity_filter_exclude || []);
+        const labelFilter = alert.label_filter ? (Array.isArray(alert.label_filter) ? alert.label_filter : [alert.label_filter]) : null;
+        const areaFilter  = alert.area_filter  ? (Array.isArray(alert.area_filter)  ? alert.area_filter  : [alert.area_filter])  : null;
         const matched = Object.entries(this._hass.states).filter(([entityId, state]) => {
           if (excluded.has(entityId)) return false;
           if (alert.device_class && state.attributes.device_class !== alert.device_class) return false;
           if (matchFn) {
             const friendlyName = state.attributes.friendly_name || "";
-            return matchFn(entityId) || matchFn(friendlyName);
+            if (!matchFn(entityId) && !matchFn(friendlyName)) return false;
+          }
+          if (labelFilter) {
+            const entityLabels = this._hass.entities?.[entityId]?.labels || [];
+            if (!labelFilter.some(l => entityLabels.includes(l))) return false;
+          }
+          if (areaFilter) {
+            const meta = this._hass.entities?.[entityId];
+            const entityArea = meta?.area_id;
+            const deviceArea = meta?.device_id ? this._hass.devices?.[meta.device_id]?.area_id : null;
+            if (!areaFilter.some(ar => ar === entityArea || ar === deviceArea)) return false;
           }
           return true;
         });
@@ -1364,16 +1491,7 @@ class AlertTickerCard extends LitElement {
           const stateValue = (alert.attribute != null && alert.attribute !== "")
             ? String(this._resolveAttrPath(entityState.attributes, alert.attribute) ?? "")
             : entityState.state;
-          if (!this._matchesState(stateValue, alert)) {
-            // Condition went false — reset auto_dismiss so next activation starts fresh
-            if (alert.auto_dismiss_after) {
-              this._autoDismissedKeys.delete(key);
-              clearTimeout(this._autoDismissTimers[key]);
-              delete this._autoDismissTimers[key];
-            }
-            return false;
-          }
-          // Extra AND/OR conditions
+          const primaryOk = this._matchesState(stateValue, alert);
           if (Array.isArray(alert.conditions) && alert.conditions.length > 0) {
             const logic = alert.conditions_logic || "and";
             const results = alert.conditions.map((cond) => {
@@ -1385,8 +1503,48 @@ class AlertTickerCard extends LitElement {
                 : es.state;
               return this._matchesState(val, cond);
             });
-            const passes = logic === "or" ? results.some(Boolean) : results.every(Boolean);
-            if (!passes) return false;
+            const passes = logic === "or"
+              ? primaryOk || results.some(Boolean)
+              : primaryOk && results.every(Boolean);
+            if (!passes) {
+              // Condition went false — reset timers so next activation starts fresh
+              if (alert.auto_dismiss_after) {
+                this._autoDismissedKeys.delete(key);
+                clearTimeout(this._autoDismissTimers[key]);
+                delete this._autoDismissTimers[key];
+              }
+              if (alert.trigger_delay) {
+                clearTimeout(this._triggerDelayTimers[key]);
+                delete this._triggerDelayTimers[key];
+                this._triggerDelayActive.delete(key);
+              }
+              return false;
+            }
+          } else if (!primaryOk) {
+            if (alert.auto_dismiss_after) {
+              this._autoDismissedKeys.delete(key);
+              clearTimeout(this._autoDismissTimers[key]);
+              delete this._autoDismissTimers[key];
+            }
+            if (alert.trigger_delay) {
+              clearTimeout(this._triggerDelayTimers[key]);
+              delete this._triggerDelayTimers[key];
+              this._triggerDelayActive.delete(key);
+            }
+            return false;
+          }
+          // trigger_delay: condition must stay true for N seconds before alert becomes visible
+          if (alert.trigger_delay) {
+            if (!this._triggerDelayActive.has(key)) {
+              if (!this._triggerDelayTimers[key]) {
+                this._triggerDelayTimers[key] = setTimeout(() => {
+                  this._triggerDelayActive.add(key);
+                  delete this._triggerDelayTimers[key];
+                  this.requestUpdate();
+                }, alert.trigger_delay * 1000);
+              }
+              return false; // still waiting for delay to elapse
+            }
           }
           // auto_dismiss_after for normal condition alerts
           if (alert.auto_dismiss_after) {
@@ -2171,10 +2329,20 @@ class AlertTickerCard extends LitElement {
 
   // ---- History helpers ------------------------------------------------------
 
+  /** Unique localStorage key per card instance, scoped to its entity IDs */
+  get _historyKey() {
+    const ids = (this._config?.alerts || [])
+      .map(a => a.entity || "")
+      .filter(Boolean)
+      .sort()
+      .join("|");
+    return "atc-history" + (ids ? "-" + ids : "");
+  }
+
   /** Load history from localStorage */
   _loadHistory() {
     try {
-      const raw = localStorage.getItem("atc-history");
+      const raw = localStorage.getItem(this._historyKey);
       if (raw) this._history = JSON.parse(raw);
     } catch (_) { this._history = []; }
   }
@@ -2182,20 +2350,17 @@ class AlertTickerCard extends LitElement {
   /** Persist history to localStorage */
   _saveHistory() {
     try {
-      localStorage.setItem("atc-history", JSON.stringify(this._history));
+      localStorage.setItem(this._historyKey, JSON.stringify(this._history));
     } catch (_) {}
   }
 
   /** Record a new alert event into history */
   _recordHistory(alert) {
     const max = this._config.history_max_events || 50;
-    // Resolve entity friendly name and state
     const es = this._hass && alert.entity ? this._hass.states[alert.entity] : null;
-    const entityName = es ? (es.attributes.friendly_name || alert.entity) : (alert.entity || "");
+    const entityName  = es ? (es.attributes.friendly_name || alert.entity) : (alert.entity || "");
     const entityState = es ? this._formatStateValue(es, alert.attribute || null) : null;
-    // Resolve secondary entity
-    let secondaryName = null;
-    let secondaryState = null;
+    let secondaryName = null, secondaryState = null;
     if (alert.secondary_entity) {
       const ses = this._hass && this._hass.states[alert.secondary_entity];
       if (ses) {
@@ -2203,7 +2368,7 @@ class AlertTickerCard extends LitElement {
         secondaryState = this._formatStateValue(ses, alert.secondary_attribute || null);
       }
     }
-    this._history.unshift({
+    const entry = {
       ts: Date.now(),
       message: this._resolveMessage(alert) || "",
       theme: alert.theme || "emergency",
@@ -2211,11 +2376,43 @@ class AlertTickerCard extends LitElement {
       entity: alert.entity || "",
       entityName: entityName || null,
       entityState: entityState || null,
-      secondaryName: secondaryName,
-      secondaryState: secondaryState,
-    });
+      secondaryName,
+      secondaryState,
+    };
+    this._history.unshift(entry);
     if (this._history.length > max) this._history.length = max;
     this._saveHistory();
+
+    // If message contains {{ }}, the WS result may not be cached yet.
+    // Resolve async and patch the entry once HA responds.
+    const raw = alert.message || "";
+    if (!raw.includes("{{") || !this._hass?.connection) return;
+    const cached = this._tmplCache?.get(raw);
+    if (cached !== undefined) { entry.message = cached || entry.message; this._saveHistory(); return; }
+    // Substitute {placeholders} before sending to HA engine
+    let tpl = raw;
+    if (es) {
+      tpl = tpl
+        .replace(/\{state\}/g,  this._formatStateValue(es, alert.attribute))
+        .replace(/\{name\}/g,   es.attributes.friendly_name || alert.entity)
+        .replace(/\{entity\}/g, alert.entity);
+    }
+    try {
+      let unsubFn;
+      const timer = setTimeout(() => { try { unsubFn?.(); } catch (_) {} }, 3000);
+      this._hass.connection.subscribeMessage(
+        (result) => {
+          clearTimeout(timer);
+          try { unsubFn?.(); } catch (_) {}
+          const resolved = (result.result || "").replace(/\s+/g, " ").trim();
+          if (resolved) { entry.message = resolved; this._saveHistory(); this.requestUpdate(); }
+        },
+        { type: "render_template", template: tpl, variables: {}, strict: false }
+      ).then(u => {
+        unsubFn = u;
+        setTimeout(() => { try { u(); } catch (_) {} }, 500);
+      }).catch(() => {});
+    } catch (_) {}
   }
 
   /** Play an audio notification when an alert newly becomes active */
@@ -2471,7 +2668,7 @@ class AlertTickerCard extends LitElement {
         + " " + d.toLocaleTimeString(this._lang, { hour: "2-digit", minute: "2-digit" });
     };
     return html`
-      <ha-card class="atc-history-card">
+      <div class="atc-history-card">
         <div class="atc-history-header">
           <span class="atc-history-title">${this._t("history")}</span>
           <div class="atc-history-actions">
@@ -2504,7 +2701,7 @@ class AlertTickerCard extends LitElement {
             </div>
           `)}
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -2703,7 +2900,7 @@ class AlertTickerCard extends LitElement {
   /** Minimal bar shown when all matching alerts are snoozed */
   _renderSnoozedIndicator() {
     return html`
-      <ha-card class="at-card atc-snoozed-bar">
+      <div class="at-card atc-snoozed-bar">
         <div class="atc-snoozed-inner">
           <span class="atc-snoozed-icon">💤</span>
           <span class="atc-snoozed-text">${this._snoozedCount} ${this._t("alerts_snoozed")}</span>
@@ -2711,7 +2908,7 @@ class AlertTickerCard extends LitElement {
             ↩ ${this._t("snooze_reset")}
           </button>
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -2745,10 +2942,13 @@ class AlertTickerCard extends LitElement {
     for (const unsub of this._tmplUnsubs.values()) { try { unsub(); } catch (_) {} }
     this._tmplUnsubs.clear();
     this._tmplCache.clear();
-    // Cancel all auto_dismiss / on_change timers
+    // Cancel all auto_dismiss / on_change / trigger_delay timers
     Object.values(this._autoDismissTimers).forEach(t => clearTimeout(t));
     this._autoDismissTimers = {};
     this._changeTriggers = {};
+    Object.values(this._triggerDelayTimers).forEach(t => clearTimeout(t));
+    this._triggerDelayTimers = {};
+    this._triggerDelayActive.clear();
     // Remove from overlay watcher — prevents stale registrations when HA re-mounts
     // the card on navigation (new instance = new _cardId, old entry would still fire)
     _ATC_OVERLAY.detach(this._cardId);
@@ -2947,7 +3147,7 @@ class AlertTickerCard extends LitElement {
     );
 
     return html`
-      <ha-card class="at-card at-ticker">
+      <div class="at-card at-ticker">
         <div class="tk-label">${this._t("alerts")}</div>
         <div class="tk-track">
           <div class="tk-scroll" style="--tk-duration: ${duration}s">
@@ -2955,7 +3155,7 @@ class AlertTickerCard extends LitElement {
             ${items}<span class="tk-gap"></span>
           </div>
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -2967,14 +3167,14 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-emergency">
+      <div class="at-emergency">
         <div class="em-icon">${icon}</div>
         <div class="em-content">
           <div class="em-badge">${label}</div>
           <div class="em-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="em-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -2986,7 +3186,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-warning">
+      <div class="at-warning">
         <div class="wn-icon">${icon}</div>
         <div class="wn-content">
           <div class="wn-badge">${label}</div>
@@ -2996,7 +3196,7 @@ class AlertTickerCard extends LitElement {
           <div class="wn-dot"></div>
           ${this._renderCounter()}
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3008,14 +3208,14 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-info">
+      <div class="at-info">
         <div class="in-icon-wrap">${icon}</div>
         <div class="in-content">
           <div class="in-badge">${label}</div>
           <div class="in-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="in-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3027,14 +3227,14 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-success">
+      <div class="at-success">
         <div class="su-icon-wrap">${icon}</div>
         <div class="su-content">
           <div class="su-badge">${label}</div>
           <div class="su-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="su-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3046,7 +3246,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-neon">
+      <div class="at-neon">
         <div class="ne-scan"></div>
         <div class="ne-icon">${icon}</div>
         <div class="ne-content">
@@ -3054,7 +3254,7 @@ class AlertTickerCard extends LitElement {
           <div class="ne-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="ne-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3066,14 +3266,14 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-glass">
+      <div class="at-glass">
         <div class="gl-icon-wrap">${icon}</div>
         <div class="gl-content">
           <div class="gl-badge">${label}</div>
           <div class="gl-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="gl-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3086,7 +3286,7 @@ class AlertTickerCard extends LitElement {
     const timeStr = new Date().toTimeString().slice(0, 8);
 
     return html`
-      <ha-card class="at-matrix">
+      <div class="at-matrix">
         <div class="mx-icon">${icon}</div>
         <div class="mx-content">
           <div class="mx-header">${this._t("alert_system")} &nbsp;|&nbsp; ${timeStr}</div>
@@ -3100,7 +3300,7 @@ class AlertTickerCard extends LitElement {
         <div class="mx-right">
           ${this._renderCounter()}
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3113,14 +3313,14 @@ class AlertTickerCard extends LitElement {
     const label = this._getCategoryLabel(alert);
     const accent = this._getAccentColor(alert.theme);
     return html`
-      <ha-card class="at-minimal" style="--minimal-accent: ${accent}">
+      <div class="at-minimal" style="--minimal-accent: ${accent}">
         <div class="mn-icon">${icon}</div>
         <div class="mn-content">
           <div class="mn-badge">${label}</div>
           <div class="mn-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="mn-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3132,14 +3332,14 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-fire">
+      <div class="at-fire">
         <div class="fi-icon">${icon}</div>
         <div class="fi-content">
           <div class="fi-badge">${label}</div>
           <div class="fi-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="fi-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3149,7 +3349,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-alarm">
+      <div class="at-alarm">
         <div class="al-strobe"></div>
         <div class="al-icon">${icon}</div>
         <div class="al-content">
@@ -3157,7 +3357,7 @@ class AlertTickerCard extends LitElement {
           <div class="al-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="al-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3167,7 +3367,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-lightning">
+      <div class="at-lightning">
         <div class="lt-bg"></div>
         <div class="lt-bolt">⚡</div>
         <div class="lt-icon">${icon}</div>
@@ -3176,7 +3376,7 @@ class AlertTickerCard extends LitElement {
           <div class="lt-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="lt-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3186,7 +3386,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-caution">
+      <div class="at-caution">
         <div class="ca-icon">${icon}</div>
         <div class="ca-content">
           <div class="ca-badge">${label}</div>
@@ -3196,7 +3396,7 @@ class AlertTickerCard extends LitElement {
           <div class="ca-dot"></div>
           ${this._renderCounter()}
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3206,7 +3406,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-notification">
+      <div class="at-notification">
         <div class="no-icon-wrap">
           ${icon}
           <div class="no-dot"></div>
@@ -3216,7 +3416,7 @@ class AlertTickerCard extends LitElement {
           <div class="no-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="no-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3226,7 +3426,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-aurora">
+      <div class="at-aurora">
         <div class="au-bg"></div>
         <div class="au-icon-wrap">${icon}</div>
         <div class="au-content">
@@ -3234,7 +3434,7 @@ class AlertTickerCard extends LitElement {
           <div class="au-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="au-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3244,14 +3444,14 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-check">
+      <div class="at-check">
         <div class="ck-icon-wrap">${icon}</div>
         <div class="ck-content">
           <div class="ck-badge">${label}</div>
           <div class="ck-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="ck-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3261,7 +3461,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-confetti">
+      <div class="at-confetti">
         <div class="cf-particles">
           <div class="cf-p cf-p1"></div><div class="cf-p cf-p2"></div>
           <div class="cf-p cf-p3"></div><div class="cf-p cf-p4"></div>
@@ -3274,7 +3474,7 @@ class AlertTickerCard extends LitElement {
           <div class="cf-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="cf-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3284,7 +3484,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-nuclear">
+      <div class="at-nuclear">
         <div class="nc-bg"></div>
         <div class="nc-icon">${icon}</div>
         <div class="nc-content">
@@ -3292,7 +3492,7 @@ class AlertTickerCard extends LitElement {
           <div class="nc-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="nc-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3302,7 +3502,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-radar">
+      <div class="at-radar">
         <div class="rd-display">
           <div class="rd-r rd-r1"></div>
           <div class="rd-r rd-r2"></div>
@@ -3316,7 +3516,7 @@ class AlertTickerCard extends LitElement {
           <div class="rd-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="rd-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3326,7 +3526,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-hologram">
+      <div class="at-hologram">
         <div class="hg-grid"></div>
         <div class="hg-scan"></div>
         <div class="hg-icon-wrap">${icon}</div>
@@ -3335,7 +3535,7 @@ class AlertTickerCard extends LitElement {
           <div class="hg-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="hg-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3345,7 +3545,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-heartbeat">
+      <div class="at-heartbeat">
         <div class="hb-ecg">
           <svg viewBox="0 0 400 30" preserveAspectRatio="none">
             <polyline class="hb-line"
@@ -3359,7 +3559,7 @@ class AlertTickerCard extends LitElement {
           <div class="hb-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="hb-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3369,7 +3569,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-retro">
+      <div class="at-retro">
         <div class="rt-scanlines"></div>
         <div class="rt-icon">${icon}</div>
         <div class="rt-content">
@@ -3377,7 +3577,7 @@ class AlertTickerCard extends LitElement {
           <div class="rt-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="rt-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3387,7 +3587,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-flood">
+      <div class="at-flood">
         <div class="fl-waves"></div>
         <div class="fl-icon">${icon}</div>
         <div class="fl-content">
@@ -3395,7 +3595,7 @@ class AlertTickerCard extends LitElement {
           <div class="fl-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="fl-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3405,7 +3605,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-motion">
+      <div class="at-motion">
         <div class="mo-scan"></div>
         <div class="mo-icon">${icon}</div>
         <div class="mo-content">
@@ -3413,7 +3613,7 @@ class AlertTickerCard extends LitElement {
           <div class="mo-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="mo-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3423,7 +3623,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-intruder">
+      <div class="at-intruder">
         <div class="it-stripes"></div>
         <div class="it-icon">${icon}</div>
         <div class="it-content">
@@ -3431,7 +3631,7 @@ class AlertTickerCard extends LitElement {
           <div class="it-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="it-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3441,7 +3641,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-toxic">
+      <div class="at-toxic">
         <div class="tx-bubble tx-b1"></div>
         <div class="tx-bubble tx-b2"></div>
         <div class="tx-bubble tx-b3"></div>
@@ -3452,7 +3652,7 @@ class AlertTickerCard extends LitElement {
           <div class="tx-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="tx-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3462,7 +3662,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-temperature">
+      <div class="at-temperature">
         <div class="tp-fill"></div>
         <div class="tp-icon">${icon}</div>
         <div class="tp-content">
@@ -3470,7 +3670,7 @@ class AlertTickerCard extends LitElement {
           <div class="tp-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="tp-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3480,7 +3680,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-battery">
+      <div class="at-battery">
         <div class="bt-drain"></div>
         <div class="bt-icon">${icon}</div>
         <div class="bt-content">
@@ -3488,7 +3688,7 @@ class AlertTickerCard extends LitElement {
           <div class="bt-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="bt-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3498,7 +3698,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-door">
+      <div class="at-door">
         <div class="dr-ray"></div>
         <div class="dr-icon">${icon}</div>
         <div class="dr-content">
@@ -3506,7 +3706,7 @@ class AlertTickerCard extends LitElement {
           <div class="dr-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="dr-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3516,7 +3716,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-window">
+      <div class="at-window">
         <div class="win-shimmer"></div>
         <div class="win-icon">${icon}</div>
         <div class="win-content">
@@ -3524,7 +3724,7 @@ class AlertTickerCard extends LitElement {
           <div class="win-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="win-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3534,7 +3734,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-presence">
+      <div class="at-presence">
         <div class="pr-ping">
           <div class="pr-ring"></div>
           <div class="pr-ring"></div>
@@ -3546,7 +3746,7 @@ class AlertTickerCard extends LitElement {
           <div class="pr-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="pr-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3556,7 +3756,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-update">
+      <div class="at-update">
         <div class="up-ring"></div>
         <div class="up-icon">${icon}</div>
         <div class="up-content">
@@ -3564,7 +3764,7 @@ class AlertTickerCard extends LitElement {
           <div class="up-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="up-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3574,7 +3774,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-shield">
+      <div class="at-shield">
         <div class="sh-scan"></div>
         <div class="sh-icon">${icon}</div>
         <div class="sh-content">
@@ -3582,7 +3782,7 @@ class AlertTickerCard extends LitElement {
           <div class="sh-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="sh-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3592,7 +3792,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-power">
+      <div class="at-power">
         <div class="pw-lines"></div>
         <div class="pw-icon">${icon}</div>
         <div class="pw-content">
@@ -3600,7 +3800,7 @@ class AlertTickerCard extends LitElement {
           <div class="pw-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="pw-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3610,7 +3810,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-cyberpunk">
+      <div class="at-cyberpunk">
         <div class="cp-lines"></div>
         <div class="cp-glitch"></div>
         <div class="cp-icon">${icon}</div>
@@ -3619,7 +3819,7 @@ class AlertTickerCard extends LitElement {
           <div class="cp-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="cp-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3629,7 +3829,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-vapor">
+      <div class="at-vapor">
         <div class="vp-grid"></div>
         <div class="vp-overlay"></div>
         <div class="vp-icon">${icon}</div>
@@ -3638,7 +3838,7 @@ class AlertTickerCard extends LitElement {
           <div class="vp-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="vp-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3648,7 +3848,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-lava">
+      <div class="at-lava">
         <div class="lv-blob lv-b1"></div>
         <div class="lv-blob lv-b2"></div>
         <div class="lv-blob lv-b3"></div>
@@ -3658,7 +3858,7 @@ class AlertTickerCard extends LitElement {
           <div class="lv-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="lv-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3668,7 +3868,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-smoke">
+      <div class="at-smoke">
         <div class="sm-drift"><div class="sm-p1"></div><div class="sm-p2"></div><div class="sm-p3"></div></div>
         <div class="sm-icon">${icon}</div>
         <div class="sm-content">
@@ -3676,7 +3876,7 @@ class AlertTickerCard extends LitElement {
           <div class="sm-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="sm-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3686,7 +3886,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-wind">
+      <div class="at-wind">
         <div class="wd-lines"></div>
         <div class="wd-icon">${icon}</div>
         <div class="wd-content">
@@ -3694,7 +3894,7 @@ class AlertTickerCard extends LitElement {
           <div class="wd-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="wd-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3704,7 +3904,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-leak">
+      <div class="at-leak">
         <div class="lk-drip"><div class="lk-drop lk-d1"></div><div class="lk-drop lk-d2"></div><div class="lk-drop lk-d3"></div></div>
         <div class="lk-icon">${icon}</div>
         <div class="lk-content">
@@ -3712,7 +3912,7 @@ class AlertTickerCard extends LitElement {
           <div class="lk-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="lk-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3722,7 +3922,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-cloud">
+      <div class="at-cloud">
         <div class="cw-float"></div>
         <div class="cw-icon">${icon}</div>
         <div class="cw-content">
@@ -3730,7 +3930,7 @@ class AlertTickerCard extends LitElement {
           <div class="cw-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="cw-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3740,7 +3940,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-satellite">
+      <div class="at-satellite">
         <div class="sl-waves"><div class="sl-w sl-w1"></div><div class="sl-w sl-w2"></div><div class="sl-w sl-w3"></div></div>
         <div class="sl-icon">${icon}</div>
         <div class="sl-content">
@@ -3748,7 +3948,7 @@ class AlertTickerCard extends LitElement {
           <div class="sl-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="sl-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3758,7 +3958,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-tips">
+      <div class="at-tips">
         <div class="ts-glow"></div>
         <div class="ts-icon">${icon}</div>
         <div class="ts-content">
@@ -3766,7 +3966,7 @@ class AlertTickerCard extends LitElement {
           <div class="ts-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="ts-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3776,7 +3976,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-sunrise">
+      <div class="at-sunrise">
         <div class="sn-ray"></div>
         <div class="sn-icon">${icon}</div>
         <div class="sn-content">
@@ -3784,7 +3984,7 @@ class AlertTickerCard extends LitElement {
           <div class="sn-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="sn-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3794,7 +3994,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-plant">
+      <div class="at-plant">
         <div class="pn-grow"></div>
         <div class="pn-icon">${icon}</div>
         <div class="pn-content">
@@ -3802,7 +4002,7 @@ class AlertTickerCard extends LitElement {
           <div class="pn-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="pn-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3812,7 +4012,7 @@ class AlertTickerCard extends LitElement {
     const icon = this._getIcon(alert);
     const label = this._getCategoryLabel(alert);
     return html`
-      <ha-card class="at-lock">
+      <div class="at-lock">
         <div class="lo-scan"></div>
         <div class="lo-icon">${icon}</div>
         <div class="lo-content">
@@ -3820,7 +4020,25 @@ class AlertTickerCard extends LitElement {
           <div class="lo-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
         </div>
         <div class="lo-right">${this._renderCounter()}</div>
-      </ha-card>
+      </div>
+    `;
+  }
+
+  /** LIGHT — warm incandescent bulb glow, info */
+  _renderLight(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <div class="at-light">
+        <div class="li-beam"></div>
+        <div class="li-icon">${icon}</div>
+        <div class="li-content">
+          <div class="li-badge">${label}</div>
+          <div class="li-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="li-right">${this._renderCounter()}</div>
+      </div>
     `;
   }
 
@@ -3837,7 +4055,7 @@ class AlertTickerCard extends LitElement {
     const color = this._timerColor(progress);
     const urgent = progress < 0.2;
     return html`
-      <ha-card class="at-countdown ${urgent ? "cd-urgent" : ""}">
+      <div class="at-countdown ${urgent ? "cd-urgent" : ""}">
         <div class="cd-icon">${icon}</div>
         <div class="cd-content">
           <div class="cd-badge">${isActive ? this._t("timer_active") : this._t("timer_done")}</div>
@@ -3851,7 +4069,7 @@ class AlertTickerCard extends LitElement {
         <div class="cd-bar-track">
           <div class="cd-bar-fill" style="width:${progress * 100}%;background:${color}"></div>
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3863,7 +4081,7 @@ class AlertTickerCard extends LitElement {
     const color = this._timerColor(progress);
     const urgent = progress < 0.2;
     return html`
-      <ha-card class="at-hourglass ${urgent ? "hg2-urgent" : ""}">
+      <div class="at-hourglass ${urgent ? "hg2-urgent" : ""}">
         <div class="hg2-fill" style="height:${progress * 100}%;background:${color}20"></div>
         <div class="hg2-icon">${icon}</div>
         <div class="hg2-content">
@@ -3875,7 +4093,7 @@ class AlertTickerCard extends LitElement {
           <div class="hg2-time" style="color:${color}">${remainingStr}</div>
           ${this._renderCounter()}
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3887,7 +4105,7 @@ class AlertTickerCard extends LitElement {
     const color = this._timerColor(progress);
     const speed = Math.max(0.4, progress * 2.5).toFixed(2);
     return html`
-      <ha-card class="at-timer-pulse" style="--tp-color:${color};--tp-speed:${speed}s">
+      <div class="at-timer-pulse" style="--tp-color:${color};--tp-speed:${speed}s">
         <div class="tp-icon">${icon}</div>
         <div class="tp-content">
           <div class="tp-badge">${isActive ? this._t("timer_active") : this._t("timer_done")}</div>
@@ -3898,7 +4116,7 @@ class AlertTickerCard extends LitElement {
           <div class="tp-time">${remainingStr}</div>
           ${this._renderCounter()}
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3912,7 +4130,7 @@ class AlertTickerCard extends LitElement {
     const circ = +(2 * Math.PI * R).toFixed(2);
     const dash = +(circ * progress).toFixed(2);
     return html`
-      <ha-card class="at-timer-ring">
+      <div class="at-timer-ring">
         <div class="tr2-icon">${icon}</div>
         <div class="tr2-content">
           <div class="tr2-badge">${isActive ? this._t("timer_active") : this._t("timer_done")}</div>
@@ -3932,7 +4150,7 @@ class AlertTickerCard extends LitElement {
           <div class="tr2-time" style="color:${color}">${remainingStr}</div>
         </div>
         ${this._renderCounter()}
-      </ha-card>
+      </div>
     `;
   }
 
@@ -3981,6 +4199,7 @@ class AlertTickerCard extends LitElement {
       case "cloud":        return this._renderCloud(alert);
       case "satellite":    return this._renderSatellite(alert);
       case "tips":         return this._renderTips(alert);
+      case "light":        return this._renderLight(alert);
       case "sunrise":      return this._renderSunrise(alert);
       case "plant":        return this._renderPlant(alert);
       case "lock":         return this._renderLock(alert);
@@ -4161,11 +4380,14 @@ class AlertTickerCard extends LitElement {
       /* -----------------------------------------------------------------------
        * BASE
        * --------------------------------------------------------------------- */
-      ha-card.at-card {
+      :host {
+        display: block;
+        border-radius: var(--ha-card-border-radius, 12px);
+      }
+      .at-card {
         padding: 0;
         overflow: hidden;
         position: relative;
-        --ha-card-border-radius: 10px;
       }
 
       /* -----------------------------------------------------------------------
@@ -4300,7 +4522,6 @@ class AlertTickerCard extends LitElement {
         height: 46px;
         background: #111;
         border: 1px solid #333;
-        border-radius: 8px;
       }
 
       .tk-label {
@@ -4370,7 +4591,6 @@ class AlertTickerCard extends LitElement {
         padding: 16px 18px;
         background: linear-gradient(135deg, #1a0000, #3d0000);
         border: 2px solid #e53935;
-        border-radius: 12px;
         box-shadow:
           0 0 20px rgba(229, 57, 53, 0.4),
           inset 0 0 30px rgba(229, 57, 53, 0.05);
@@ -4446,7 +4666,6 @@ class AlertTickerCard extends LitElement {
         border-top: 1px solid rgba(255, 152, 0, 0.2);
         border-right: 1px solid rgba(255, 152, 0, 0.2);
         border-bottom: 1px solid rgba(255, 152, 0, 0.2);
-        border-radius: 12px;
       }
 
       .wn-icon {
@@ -4510,7 +4729,6 @@ class AlertTickerCard extends LitElement {
         border-top: 1px solid rgba(41, 182, 246, 0.15);
         border-right: 1px solid rgba(41, 182, 246, 0.15);
         border-bottom: 1px solid rgba(41, 182, 246, 0.15);
-        border-radius: 12px;
       }
 
       .in-icon-wrap {
@@ -4565,7 +4783,6 @@ class AlertTickerCard extends LitElement {
         border-top: 1px solid rgba(76, 175, 80, 0.15);
         border-right: 1px solid rgba(76, 175, 80, 0.15);
         border-bottom: 1px solid rgba(76, 175, 80, 0.15);
-        border-radius: 12px;
       }
 
       .su-icon-wrap {
@@ -4616,7 +4833,6 @@ class AlertTickerCard extends LitElement {
         padding: 16px 18px;
         background: #0a0a0f;
         border: 1px solid rgba(0, 255, 255, 0.25);
-        border-radius: 10px;
         overflow: hidden;
         box-shadow:
           0 0 12px rgba(0, 255, 255, 0.1),
@@ -4711,7 +4927,6 @@ class AlertTickerCard extends LitElement {
           rgba(246, 79, 89, 0.35) 100%
         );
         border: 1px solid rgba(255, 255, 255, 0.22);
-        border-radius: 14px;
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
       }
@@ -4778,7 +4993,6 @@ class AlertTickerCard extends LitElement {
         padding: 16px 18px;
         background: #000;
         border: 1px solid #00ff41;
-        border-radius: 8px;
         box-shadow:
           0 0 15px rgba(0, 255, 65, 0.15),
           inset 0 0 30px rgba(0, 255, 65, 0.03);
@@ -4854,7 +5068,6 @@ class AlertTickerCard extends LitElement {
         border-top: 1px solid rgba(0, 0, 0, 0.06);
         border-right: 1px solid rgba(0, 0, 0, 0.06);
         border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-        border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
       }
 
@@ -4886,6 +5099,10 @@ class AlertTickerCard extends LitElement {
       .at-fold-wrapper {
         transform-origin: top center;
         overflow: hidden;
+        border-radius: var(--ha-card-border-radius, 12px);
+      }
+      .at-fold-wrapper > *:not(.atc-history-card) {
+        border-radius: var(--ha-card-border-radius, 12px) !important;
       }
       .at-fold-wrapper.atc-fold-history {
         overflow: visible;
@@ -5107,7 +5324,7 @@ class AlertTickerCard extends LitElement {
       .at-fire {
         display: flex; align-items: center; gap: 14px; padding: 16px 18px;
         background: linear-gradient(135deg, #1a0500, #2d0a00);
-        border: 2px solid #ff6d00; border-radius: 12px;
+        border: 2px solid #ff6d00;
         box-shadow: 0 0 22px rgba(255,109,0,0.35);
         animation: firePulse 0.9s ease-in-out infinite;
       }
@@ -5133,7 +5350,7 @@ class AlertTickerCard extends LitElement {
        * --------------------------------------------------------------------- */
       .at-alarm {
         display: flex; align-items: center; gap: 14px; padding: 16px 18px;
-        background: #0d0000; border: 2px solid #ff1744; border-radius: 12px;
+        background: #0d0000; border: 2px solid #ff1744;
         position: relative; overflow: hidden;
       }
       .al-strobe {
@@ -5153,7 +5370,7 @@ class AlertTickerCard extends LitElement {
        * --------------------------------------------------------------------- */
       .at-lightning {
         display: flex; align-items: center; gap: 14px; padding: 16px 18px;
-        background: #050510; border: 2px solid #7c4dff; border-radius: 12px;
+        background: #050510; border: 2px solid #7c4dff;
         position: relative; overflow: hidden;
         box-shadow: 0 0 20px rgba(124,77,255,0.3);
       }
@@ -6387,6 +6604,40 @@ class AlertTickerCard extends LitElement {
       .lo-title { font-weight: 600; color: #e3f2fd; }
 
       /* -----------------------------------------------------------------------
+       * LIGHT — warm incandescent bulb glow, info
+       * --------------------------------------------------------------------- */
+      .at-light {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #0d0b00, #1a1500);
+        border: 1px solid rgba(255,214,0,0.4); border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: liGlow 2.8s ease-in-out infinite;
+      }
+      @keyframes liGlow {
+        0%,100% { box-shadow: 0 0 20px rgba(255,214,0,0.10); }
+        50%      { box-shadow: 0 0 48px rgba(255,214,0,0.30); }
+      }
+      .li-beam {
+        position: absolute; top: 0; bottom: 0; left: -10px;
+        width: 55%; clip-path: polygon(0 50%, 100% 0%, 100% 100%);
+        background: linear-gradient(90deg, rgba(255,214,0,0.20) 0%, transparent 100%);
+        animation: liBeam 2.8s ease-in-out infinite; pointer-events: none;
+      }
+      @keyframes liBeam { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+      .li-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        animation: liFlare 2.8s ease-in-out infinite;
+      }
+      @keyframes liFlare {
+        0%,100% { filter: drop-shadow(0 0 8px  rgba(255,214,0,0.6));  transform: scale(1);    }
+        50%      { filter: drop-shadow(0 0 26px rgba(255,228,100,1.0)); transform: scale(1.09); }
+      }
+      .li-content { flex: 1; min-width: 0; position: relative; }
+      .li-right   { flex-shrink: 0; position: relative; }
+      .li-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ffd600; margin-bottom: 3px; }
+      .li-title { font-weight: 600; color: #fffde7; }
+
+      /* -----------------------------------------------------------------------
        * SNOOZE HOST + BUTTON + MENU
        * --------------------------------------------------------------------- */
       .atc-snooze-host {
@@ -6682,7 +6933,7 @@ class AlertTickerCard extends LitElement {
         display: none;
       }
       /* All theme cards: add padding-right so content never sits under the circular buttons */
-      .atc-large-buttons ha-card:not(.atc-history-card) {
+      .atc-large-buttons .at-fold-wrapper > div:not(.atc-history-card) {
         padding-right: 88px !important;
       }
       /* Overlay counter — top-right corner, always inside the card */
@@ -6731,12 +6982,12 @@ class AlertTickerCard extends LitElement {
         justify-content: center;
         outline: var(--atc-card-outline, none);
         outline-offset: -1px;
-        border-radius: inherit;
+        border-radius: var(--ha-card-border-radius, 12px);
       }
       .atc-inner-clip {
         overflow: hidden;
         height: var(--atc-card-height, auto);
-        border-radius: inherit;
+        border-radius: var(--ha-card-border-radius, 12px);
         position: relative;
         z-index: 1;
       }
@@ -6760,6 +7011,7 @@ class AlertTickerCard extends LitElement {
         background: var(--card-background-color, #1c1c1e);
         padding: 0;
         overflow: hidden;
+        border-radius: var(--ha-card-border-radius, 12px);
       }
       .atc-history-header {
         display: flex;
@@ -6961,12 +7213,12 @@ class AlertTickerCard extends LitElement {
        * --------------------------------------------------------------------- */
 
       /* Card background */
-      .atc-ha-theme ha-card {
+      .atc-ha-theme .at-fold-wrapper > div:not(.atc-history-card) {
         background: var(--card-background-color, #1c1c2e) !important;
       }
       /* Disable decorative gradient overlays / pulsing backgrounds */
-      .atc-ha-theme ha-card::before,
-      .atc-ha-theme ha-card::after {
+      .atc-ha-theme .at-fold-wrapper > div:not(.atc-history-card)::before,
+      .atc-ha-theme .at-fold-wrapper > div:not(.atc-history-card)::after {
         display: none !important;
       }
       /* All titles / messages → primary text color */
@@ -7052,6 +7304,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-cloud,
       .atc-ha-theme .at-satellite,
       .atc-ha-theme .at-tips,
+      .atc-ha-theme .at-light,
       .atc-ha-theme .at-cyberpunk,
       .atc-ha-theme .at-vapor,
       .atc-ha-theme .at-ticker {
@@ -7072,6 +7325,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-cloud        [class$="-badge"],
       .atc-ha-theme .at-satellite    [class$="-badge"],
       .atc-ha-theme .at-tips         [class$="-badge"],
+      .atc-ha-theme .at-light        [class$="-badge"],
       .atc-ha-theme .at-cyberpunk    [class$="-badge"],
       .atc-ha-theme .at-vapor        [class$="-badge"],
       .atc-ha-theme .at-ticker       [class$="-badge"] {
@@ -7191,13 +7445,13 @@ class AlertTickerCard extends LitElement {
       .atc-vertical .at-fold-wrapper {
         height: 100%;
       }
-      .atc-vertical ha-card:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
         height: 100% !important;
         min-height: unset !important;
       }
 
-      /* Core: flip ha-card to vertical stacking */
-      .atc-vertical ha-card:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
+      /* Core: flip theme card to vertical stacking */
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
@@ -7207,8 +7461,8 @@ class AlertTickerCard extends LitElement {
       }
 
       /* Icon: was flex-shrink on left edge, now centered at top */
-      .atc-vertical ha-card:not(.at-ticker) > [class$="-icon"],
-      .atc-vertical ha-card:not(.at-ticker) > [class$="-icon-wrap"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker) > [class$="-icon"],
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker) > [class$="-icon-wrap"] {
         flex-shrink: 0;
         font-size: 2.2rem !important;
         width: auto !important;
@@ -7217,7 +7471,7 @@ class AlertTickerCard extends LitElement {
       }
 
       /* Content area: full width, centered text */
-      .atc-vertical ha-card:not(.at-ticker) > [class$="-content"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker) > [class$="-content"] {
         flex: unset !important;
         width: 100% !important;
         min-width: unset !important;
@@ -7225,7 +7479,7 @@ class AlertTickerCard extends LitElement {
       }
 
       /* Right column: reset horizontal flex, center counter below content */
-      .atc-vertical ha-card:not(.at-ticker) > [class$="-right"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker) > [class$="-right"] {
         flex-shrink: 0;
         align-self: center !important;
         flex-direction: row !important;
@@ -7271,7 +7525,7 @@ class AlertTickerCard extends LitElement {
       /* Snooze/history buttons: keep top-right corner positioning (unchanged) */
       /* large_buttons + vertical: cancel the padding-right (content is centered),
          move buttons to top-right corner instead of vertically centered */
-      .atc-vertical.atc-large-buttons ha-card:not(.at-ticker) {
+      .atc-vertical.atc-large-buttons .at-fold-wrapper > div:not(.at-ticker) {
         padding-right: 18px !important;
       }
       .atc-vertical.atc-large-buttons .atc-snooze-wrap {
@@ -7314,7 +7568,7 @@ class AlertTickerCard extends LitElement {
       .atc-clickable {
         cursor: pointer;
       }
-      .atc-clickable:active ha-card {
+      .atc-clickable:active > div {
         opacity: 0.85;
         transition: opacity 0.1s;
       }
@@ -7619,7 +7873,6 @@ class AlertTickerCard extends LitElement {
         background: none;
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
-        border-right: 1px solid rgba(255,255,255,0.20);
         align-items: center;
       }
       .atc-cw-style--split .atc-cw-badge--clock {

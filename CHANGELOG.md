@@ -6,6 +6,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.5] - 2026-04-24
+
+### Added
+
+- **`label_filter` and `area_filter` — HA label and area filtering** ([#92](https://github.com/djdevil/AlertTicker-Card/issues/92)) — two new optional filter fields for `entity_filter`-style alerts. `label_filter` matches entities that carry a specific HA label (uses entity registry); `area_filter` matches entities assigned to a specific HA area (checks entity area first, then device area as fallback). Both accept a single value or an array (OR logic within the filter, AND logic between filters). Fully configurable in the visual editor via native `ha-selector` pickers with 9-language translations.
+  ```yaml
+  alerts:
+    - device_class: battery
+      label_filter: controller        # only "controller"-labelled devices
+      area_filter: [living_room, kitchen]  # in any of these areas
+      operator: "<"
+      state: "20"
+      message: "{name} battery low ({state}%)"
+  ```
+
+- **`trigger_delay` — state duration before alert activates** ([#88](https://github.com/djdevil/AlertTicker-Card/issues/88)) — new per-alert option that works like HA automation's `for:` field: the alert only becomes visible if its condition has been continuously true for at least N seconds. If the condition goes false before the delay elapses the timer is cancelled and the alert never fires. Fully configurable in the visual editor (timing section) with translated help text in all 9 languages.
+  ```yaml
+  alerts:
+    - entity: binary_sensor.door
+      operator: "="
+      state: "on"
+      trigger_delay: 300   # only alert if door has been open for 5+ minutes
+  ```
+
+- **New theme: `light`** — warm incandescent bulb glow for smart home light entity alerts. Features a conical light beam expanding from the icon, a pulsing warm-yellow drop-shadow flare on the bulb (🔆), and a gently breathing box-shadow on the card. Category `info`, compatible with `ha_theme`. Translated default message in all 10 supported languages.
+
+- **Portuguese (pt-BR) translation** ([#90](https://github.com/djdevil/AlertTicker-Card/issues/90)) — full Brazilian Portuguese translation contributed by [@Bsector](https://github.com/Bsector). All runtime strings (card labels, snooze, history, weather states, timer, test mode), all visual editor labels and help texts, all 46 theme default messages, and the theme category group names are now available in Portuguese. Activated automatically when HA's language is set to `pt-BR` or `pt`.
+
+### Fixed
+
+- **Theme card backgrounds and borders not rendering** — all themed alert cards (`alarm`, `emergency`, `fire`, `lightning`, `neon`, and all others) were rendered as `<ha-card>` custom elements. The `ha-card` shadow DOM applies its own `background` from inside, overriding any CSS background, border or box-shadow applied from outside the shadow boundary. This made every theme card display with the HA default card background, with no custom background color, border, or glow effects. Fixed by rendering all theme cards as `<div>` elements instead, so CSS applies directly without shadow DOM interference. All vertical mode and large-buttons CSS selectors updated accordingly.
+
+- **Overlay banner: `secondary_text` Jinja2 templates now fully resolved** — `secondary_text` containing `{{ }}` expressions was still using synchronous `_evalTemplate` with `…` fallback for complex patterns. It now uses the same async WebSocket `render_template` engine as the main message. Both message and secondary text are resolved in parallel via `Promise.all` before the banner is shown. ([#70](https://github.com/djdevil/AlertTicker-Card/issues/70))
+
+- **Overlay keeps firing after an alert is deleted from config** — the overlay watcher tracks active alerts by array index. When an alert was removed the remaining alerts shifted positions, causing the watcher's stale index set to miss them and re-fire already-notified alerts on the next tick. `register()` now detects when the alerts array has structurally changed and resets the watcher state (forcing a clean re-baseline with no spurious banners).
+
+- **`trigger_delay` respected by overlay watcher** — the overlay evaluation is independent of the card instance when the card is not mounted, so it was firing the banner immediately regardless of `trigger_delay`. The overlay now maintains its own `_ovDelayTimers` / `_ovDelayActive` state and applies the same delay logic as the card.
+
+- **Chromecast / cast environment: card fails with "Configuration error"** ([#89](https://github.com/djdevil/AlertTicker-Card/issues/89)) — on cast the script resolves `LitElement` from already-registered HA elements (`ha-panel-lovelace`, `hui-view`). In the cast browser these may not yet be registered when the card script executes, causing `Object.getPrototypeOf(undefined)` to throw and the entire script to fail silently. Added `ha-card` as a third fallback — a core HA element that is reliably available even in the cast environment.
+
+- **`conditions_logic: or` now correctly includes the primary condition in the OR pool** ([#87](https://github.com/djdevil/AlertTicker-Card/issues/87)) — previously the primary operator/state acted as a mandatory gate even when `conditions_logic: or` was set, so `(primary AND (cond1 OR cond2))` was evaluated instead of `(primary OR cond1 OR cond2)`. Both `_evalAlert` (overlay) and `_computeActiveAlerts` fixed.
+
+- **History log now scoped per card instance** ([#86](https://github.com/djdevil/AlertTicker-Card/issues/86)) — the history was stored under a single shared `localStorage` key (`atc-history`), so when multiple card instances were on the same page the last one to initialize would overwrite every other card's log. Each instance now gets its own key derived from its sorted entity IDs (e.g. `atc-history-sensor.battery|sensor.ink`), keeping histories completely independent.
+
+- **Split weather style divider line removed** — the vertical separator between the weather and clock panels in the `split` clear widget style has been removed for a cleaner look.
+
+- **Clear widget rounded corners and card-mod compatibility** ([#84](https://github.com/djdevil/AlertTicker-Card/issues/84)) — the card was hardcoding `--ha-card-border-radius: 10px` which prevented the HA theme value and card-mod overrides from applying. Removed the hardcoded value. All inner containers (`atc-card-root`, `atc-inner-clip`) now use `var(--ha-card-border-radius, 12px)` directly so the correct value flows through the shadow DOM. Added `:host { overflow: hidden; border-radius: var(--ha-card-border-radius, 12px) }` so content clips correctly to the rounded corners at the host level, matching the behavior expected by card-mod and HA's native "Show card border" option.
+
+---
+
+## [1.2.4] - 2026-04-23
+
+### Fixed
+
+- **Jinja2 templates shown raw in alert history** — when an alert with `{{ }}` templates first became active, the history entry was written before the WebSocket template result arrived, storing the raw template string (e.g. `{% set elev = ... %}`). The entry is now created immediately with a best-effort fallback, then patched with the fully resolved text once HA's `render_template` responds (~50–150 ms). The history panel and localStorage are updated automatically.
+
+---
+
 ## [1.2.3] - 2026-04-23
 
 ### Fixed
