@@ -24,7 +24,7 @@ A special thank you to **[@kgn3400](https://github.com/kgn3400)** for contributi
 
 A special thank you to **[@feixm1](https://github.com/feixm1)** for contributing the full **Czech (CS) language** translation — covering all card labels, editor UI, theme defaults, operator names, and overlay strings. ([#74](https://github.com/djdevil/AlertTicker-Card/pull/74))
 
-A special thank you to **[@Bsector](https://github.com/Bsector)** for contributing the full **Portuguese / pt-BR language** translation — covering all card labels, editor UI, theme default messages, and category names. ([#90](https://github.com/djdevil/AlertTicker-Card/issues/90))
+A special thank you to **[@Bsector](https://github.com/Bsector)** for contributing the **Portuguese / pt-BR language** translation — providing the core card runtime strings that formed the basis of the full pt-BR support now included in the card. ([#90](https://github.com/djdevil/AlertTicker-Card/issues/90))
 
 ---
 
