@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **40 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.2.5-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -23,6 +23,8 @@ A special thank you to **[@vdt2210](https://github.com/vdt2210)** for contributi
 A special thank you to **[@kgn3400](https://github.com/kgn3400)** for contributing the full **Danish (DA) language** translation — covering all card labels, editor UI, theme defaults, operator names, and overlay strings. ([#57](https://github.com/djdevil/AlertTicker-Card/pull/57))
 
 A special thank you to **[@feixm1](https://github.com/feixm1)** for contributing the full **Czech (CS) language** translation — covering all card labels, editor UI, theme defaults, operator names, and overlay strings. ([#74](https://github.com/djdevil/AlertTicker-Card/pull/74))
+
+A special thank you to **[@Bsector](https://github.com/Bsector)** for contributing the full **Portuguese / pt-BR language** translation — covering all card labels, editor UI, theme default messages, and category names. ([#90](https://github.com/djdevil/AlertTicker-Card/issues/90))
 
 ---
 
@@ -50,7 +52,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 
 | Feature | Details |
 |---------|---------|
-| **Themes** | **40** visual themes in 6 categories (including 4 timer themes) |
+| **Themes** | **41** visual themes in 6 categories (including 4 timer themes) |
 | **Animations** | **12** selectable transition animations between alerts |
 | **Per-alert theme** | Each alert has its own independent theme |
 | **Multiple entities** | Unlimited alerts per card |
@@ -76,14 +78,14 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Timer themes** | 4 animated themes for `timer.*` entities with live countdown |
 | **HA icons** | Use any `mdi:` icon per alert via native icon picker |
 | **Sound notifications** | Per-alert audio — auto-generated tones or custom URL |
-| **🔊 TTS announcements** | **NEW** — read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (9 languages) |
+| **🔊 TTS announcements** | **NEW** — read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (10 languages) |
 | **📷 Camera snapshot** | **NEW** — attach a live camera frame to the overlay banner, scaled proportionally with overlay zoom |
 | **Overlay scale** | Enlarge the overlay banner up to 3× for wall-mounted displays |
 | **Weather/time in cycle** | Insert the clock/weather widget as a slide in the alert rotation |
 | **Large buttons** | Always-visible pill-shaped 💤 and 📋 buttons |
 | **Swipe to snooze** | Swipe left on the card to snooze — no conflict with `tap_action` |
 | **Invisible touch zone** | Right-side tap zone shows action buttons on mobile without interfering with `tap_action` |
-| **Vertical layout** | Stack icon on top, message below, centered — all 40 themes |
+| **Vertical layout** | Stack icon on top, message below, centered — all 41 themes |
 | **HA theme adaptation** | `ha_theme: true` adapts colors to any active HA global theme |
 | **Overlay notification** | Global floating banner — fires from any dashboard view, with top / center / bottom position and auto-dismiss |
 | **Clear widget** | Animated clock or weather display (condition + temp + wind + humidity) when no alerts are active |
@@ -91,7 +93,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Card border** | Toggle to show the standard HA border around the card — always visible, off by default |
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
-| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech |
+| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech, Portuguese (pt-BR) |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
 ---
@@ -126,7 +128,7 @@ alerts:
 ### How it works
 
 - Enable `tts: true` on any individual alert.
-- If no `tts_message` is set, the card **auto-generates a natural sentence** from a built-in dictionary in 9 languages, based on the alert's theme category. For example, a `critical` theme in Italian produces *"Allarme critico: Sensore fumo cucina"*.
+- If no `tts_message` is set, the card **auto-generates a natural sentence** from a built-in dictionary in 10 languages, based on the alert's theme category. For example, a `critical` theme in Italian produces *"Allarme critico: Sensore fumo cucina"*.
 - The spoken language is read from `hass.language` and falls back to English automatically.
 - Set a global **master toggle** (`tts_enabled: false`) in the General tab to disable all TTS at once without losing per-alert settings.
 
@@ -223,6 +225,7 @@ The camera image appears **below the alert header row** inside the toast. The sn
 | `cloud` | ☁️ | Soft floating cloud pulse |
 | `satellite` | 📡 | Radiating signal waves |
 | `tips` | 💡 | Amber lightbulb glow |
+| `light` | 🔆 | Warm incandescent glow with conical light beam fanning out from icon; bulb flares on pulse |
 
 ### ✅ OK / All Clear
 
@@ -746,7 +749,7 @@ Stack the icon on top and the message below, centered — useful for narrow colu
 vertical: true
 ```
 
-Works with all 40 themes. The **Ticker** theme keeps its horizontal scrolling. Can be combined with `ha_theme: true` and `large_buttons: true`.
+Works with all 41 themes. The **Ticker** theme keeps its horizontal scrolling. Can be combined with `ha_theme: true` and `large_buttons: true`.
 
 ### HA theme adaptation
 
@@ -764,7 +767,7 @@ When enabled:
 - Info badges/borders → `--info-color`
 - OK badges/borders → `--success-color`
 
-All 40 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
+All 41 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
 
 ### Card border
 
