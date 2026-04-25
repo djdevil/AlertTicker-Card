@@ -3,7 +3,7 @@
 A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.2.6-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.2.7-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -11,6 +11,34 @@ A custom Lovelace card to display alerts and notifications based on entity state
 > ☕ If you enjoy this card and it saves you time, consider buying me a coffee — it keeps the updates coming!
 >
 > [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
+
+---
+
+## ✨ What's New in v1.2.7
+
+### 🔴 Persistent Alerts — stay visible until manually dismissed
+
+A new `persistent: true` per-alert flag keeps the alert card visible even after the sensor goes back to idle. Once the condition fires, the alert **latches** until the user explicitly dismisses it. The 💤 snooze button is replaced by a **✕ Dismiss** button:
+
+```yaml
+alerts:
+  - entity: binary_sensor.smoke_detector
+    state: "on"
+    persistent: true
+    message: "Smoke detected!"
+    theme: fire
+```
+
+- The alert survives page reloads (latch stored in `localStorage`)
+- Swiping left also dismisses a persistent alert
+- Works in all layouts: standard, large buttons, vertical
+
+---
+
+### 🗓️ Also in 1.2.7
+
+- **Hold action fixed on mobile** ([#95](https://github.com/djdevil/AlertTicker-Card/issues/95)) — `pointercancel` was silently killing hold timers when the browser took over the touch for scrolling; now prevented
+- **Configurable `weather_forecast_interval`** — set the alternation speed (1–60 s, default 5) for `weather_forecast` mode directly in the editor
 
 ---
 
@@ -43,13 +71,14 @@ alerts:
 Two new **clear display modes** for the all-clear state:
 
 - **`forecast`** — a full-width 7-day weather forecast grid. Each day shows a weather emoji, high/low temperature (color-coded), a day label, and a precipitation probability bar for days ≥20%. Today's column is highlighted with a frosted glass effect and a floating emoji animation.
-- **`weather_forecast`** — alternates every 5 seconds between the current weather view (condition, temperature, wind/humidity, clock) and the 7-day forecast grid using a smooth fade+slide transition.
+- **`weather_forecast`** — alternates between the current weather view (condition, temperature, wind/humidity, clock) and the 7-day forecast grid using a smooth fade+slide transition. Interval configurable via `weather_forecast_interval` (default: 5 s).
 
 ```yaml
 show_when_clear: true
 clear_display_mode: weather_forecast   # or: forecast
 clear_weather_entity: weather.home
 show_widget_in_cycle: true             # optional — also appears between alerts
+weather_forecast_interval: 8           # seconds per panel, default 5
 ```
 
 Both modes work with all weather badge styles (including **Split** — weather + clock side by side) and are fully configurable from the visual editor.
@@ -137,7 +166,8 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **🌤 7-day forecast widget** | **NEW** — full forecast grid or alternating weather+forecast display mode |
 | **Weather/time in cycle** | Insert the clock/weather widget as a slide in the alert rotation |
 | **Large buttons** | Always-visible pill-shaped 💤 and 📋 buttons |
-| **Swipe to snooze** | Swipe left on the card to snooze — no conflict with `tap_action` |
+| **Persistent alerts** | `persistent: true` — alert stays visible after sensor clears, requires manual ✕ dismiss |
+| **Swipe to snooze** | Swipe left on the card to snooze (or dismiss if `persistent: true`) — no conflict with `tap_action` |
 | **Invisible touch zone** | Right-side tap zone shows action buttons on mobile without interfering with `tap_action` |
 | **Vertical layout** | Stack icon on top, message below, centered — all 41 themes |
 | **HA theme adaptation** | `ha_theme: true` adapts colors to any active HA global theme |

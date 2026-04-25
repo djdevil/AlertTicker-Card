@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.2.6
+ * AlertTicker Card Editor v1.2.7
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -654,6 +654,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Meteo + Orologio",
     clear_mode_forecast: "📅 Previsioni settimana",
     clear_mode_weather_forecast: "🌤📅 Meteo + Previsioni (alternati)",
+    weather_forecast_interval: "Intervallo alternanza (secondi)",
+    weather_forecast_interval_help: "Secondi tra meteo corrente e previsioni settimanali. Default: 5",
     clear_weather_entity_label: "Entità meteo (weather.*)",
     clear_clock_show_date: "Mostra data",
     clear_clock_12h: "Formato 12 ore (AM/PM)",
@@ -846,6 +848,8 @@ const ET = {
     clear_double_tap_action_section: "Doppio tap sulla card 'tutto ok'",
     clear_hold_action_section: "Hold sulla card 'tutto ok' — azione lunga (500ms)",
     snooze_action_section: "Azione snooze 💤 — eseguita al tap sul tasto snooze",
+    persistent: "Allarme persistente 🔒",
+    persistent_help: "Rimane visibile anche quando il sensore torna alla normalità. Premi ✕ per rimuoverlo.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Segnaposto: {name} nome entità, {state} stato, {entity} ID entità, {device} nome dispositivo",
     timer_placeholder_hint: "Usa {timer} nel messaggio per mostrare il countdown (es. 'Disabilitato per {timer}')",
@@ -913,6 +917,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Weather + Clock",
     clear_mode_forecast: "📅 Weekly forecast",
     clear_mode_weather_forecast: "🌤📅 Weather + Forecast (alternating)",
+    weather_forecast_interval: "Alternation interval (seconds)",
+    weather_forecast_interval_help: "Seconds between current weather and weekly forecast. Default: 5",
     clear_weather_entity_label: "Weather entity (weather.*)",
     clear_clock_show_date: "Show date",
     clear_clock_12h: "12-hour format (AM/PM)",
@@ -1105,6 +1111,8 @@ const ET = {
     clear_double_tap_action_section: "Double tap on 'all clear' card",
     clear_hold_action_section: "Hold on 'all clear' card (500ms)",
     snooze_action_section: "Snooze action 💤 — executed when the snooze button is tapped",
+    persistent: "Persistent alarm 🔒",
+    persistent_help: "Stays visible even after the sensor returns to normal. Press ✕ to dismiss.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Placeholders: {name} entity name, {state} state, {entity} entity ID, {device} device name",
     timer_placeholder_hint: "Use {timer} in the message to show the countdown (e.g. 'Disabled for {timer}')",
@@ -1172,6 +1180,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Météo + Horloge",
     clear_mode_forecast: "📅 Prévisions de la semaine",
     clear_mode_weather_forecast: "🌤📅 Météo + Prévisions (alternance)",
+    weather_forecast_interval: "Intervalle d'alternance (secondes)",
+    weather_forecast_interval_help: "Secondes entre la météo actuelle et les prévisions. Défaut: 5",
     clear_weather_entity_label: "Entité météo (weather.*)",
     clear_clock_show_date: "Afficher la date",
     clear_clock_12h: "Format 12 heures (AM/PM)",
@@ -1364,6 +1374,8 @@ const ET = {
     clear_double_tap_action_section: "Double tap sur la carte 'tout va bien'",
     clear_hold_action_section: "Maintien sur la carte 'tout va bien' (500ms)",
     snooze_action_section: "Action snooze 💤 — exécutée au tap sur le bouton snooze",
+    persistent: "Alarme persistante 🔒",
+    persistent_help: "Reste visible même après le retour à la normale du capteur. Appuyer sur ✕ pour fermer.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Variables : {name} nom entité, {state} état, {entity} ID entité, {device} nom appareil",
     timer_placeholder_hint: "Utilisez {timer} dans le message pour afficher le compte à rebours (ex. 'Désactivé pour {timer}')",
@@ -1431,6 +1443,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Wetter + Uhr",
     clear_mode_forecast: "📅 Wochenvorhersage",
     clear_mode_weather_forecast: "🌤📅 Wetter + Vorhersage (wechselnd)",
+    weather_forecast_interval: "Wechselintervall (Sekunden)",
+    weather_forecast_interval_help: "Sekunden zwischen aktuellem Wetter und Vorhersage. Standard: 5",
     clear_weather_entity_label: "Wetter-Entität (weather.*)",
     clear_clock_show_date: "Datum anzeigen",
     clear_clock_12h: "12-Stunden-Format (AM/PM)",
@@ -1623,6 +1637,8 @@ const ET = {
     clear_double_tap_action_section: "Doppeltipp auf 'Alles in Ordnung'-Karte",
     clear_hold_action_section: "Halten auf 'Alles in Ordnung'-Karte (500ms)",
     snooze_action_section: "Schlummern-Aktion 💤 — wird beim Tap auf den Schlummern-Button ausgeführt",
+    persistent: "Dauerhafter Alarm 🔒",
+    persistent_help: "Bleibt sichtbar, auch wenn der Sensor wieder normal ist. ✕ drücken zum Schließen.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Platzhalter: {name} Entitätsname, {state} Zustand, {entity} Entitäts-ID, {device} Gerätename",
     timer_placeholder_hint: "Verwende {timer} in der Nachricht für den Countdown (z.B. 'Deaktiviert für {timer}')",
@@ -1690,6 +1706,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Weer + Klok",
     clear_mode_forecast: "📅 Weekvoorspelling",
     clear_mode_weather_forecast: "🌤📅 Weer + Voorspelling (afwisselend)",
+    weather_forecast_interval: "Wisselinterval (seconden)",
+    weather_forecast_interval_help: "Seconden tussen huidig weer en weekverwachting. Standaard: 5",
     clear_weather_entity_label: "Weerentiteit (weather.*)",
     clear_clock_show_date: "Datum weergeven",
     clear_clock_12h: "12-uursformaat (AM/PM)",
@@ -1882,6 +1900,8 @@ const ET = {
     clear_double_tap_action_section: "Dubbel tikken op 'alles in orde'-kaart",
     clear_hold_action_section: "Vasthouden op 'alles in orde'-kaart (500ms)",
     snooze_action_section: "Sluimer-actie 💤 — uitgevoerd bij tik op de sluimer-knop",
+    persistent: "Aanhoudend alarm 🔒",
+    persistent_help: "Blijft zichtbaar zelfs na herstel van de sensor. Druk op ✕ om te verwijderen.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Plaatshouders: {name} entiteitsnaam, {state} toestand, {entity} entiteits-ID, {device} apparaatnaam",
     timer_placeholder_hint: "Gebruik {timer} in het bericht voor de countdown (bijv. 'Uitgeschakeld voor {timer}')",
@@ -1949,6 +1969,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Thời tiết + Đồng hồ",
     clear_mode_forecast: "📅 Dự báo tuần",
     clear_mode_weather_forecast: "🌤📅 Thời tiết + Dự báo (xen kẽ)",
+    weather_forecast_interval: "Khoảng thời gian xen kẽ (giây)",
+    weather_forecast_interval_help: "Giây giữa thời tiết hiện tại và dự báo tuần. Mặc định: 5",
     clear_weather_entity_label: "Thực thể thời tiết (weather.*)",
     clear_clock_show_date: "Hiển thị ngày",
     clear_clock_12h: "Định dạng 12 giờ (AM/PM)",
@@ -2141,6 +2163,8 @@ const ET = {
     clear_double_tap_action_section: "Nhấn đôi vào thẻ 'mọi thứ ổn'",
     clear_hold_action_section: "Giữ thẻ 'mọi thứ ổn' (500ms)",
     snooze_action_section: "Hành động tạm hoãn 💤 — thực hiện khi nhấn nút tạm hoãn",
+    persistent: "Báo động liên tục 🔒",
+    persistent_help: "Vẫn hiển thị dù cảm biến trở về bình thường. Nhấn ✕ để xóa bỏ.",
     timer_theme_category: "Hẹn giờ",
     message_placeholder_hint: "Biến: {name} tên thực thể, {state} trạng thái, {entity} ID thực thể, {device} tên thiết bị",
     timer_placeholder_hint: "Dùng {timer} trong thông báo để hiển thị đếm ngược (vd. 'Đã tắt trong {timer}')",
@@ -2208,6 +2232,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Погода + Часы",
     clear_mode_forecast: "📅 Прогноз на неделю",
     clear_mode_weather_forecast: "🌤📅 Погода + Прогноз (чередование)",
+    weather_forecast_interval: "Интервал чередования (секунды)",
+    weather_forecast_interval_help: "Секунды между текущей погодой и прогнозом. По умолч.: 5",
     clear_weather_entity_label: "Объект погоды (weather.*)",
     clear_clock_show_date: "Показать дату",
     clear_clock_12h: "12-часовой формат (AM/PM)",
@@ -2400,6 +2426,8 @@ const ET = {
     clear_double_tap_action_section: "Двойное нажатие на карточку 'всё в порядке'",
     clear_hold_action_section: "Удержание карточки 'всё в порядке' (500мс)",
     snooze_action_section: "Действие откладывания 💤 — выполняется при нажатии кнопки откладывания",
+    persistent: "Постоянная тревога 🔒",
+    persistent_help: "Остаётся видимым даже после нормализации датчика. Нажмите ✕ для сброса.",
     timer_theme_category: "Таймер",
     message_placeholder_hint: "Переменные: {name} имя объекта, {state} состояние, {entity} ID объекта, {device} имя устройства",
     timer_placeholder_hint: "Используйте {timer} в сообщении для отображения обратного отсчёта (например 'Отключится через {timer}')",
@@ -2467,6 +2495,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Vejr + Ur",
     clear_mode_forecast: "📅 Ugentlig prognose",
     clear_mode_weather_forecast: "🌤📅 Vejr + Prognose (skiftende)",
+    weather_forecast_interval: "Skifteinterval (sekunder)",
+    weather_forecast_interval_help: "Sekunder mellem aktuelt vejr og ugeprognose. Standard: 5",
     clear_weather_entity_label: "Vejrentitet (weather.*)",
     clear_clock_show_date: "Vis dato",
     clear_clock_12h: "12-timers format (AM/PM)",
@@ -2657,6 +2687,8 @@ const ET = {
     clear_double_tap_action_section: "Dobbelt‑klik på 'alt er i orden'‑kort",
     clear_hold_action_section: "Hold på 'alt er i orden'‑kort (500 ms)",
     snooze_action_section: "Slumre‑handling 💤 — udføres når slumre‑knappen trykkes",
+    persistent: "Vedvarende alarm 🔒",
+    persistent_help: "Forbliver synlig selvom sensoren returnerer til normal. Tryk ✕ for at afvise.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Pladsholdere: {name} enheds‑navn, {state} tilstand, {entity} enheds‑ID, {device} enheds‑navn",
     timer_placeholder_hint: "Brug {timer} i beskeden for at vise nedtælling (f.eks. 'Deaktiveret i {timer}')",
@@ -2726,6 +2758,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Počasí + hodiny",
     clear_mode_forecast: "📅 Týdenní předpověď",
     clear_mode_weather_forecast: "🌤📅 Počasí + Předpověď (střídání)",
+    weather_forecast_interval: "Interval střídání (sekundy)",
+    weather_forecast_interval_help: "Sekundy mezi zobrazením počasí a předpovědi",
     clear_weather_entity_label: "Entita počasí (weather.*)",
     clear_clock_show_date: "Zobrazit datum",
     clear_clock_12h: "12hodinový formát (AM/PM)",
@@ -2918,6 +2952,8 @@ const ET = {
     clear_double_tap_action_section: "Dvojdotek na kartě 'Vše OK'",
     clear_hold_action_section: "Podržení na kartě 'Vše OK' (500ms)",
     snooze_action_section: "Akce odložení - spuštěno po kliknutí na tlačítko 💤",
+    persistent: "Trvalý alarm 🔒",
+    persistent_help: "Zůstává viditelný i po návratu senzoru do normálu. Stiskněte ✕ pro zavření.",
     timer_theme_category: "Časovač",
     message_placeholder_hint: "Zástupná slova: {name} název entity, {state} stav, {entity} ID entity, {device} název zařízení",
     timer_placeholder_hint: "Použijte {timer} v těle zprávy pro zobrazení odpočtu (např. 'Vypnuto za {timer}')",
@@ -2987,6 +3023,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Clima + Relógio",
     clear_mode_forecast: "📅 Previsão semanal",
     clear_mode_weather_forecast: "🌤📅 Clima + Previsão (alternando)",
+    weather_forecast_interval: "Intervalo de alternância (segundos)",
+    weather_forecast_interval_help: "Segundos entre a exibição do clima e da previsão",
     clear_weather_entity_label: "Entidade de clima (weather.*)",
     clear_clock_show_date: "Mostrar data",
     clear_clock_12h: "Formato 12 horas (AM/PM)",
@@ -3179,6 +3217,8 @@ const ET = {
     clear_double_tap_action_section: "Toque duplo no card 'tudo limpo'",
     clear_hold_action_section: "Pressão longa no card 'tudo limpo' (500ms)",
     snooze_action_section: "Ação de silenciar 💤 — executada ao tocar no botão de silenciar",
+    persistent: "Alarme persistente 🔒",
+    persistent_help: "Permanece visível mesmo após o sensor retornar ao normal. Pressione ✕ para descartar.",
     timer_theme_category: "Temporizador",
     message_placeholder_hint: "Espaços reservados: {name} nome da entidade, {state} estado, {entity} ID da entidade, {device} nome do dispositivo",
     timer_placeholder_hint: "Use {timer} na mensagem para mostrar a contagem regressiva (ex. 'Desabilitado por {timer}')",
@@ -3246,6 +3286,8 @@ const ET = {
     clear_mode_weather_clock: "🌤🕐 Clima + Reloj",
     clear_mode_forecast: "📅 Previsión semanal",
     clear_mode_weather_forecast: "🌤📅 Clima + Previsión (alternando)",
+    weather_forecast_interval: "Intervalo de alternancia (segundos)",
+    weather_forecast_interval_help: "Segundos entre la vista del tiempo y la previsión",
     clear_weather_entity_label: "Entidad del tiempo (weather.*)",
     clear_clock_show_date: "Mostrar fecha",
     clear_clock_12h: "Formato 12 horas (AM/PM)",
@@ -3438,6 +3480,8 @@ const ET = {
     clear_double_tap_action_section: "Doble toque en la tarjeta 'todo bien'",
     clear_hold_action_section: "Mantener en la tarjeta 'todo bien' (500ms)",
     snooze_action_section: "Acción de posponer 💤 — ejecutada al tocar el botón de posponer",
+    persistent: "Alarma persistente 🔒",
+    persistent_help: "Permanece visible incluso después de que el sensor vuelva a la normalidad. Pulse ✕ para descartar.",
     timer_theme_category: "Temporizador",
     message_placeholder_hint: "Marcadores: {name} nombre de entidad, {state} estado, {entity} ID de entidad, {device} nombre del dispositivo",
     timer_placeholder_hint: "Usa {timer} en el mensaje para mostrar la cuenta atrás (ej. 'Deshabilitado por {timer}')",
@@ -4252,6 +4296,24 @@ class AlertTickerCardEditor extends LitElement {
               </select>
             </div>
           </div>
+        ` : ''}
+
+        <!-- Weather+Forecast alternation interval (only for weather_forecast mode) -->
+        ${cfg.clear_display_mode === 'weather_forecast' ? html`
+          <div class="form-row">
+            <ha-textfield
+              type="number"
+              min="1"
+              max="60"
+              .label="${this._t("weather_forecast_interval")}"
+              .value="${cfg.weather_forecast_interval != null ? String(cfg.weather_forecast_interval) : '5'}"
+              @change="${(e) => {
+                const v = parseInt(e.target.value, 10);
+                this._fireConfig({ ...this._config, weather_forecast_interval: (isNaN(v) || v < 1) ? undefined : v });
+              }}"
+            ></ha-textfield>
+          </div>
+          <div class="helper-text">${this._t("weather_forecast_interval_help")}</div>
         ` : ''}
 
         <!-- Show widget in alert cycle -->
@@ -5070,7 +5132,20 @@ class AlertTickerCardEditor extends LitElement {
                 <!-- ── 5. OPZIONI ─────────────────────────────────────────── -->
                 <div class="section-divider">⚙️ ${this._t("snooze_duration")}</div>
 
-                <!-- Per-alert snooze duration override -->
+                <!-- Persistent alarm toggle -->
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("persistent")}</span>
+                    <ha-switch
+                      .checked="${!!alert.persistent}"
+                      @change="${(e) => this._updateAlert(index, { persistent: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </div>
+                </div>
+                <div class="helper-text">${this._t("persistent_help")}</div>
+
+                <!-- Per-alert snooze duration override (hidden when persistent) -->
+                ${alert.persistent ? "" : html`
                 <div class="native-select-wrap">
                   <select class="native-select"
                     @change="${(e) => {
@@ -5087,6 +5162,7 @@ class AlertTickerCardEditor extends LitElement {
                   </select>
                 </div>
                 <div class="helper-text">${this._t("snooze_duration_help")}</div>
+                `}
 
                 <!-- Sound per alert -->
                 <div class="section-divider">🔊 ${this._t("alert_sound")}</div>

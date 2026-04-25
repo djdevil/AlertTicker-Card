@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.2.6
+ * AlertTicker Card v1.2.7
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 42 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -207,6 +207,7 @@ const T = {
     snooze_8h: "8 ore",
     snooze_24h: "24 ore",
     snooze_reset: "Riattiva tutti",
+    dismiss: "Rimuovi",
     alerts_snoozed: "avvisi sospesi",
     history: "Cronologia",
     history_clear: "Svuota",
@@ -241,6 +242,7 @@ const T = {
     snooze_8h: "8 hours",
     snooze_24h: "24 hours",
     snooze_reset: "Resume all",
+    dismiss: "Dismiss",
     alerts_snoozed: "alerts snoozed",
     history: "History",
     history_clear: "Clear",
@@ -275,6 +277,7 @@ const T = {
     snooze_8h: "8 heures",
     snooze_24h: "24 heures",
     snooze_reset: "Réactiver tout",
+    dismiss: "Effacer",
     alerts_snoozed: "alertes suspendues",
     history: "Historique",
     history_clear: "Effacer",
@@ -309,6 +312,7 @@ const T = {
     snooze_8h: "8 Stunden",
     snooze_24h: "24 Stunden",
     snooze_reset: "Alle fortsetzen",
+    dismiss: "Verwerfen",
     alerts_snoozed: "Warnungen pausiert",
     history: "Verlauf",
     history_clear: "Leeren",
@@ -343,6 +347,7 @@ const T = {
     snooze_8h: "8 uur",
     snooze_24h: "24 uur",
     snooze_reset: "Alles hervatten",
+    dismiss: "Verwijderen",
     alerts_snoozed: "meldingen gesluimerd",
     history: "Geschiedenis",
     history_clear: "Wissen",
@@ -377,6 +382,7 @@ const T = {
     snooze_8h: "8 giờ",
     snooze_24h: "24 giờ",
     snooze_reset: "Bỏ tạm hoãn tất cả",
+    dismiss: "Xóa bỏ",
     alerts_snoozed: "báo động đã tạm hoãn",
     history: "Lịch sử",
     history_clear: "Xóa",
@@ -411,6 +417,7 @@ const T = {
     snooze_8h: "8 часов",
     snooze_24h: "24 часа",
     snooze_reset: "Восстановить все",
+    dismiss: "Сбросить",
     alerts_snoozed: "оповещений отложено",
     history: "История",
     history_clear: "Очистить",
@@ -445,6 +452,7 @@ const T = {
     snooze_8h: "8 timer",
     snooze_24h: "24 timer",
     snooze_reset: "Genoptag alle",
+    dismiss: "Afvis",
     alerts_snoozed: "alarmer udsat",
     history: "Historik",
     history_clear: "Ryd",
@@ -479,6 +487,7 @@ const T = {
     snooze_8h: "8 hodin",
     snooze_24h: "24 hodin",
     snooze_reset: "Obnovit vše",
+    dismiss: "Zamítnout",
     alerts_snoozed: "varování odložena",
     history: "Historie",
     history_clear: "Nic",
@@ -513,6 +522,7 @@ const T = {
     snooze_8h: "8 horas",
     snooze_24h: "24 horas",
     snooze_reset: "Retomar todos",
+    dismiss: "Descartar",
     alerts_snoozed: "alertas silenciados",
     history: "Histórico",
     history_clear: "Limpar",
@@ -547,6 +557,7 @@ const T = {
     snooze_8h: "8 horas",
     snooze_24h: "24 horas",
     snooze_reset: "Reanudar todo",
+    dismiss: "Descartar",
     alerts_snoozed: "alertas pospuestas",
     history: "Historial",
     history_clear: "Borrar",
@@ -1300,6 +1311,7 @@ class AlertTickerCard extends LitElement {
     this._snoozeMenuOpen = null;
     this._snoozedCount = 0;
     this._snoozed = new Map(); // snoozeKey → expiry timestamp
+    this._persistentLatched = new Set(); // snoozeKey → latched persistent alert
     this._historyOpen = false;
     this._history = []; // { ts, message, theme, icon, entity }
     this._touchButtonsActive = false;
@@ -1399,6 +1411,11 @@ class AlertTickerCard extends LitElement {
     // Otherwise connectedCallback() will register once isConnected is true.
     if (this._mounted) {
       _ATC_OVERLAY.register(this._cardId, this._config.alerts || [], this._config, this._lang, this);
+    }
+    // Restart the weather_forecast flip timer when the interval changes
+    if (this._config.clear_display_mode === 'weather_forecast' && this._wfFlipTimer) {
+      this._stopWfFlipTimer();
+      this._startWfFlipTimer();
     }
     // Play a one-shot animation preview when the editor changes cycle_animation
     // Delay so requestUpdate from _computeActiveAlerts settles first
@@ -1571,6 +1588,8 @@ class AlertTickerCard extends LitElement {
               ? primaryOk || results.some(Boolean)
               : primaryOk && results.every(Boolean);
             if (!passes) {
+              // persistent: keep showing even though condition cleared
+              if (alert.persistent && this._persistentLatched.has(this._snoozeKey(alert))) return true;
               // Condition went false — reset timers so next activation starts fresh
               if (alert.auto_dismiss_after) {
                 this._autoDismissedKeys.delete(key);
@@ -1585,6 +1604,8 @@ class AlertTickerCard extends LitElement {
               return false;
             }
           } else if (!primaryOk) {
+            // persistent: keep showing even though condition cleared
+            if (alert.persistent && this._persistentLatched.has(this._snoozeKey(alert))) return true;
             if (alert.auto_dismiss_after) {
               this._autoDismissedKeys.delete(key);
               clearTimeout(this._autoDismissTimers[key]);
@@ -1620,6 +1641,14 @@ class AlertTickerCard extends LitElement {
                 this.requestUpdate();
               }, alert.auto_dismiss_after * 1000);
             }
+          }
+        }
+        // persistent: latch on first true so it stays visible after sensor clears
+        if (alert.persistent) {
+          const pKey = this._snoozeKey(alert);
+          if (!this._persistentLatched.has(pKey)) {
+            this._persistentLatched.add(pKey);
+            this._savePersistent();
           }
         }
         if (this._isSnoozed(alert)) { snoozedCount++; return false; }
@@ -1878,10 +1907,11 @@ class AlertTickerCard extends LitElement {
 
   _startWfFlipTimer() {
     if (this._wfFlipTimer) return;
+    const ms = ((this._config?.weather_forecast_interval) || 5) * 1000;
     this._wfFlipTimer = setInterval(() => {
       this._wfShowForecast = !this._wfShowForecast;
       if (this._wfShowForecast) this._wfForecastShown = true;
-    }, 5000);
+    }, ms);
   }
 
   _stopWfFlipTimer() {
@@ -2595,6 +2625,34 @@ class AlertTickerCard extends LitElement {
     } catch (_) {}
   }
 
+  // ---- Persistent alarm helpers ---------------------------------------------
+
+  _loadPersistent() {
+    try {
+      const raw = localStorage.getItem("atc-persistent");
+      if (!raw) return;
+      this._persistentLatched = new Set(JSON.parse(raw));
+    } catch (_) {
+      this._persistentLatched = new Set();
+    }
+  }
+
+  _savePersistent() {
+    try {
+      localStorage.setItem("atc-persistent", JSON.stringify([...this._persistentLatched]));
+    } catch (_) {}
+  }
+
+  _dismissPersistent(alert) {
+    this._persistentLatched.delete(this._snoozeKey(alert));
+    this._savePersistent();
+    this._snoozeMenuOpen = null;
+    // Use a sentinel that won't match "" (empty active list) so _computeActiveAlerts
+    // doesn't early-return when the dismissed alert was the only one active.
+    this._lastSignature = "__dismiss__";
+    this._computeActiveAlerts();
+  }
+
   // ---- History helpers ------------------------------------------------------
 
   /** Unique localStorage key per card instance, scoped to its entity IDs */
@@ -2864,6 +2922,18 @@ class AlertTickerCard extends LitElement {
    *  If snooze_action is configured (per-alert), it is also executed on tap. */
   _renderSnoozeButton(alert) {
     if (!alert || !alert.entity) return html``;
+    // Persistent alarm: snooze becomes a permanent Dismiss button
+    if (alert.persistent) {
+      return html`
+        <div class="atc-snooze-wrap atc-dismiss-wrap">
+          <button
+            class="atc-snooze-btn atc-dismiss-btn"
+            title="${this._t("dismiss")}"
+            @click="${(e) => { e.stopPropagation(); this._dismissPersistent(alert); }}"
+          >✕</button>
+        </div>
+      `;
+    }
     const fixedDuration = alert.snooze_duration !== undefined
       ? alert.snooze_duration
       : this._config.snooze_default_duration;
@@ -3034,6 +3104,10 @@ class AlertTickerCard extends LitElement {
     // fires on the same element, not on the shadow host which would miss our handler.
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
     if (holdCfg && holdCfg.action && holdCfg.action !== "none") {
+      // On touch, prevent the browser scroll-detection from firing pointercancel
+      // before our 500 ms hold threshold — without this the gesture is silently
+      // hijacked on mobile and the hold never fires.
+      if (e.pointerType === 'touch') e.preventDefault();
       this._holdTimer = setTimeout(() => {
         this._holdFired = true;
         this._handleAction(holdCfg);
@@ -3110,6 +3184,10 @@ class AlertTickerCard extends LitElement {
       if (this._config.swipe_to_snooze) {
         const alert = this._current;
         if (!alert || !alert.entity) return;
+        if (alert.persistent) {
+          this._dismissPersistent(alert);
+          return;
+        }
         const dur = alert.snooze_duration !== undefined
           ? alert.snooze_duration
           : (this._config.snooze_default_duration ?? 1);
@@ -3191,6 +3269,7 @@ class AlertTickerCard extends LitElement {
       _ATC_OVERLAY.register(this._cardId, this._config.alerts || [], this._config, this._lang, this);
     }
     this._loadSnooze();
+    this._loadPersistent();
     this._loadHistory();
     this._startCycleTimer();
     this._startTimerTick();
@@ -7214,6 +7293,38 @@ class AlertTickerCard extends LitElement {
         opacity: 1 !important;
         background: rgba(0, 0, 0, 0.65);
       }
+      /* Dismiss wrap: always clickable; base position matches snooze/history defaults */
+      .atc-dismiss-wrap {
+        pointer-events: auto !important;
+        top: 6px !important;
+        right: 7px !important;
+      }
+      .atc-large-buttons .atc-dismiss-wrap {
+        top: 50% !important;
+        right: 14px !important;
+        transform: translateY(-50%) !important;
+      }
+      .atc-vertical.atc-large-buttons .atc-dismiss-wrap {
+        top: 20px !important;
+        right: 16px !important;
+        transform: none !important;
+      }
+      .atc-dismiss-btn {
+        opacity: 1 !important;
+        background: rgba(0, 0, 0, 0.42) !important;
+        border: 1px solid rgba(255, 80, 80, 0.38) !important;
+        color: rgba(255, 150, 150, 0.88);
+        font-weight: 700;
+        font-size: 0.68rem;
+      }
+      .atc-dismiss-btn:hover {
+        background: rgba(160, 20, 20, 0.58) !important;
+        border-color: rgba(255, 100, 100, 0.65) !important;
+        color: #fff;
+      }
+      .atc-large-buttons .atc-dismiss-btn {
+        font-size: 0.9rem !important;
+      }
       .atc-snooze-menu {
         position: absolute;
         top: 32px;
@@ -8065,12 +8176,13 @@ class AlertTickerCard extends LitElement {
         padding-right: 18px !important;
       }
       .atc-vertical.atc-large-buttons .atc-snooze-wrap {
-        top: 8px !important;
+        top: 20px !important;
+        right: 16px !important;
         bottom: auto !important;
         transform: none !important;
       }
       .atc-vertical.atc-large-buttons .atc-history-btn {
-        top: 8px !important;
+        top: 20px !important;
         bottom: auto !important;
         transform: none !important;
       }

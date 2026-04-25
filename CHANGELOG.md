@@ -6,10 +6,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] — 1.2.6
+## [1.2.7] - 2026-04-25
 
 ### Added
 
+- **Persistent alerts (`persistent: true`)** — a new per-alert flag that keeps the alert card visible even after the sensor returns to its idle state. Once the condition becomes active the alert latches until the user explicitly dismisses it. The 💤 snooze button is replaced with a small **✕ Dismiss** button, styled differently from snooze to signal the different action. Swiping left also dismisses a persistent alert. The latch is stored in `localStorage` per browser so the card survives page reloads. All layouts supported: standard, `large_buttons`, vertical, and vertical + large_buttons. Available in the visual editor under the alert's timing section.
+  ```yaml
+  alerts:
+    - entity: binary_sensor.smoke_detector
+      state: "on"
+      persistent: true      # stays visible until ✕ is tapped
+      message: "Smoke detected!"
+      theme: fire
+  ```
+
+- **Configurable weather/forecast alternation interval (`weather_forecast_interval`)** — when using `clear_display_mode: weather_forecast`, the panel now alternates at a user-defined interval instead of the hardcoded 5 seconds. Set any value from 1 to 60 seconds. The card always completes a full weather + forecast cycle before advancing to the next alert when `show_widget_in_cycle: true`. Configurable in the visual editor (All Clear tab → interval field visible when `weather_forecast` mode is selected). Default: `5`. Translated in all 10 supported languages.
+  ```yaml
+  clear_display_mode: weather_forecast
+  weather_forecast_interval: 10   # seconds per panel, default 5
+  ```
+
+### Fixed
+
+- **Hold action not firing on mobile** ([#95](https://github.com/djdevil/AlertTicker-Card/issues/95)) — on touch devices, the browser fires a `pointercancel` event as soon as it takes over the touch gesture for scrolling, silently cancelling the hold timer before it expires. Fixed by calling `e.preventDefault()` in `_onPointerDown` when a hold action is configured for that alert, preventing the browser from hijacking the touch event. Standard tap, double-tap and swipe remain unaffected.
+
+---
+
+## [1.2.6] - 2026-04-25
+
+### Added
+
+- **Music player mode (`show_player_controls`)** — when the alert entity is a `media_player.*` and `show_player_controls: true` is enabled, the `music` theme switches to a full graphical player UI: blurred album art fills the background with a directional gradient overlay, a spinning vinyl thumbnail is shown on the right (rotates only when playing), animated equalizer bars pulse next to the "NOW PLAYING" label, and glassmorphism buttons provide ⏮ previous, ⏸/▶ play-pause, ⏭ next, 🔇/🔊 mute toggle, and a live volume slider. All colors use the `--mu-accent` CSS custom property so the entire UI follows the chosen accent color. Incompatible editor fields (message, icon, badge, secondary entity) are automatically hidden when player mode is active.
+  ```yaml
+  alerts:
+    - entity: media_player.spotify_davide
+      theme: music
+      show_player_controls: true
+      music_player_color: "#e040fb"   # optional, default purple
+  ```
+
+  
 - **Forecast & Weather+Forecast widgets (`clear_display_mode: forecast` / `weather_forecast`)** — two new clear-state display modes. `forecast` fills the card with a full 7-day weather forecast: each day shows a weather emoji, high/low temperatures (color-coded by range), a date label, and a precipitation probability bar for days ≥20%; today's column is elevated with a frosted glass effect, a floating emoji animation, and an accent glow line. `weather_forecast` alternates every 5 seconds between the current weather view (icon, temperature, condition, wind/humidity, date and clock) and the 7-day grid using a smooth fade+slide transition. Both modes share the same `clear_weather_entity`, are compatible with all weather styles and `show_widget_in_cycle: true`, and render day labels via `Intl.DateTimeFormat` for automatic locale-correct output in all 11 supported languages. Data is fetched via the HA WebSocket `weather/subscribe_forecast` API (HA 2023.9+). When used in the alert cycle the card always shows both the weather panel and the forecast panel in full before advancing to the next alert.
 
   ```yaml
@@ -43,14 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`music` theme** — new info-category theme with dark purple/magenta color scheme. Four musical notes (♪ ♫ ♩ ♬) float upward with staggered timing; the icon pulses with a bright magenta drop-shadow glow. Fully integrated with the visual editor, all TTS languages, and HA theme compatibility. Default message translated in all 11 supported languages.
 
-- **Music player mode (`show_player_controls`)** — when the alert entity is a `media_player.*` and `show_player_controls: true` is enabled, the `music` theme switches to a full graphical player UI: blurred album art fills the background with a directional gradient overlay, a spinning vinyl thumbnail is shown on the right (rotates only when playing), animated equalizer bars pulse next to the "NOW PLAYING" label, and glassmorphism buttons provide ⏮ previous, ⏸/▶ play-pause, ⏭ next, 🔇/🔊 mute toggle, and a live volume slider. All colors use the `--mu-accent` CSS custom property so the entire UI follows the chosen accent color. Incompatible editor fields (message, icon, badge, secondary entity) are automatically hidden when player mode is active.
-  ```yaml
-  alerts:
-    - entity: media_player.spotify_davide
-      theme: music
-      show_player_controls: true
-      music_player_color: "#e040fb"   # optional, default purple
-  ```
+
 
 - **Accent color picker for music player (`music_player_color`)** — a native color swatch picker + hex text field in the editor lets you choose any accent color for the player UI (buttons, glow, equalizer bars, vinyl ring, accent line). All player CSS uses `var(--mu-accent)` and `color-mix()` so the entire UI updates with a single value. Default `#e040fb` (purple). Translated label in all 11 supported languages.
 
