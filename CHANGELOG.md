@@ -6,6 +6,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] — 1.2.6
+
+### Added
+
+- **Forecast & Weather+Forecast widgets (`clear_display_mode: forecast` / `weather_forecast`)** — two new clear-state display modes. `forecast` fills the card with a full 7-day weather forecast: each day shows a weather emoji, high/low temperatures (color-coded by range), a date label, and a precipitation probability bar for days ≥20%; today's column is elevated with a frosted glass effect, a floating emoji animation, and an accent glow line. `weather_forecast` alternates every 5 seconds between the current weather view (icon, temperature, condition, wind/humidity, date and clock) and the 7-day grid using a smooth fade+slide transition. Both modes share the same `clear_weather_entity`, are compatible with all weather styles and `show_widget_in_cycle: true`, and render day labels via `Intl.DateTimeFormat` for automatic locale-correct output in all 11 supported languages. Data is fetched via the HA WebSocket `weather/subscribe_forecast` API (HA 2023.9+). When used in the alert cycle the card always shows both the weather panel and the forecast panel in full before advancing to the next alert.
+
+  ```yaml
+  clear_display_mode: weather_forecast   # or: forecast
+  clear_weather_entity: weather.home
+  show_when_clear: true
+  ```
+
+- **Tap / double-tap / hold actions on clear widget** ([#93](https://github.com/djdevil/AlertTicker-Card/issues/93)) — the existing `clear_tap_action`, `clear_double_tap_action`, and `clear_hold_action` settings now work for all clear display modes (clock, weather, weather+clock, forecast, weather+forecast), both when the widget is the only thing shown (`show_when_clear: true`) and when it appears as a slide in the alert cycle (`show_widget_in_cycle: true`). Previously, actions only fired on the plain text "all-clear" message card. Configure in the visual editor under the same tap/hold sections already present.
+
+- **`device_class: timestamp` sensor support for timer themes** ([#94](https://github.com/djdevil/AlertTicker-Card/issues/94)) — timer themes (`countdown`, `hourglass`, `timer_pulse`, `timer_ring`) now work directly with any sensor whose `device_class` is `timestamp` (state = ISO datetime of expiry). The card reads the state as the finish time and shows a live countdown, updating every second. Since the total duration is unknown the progress bar/ring shows empty with a neutral blue accent instead of the red/orange/green scale used for `timer.*` entities. Useful for Alexa Media Player timer sensors, washing machine end-time sensors, and similar integrations.
+  ```yaml
+  alerts:
+    - entity: sensor.kitchen_echo_pop_next_timer
+      theme: countdown
+      operator: "!="
+      state: "unknown"
+      conditions:
+        - entity: sensor.kitchen_echo_pop_next_timer
+          operator: "!="
+          state: "unavailable"
+        - entity: sensor.kitchen_echo_pop_next_timer
+          operator: "!="
+          state: "none"
+      conditions_logic: and
+      message: "⏱ Kitchen timer: {timer}"
+  ```
+  The visual editor auto-detects timestamp sensors, switches to timer-only themes, and pre-fills all three idle-state conditions (`unknown`, `unavailable`, `none`) automatically. A `timer.*` helper entity remains the better choice when a progress bar is needed, since only timer entities expose the total duration.
+
+- **12-hour clock format (`clear_clock_12h`)** ([#93](https://github.com/djdevil/AlertTicker-Card/issues/93)) — new toggle for clock-based clear display modes (`clock`, `weather_clock`, `weather_forecast`). When enabled the time is shown as `3:45:22 PM` instead of `15:45:22`. Configurable via a switch in the visual editor (shown alongside the existing "Show date" toggle), translated in all 11 supported languages.
+
+- **`music` theme** — new info-category theme with dark purple/magenta color scheme. Four musical notes (♪ ♫ ♩ ♬) float upward with staggered timing; the icon pulses with a bright magenta drop-shadow glow. Fully integrated with the visual editor, all TTS languages, and HA theme compatibility. Default message translated in all 11 supported languages.
+
+- **Music player mode (`show_player_controls`)** — when the alert entity is a `media_player.*` and `show_player_controls: true` is enabled, the `music` theme switches to a full graphical player UI: blurred album art fills the background with a directional gradient overlay, a spinning vinyl thumbnail is shown on the right (rotates only when playing), animated equalizer bars pulse next to the "NOW PLAYING" label, and glassmorphism buttons provide ⏮ previous, ⏸/▶ play-pause, ⏭ next, 🔇/🔊 mute toggle, and a live volume slider. All colors use the `--mu-accent` CSS custom property so the entire UI follows the chosen accent color. Incompatible editor fields (message, icon, badge, secondary entity) are automatically hidden when player mode is active.
+  ```yaml
+  alerts:
+    - entity: media_player.spotify_davide
+      theme: music
+      show_player_controls: true
+      music_player_color: "#e040fb"   # optional, default purple
+  ```
+
+- **Accent color picker for music player (`music_player_color`)** — a native color swatch picker + hex text field in the editor lets you choose any accent color for the player UI (buttons, glow, equalizer bars, vinyl ring, accent line). All player CSS uses `var(--mu-accent)` and `color-mix()` so the entire UI updates with a single value. Default `#e040fb` (purple). Translated label in all 11 supported languages.
+
+- **Volume slider in music player** — an `<input type="range">` slider appears to the right of the mute button in the player controls row. The filled-track gradient updates in real time while dragging (`@input`) and sends `media_player.volume_set` to HA on release (`@change`). Becomes semi-transparent when the player is muted. Thumb and track follow the accent color.
+
+- **Auto-theme to `music` when selecting a `media_player` entity** — in the visual editor, picking a `media_player.*` entity automatically sets the theme to `music`, the state condition to `playing`, and enables `show_player_controls`. Switching back to a non-media-player entity reverts the theme to `emergency`.
+
+- **Auto-theme for `timer.*` filter mode** — in filter/multi-entity mode, typing a `timer.*` pattern in the entity filter field now automatically switches the theme to `countdown` (the same auto-theme logic that already worked for single-entity mode). Implemented via a new `_alertFilterChanged` editor method that mirrors `_alertEntityChanged`. Switching back to a non-timer filter reverts to `emergency`.
+
+- **Spanish language support (`es`)** — all card runtime strings, weather condition labels, editor UI labels, TTS prefix messages, and per-theme default messages are now available in Spanish. The language is detected automatically from the HA `language` setting.
+
+### Fixed
+
+- **Music player accent color not applied to card border and animations** — the base `.at-music` CSS rules for border, `muGlow` box-shadow, `muPulse` drop-shadow, and `.mu-badge` text color used hardcoded `rgba(224,64,251,…)` values instead of `var(--mu-accent)`. Since `.at-music--player` inherits from `.at-music`, these elements remained purple regardless of the chosen accent color. All hardcoded values replaced with `var(--mu-accent, #e040fb)` and `color-mix()`.
+
+- **`split` weather style missing from editor when `weather_forecast` mode is selected** — the style picker hid the "Split" option when `clear_display_mode` was `weather_forecast`, but the style works correctly in that mode (the split layout shows weather + clock on the first panel, then alternates with the 7-day forecast). The exclusion condition has been removed so `split` is selectable in all weather modes.
+
+---
+
 ## [1.2.5] - 2026-04-24
 
 ### Added

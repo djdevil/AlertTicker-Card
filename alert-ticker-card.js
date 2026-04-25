@@ -1,7 +1,7 @@
 ﻿/**
- * AlertTicker Card v1.2.2
+ * AlertTicker Card v1.2.6
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
- * Supports 36 visual themes with per-alert theme assignment, priority ordering,
+ * Supports 42 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
  * multi-entity AND/OR conditions, action buttons, and a full visual editor.
  *
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.2.5";
+const CARD_VERSION = "1.2.6";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -86,6 +86,8 @@ const THEME_META = {
   hourglass:    { icon: "⏳", category: "timer",    color: "#18ffff", bg: "linear-gradient(135deg,#003333,#005555)" },
   timer_pulse:  { icon: "💥", category: "timer",    color: "#ff4444", bg: "linear-gradient(135deg,#1a0000,#2e0000)" },
   timer_ring:   { icon: "🔵", category: "timer",    color: "#18ffff", bg: "linear-gradient(135deg,#001a1a,#003333)" },
+  // --- Music ---
+  music:        { icon: "🎵", category: "info",     color: "#e040fb", bg: "linear-gradient(135deg,#1a001a,#2e0033)" },
 };
 
 // ---------------------------------------------------------------------------
@@ -172,6 +174,14 @@ const TTS_PREFIXES = {
     timer:    (name) => `Temporizador: ${name}`,
     _default: (name) => `Alerta: ${name}`,
   },
+  es: {
+    critical: (name) => `Alerta crítica: ${name}`,
+    warning:  (name) => `Atención: ${name}`,
+    info:     (name) => `Notificación: ${name}`,
+    ok:       (name) => `${name}: vuelto a la normalidad`,
+    timer:    (name) => `Temporizador: ${name}`,
+    _default: (name) => `Alerta: ${name}`,
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -210,6 +220,7 @@ const T = {
     "weather.snowy": "Neve", "weather.hail": "Grandine", "weather.lightning": "Temporale", "weather.lightning-rainy": "Temporale con pioggia",
     "weather.exceptional": "Eccezionale",
     clear_weather_entity_label: "Seleziona entità meteo",
+    today: "Oggi",
   },
   en: {
     alerts: "Alerts",
@@ -243,6 +254,7 @@ const T = {
     "weather.snowy": "Snowy", "weather.hail": "Hail", "weather.lightning": "Lightning", "weather.lightning-rainy": "Thunderstorm",
     "weather.exceptional": "Exceptional",
     clear_weather_entity_label: "Select weather entity",
+    today: "Today",
   },
   fr: {
     alerts: "Alertes",
@@ -276,6 +288,7 @@ const T = {
     "weather.snowy": "Neigeux", "weather.hail": "Grêle", "weather.lightning": "Orage", "weather.lightning-rainy": "Orage pluvieux",
     "weather.exceptional": "Exceptionnel",
     clear_weather_entity_label: "Sélectionner une entité météo",
+    today: "Aujourd'hui",
   },
   de: {
     alerts: "Warnungen",
@@ -309,6 +322,7 @@ const T = {
     "weather.snowy": "Schnee", "weather.hail": "Hagel", "weather.lightning": "Gewitter", "weather.lightning-rainy": "Gewitterregen",
     "weather.exceptional": "Außergewöhnlich",
     clear_weather_entity_label: "Wetterentität auswählen",
+    today: "Heute",
   },
   nl: {
     alerts: "Meldingen",
@@ -342,6 +356,7 @@ const T = {
     "weather.snowy": "Sneeuw", "weather.hail": "Hagel", "weather.lightning": "Onweer", "weather.lightning-rainy": "Onweer met regen",
     "weather.exceptional": "Uitzonderlijk",
     clear_weather_entity_label: "Weerentiteit selecteren",
+    today: "Vandaag",
   },
   vi: {
     alerts: "Báo động",
@@ -375,6 +390,7 @@ const T = {
     "weather.snowy": "Tuyết", "weather.hail": "Mưa đá", "weather.lightning": "Sét", "weather.lightning-rainy": "Dông",
     "weather.exceptional": "Đặc biệt",
     clear_weather_entity_label: "Chọn thực thể thời tiết",
+    today: "Hôm nay",
   },
   ru: {
     alerts: "Оповещения",
@@ -408,6 +424,7 @@ const T = {
     "weather.snowy": "Снег", "weather.hail": "Град", "weather.lightning": "Гроза", "weather.lightning-rainy": "Гроза с дождём",
     "weather.exceptional": "Чрезвычайно",
     clear_weather_entity_label: "Выбрать объект погоды",
+    today: "Сегодня",
   },
   da: {
     alerts: "Alarmer",
@@ -441,6 +458,7 @@ const T = {
     "weather.snowy": "Snefald", "weather.hail": "Hagl", "weather.lightning": "Torden", "weather.lightning-rainy": "Tordenvejr",
     "weather.exceptional": "Usædvanligt",
     clear_weather_entity_label: "Vælg vejrentitet",
+    today: "I dag",
   },
   cs: {
     alerts: "Varování",
@@ -474,6 +492,7 @@ const T = {
     "weather.snowy": "Sněží", "weather.hail": "Kroupy", "weather.lightning": "Bouřka", "weather.lightning-rainy": "Bouřka",
     "weather.exceptional": "Mimořádné",
     clear_weather_entity_label: "Vyberte entitu s počasím",
+    today: "Dnes",
   },
   pt: {
     alerts: "Alertas",
@@ -507,6 +526,41 @@ const T = {
     "weather.snowy": "Neve", "weather.hail": "Granizo", "weather.lightning": "Relâmpagos", "weather.lightning-rainy": "Trovoada",
     "weather.exceptional": "Excepcional",
     clear_weather_entity_label: "Selecione a entidade de clima",
+    today: "Hoje",
+  },
+  es: {
+    alerts: "Alertas",
+    critical: "Crítico",
+    warning_label: "Atención",
+    info_label: "Información",
+    success_label: "Resuelto",
+    no_alerts: "Sin alertas activas",
+    all_clear: "Todo bien",
+    priority_short: "P",
+    alert_system: "SISTEMA DE ALERTAS",
+    cmd_prefix: "root@ha:~$",
+    cmd_read: "alerta --leer",
+    snooze: "Posponer",
+    snoozed: "Pospuesto",
+    snooze_1h: "1 hora",
+    snooze_4h: "4 horas",
+    snooze_8h: "8 horas",
+    snooze_24h: "24 horas",
+    snooze_reset: "Reanudar todo",
+    alerts_snoozed: "alertas pospuestas",
+    history: "Historial",
+    history_clear: "Borrar",
+    history_empty: "No hay eventos registrados aún",
+    timer_active: "En curso",
+    timer_done: "Expirado",
+    test_mode_active: "MODO PRUEBA ACTIVO — desactívalo antes de guardar",
+    "weather.sunny": "Soleado", "weather.clear-night": "Noche despejada", "weather.partlycloudy": "Parcialmente nublado",
+    "weather.cloudy": "Nublado", "weather.fog": "Niebla", "weather.windy": "Ventoso", "weather.windy-variant": "Muy ventoso",
+    "weather.rainy": "Lluvioso", "weather.snowy-rainy": "Aguanieve", "weather.pouring": "Lluvia intensa",
+    "weather.snowy": "Nevado", "weather.hail": "Granizo", "weather.lightning": "Tormenta", "weather.lightning-rainy": "Tormenta con lluvia",
+    "weather.exceptional": "Excepcional",
+    clear_weather_entity_label: "Seleccionar entidad del tiempo",
+    today: "Hoy",
   },
 };
 
@@ -1223,6 +1277,8 @@ class AlertTickerCard extends LitElement {
       _weatherTemp: { type: String },
       _weatherWind: { type: String },
       _weatherHumidity: { type: String },
+      _forecastData: { type: Array },
+      _wfShowForecast: { type: Boolean },
       _clockTime: { type: String },
       _clockDate: { type: String },
     };
@@ -1252,8 +1308,16 @@ class AlertTickerCard extends LitElement {
     this._weatherTemp = null;
     this._weatherWind = null;
     this._weatherHumidity = null;
+    this._forecastData = [];
+    this._forecastEntity = null;
+    this._forecastUnsub = null;
+    this._wfShowForecast = false;
+    this._wfForecastShown = false;
+    this._wfFlipTimer = null;
     this._clockTime = "";
     this._clockDate = "";
+    // Per-entity total duration cache for device_class:timestamp timers (entityId → totalSec)
+    this._tsTimerTotals = new Map();
     // HA template rendering via WebSocket render_template subscription
     this._tmplCache = new Map();   // template string → rendered string
     this._tmplUnsubs = new Map();  // template string → unsubscribe fn
@@ -1655,12 +1719,23 @@ class AlertTickerCard extends LitElement {
       const _hasWSlide = !!(this._config?.show_widget_in_cycle && this._config?.clear_display_mode && this._config.clear_display_mode !== 'message');
       const _totalSlides = (this._activeAlerts?.length || 0) + (_hasWSlide ? 1 : 0);
       if (!this._activeAlerts || _totalSlides <= 1 || this._historyOpen || (this._config && this._config.test_mode)) return;
+      // If currently on the weather_forecast widget slide, wait until the forecast panel
+      // has been shown at least once before advancing to the next alert
+      const _onWidgetSlide = _hasWSlide && this._currentIndex === _totalSlides - 1;
+      if (_onWidgetSlide && this._config?.clear_display_mode === "weather_forecast" && !this._wfForecastShown) return;
       // 1. Fold out
       this._animPhase = "fold-out";
       this.requestUpdate();
       // 2. Mid-fold: swap content
       setTimeout(() => {
-        this._currentIndex = (this._currentIndex + 1) % _totalSlides;
+        const nextIndex = (this._currentIndex + 1) % _totalSlides;
+        this._currentIndex = nextIndex;
+        // Entering the widget slide: reset forecast flip so weather always shows first
+        if (_hasWSlide && nextIndex === _totalSlides - 1 && this._config?.clear_display_mode === "weather_forecast") {
+          this._wfForecastShown = false;
+          this._stopWfFlipTimer();
+          this._startWfFlipTimer();
+        }
         this._animPhase = "fold-in";
         this.requestUpdate();
         // 3. Done: clear phase
@@ -1715,14 +1790,28 @@ class AlertTickerCard extends LitElement {
   _startTimerTick() {
     if (this._timerInterval) return;
     this._timerInterval = setInterval(() => {
+      const _timerThemes = new Set(["countdown", "hourglass", "timer_pulse", "timer_ring"]);
       const hasTimer = this._activeAlerts &&
-        this._activeAlerts.some((a) => a.entity && a.entity.startsWith("timer."));
+        this._activeAlerts.some((a) => {
+          if (!a.entity) return false;
+          if (a.entity.startsWith("timer.")) return true;
+          return _timerThemes.has(a.theme) &&
+            this._hass?.states[a.entity]?.attributes?.device_class === "timestamp";
+        });
       if (hasTimer) this.requestUpdate();
-      // Update clock when clear widget is clock or weather_clock
+      // Update clock when clear widget is clock, weather_clock or weather_forecast
       const clearMode = this._config?.clear_display_mode;
-      if (this._config?.show_when_clear && (clearMode === "clock" || clearMode === "weather_clock")) {
+      if ((this._config?.show_when_clear || this._config?.show_widget_in_cycle) &&
+          (clearMode === "clock" || clearMode === "weather_clock" || clearMode === "weather_forecast")) {
         const n = new Date();
-        this._clockTime = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+        if (this._config?.clear_clock_12h) {
+          const h = n.getHours();
+          const h12 = h % 12 || 12;
+          const ampm = h < 12 ? "AM" : "PM";
+          this._clockTime = `${h12}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')} ${ampm}`;
+        } else {
+          this._clockTime = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+        }
         const lang = this._hass?.language || 'en';
         this._clockDate = n.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' });
       }
@@ -1749,28 +1838,80 @@ class AlertTickerCard extends LitElement {
   _updateWeather(hass) {
     const entity = this._config?.clear_weather_entity;
     const mode = this._config?.clear_display_mode;
-    if (!entity || (mode !== "weather" && mode !== "weather_clock")) {
+    const needsForecast = mode === "forecast" || mode === "weather_forecast";
+    const needsWeather  = mode === "weather" || mode === "weather_clock" || mode === "weather_forecast";
+    if (!entity || (!needsForecast && !needsWeather)) {
       this._weatherState = null;
       this._weatherTemp = null;
       this._weatherWind = null;
       this._weatherHumidity = null;
+      if (this._forecastUnsub) { try { this._forecastUnsub(); } catch (_) {} this._forecastUnsub = null; this._forecastEntity = null; }
+      this._stopWfFlipTimer();
       return;
     }
     const ws = hass.states[entity];
     if (!ws) return;
-    const newState = ws.state;
-    const temp = ws.attributes?.temperature;
-    const unit = ws.attributes?.temperature_unit || "°";
-    const newTemp = temp != null ? `${Math.round(temp)}${unit}` : null;
-    const windSpeed = ws.attributes?.wind_speed;
-    const windUnit = ws.attributes?.wind_speed_unit || "km/h";
-    const newWind = windSpeed != null ? `${Math.round(windSpeed)} ${windUnit}` : null;
-    const humidity = ws.attributes?.humidity;
-    const newHumidity = humidity != null ? `${Math.round(humidity)}%` : null;
-    this._weatherState = newState;
-    this._weatherTemp = newTemp;
-    this._weatherWind = newWind;
-    this._weatherHumidity = newHumidity;
+    // Fetch current weather data when needed
+    if (needsWeather) {
+      const temp = ws.attributes?.temperature;
+      const unit = ws.attributes?.temperature_unit || "°";
+      this._weatherState    = ws.state;
+      this._weatherTemp     = temp != null ? `${Math.round(temp)}${unit}` : null;
+      const windSpeed       = ws.attributes?.wind_speed;
+      const windUnit        = ws.attributes?.wind_speed_unit || "km/h";
+      this._weatherWind     = windSpeed != null ? `${Math.round(windSpeed)} ${windUnit}` : null;
+      const humidity        = ws.attributes?.humidity;
+      this._weatherHumidity = humidity != null ? `${Math.round(humidity)}%` : null;
+    }
+    // Subscribe to forecast data when needed
+    if (needsForecast && entity !== this._forecastEntity) {
+      this._forecastEntity = entity;
+      this._subscribeForecast(entity, hass);
+    }
+    // Manage the flip timer for weather_forecast mode
+    if (mode === "weather_forecast") {
+      this._startWfFlipTimer();
+    } else {
+      this._stopWfFlipTimer();
+    }
+  }
+
+  _startWfFlipTimer() {
+    if (this._wfFlipTimer) return;
+    this._wfFlipTimer = setInterval(() => {
+      this._wfShowForecast = !this._wfShowForecast;
+      if (this._wfShowForecast) this._wfForecastShown = true;
+    }, 5000);
+  }
+
+  _stopWfFlipTimer() {
+    if (this._wfFlipTimer) { clearInterval(this._wfFlipTimer); this._wfFlipTimer = null; }
+    this._wfShowForecast = false;
+    this._wfForecastShown = false;
+  }
+
+  _subscribeForecast(entity, hass) {
+    const h = hass || this._hass;
+    // Unsubscribe previous entity if any
+    if (this._forecastUnsub) {
+      try { this._forecastUnsub(); } catch (_) {}
+      this._forecastUnsub = null;
+    }
+    if (!h?.connection || !entity) return;
+    const unit = h.states[entity]?.attributes?.temperature_unit || "°C";
+    // weather/subscribe_forecast is the correct API since HA 2023.9
+    // Returns an unsubscribe function; callback receives { type, forecast: [...] }
+    try {
+      this._forecastUnsub = h.connection.subscribeMessage(
+        (event) => {
+          const list = event?.forecast || [];
+          this._forecastData = list.map((d) => ({ ...d, _unit: unit }));
+        },
+        { type: "weather/subscribe_forecast", forecast_type: "daily", entity_id: entity }
+      );
+    } catch (_) {
+      this._forecastData = [];
+    }
   }
 
   _rng(seed) {
@@ -1903,9 +2044,99 @@ class AlertTickerCard extends LitElement {
     return html`<div style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(255,100,20,.08) 0%,transparent 60%)"></div>${particles}${windLines}</div>`;
   }
 
+  _renderForecastWidget() {
+    const days = (this._forecastData || []).slice(0, 7);
+    if (!days.length) {
+      return html`
+        <div class="atc-clear-widget atc-clear-forecast atc-clear-forecast--empty">
+          <ha-icon icon="mdi:calendar-week" style="--mdc-icon-size:28px;opacity:0.3;margin-right:8px"></ha-icon>
+          <span style="opacity:0.45;font-size:0.85rem">${this._t("clear_weather_entity_label")}</span>
+        </div>`;
+    }
+    const haLang = this._hass?.language || "en";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Pick accent color from today's condition
+    const todayCondition = days[0]?.condition || "";
+    const COND_COLOR = {
+      sunny: "#ffb300", "clear-night": "#7c83c8", partlycloudy: "#78a0c8",
+      cloudy: "#8096a8", fog: "#a0aeb6", windy: "#38b8a0", "windy-variant": "#38b8a0",
+      rainy: "#5080d8", "snowy-rainy": "#78a0d8", pouring: "#3060c8",
+      snowy: "#90b8e0", hail: "#607080", lightning: "#9060e8", "lightning-rainy": "#7050d0",
+      exceptional: "#e05028",
+    };
+    const accentColor = COND_COLOR[todayCondition] || "#5090d8";
+
+    const WEATHER_EMOJI = {
+      sunny: "☀️", "clear-night": "🌙", partlycloudy: "⛅", cloudy: "☁️",
+      fog: "🌫️", windy: "💨", "windy-variant": "🌬️", rainy: "🌧️",
+      "snowy-rainy": "🌨️", pouring: "⛈️", snowy: "❄️", hail: "🌩️",
+      lightning: "⚡", "lightning-rainy": "🌩️", exceptional: "🌪️",
+    };
+
+    const tempColor = (t) => {
+      if (t == null) return "rgba(255,255,255,0.75)";
+      if (t >= 35) return "#ff6d00";
+      if (t >= 28) return "#ffab40";
+      if (t >= 20) return "#ffd54f";
+      if (t >= 10) return "#ffffff";
+      if (t >= 0)  return "#80d8ff";
+      return "#ea80fc";
+    };
+
+    const todayLabel = this._t("today") || "Today";
+    const fmtDay = (dateStr, idx) => {
+      if (idx === 0) return todayLabel.toUpperCase();
+      try {
+        const d = new Date(dateStr);
+        return new Intl.DateTimeFormat(haLang, { weekday: "short" }).format(d).toUpperCase();
+      } catch (_) {
+        return dateStr?.slice(0, 3).toUpperCase() || "---";
+      }
+    };
+
+    const cols = days.map((day, idx) => {
+      const isToday = idx === 0;
+      const emoji = WEATHER_EMOJI[day.condition] || "🌡️";
+      const hi = day.temperature != null ? Math.round(day.temperature) : null;
+      const lo = day.templow != null ? Math.round(day.templow) : null;
+      const precip = day.precipitation_probability != null ? Math.round(day.precipitation_probability) : null;
+      const dayLabel = fmtDay(day.datetime, idx);
+      let dateLabel = "";
+      try {
+        const d = new Date(day.datetime);
+        dateLabel = new Intl.DateTimeFormat(haLang, { day: "numeric", month: "short" }).format(d);
+      } catch (_) {}
+
+      return html`
+        <div class="atc-fw-day${isToday ? " atc-fw-day--today" : ""}">
+          <div class="atc-fw-dayname">${dayLabel}</div>
+          <div class="atc-fw-emoji${isToday ? " atc-fw-emoji--today" : ""}">${emoji}</div>
+          <div class="atc-fw-temps">
+            ${hi != null ? html`<span class="atc-fw-hi" style="color:${tempColor(hi)}">${hi}°</span>` : ""}
+            ${lo != null ? html`<span class="atc-fw-lo" style="color:${tempColor(lo)}">${lo}°</span>` : ""}
+          </div>
+          ${dateLabel ? html`<div class="atc-fw-date">${dateLabel}</div>` : ""}
+          ${precip != null && precip >= 20 ? html`
+          <div class="atc-fw-precip">
+            <div class="atc-fw-precip-bar"><div class="atc-fw-precip-fill" style="height:${precip}%"></div></div>
+            <span class="atc-fw-precip-pct">${precip}%</span>
+          </div>` : ""}
+        </div>`;
+    });
+
+    return html`
+      <div class="atc-clear-widget atc-clear-forecast" style="--fw-accent:${accentColor}">
+        <div class="atc-fw-bg-pulse"></div>
+        <div class="atc-fw-grid">${cols}</div>
+      </div>`;
+  }
+
   _renderClearWidget() {
     const mode     = this._config.clear_display_mode || "message";
     if (mode === "message") return null;
+    if (mode === "forecast") return this._renderForecastWidget();
     const showDate = this._config.clear_clock_show_date !== false;
     const datePos  = this._config.clear_clock_date_position || "below";
     const ICON_MAP = {
@@ -1929,7 +2160,7 @@ class AlertTickerCard extends LitElement {
           </div>
         </div>`;
     }
-    if (mode === "weather" || mode === "weather_clock") {
+    if (mode === "weather" || mode === "weather_clock" || mode === "weather_forecast") {
       if (!this._weatherState) {
         return html`
           <div class="atc-clear-widget atc-clear-clock">
@@ -1939,7 +2170,7 @@ class AlertTickerCard extends LitElement {
       }
       const icon = ICON_MAP[this._weatherState] || 'mdi:weather-cloudy';
       const conditionLabel = this._t(`weather.${this._weatherState}`) || this._weatherState || "";
-      return html`
+      const weatherPanel = html`
         <div class="atc-clear-widget atc-clear-weather atc-cw-style--${weatherStyle}">
           ${this._renderWeatherBg()}
           <div class="atc-cw-corners">
@@ -1957,7 +2188,7 @@ class AlertTickerCard extends LitElement {
                 <span class="atc-cw-condition">${conditionLabel}</span>
               </div>
             </div>
-            ${mode === "weather_clock" ? html`
+            ${(mode === "weather_clock" || mode === "weather_forecast") ? html`
             <div class="atc-cw-badge atc-cw-badge--clock">
               ${showDate && (this._config.clear_clock_date_position === "above") && this._clockDate ? html`<span class="atc-cw-clock-date">${this._clockDate}</span>` : ""}
               <span class="atc-cw-clock">${this._clockTime || "00:00:00"}</span>
@@ -1965,6 +2196,15 @@ class AlertTickerCard extends LitElement {
             </div>` : ""}
           </div>
         </div>`;
+      if (mode === "weather_forecast") {
+        const sf = this._wfShowForecast;
+        return html`
+          <div class="atc-wf-wrap">
+            <div class="atc-wf-slot ${sf ? "atc-wf-slot--out" : "atc-wf-slot--in"}">${weatherPanel}</div>
+            <div class="atc-wf-slot ${sf ? "atc-wf-slot--in" : "atc-wf-slot--out"}">${this._renderForecastWidget()}</div>
+          </div>`;
+      }
+      return weatherPanel;
     }
     return null;
   }
@@ -1974,8 +2214,35 @@ class AlertTickerCard extends LitElement {
   _getTimerData(alert) {
     const es = this._hass && this._hass.states[alert.entity];
     if (!es) return { progress: 1, remainingStr: "--:--", isActive: false };
+
+    // device_class: timestamp — state IS the expiry datetime (e.g. Alexa Media Player timers).
+    // Total duration is unknown, so we record the first observed remainingSec as the total.
+    if (es.attributes.device_class === "timestamp") {
+      const raw = es.state;
+      if (!raw || ["unavailable", "unknown", "none", ""].includes(raw)) {
+        this._tsTimerTotals.delete(alert.entity);
+        return { progress: -1, remainingStr: "--:--", isActive: false };
+      }
+      const remainingMs = new Date(raw).getTime() - Date.now();
+      const remainingSec = Math.max(0, Math.floor(remainingMs / 1000));
+      if (remainingSec === 0) {
+        this._tsTimerTotals.delete(alert.entity);
+        return { progress: -1, remainingStr: "00:00", isActive: false };
+      }
+      // Update total if this is a new/longer timer
+      const stored = this._tsTimerTotals.get(alert.entity);
+      if (!stored || remainingSec > stored) this._tsTimerTotals.set(alert.entity, remainingSec);
+      const total = this._tsTimerTotals.get(alert.entity);
+      const progress = Math.min(1, remainingSec / total);
+      const h = Math.floor(remainingSec / 3600);
+      const m = Math.floor((remainingSec % 3600) / 60).toString().padStart(2, "0");
+      const s = (remainingSec % 60).toString().padStart(2, "0");
+      const remainingStr = h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+      return { progress, remainingStr, isActive: true, remainingSec };
+    }
+
     const isActive = es.state === "active";
-    if (!isActive) return { progress: isActive ? 1 : 0, remainingStr: "00:00", isActive: false };
+    if (!isActive) return { progress: 0, remainingStr: "00:00", isActive: false };
     const finishesAt = es.attributes.finishes_at;
     const duration = es.attributes.duration;
     if (!finishesAt || !duration) return { progress: 1, remainingStr: "--:--", isActive };
@@ -2197,6 +2464,7 @@ class AlertTickerCard extends LitElement {
   }
 
   _timerColor(progress) {
+    if (progress < 0) return "var(--info-color, #039be5)"; // unknown total (timestamp sensor)
     if (progress > 0.5) return "var(--success-color, #43a047)";
     if (progress > 0.2) return "#f57c00";
     return "var(--error-color, #e53935)";
@@ -2942,6 +3210,9 @@ class AlertTickerCard extends LitElement {
     for (const unsub of this._tmplUnsubs.values()) { try { unsub(); } catch (_) {} }
     this._tmplUnsubs.clear();
     this._tmplCache.clear();
+    // Unsubscribe weather forecast subscription and flip timer
+    if (this._forecastUnsub) { try { this._forecastUnsub(); } catch (_) {} this._forecastUnsub = null; }
+    this._stopWfFlipTimer();
     // Cancel all auto_dismiss / on_change / trigger_delay timers
     Object.values(this._autoDismissTimers).forEach(t => clearTimeout(t));
     this._autoDismissTimers = {};
@@ -4042,6 +4313,91 @@ class AlertTickerCard extends LitElement {
     `;
   }
 
+  /** MUSIC — floating notes, purple/magenta pulsing rhythm, info */
+  _renderMusic(alert) {
+    if (!alert) return html``;
+    if (alert.show_player_controls && alert.entity && alert.entity.startsWith("media_player.")) {
+      const es = this._hass && this._hass.states[alert.entity];
+      if (es) return this._renderMusicPlayer(alert, es);
+    }
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <div class="at-music">
+        <div class="mu-notes">
+          <span class="mu-note">♪</span>
+          <span class="mu-note">♫</span>
+          <span class="mu-note">♩</span>
+          <span class="mu-note">♬</span>
+        </div>
+        <div class="mu-icon">${icon}</div>
+        <div class="mu-content">
+          <div class="mu-badge">${label}</div>
+          <div class="mu-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="mu-right">${this._renderCounter()}</div>
+      </div>
+    `;
+  }
+
+  /** MUSIC PLAYER — album art background with playback controls */
+  _renderMusicPlayer(alert, es) {
+    const art = es.attributes.entity_picture || "";
+    const title = es.attributes.media_title || this._resolveMessage(alert);
+    const artist = es.attributes.media_artist || "";
+    const isPlaying = es.state === "playing";
+    const isMuted = !!es.attributes.is_volume_muted;
+    const vol = Math.round((es.attributes.volume_level || 0) * 100);
+    const volBg = `linear-gradient(to right, var(--mu-accent, #e040fb) ${vol}%, rgba(255,255,255,0.15) ${vol}%)`;
+    const artUrl = art
+      ? (art.startsWith("http") ? art : (this._hass.hassUrl ? this._hass.hassUrl(art) : art))
+      : "";
+    const accent = alert.music_player_color || '#e040fb';
+    const call = (svc, extra = {}) =>
+      this._hass.callService("media_player", svc, { entity_id: alert.entity, ...extra });
+    return html`
+      <div class="at-music at-music--player" style="--mu-accent:${accent}">
+        ${artUrl ? html`<div class="mu-art-bg" style="background-image:url('${artUrl}')"></div>` : ""}
+        <div class="mu-art-overlay"></div>
+        <div class="mu-player-body">
+          <div class="mu-now-playing">
+            ${isPlaying ? html`
+              <div class="mu-eq">
+                <span class="mu-eq-bar"></span>
+                <span class="mu-eq-bar"></span>
+                <span class="mu-eq-bar"></span>
+              </div>` : html`<span class="mu-pause-dot">◼</span>`}
+            <span class="mu-np-label">NOW PLAYING</span>
+          </div>
+          <div class="mu-player-info">
+            <div class="mu-player-title">${title}</div>
+            ${artist ? html`<div class="mu-player-artist">${artist}</div>` : ""}
+          </div>
+          <div class="mu-player-controls">
+            <button class="mu-ctrl-btn" @click="${() => call('media_previous_track')}">⏮</button>
+            <button class="mu-ctrl-btn mu-ctrl-btn--play" @click="${() => call('media_play_pause')}">
+              ${isPlaying ? "⏸" : "▶"}
+            </button>
+            <button class="mu-ctrl-btn" @click="${() => call('media_next_track')}">⏭</button>
+            <button class="mu-ctrl-btn ${isMuted ? 'mu-ctrl-btn--active' : ''}"
+              @click="${() => call('volume_mute', { is_volume_muted: !isMuted })}">
+              ${isMuted ? "🔇" : "🔊"}
+            </button>
+            <input type="range" class="mu-vol-slider ${isMuted ? 'mu-vol-slider--muted' : ''}"
+              min="0" max="100" step="1" .value="${vol}"
+              style="background:${volBg}"
+              @input="${(e) => { e.target.style.background = `linear-gradient(to right, var(--mu-accent, #e040fb) ${e.target.value}%, rgba(255,255,255,0.15) ${e.target.value}%)`; }}"
+              @change="${(e) => call('volume_set', { volume_level: parseFloat(e.target.value) / 100 })}"
+            />
+          </div>
+        </div>
+        ${artUrl ? html`<img class="mu-art-thumb ${isPlaying ? 'mu-art-thumb--playing' : ''}" src="${artUrl}" alt="">` : ""}
+        <div class="mu-player-right">${this._renderCounter()}</div>
+        <div class="mu-accent-line"></div>
+      </div>
+    `;
+  }
+
   /**
    * Dispatch to a theme renderer by name, passing the alert object.
    */
@@ -4053,7 +4409,8 @@ class AlertTickerCard extends LitElement {
     const message = this._resolveMessage(alert);
     const icon = this._getIcon(alert);
     const color = this._timerColor(progress);
-    const urgent = progress < 0.2;
+    const urgent = progress >= 0 && progress < 0.2;
+    const barW = progress >= 0 ? progress * 100 : 0;
     return html`
       <div class="at-countdown ${urgent ? "cd-urgent" : ""}">
         <div class="cd-icon">${icon}</div>
@@ -4067,7 +4424,7 @@ class AlertTickerCard extends LitElement {
           ${this._renderCounter()}
         </div>
         <div class="cd-bar-track">
-          <div class="cd-bar-fill" style="width:${progress * 100}%;background:${color}"></div>
+          <div class="cd-bar-fill" style="width:${barW}%;background:${color}"></div>
         </div>
       </div>
     `;
@@ -4079,10 +4436,11 @@ class AlertTickerCard extends LitElement {
     const message = this._resolveMessage(alert);
     const icon = this._getIcon(alert);
     const color = this._timerColor(progress);
-    const urgent = progress < 0.2;
+    const urgent = progress >= 0 && progress < 0.2;
+    const fillH = progress >= 0 ? progress * 100 : 0;
     return html`
       <div class="at-hourglass ${urgent ? "hg2-urgent" : ""}">
-        <div class="hg2-fill" style="height:${progress * 100}%;background:${color}20"></div>
+        <div class="hg2-fill" style="height:${fillH}%;background:${color}20"></div>
         <div class="hg2-icon">${icon}</div>
         <div class="hg2-content">
           <div class="hg2-badge">${isActive ? this._t("timer_active") : this._t("timer_done")}</div>
@@ -4103,7 +4461,7 @@ class AlertTickerCard extends LitElement {
     const message = this._resolveMessage(alert);
     const icon = this._getIcon(alert);
     const color = this._timerColor(progress);
-    const speed = Math.max(0.4, progress * 2.5).toFixed(2);
+    const speed = Math.max(0.4, (progress >= 0 ? progress : 0.8) * 2.5).toFixed(2);
     return html`
       <div class="at-timer-pulse" style="--tp-color:${color};--tp-speed:${speed}s">
         <div class="tp-icon">${icon}</div>
@@ -4128,7 +4486,7 @@ class AlertTickerCard extends LitElement {
     const color = this._timerColor(progress);
     const R = 22;
     const circ = +(2 * Math.PI * R).toFixed(2);
-    const dash = +(circ * progress).toFixed(2);
+    const dash = +(circ * Math.max(0, progress)).toFixed(2);
     return html`
       <div class="at-timer-ring">
         <div class="tr2-icon">${icon}</div>
@@ -4200,6 +4558,7 @@ class AlertTickerCard extends LitElement {
       case "satellite":    return this._renderSatellite(alert);
       case "tips":         return this._renderTips(alert);
       case "light":        return this._renderLight(alert);
+      case "music":        return this._renderMusic(alert);
       case "sunrise":      return this._renderSunrise(alert);
       case "plant":        return this._renderPlant(alert);
       case "lock":         return this._renderLock(alert);
@@ -4238,7 +4597,20 @@ class AlertTickerCard extends LitElement {
       if (this._config.show_when_clear) {
         const widget = this._renderClearWidget();
         if (widget) {
-          return html`<div class="atc-card-root"><div class="${this._hostClass}"><div class="atc-inner-clip">${widget}</div></div></div>`;
+          const wTapCfg    = this._config.clear_tap_action        || null;
+          const wHoldCfg   = this._config.clear_hold_action       || null;
+          const wDblTapCfg = this._config.clear_double_tap_action || null;
+          const wHasAction = (wTapCfg    && wTapCfg.action    && wTapCfg.action    !== "none") ||
+                             (wHoldCfg   && wHoldCfg.action   && wHoldCfg.action   !== "none") ||
+                             (wDblTapCfg && wDblTapCfg.action && wDblTapCfg.action !== "none");
+          const wPd = wHasAction ? (e) => this._onPointerDown(e, wTapCfg, wHoldCfg, wDblTapCfg) : null;
+          const wPu = wHasAction ? (e) => this._onPointerUp(e)  : null;
+          const wPl = wHasAction ? ()  => this._cancelHold()    : null;
+          return html`<div class="atc-card-root"><div class="${this._hostClass}"><div class="atc-inner-clip">
+            <div class="${wHasAction ? "atc-clickable" : ""}"
+              @pointerdown="${wPd}" @pointerup="${wPu}"
+              @pointerleave="${wPl}" @pointercancel="${wPl}">${widget}</div>
+          </div></div></div>`;
         }
         // Build a virtual "all clear" alert and render it with the chosen clear theme
         const clearAlert = {
@@ -4321,9 +4693,9 @@ class AlertTickerCard extends LitElement {
       : this._renderForTheme(current.theme || "emergency", current);
 
     // tap_action / double_tap_action / hold_action — backwards-compat: old "action" key maps to tap call-service
-    const tapCfg    = isWidgetSlide ? null : (current.tap_action || (current.action ? { action: "call-service", ...current.action } : null));
-    const holdCfg   = isWidgetSlide ? null : (current.hold_action       || null);
-    const dblTapCfg = isWidgetSlide ? null : (current.double_tap_action || null);
+    const tapCfg    = isWidgetSlide ? (this._config.clear_tap_action        || null) : (current.tap_action || (current.action ? { action: "call-service", ...current.action } : null));
+    const holdCfg   = isWidgetSlide ? (this._config.clear_hold_action       || null) : (current.hold_action       || null);
+    const dblTapCfg = isWidgetSlide ? (this._config.clear_double_tap_action || null) : (current.double_tap_action || null);
     const hasInteraction = (tapCfg    && tapCfg.action    && tapCfg.action    !== "none") ||
                            (holdCfg   && holdCfg.action   && holdCfg.action   !== "none") ||
                            (dblTapCfg && dblTapCfg.action && dblTapCfg.action !== "none");
@@ -6638,6 +7010,168 @@ class AlertTickerCard extends LitElement {
       .li-title { font-weight: 600; color: #fffde7; }
 
       /* -----------------------------------------------------------------------
+       * MUSIC — floating notes, purple/magenta pulsing, info
+       * --------------------------------------------------------------------- */
+      .at-music {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(135deg, #1a001a, #2e0033);
+        border: 1px solid color-mix(in srgb, var(--mu-accent, #e040fb) 40%, transparent); border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: muGlow 2.4s ease-in-out infinite;
+      }
+      @keyframes muGlow {
+        0%,100% { box-shadow: 0 0 20px color-mix(in srgb, var(--mu-accent, #e040fb) 10%, transparent); }
+        50%      { box-shadow: 0 0 50px color-mix(in srgb, var(--mu-accent, #e040fb) 35%, transparent); }
+      }
+      .mu-notes {
+        position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+      }
+      .mu-note {
+        position: absolute; bottom: -20px; font-size: 1rem; opacity: 0;
+        animation: muFloat 3s ease-in infinite;
+      }
+      .mu-note:nth-child(1) { left: 12%; animation-delay: 0s;    animation-duration: 3.2s; }
+      .mu-note:nth-child(2) { left: 32%; animation-delay: 0.9s;  animation-duration: 2.7s; }
+      .mu-note:nth-child(3) { left: 58%; animation-delay: 1.7s;  animation-duration: 3.5s; }
+      .mu-note:nth-child(4) { left: 78%; animation-delay: 0.4s;  animation-duration: 2.5s; }
+      @keyframes muFloat {
+        0%   { transform: translateY(0)   rotate(-10deg); opacity: 0;   }
+        20%  { opacity: 0.85; }
+        80%  { opacity: 0.4;  }
+        100% { transform: translateY(-75px) rotate(18deg); opacity: 0;  }
+      }
+      .mu-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        animation: muPulse 1.2s ease-in-out infinite;
+      }
+      @keyframes muPulse {
+        0%,100% { filter: drop-shadow(0 0 8px  color-mix(in srgb, var(--mu-accent, #e040fb) 60%, transparent));  transform: scale(1);    }
+        50%      { filter: drop-shadow(0 0 26px var(--mu-accent, #e040fb));  transform: scale(1.12); }
+      }
+      .mu-content { flex: 1; min-width: 0; position: relative; }
+      .mu-right   { flex-shrink: 0; position: relative; }
+      .mu-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mu-accent, #e040fb); margin-bottom: 3px; }
+      .mu-title { font-weight: 600; color: #f3e5f5; }
+
+      /* --- Music player mode ------------------------------------------------ */
+      .at-music--player { padding: 0; min-height: 90px; align-items: stretch; }
+      .mu-art-bg {
+        position: absolute; inset: 0; background-size: cover; background-position: center;
+        filter: blur(14px) brightness(0.4) saturate(1.5); transform: scale(1.1);
+      }
+      .mu-art-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(90deg, rgba(12,0,22,0.93) 0%, rgba(12,0,22,0.62) 52%, rgba(12,0,22,0.12) 100%);
+      }
+      .mu-player-body {
+        position: relative; flex: 1; display: flex;
+        flex-direction: column; justify-content: center;
+        padding: 12px 16px; gap: 5px; min-width: 0;
+      }
+      .mu-now-playing { display: flex; align-items: center; gap: 6px; margin-bottom: 1px; }
+      .mu-np-label {
+        font-size: 0.52rem; font-weight: 800; letter-spacing: 2.5px;
+        text-transform: uppercase; color: var(--mu-accent, #e040fb);
+      }
+      .mu-eq { display: flex; align-items: flex-end; gap: 2px; height: 13px; }
+      .mu-eq-bar {
+        display: inline-block; width: 3px; background: var(--mu-accent, #e040fb); border-radius: 2px;
+        animation: muEq 0.7s ease-in-out infinite alternate;
+      }
+      .mu-eq-bar:nth-child(1) { animation-duration: 0.55s; animation-delay: 0s; }
+      .mu-eq-bar:nth-child(2) { animation-duration: 0.8s;  animation-delay: 0.12s; }
+      .mu-eq-bar:nth-child(3) { animation-duration: 0.5s;  animation-delay: 0.27s; }
+      @keyframes muEq { from { height: 3px; } to { height: 13px; } }
+      .mu-pause-dot { font-size: 0.45rem; color: color-mix(in srgb, var(--mu-accent, #e040fb) 55%, transparent); }
+      .mu-player-info { min-width: 0; }
+      .mu-player-title {
+        font-weight: 800; font-size: 1.05rem; color: #ffffff; letter-spacing: -0.2px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .mu-player-artist {
+        font-size: 0.78rem; color: rgba(255,255,255,0.52); margin-top: 1px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .mu-player-controls { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+      .mu-ctrl-btn {
+        background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 50%; width: 34px; height: 34px; cursor: pointer;
+        font-size: 0.88rem; display: flex; align-items: center; justify-content: center;
+        color: rgba(255,255,255,0.82); transition: all 0.15s ease; padding: 0;
+      }
+      .mu-ctrl-btn:hover {
+        background: color-mix(in srgb, var(--mu-accent, #e040fb) 28%, transparent);
+        border-color: color-mix(in srgb, var(--mu-accent, #e040fb) 55%, transparent);
+        color: #fff; transform: scale(1.1);
+      }
+      .mu-ctrl-btn--play {
+        width: 44px; height: 44px; font-size: 1.1rem;
+        background: color-mix(in srgb, var(--mu-accent, #e040fb) 35%, transparent);
+        border-color: color-mix(in srgb, var(--mu-accent, #e040fb) 70%, transparent);
+        color: #fff; box-shadow: 0 0 18px color-mix(in srgb, var(--mu-accent, #e040fb) 45%, transparent);
+      }
+      .mu-ctrl-btn--play:hover {
+        background: color-mix(in srgb, var(--mu-accent, #e040fb) 55%, transparent);
+        box-shadow: 0 0 28px color-mix(in srgb, var(--mu-accent, #e040fb) 65%, transparent);
+      }
+      .mu-ctrl-btn--active {
+        background: color-mix(in srgb, var(--mu-accent, #e040fb) 38%, transparent);
+        border-color: var(--mu-accent, #e040fb); color: var(--mu-accent, #e040fb);
+      }
+      .mu-vol-slider {
+        flex: 1; min-width: 40px; height: 4px;
+        -webkit-appearance: none; appearance: none;
+        border-radius: 2px; outline: none; cursor: pointer;
+        transition: opacity 0.2s; border: none; padding: 0;
+      }
+      .mu-vol-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px; height: 14px; border-radius: 50%;
+        background: var(--mu-accent, #e040fb);
+        box-shadow: 0 0 8px color-mix(in srgb, var(--mu-accent, #e040fb) 60%, transparent);
+        cursor: pointer;
+      }
+      .mu-vol-slider::-moz-range-thumb {
+        width: 14px; height: 14px; border-radius: 50%; border: none;
+        background: var(--mu-accent, #e040fb);
+        box-shadow: 0 0 8px color-mix(in srgb, var(--mu-accent, #e040fb) 60%, transparent);
+        cursor: pointer;
+      }
+      .mu-vol-slider--muted { opacity: 0.35; }
+      .mu-art-thumb {
+        position: relative; flex-shrink: 0;
+        width: 82px; height: 82px; object-fit: cover; border-radius: 50%;
+        margin: auto 14px auto 0;
+        border: 2px solid color-mix(in srgb, var(--mu-accent, #e040fb) 45%, transparent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--mu-accent, #e040fb) 12%, transparent), 0 4px 22px rgba(0,0,0,0.55);
+      }
+      .mu-art-thumb--playing {
+        animation: muSpin 10s linear infinite;
+        border-color: var(--mu-accent, #e040fb);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--mu-accent, #e040fb) 20%, transparent),
+                    0 0 32px color-mix(in srgb, var(--mu-accent, #e040fb) 55%, transparent),
+                    0 4px 22px rgba(0,0,0,0.55);
+      }
+      @keyframes muSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      .mu-accent-line {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, transparent 0%,
+          color-mix(in srgb, var(--mu-accent, #e040fb) 60%, black) 25%,
+          var(--mu-accent, #e040fb) 50%,
+          color-mix(in srgb, var(--mu-accent, #e040fb) 60%, black) 75%,
+          transparent 100%);
+        animation: muLineShift 4s ease-in-out infinite;
+      }
+      @keyframes muLineShift {
+        0%,100% { opacity: 0.45; }
+        50%      { opacity: 1; }
+      }
+      .mu-player-right {
+        position: relative; flex-shrink: 0;
+        display: flex; align-items: center; padding: 14px 16px 14px 0;
+      }
+
+      /* -----------------------------------------------------------------------
        * SNOOZE HOST + BUTTON + MENU
        * --------------------------------------------------------------------- */
       .atc-snooze-host {
@@ -7305,6 +7839,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-satellite,
       .atc-ha-theme .at-tips,
       .atc-ha-theme .at-light,
+      .atc-ha-theme .at-music,
       .atc-ha-theme .at-cyberpunk,
       .atc-ha-theme .at-vapor,
       .atc-ha-theme .at-ticker {
@@ -7326,6 +7861,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-satellite    [class$="-badge"],
       .atc-ha-theme .at-tips         [class$="-badge"],
       .atc-ha-theme .at-light        [class$="-badge"],
+      .atc-ha-theme .at-music        [class$="-badge"],
       .atc-ha-theme .at-cyberpunk    [class$="-badge"],
       .atc-ha-theme .at-vapor        [class$="-badge"],
       .atc-ha-theme .at-ticker       [class$="-badge"] {
@@ -7445,13 +7981,13 @@ class AlertTickerCard extends LitElement {
       .atc-vertical .at-fold-wrapper {
         height: 100%;
       }
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player) {
         height: 100% !important;
         min-height: unset !important;
       }
 
       /* Core: flip theme card to vertical stacking */
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card) {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player) {
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
@@ -7461,8 +7997,8 @@ class AlertTickerCard extends LitElement {
       }
 
       /* Icon: was flex-shrink on left edge, now centered at top */
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker) > [class$="-icon"],
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker) > [class$="-icon-wrap"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-icon"],
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-icon-wrap"] {
         flex-shrink: 0;
         font-size: 2.2rem !important;
         width: auto !important;
@@ -7471,7 +8007,7 @@ class AlertTickerCard extends LitElement {
       }
 
       /* Content area: full width, centered text */
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker) > [class$="-content"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-content"] {
         flex: unset !important;
         width: 100% !important;
         min-width: unset !important;
@@ -7479,7 +8015,7 @@ class AlertTickerCard extends LitElement {
       }
 
       /* Right column: reset horizontal flex, center counter below content */
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker) > [class$="-right"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-right"] {
         flex-shrink: 0;
         align-self: center !important;
         flex-direction: row !important;
@@ -8178,6 +8714,219 @@ class AlertTickerCard extends LitElement {
       /* Exceptional */
       .w-exceptional-particle{position:absolute;border-radius:50%;pointer-events:none}
       @keyframes dustSwirl{0%{transform:rotate(0deg) translateX(var(--dr,40px)) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:.6}100%{transform:rotate(360deg) translateX(var(--dr,40px)) rotate(-360deg);opacity:0}}
+
+      /* ── FORECAST WIDGET ─────────────────────────────────────────────────── */
+      .atc-clear-forecast {
+        position: relative;
+        width: 100%;
+        min-height: 0;
+        background: linear-gradient(145deg, #060b18 0%, #0c1830 50%, #081022 100%);
+        border-radius: inherit;
+        overflow: hidden;
+        display: flex;
+        align-items: stretch;
+      }
+      .atc-clear-forecast--empty {
+        align-items: center;
+        justify-content: center;
+        min-height: 68px;
+      }
+      /* Animated background pulse */
+      .atc-fw-bg-pulse {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 120%, var(--fw-accent, #5090d8) 0%, transparent 65%);
+        opacity: 0.18;
+        animation: atcFwBgPulse 5s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+      @keyframes atcFwBgPulse {
+        0%, 100% { opacity: 0.12; transform: scale(1); }
+        50%       { opacity: 0.25; transform: scale(1.08); }
+      }
+      /* 7-column grid */
+      .atc-fw-grid {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        align-items: stretch;
+      }
+      /* Each day column */
+      .atc-fw-day {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 7px 2px 7px;
+        border-right: 1px solid rgba(255,255,255,0.05);
+        gap: 3px;
+        min-width: 0;
+      }
+      /* Push date to bottom of column */
+      .atc-fw-date { margin-top: auto !important; }
+      .atc-fw-day:last-child { border-right: none; }
+      /* Today's column: elevated glass card */
+      .atc-fw-day--today {
+        background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-right-color: rgba(255,255,255,0.10);
+        position: relative;
+      }
+      .atc-fw-day--today::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, transparent 0%, var(--fw-accent, #5090d8) 50%, transparent 100%);
+        animation: atcFwTodayLine 3s ease-in-out infinite;
+      }
+      @keyframes atcFwTodayLine {
+        0%, 100% { opacity: 0.7; }
+        50%       { opacity: 1.0; }
+      }
+      /* Day name label */
+      .atc-fw-dayname {
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: rgba(255,255,255,0.50);
+        text-transform: uppercase;
+        line-height: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      .atc-fw-day--today .atc-fw-dayname {
+        color: var(--fw-accent, #5090d8);
+        opacity: 0.95;
+      }
+      /* Emoji */
+      .atc-fw-emoji {
+        font-size: 2.0rem;
+        line-height: 1;
+        filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+        margin-bottom: 4px;
+      }
+      .atc-fw-emoji--today {
+        font-size: 2.4rem;
+        animation: atcFwFloat 4s ease-in-out infinite;
+      }
+      @keyframes atcFwFloat {
+        0%, 100% { transform: translateY(0px);   }
+        50%       { transform: translateY(-3px);  }
+      }
+      /* Hi / Lo temperatures */
+      .atc-fw-temps {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        line-height: 1;
+        margin-top: 10px;
+      }
+      .atc-fw-hi {
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+        white-space: nowrap;
+      }
+      .atc-fw-lo {
+        font-size: 0.95rem;
+        font-weight: 500;
+        opacity: 0.7;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        white-space: nowrap;
+      }
+      .atc-fw-day--today .atc-fw-hi { font-size: 1.4rem; }
+      .atc-fw-day--today .atc-fw-lo { font-size: 1.05rem; }
+      /* Date label under temps */
+      .atc-fw-date {
+        font-size: 0.65rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.50);
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        text-align: center;
+        margin-top: 5px;
+      }
+      .atc-fw-day--today .atc-fw-date {
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.75);
+        margin-top: 6px;
+      }
+      /* Precipitation bar + percentage */
+      .atc-fw-precip {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        gap: 2px;
+        height: 22px;
+        min-width: 0;
+      }
+      .atc-fw-precip--empty { height: 22px; }
+      .atc-fw-precip-bar {
+        width: 3px;
+        height: 18px;
+        background: rgba(255,255,255,0.10);
+        border-radius: 2px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      .atc-fw-precip-fill {
+        width: 100%;
+        background: linear-gradient(to top, #40c4ff, #82b1ff);
+        border-radius: 2px;
+        animation: atcFwFillIn 1.2s ease-out both;
+      }
+      @keyframes atcFwFillIn {
+        from { height: 0 !important; }
+      }
+      .atc-fw-precip-pct {
+        font-size: 0.42rem;
+        font-weight: 600;
+        color: #82b1ff;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      /* ── WEATHER + FORECAST ALTERNATING WIDGET ───────────────────────────── */
+      .atc-wf-wrap {
+        display: grid;
+        width: 100%;
+      }
+      /* Both slots sit in the same grid cell — only one visible at a time */
+      .atc-wf-slot {
+        grid-area: 1 / 1;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: opacity 0.55s ease, transform 0.55s ease;
+      }
+      /* Weather widget inside the slot must stretch to fill the full slot height
+         so the animated weather background covers the same area as the forecast panel */
+      .atc-wf-slot > .atc-clear-weather {
+        flex: 1;
+      }
+      .atc-wf-slot--in {
+        opacity: 1;
+        transform: translateY(0px);
+        pointer-events: auto;
+      }
+      .atc-wf-slot--out {
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+      }
     `;
   }
 }

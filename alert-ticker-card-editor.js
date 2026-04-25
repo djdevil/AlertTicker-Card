@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.2.5
+ * AlertTicker Card Editor v1.2.6
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.2.5";
+const CARD_VERSION = "1.2.6";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -60,6 +60,7 @@ const THEME_META = {
   satellite:    { icon: "📡", category: "info"     },
   tips:         { icon: "💡", category: "info"     },
   light:        { icon: "🔆", category: "info"     },
+  music:        { icon: "🎵", category: "info"     },
   sunrise:      { icon: "🌅", category: "ok"       },
   plant:        { icon: "🌱", category: "ok"       },
   lock:         { icon: "🔒", category: "ok"       },
@@ -119,6 +120,7 @@ const DEFAULT_MSG = {
     satellite:    "Segnale in arrivo",
     tips:         "Suggerimento disponibile",
     light:        "Luce accesa",
+    music:        "Musica in riproduzione",
     sunrise:      "Tutto a posto",
     plant:        "Stato ottimale",
     lock:         "Sistema protetto",
@@ -168,6 +170,7 @@ const DEFAULT_MSG = {
     satellite:    "Signal incoming",
     tips:         "Tip available",
     light:        "Light on",
+    music:        "Music playing",
     sunrise:      "All good",
     plant:        "Optimal state",
     lock:         "System secured",
@@ -217,6 +220,7 @@ const DEFAULT_MSG = {
     satellite:    "Signal entrant",
     tips:         "Conseil disponible",
     light:        "Lumière allumée",
+    music:        "Musique en cours",
     sunrise:      "Tout va bien",
     plant:        "État optimal",
     lock:         "Système sécurisé",
@@ -266,6 +270,7 @@ const DEFAULT_MSG = {
     satellite:    "Signal eingehend",
     tips:         "Tipp verfügbar",
     light:        "Licht eingeschaltet",
+    music:        "Musik läuft",
     sunrise:      "Alles in Ordnung",
     plant:        "Optimaler Zustand",
     lock:         "System gesichert",
@@ -315,6 +320,7 @@ const DEFAULT_MSG = {
     satellite:    "Signaal inkomend",
     tips:         "Tip beschikbaar",
     light:        "Licht aan",
+    music:        "Muziek speelt",
     sunrise:      "Alles in orde",
     plant:        "Optimale staat",
     lock:         "Systeem beveiligd",
@@ -364,6 +370,7 @@ const DEFAULT_MSG = {
     satellite:    "Tín hiệu đến",
     tips:         "Mẹo có sẵn",
     light:        "Đèn sáng",
+    music:        "Đang phát nhạc",
     sunrise:      "Mọi thứ ổn",
     plant:        "Trạng thái tối ưu",
     lock:         "Hệ thống an toàn",
@@ -413,6 +420,7 @@ const DEFAULT_MSG = {
     satellite:    "Входящий сигнал",
     tips:         "Совет доступен",
     light:        "Свет включён",
+    music:        "Воспроизводится музыка",
     sunrise:      "Всё в порядке",
     plant:        "Оптимальное состояние",
     lock:         "Система в безопасности",
@@ -462,6 +470,7 @@ const DEFAULT_MSG = {
     satellite:    "Signal modtages",
     tips:         "Tip tilgængelig",
     light:        "Lys tændt",
+    music:        "Musik afspilles",
     sunrise:      "Alt OK",
     plant:        "Optimal tilstand",
     lock:         "System sikret",
@@ -511,6 +520,7 @@ const DEFAULT_MSG = {
     satellite:    "Příchozí zpráva",
     tips:         "Doporučení",
     light:        "Světlo zapnuto",
+    music:        "Hudba se přehrává",
     sunrise:      "Vše OK",
     plant:        "Optimální stav",
     lock:         "Zabezpečeno",
@@ -560,8 +570,59 @@ const DEFAULT_MSG = {
     satellite:    "Sinal chegando",
     tips:         "Dica disponível",
     light:        "Luz acesa",
+    music:        "Música a tocar",
     sunrise:      "Tudo bem",
     plant:        "Estado ótimo",
+    lock:         "Sistema seguro",
+  },
+  es: {
+    emergency:    "Emergencia activa",
+    fire:         "Alarma de incendio",
+    alarm:        "Alarma activada",
+    lightning:    "Corte de luz",
+    warning:      "Aviso importante",
+    caution:      "Precaución necesaria",
+    info:         "Información disponible",
+    notification: "Nueva notificación",
+    aurora:       "Notificación del sistema",
+    success:      "Estado normal",
+    check:        "Verificación completada",
+    confetti:     "Operación exitosa",
+    ticker:       "Actualización en curso",
+    neon:         "Alerta neón",
+    glass:        "Alerta glass",
+    matrix:       "Mensaje terminal",
+    minimal:      "Alerta",
+    nuclear:      "Alerta de radiación",
+    flood:        "Inundación detectada",
+    motion:       "Movimiento detectado",
+    intruder:     "Intrusión en curso",
+    toxic:        "Sustancia tóxica",
+    radar:        "Detección en curso",
+    temperature:  "Temperatura crítica",
+    battery:      "Batería baja",
+    door:         "Puerta abierta",
+    window:       "Ventana abierta",
+    hologram:     "Proyección del sistema",
+    presence:     "Presencia detectada",
+    update:       "Actualización en curso",
+    heartbeat:    "Sistema operativo",
+    shield:       "Sistema protegido",
+    power:        "Alimentación restaurada",
+    retro:        "Alerta retro",
+    cyberpunk:    "Acceso al sistema",
+    vapor:        "Notificación vaporwave",
+    lava:         "Alerta de lava",
+    smoke:        "Humo detectado",
+    wind:         "Viento fuerte",
+    leak:         "Fuga de agua",
+    cloud:        "Condiciones meteorológicas",
+    satellite:    "Señal entrante",
+    tips:         "Consejo disponible",
+    light:        "Luz encendida",
+    music:        "Música en reproducción",
+    sunrise:      "Todo bien",
+    plant:        "Estado óptimo",
     lock:         "Sistema seguro",
   },
 };
@@ -591,8 +652,11 @@ const ET = {
     clear_mode_clock: "🕐 Orologio",
     clear_mode_weather: "🌤 Meteo",
     clear_mode_weather_clock: "🌤🕐 Meteo + Orologio",
+    clear_mode_forecast: "📅 Previsioni settimana",
+    clear_mode_weather_forecast: "🌤📅 Meteo + Previsioni (alternati)",
     clear_weather_entity_label: "Entità meteo (weather.*)",
     clear_clock_show_date: "Mostra data",
+    clear_clock_12h: "Formato 12 ore (AM/PM)",
     clear_clock_date_label: "Posizione data",
     clear_clock_style_label: "Stile orologio",
     clear_weather_style_label: "Stile badge meteo",
@@ -822,6 +886,9 @@ const ET = {
     time_range_from: "Dalle (HH:MM)",
     time_range_to: "Alle (HH:MM)",
     time_range_help: "Mostra l'avviso solo nell'intervallo orario indicato. Supporta la mezzanotte (es. 22:00–06:00). Lascia vuoto per nessun limite.",
+    music_player_controls: "Controlli lettore musicale",
+    music_player_controls_help: "Mostra play/pausa, precedente, successivo e muto con la copertina dell'album come sfondo. Funziona solo quando l'entità è un media_player.",
+    music_player_color: "Colore accento",
   },
   en: {
     tab_general: "General",
@@ -844,8 +911,11 @@ const ET = {
     clear_mode_clock: "🕐 Clock",
     clear_mode_weather: "🌤 Weather",
     clear_mode_weather_clock: "🌤🕐 Weather + Clock",
+    clear_mode_forecast: "📅 Weekly forecast",
+    clear_mode_weather_forecast: "🌤📅 Weather + Forecast (alternating)",
     clear_weather_entity_label: "Weather entity (weather.*)",
     clear_clock_show_date: "Show date",
+    clear_clock_12h: "12-hour format (AM/PM)",
     clear_clock_date_label: "Date position",
     clear_clock_style_label: "Clock style",
     clear_weather_style_label: "Weather badge style",
@@ -1075,6 +1145,9 @@ const ET = {
     time_range_from: "From (HH:MM)",
     time_range_to: "To (HH:MM)",
     time_range_help: "Show this alert only within the specified time window. Supports midnight crossing (e.g. 22:00–06:00). Leave blank for no restriction.",
+    music_player_controls: "Music player controls",
+    music_player_controls_help: "Shows play/pause, previous, next and mute controls with album art as background. Only works when the entity is a media_player.",
+    music_player_color: "Accent color",
   },
   fr: {
     tab_general: "Général",
@@ -1097,8 +1170,11 @@ const ET = {
     clear_mode_clock: "🕐 Horloge",
     clear_mode_weather: "🌤 Météo",
     clear_mode_weather_clock: "🌤🕐 Météo + Horloge",
+    clear_mode_forecast: "📅 Prévisions de la semaine",
+    clear_mode_weather_forecast: "🌤📅 Météo + Prévisions (alternance)",
     clear_weather_entity_label: "Entité météo (weather.*)",
     clear_clock_show_date: "Afficher la date",
+    clear_clock_12h: "Format 12 heures (AM/PM)",
     clear_clock_date_label: "Position de la date",
     clear_clock_style_label: "Style horloge",
     clear_weather_style_label: "Style badges météo",
@@ -1328,6 +1404,9 @@ const ET = {
     time_range_from: "De (HH:MM)",
     time_range_to: "À (HH:MM)",
     time_range_help: "Affiche cette alerte uniquement dans la plage horaire indiquée. Gère le passage minuit (ex. 22:00–06:00). Laisser vide pour aucune restriction.",
+    music_player_controls: "Contrôles du lecteur musical",
+    music_player_controls_help: "Affiche lecture/pause, précédent, suivant et sourdine avec la pochette d'album en fond. Fonctionne uniquement quand l'entité est un media_player.",
+    music_player_color: "Couleur d'accentuation",
   },
   de: {
     tab_general: "Allgemein",
@@ -1350,8 +1429,11 @@ const ET = {
     clear_mode_clock: "🕐 Uhr",
     clear_mode_weather: "🌤 Wetter",
     clear_mode_weather_clock: "🌤🕐 Wetter + Uhr",
+    clear_mode_forecast: "📅 Wochenvorhersage",
+    clear_mode_weather_forecast: "🌤📅 Wetter + Vorhersage (wechselnd)",
     clear_weather_entity_label: "Wetter-Entität (weather.*)",
     clear_clock_show_date: "Datum anzeigen",
+    clear_clock_12h: "12-Stunden-Format (AM/PM)",
     clear_clock_date_label: "Datumsposition",
     clear_clock_style_label: "Uhr-Stil",
     clear_weather_style_label: "Wetter-Badge-Stil",
@@ -1581,6 +1663,9 @@ const ET = {
     time_range_from: "Von (HH:MM)",
     time_range_to: "Bis (HH:MM)",
     time_range_help: "Zeigt diese Benachrichtigung nur im angegebenen Zeitfenster. Unterstützt Mitternachtsübergang (z.B. 22:00–06:00). Leer lassen für keine Einschränkung.",
+    music_player_controls: "Musikplayer-Steuerung",
+    music_player_controls_help: "Zeigt Play/Pause, Vorheriges, Nächstes und Stumm mit Albumcover als Hintergrund. Funktioniert nur wenn die Entität ein media_player ist.",
+    music_player_color: "Akzentfarbe",
   },
   nl: {
     tab_general: "Algemeen",
@@ -1603,8 +1688,11 @@ const ET = {
     clear_mode_clock: "🕐 Klok",
     clear_mode_weather: "🌤 Weer",
     clear_mode_weather_clock: "🌤🕐 Weer + Klok",
+    clear_mode_forecast: "📅 Weekvoorspelling",
+    clear_mode_weather_forecast: "🌤📅 Weer + Voorspelling (afwisselend)",
     clear_weather_entity_label: "Weerentiteit (weather.*)",
     clear_clock_show_date: "Datum weergeven",
+    clear_clock_12h: "12-uursformaat (AM/PM)",
     clear_clock_date_label: "Datumpositie",
     clear_clock_style_label: "Klokstijl",
     clear_weather_style_label: "Weer badge stijl",
@@ -1834,6 +1922,9 @@ const ET = {
     time_range_from: "Van (HH:MM)",
     time_range_to: "Tot (HH:MM)",
     time_range_help: "Toon deze melding alleen binnen het opgegeven tijdvenster. Ondersteunt middernachtovergang (bv. 22:00–06:00). Leeg laten voor geen beperking.",
+    music_player_controls: "Muziekspelerbesturingen",
+    music_player_controls_help: "Toont afspelen/pauzeren, vorige, volgende en dempen met albumhoes als achtergrond. Werkt alleen wanneer de entiteit een media_player is.",
+    music_player_color: "Accentkleur",
   },
   vi: {
     tab_general: "Chung",
@@ -1856,8 +1947,11 @@ const ET = {
     clear_mode_clock: "🕐 Đồng hồ",
     clear_mode_weather: "🌤 Thời tiết",
     clear_mode_weather_clock: "🌤🕐 Thời tiết + Đồng hồ",
+    clear_mode_forecast: "📅 Dự báo tuần",
+    clear_mode_weather_forecast: "🌤📅 Thời tiết + Dự báo (xen kẽ)",
     clear_weather_entity_label: "Thực thể thời tiết (weather.*)",
     clear_clock_show_date: "Hiển thị ngày",
+    clear_clock_12h: "Định dạng 12 giờ (AM/PM)",
     clear_clock_date_label: "Vị trí ngày",
     clear_clock_style_label: "Kiểu đồng hồ",
     clear_weather_style_label: "Kiểu badge thời tiết",
@@ -2087,6 +2181,9 @@ const ET = {
     time_range_from: "Từ (HH:MM)",
     time_range_to: "Đến (HH:MM)",
     time_range_help: "Chỉ hiển thị cảnh báo này trong khung giờ được chỉ định. Hỗ trợ vượt nửa đêm (vd. 22:00–06:00). Để trống để không giới hạn.",
+    music_player_controls: "Điều khiển trình phát nhạc",
+    music_player_controls_help: "Hiển thị phát/tạm dừng, trước, tiếp theo và tắt tiếng với ảnh bìa album làm nền. Chỉ hoạt động khi thực thể là media_player.",
+    music_player_color: "Màu nhấn",
   },
   ru: {
     tab_general: "Основное",
@@ -2109,8 +2206,11 @@ const ET = {
     clear_mode_clock: "🕐 Часы",
     clear_mode_weather: "🌤 Погода",
     clear_mode_weather_clock: "🌤🕐 Погода + Часы",
+    clear_mode_forecast: "📅 Прогноз на неделю",
+    clear_mode_weather_forecast: "🌤📅 Погода + Прогноз (чередование)",
     clear_weather_entity_label: "Объект погоды (weather.*)",
     clear_clock_show_date: "Показать дату",
+    clear_clock_12h: "12-часовой формат (AM/PM)",
     clear_clock_date_label: "Позиция даты",
     clear_clock_style_label: "Стиль часов",
     clear_weather_style_label: "Стиль значка погоды",
@@ -2340,6 +2440,9 @@ const ET = {
     time_range_from: "С (ЧЧ:ММ)",
     time_range_to: "До (ЧЧ:ММ)",
     time_range_help: "Показывать это оповещение только в указанном временном окне. Поддерживает переход через полночь (например, 22:00–06:00). Оставьте пустым без ограничений.",
+    music_player_controls: "Управление медиаплеером",
+    music_player_controls_help: "Показывает воспроизведение/паузу, предыдущий, следующий и без звука с обложкой альбома на фоне. Работает только когда сущность является media_player.",
+    music_player_color: "Цвет акцента",
   },
   da: {
     tab_general: "Generelt",
@@ -2362,8 +2465,11 @@ const ET = {
     clear_mode_clock: "🕐 Ur",
     clear_mode_weather: "🌤 Vejr",
     clear_mode_weather_clock: "🌤🕐 Vejr + Ur",
+    clear_mode_forecast: "📅 Ugentlig prognose",
+    clear_mode_weather_forecast: "🌤📅 Vejr + Prognose (skiftende)",
     clear_weather_entity_label: "Vejrentitet (weather.*)",
     clear_clock_show_date: "Vis dato",
+    clear_clock_12h: "12-timers format (AM/PM)",
     clear_clock_date_label: "Datoposition",
     clear_clock_style_label: "Ur-stil",
     clear_weather_style_label: "Vejr badge stil",
@@ -2593,6 +2699,9 @@ const ET = {
     time_range_help: "Vis kun denne alarm inden for det angivne tidsvindue. Understøtter midnatovergang (f.eks. 22:00–06:00). Lad være tomt for ingen begrænsning.",
     card_border: "Vis kortramme og navn",
     card_border_help: "Tilføjer den standard Home Assistant-ramme rundt om kortet. Når der ingen aktive advarsler er, vises en pladsholder med kortnavnet i stedet for at skjule det helt.",
+    music_player_controls: "Medieafspiller-kontroller",
+    music_player_controls_help: "Viser afspil/pause, forrige, næste og lyd fra med albumcover som baggrund. Virker kun når entiteten er en media_player.",
+    music_player_color: "Accentfarve",
   },
   cs: {
     tab_general: "Obecné",
@@ -2615,8 +2724,11 @@ const ET = {
     clear_mode_clock: "🕐 Hodiny",
     clear_mode_weather: "🌤 Počasí",
     clear_mode_weather_clock: "🌤🕐 Počasí + hodiny",
+    clear_mode_forecast: "📅 Týdenní předpověď",
+    clear_mode_weather_forecast: "🌤📅 Počasí + Předpověď (střídání)",
     clear_weather_entity_label: "Entita počasí (weather.*)",
     clear_clock_show_date: "Zobrazit datum",
+    clear_clock_12h: "12hodinový formát (AM/PM)",
     clear_clock_date_label: "Pozice data",
     date_position_above: "⬆ Nad časem",
     date_position_below: "⬇ Pod časem",
@@ -2848,6 +2960,9 @@ const ET = {
     time_range_help: "Zobrazí varování pouze v nastaveném časovém intervalu. Podporuje přechod přes půlnoc mezi dny (např. 22:00–06:00). Ponechte prázdné pro zobrazení varování kdykoli.",
     card_border: "Zobrazit okraje a název",
     card_border_help: "Přidá standardní okraje Home Assistenta okolo karty. Zobrazí kartu, pokud nejsou aktivní žádná varování, namísto úplného schování karty.",
+    music_player_controls: "Ovládání hudebního přehrávače",
+    music_player_controls_help: "Zobrazí přehrát/pozastavit, předchozí, další a ztlumit s obalem alba jako pozadím. Funguje pouze když je entita media_player.",
+    music_player_color: "Barva zvýraznění",
   },
   pt: {
     tab_general: "Geral",
@@ -2870,8 +2985,11 @@ const ET = {
     clear_mode_clock: "🕐 Relógio",
     clear_mode_weather: "🌤 Clima",
     clear_mode_weather_clock: "🌤🕐 Clima + Relógio",
+    clear_mode_forecast: "📅 Previsão semanal",
+    clear_mode_weather_forecast: "🌤📅 Clima + Previsão (alternando)",
     clear_weather_entity_label: "Entidade de clima (weather.*)",
     clear_clock_show_date: "Mostrar data",
+    clear_clock_12h: "Formato 12 horas (AM/PM)",
     clear_clock_date_label: "Posição da data",
     clear_clock_style_label: "Estilo do relógio",
     clear_weather_style_label: "Estilo do badge de clima",
@@ -3101,6 +3219,268 @@ const ET = {
     time_range_from: "De (HH:MM)",
     time_range_to: "Até (HH:MM)",
     time_range_help: "Mostra este alerta apenas dentro da janela de tempo especificada. Suporta cruzamento de meia-noite (ex. 22:00–06:00). Deixe em branco para sem restrição.",
+    music_player_controls: "Controles do player de música",
+    music_player_controls_help: "Mostra play/pausa, anterior, próximo e mudo com arte do álbum como fundo. Funciona apenas quando a entidade é um media_player.",
+    music_player_color: "Cor de destaque",
+  },
+  es: {
+    tab_general: "General",
+    tab_alerts: "Alertas",
+    tab_overlay: "Overlay",
+    tab_allclear: "Todo Bien",
+    back: "Atrás",
+    all_clear_disabled_help: "Activa 'Todo Bien' para configurar el mensaje de ausencia de alertas.",
+    tab_layout: "Diseño",
+    hub_desc_general: "Ciclo, posponer e historial",
+    hub_desc_layout: "Tema, altura de la tarjeta y apariencia",
+    hub_desc_overlay: "Banner global en todos los paneles",
+    hub_desc_alerts: "Gestionar condiciones de alerta",
+    hub_desc_allclear: "Mensaje cuando no hay alertas activas",
+    hub_star_github: "Dar estrella en GitHub",
+    hub_report_issue: "Reportar un problema",
+    hub_welcome: "¡Bienvenido! Configura tu tarjeta seleccionando una sección.",
+    clear_display_mode_label: "Modo de visualización",
+    clear_mode_message: "💬 Mensaje personalizado",
+    clear_mode_clock: "🕐 Reloj",
+    clear_mode_weather: "🌤 Clima",
+    clear_mode_weather_clock: "🌤🕐 Clima + Reloj",
+    clear_mode_forecast: "📅 Previsión semanal",
+    clear_mode_weather_forecast: "🌤📅 Clima + Previsión (alternando)",
+    clear_weather_entity_label: "Entidad del tiempo (weather.*)",
+    clear_clock_show_date: "Mostrar fecha",
+    clear_clock_12h: "Formato 12 horas (AM/PM)",
+    clear_clock_date_label: "Posición de la fecha",
+    clear_clock_style_label: "Estilo del reloj",
+    clear_weather_style_label: "Estilo del badge del tiempo",
+    style_default: "Por defecto",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Encima de la hora",
+    date_position_below: "⬇ Debajo de la hora",
+    cycle_interval: "Intervalo de ciclo (segundos)",
+    cycle_interval_help: "Segundos entre alertas cuando hay más de una activa",
+    show_widget_in_cycle: "Mostrar clima/hora en el ciclo",
+    section_all_clear: "Tarjeta 'todo bien'",
+    section_layout: "Diseño y Apariencia",
+    section_cycling: "Ciclo y Animación",
+    section_snooze: "Posponer 💤",
+    section_history: "Historial",
+    show_when_clear: "Mostrar cuando no hay alertas activas",
+    large_buttons: "Botones grandes siempre visibles (💤 y 📋)",
+    ha_theme: "Adaptar al tema HA (compatible con Mushroom y todos los temas globales)",
+    swipe_to_snooze: "Deslizar a la izquierda para posponer 💤 (ideal para móvil)",
+    vertical: "Diseño vertical (icono arriba, texto abajo, centrado)",
+    text_align_center: "Texto centrado (útil para diseño Panel muy ancho)",
+    card_height: "Altura fija de la tarjeta (px)",
+    card_height_help: "Fija la altura para evitar desplazamientos de diseño al cambiar las alertas. Deja vacío para altura automática.",
+    card_border: "Mostrar borde y nombre de la tarjeta",
+    card_border_help: "Añade el borde estándar de Home Assistant alrededor de la tarjeta. Cuando no hay alertas activas, muestra un marcador con el nombre de la tarjeta en lugar de ocultarla.",
+    show_snooze_bar: "Mostrar barra de reactivación de posponer 💤",
+    snooze_default_duration: "Comportamiento de posponer 💤",
+    snooze_default_duration_help: "Menú de duración: toca 💤 para abrir un menú y elegir cuánto tiempo posponer. Duración fija: toca 💤 para posponer inmediatamente sin menú.",
+    snooze_option_menu: "Mostrar menú de duración (como antes)",
+    snooze_duration: "Duración de posponer para esta alerta 💤",
+    snooze_duration_help: "Reemplaza la configuración global. Vacío = usar global.",
+    snooze_duration_menu: "Menú de duración",
+    snooze_duration_global: "Usar configuración global",
+    sound_enabled: "Reproducir un sonido cuando aparezca una alerta",
+    sound_enabled_help: "Reproduce un tono generado automáticamente cuando una alerta se activa. El tono varía por categoría (Crítico = doble pitido agudo, Aviso = pitido medio, Info = pitido suave, OK = carillón). Requiere permiso de reproducción automática del navegador.",
+    sound_url: "URL de audio personalizado (global)",
+    sound_url_help: "URL de un archivo .mp3 o .wav para usar en lugar del sonido generado. Deja vacío para el tono generado.",
+    alert_sound: "Sonido habilitado para esta alerta",
+    alert_sound_url: "URL de audio personalizado para esta alerta",
+    alert_sound_url_help: "Reemplaza la URL global. Deja vacío para usar la global.",
+    tab_tts: "Texto a voz",
+    hub_desc_tts: "Leer alertas en voz alta",
+    tts_how_works: "Cómo funciona",
+    tts_how_standard: "Estándar (Google Home, Sonos, Piper…): elige un media player y un motor TTS. El motor se detecta automáticamente si no está configurado.",
+    tts_how_alexa: "Alexa / notify / móvil: elige el servicio notify correspondiente. La tarjeta llama a notify.NOMBRE directamente — sin motor TTS.",
+    tts_how_peralert: "Cada alerta puede activar TTS con el toggle 🗣️ en su panel de configuración, y reemplazar el altavoz, motor o servicio notify.",
+    tts_master_toggle: "Activar texto a voz (TTS)",
+    tts_master_toggle_help: "Interruptor principal. Cuando está desactivado, ninguna alerta lee su mensaje en voz alta, incluso si el TTS está activado en alertas individuales.",
+    section_tts: "🗣️ Texto a voz (TTS)",
+    tts_entity_global: "Altavoz TTS predeterminado (media player)",
+    tts_entity_global_help: "Media player usado como altavoz predeterminado para todas las alertas con TTS. Puede reemplazarse por alerta.",
+    tts_engine_global: "Motor TTS (opcional)",
+    tts_engine_global_help: "Entidad TTS a usar (ej. tts.piper, tts.home_assistant_cloud). Detectado automáticamente si no está configurado.",
+    tts_notify_service: "Servicio notify (Alexa / móvil)",
+    tts_notify_service_help: "Nombre del servicio notify para usar en lugar de tts.speak (ej. alexa_media_echo_cocina). Cuando está configurado, los campos de altavoz y motor se ignoran.",
+    alert_tts: "Anuncio de voz TTS",
+    alert_tts_help: "Cuando la alerta se activa, el mensaje se lee en voz alta a través del media player o servicio notify configurado.",
+    alert_tts_entity: "Altavoz TTS (reemplaza el global)",
+    alert_tts_engine: "Motor TTS (reemplaza el global)",
+    alert_tts_notify_service: "Servicio notify (reemplaza el global)",
+    alert_tts_message: "Texto TTS personalizado",
+    alert_tts_message_help: "Texto alternativo para leer en voz alta. Si está vacío, usa el mensaje de la alerta.",
+    alert_camera_entity: "Cámara para snapshot en overlay",
+    alert_camera_entity_help: "Cuando la alerta se activa, muestra un snapshot de esta cámara en el banner overlay. Solo visible en el overlay, no en la tarjeta.",
+    test_mode: "Modo de prueba",
+    test_mode_desc: "Muestra todas las alertas como activas, ignorando las condiciones. La animación de ciclo está pausada — expande una alerta en el editor para previsualizarla instantáneamente.",
+    test_mode_warning: "¡Recuerda desactivar el modo de prueba antes de guardar!",
+    history_max_events: "Historial — máximo de eventos a conservar",
+    history_max_events_help: "Registra automáticamente cada alerta que se activa. Toca 📋 en la tarjeta para ver el historial con fecha/hora. Los datos se guardan en el navegador.",
+    history: "Historial",
+    history_clear: "Borrar",
+    history_empty: "No hay eventos registrados aún",
+    clear_message: "Mensaje cuando no hay alertas activas",
+    clear_badge_label: "Etiqueta del badge (ej. 'Todo bien', deja vacío para el valor predeterminado)",
+    clear_theme: "Tema para el estado 'todo bien'",
+    alerts_list: "Alertas configuradas",
+    add_alert: "Añadir alerta",
+    alert_entity: "Entidad",
+    alert_operator: "Condición",
+    alert_state: "Valor",
+    alert_state_help: "ej. 'on', '80' (numérico con > < >= <=). Soporta templates: {{ states('input_number.x') }}",
+    current_state: "Estado actual",
+    alert_message: "Mensaje a mostrar",
+    alert_name: "Nombre / Etiqueta",
+    alert_name_placeholder: "ej. Sensores de movimiento planta 1",
+    alert_name_help: "Etiqueta opcional mostrada como prefijo al mensaje (ej. 'Sensores movimiento: pasillo activo'). Útil con entity_filter para distinguir grupos de alertas.",
+    alert_message_help: "Usa {state} valor en vivo, {name} nombre, {entity} ID de entidad, {device} nombre del dispositivo. También soporta templates HA completos: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
+    alert_priority: "Prioridad",
+    alert_theme: "Tema",
+    alert_icon: "Icono",
+    alert_icon_help: "Deja vacío para usar el emoji del tema. Introduce un emoji personalizado. Activa 'Usar icono HA' para mostrar automáticamente el icono MDI de la entidad.",
+    auto_icon_preview: "Icono automático de la entidad",
+    use_ha_icon: "Usar icono de Home Assistant (mdi:)",
+    icon_color: "Color del icono",
+    icon_color_help: "Color CSS: ej. #ff0000, red, var(--error-color). Deja vacío para el color del tema.",
+    on_change: "Disparar en CUALQUIER cambio de estado",
+    on_change_help: "La alerta se dispara cada vez que el estado de la entidad cambia (cualquier valor). Las condiciones AND/OR adicionales se evalúan igualmente. Ideal para eventos: contadores, timestamps, sensores sin estados fijos.",
+    trigger_delay: "⏳ Retraso de activación (segundos)",
+    trigger_delay_help: "La alerta solo aparece si la condición permanece verdadera durante al menos N segundos (como el campo 'for:' en las automatizaciones HA). Deja vacío para activar inmediatamente.",
+    auto_dismiss_section: "Ocultación automática",
+    auto_dismiss_after: "Ocultar automáticamente después de (segundos)",
+    auto_dismiss_after_help: "La alerta se oculta automáticamente después de N segundos. Deja vacío para mantenerla siempre visible.",
+    show_badge: "Mostrar badge",
+    badge_label: "Texto del badge personalizado",
+    badge_label_help: "Deja vacío para usar el texto predeterminado del tema",
+    delete: "Eliminar",
+    priority_1: "1 — Crítico (rojo)",
+    priority_2: "2 — Atención (naranja)",
+    priority_3: "3 — Info (azul)",
+    priority_4: "4 — Baja prioridad (gris)",
+    no_alerts: "No hay alertas configuradas. Haz clic en 'Añadir alerta' para empezar.",
+    alert_num: "Alerta",
+    collapse: "Cerrar",
+    expand: "Editar",
+    move_up: "Arriba",
+    move_down: "Abajo",
+    version: "Versión",
+    op_eq: "= igual a",
+    op_ne: "≠ distinto de",
+    op_gt: "> mayor que",
+    op_lt: "< menor que",
+    op_gte: "≥ mayor o igual",
+    op_lte: "≤ menor o igual",
+    op_contains: "⊃ contiene",
+    op_not_contains: "⊅ no contiene",
+    cycle_animation: "Animación de transición",
+    anim_fold:    "🃏 Fold — giro 3D",
+    anim_slide:   "➡️ Slide — deslizamiento horizontal",
+    anim_fade:    "🌫️ Fade — disolución cruzada",
+    anim_flip:    "🔄 Flip — volteo de tarjeta",
+    anim_zoom:    "🔍 Zoom — escala",
+    anim_glitch:  "⚡ Glitch — ruido digital",
+    anim_bounce:  "🏀 Bounce — rebote elástico",
+    anim_swing:   "🎪 Swing — péndulo",
+    anim_blur:    "💨 Blur — disolución gaussiana",
+    anim_split:   "✂️ Split — división vertical",
+    anim_roll:    "🎲 Roll — rotateY + slide",
+    anim_curtain: "🎭 Curtain — apertura teatral",
+    mode_entity: "🏷️ Entidad única",
+    mode_filter: "🔎 Filtro multi-entidad",
+    mode_entity_help: "Monitoriza una entidad específica.",
+    mode_filter_help: "Genera una alerta separada para cada entidad que coincide con los filtros activos.",
+    filter_section: "Filtros de entidad",
+    entity_filter: "Filtro de entidad (texto)",
+    entity_filter_help: "Coincide con todas las entidades cuyo ID o nombre contiene este texto. Soporta wildcard * (ej. sensor.battery_*_level). Haz clic en el contador para ver la lista y usar 'Invertir selección'. Usa {name}, {entity}, {state}, {device} en el mensaje.",
+    entity_filter_count: "entidades coinciden",
+    entity_filter_excluded: "excluidas",
+    entity_filter_zero: "Ninguna entidad coincide",
+    entity_filter_exclude_tip: "Haz clic en una entidad para excluirla — haz clic de nuevo para reincluirla",
+    entity_filter_invert: "Invertir selección",
+    entity_filter_exclude_label: "Excluir estas entidades",
+    device_class: "Clase del dispositivo (opcional)",
+    device_class_help: "ej. smoke, battery, motion — crea una alerta por cada entidad con esta device_class. Alternativa al filtro de texto.",
+    label_filter: "Filtro de etiqueta HA (opcional)",
+    label_filter_help: "Solo entidades que tengan esta etiqueta HA. Combinable con filtro de texto, device_class y área (lógica AND).",
+    area_filter: "Filtro de área HA (opcional)",
+    area_filter_help: "Solo entidades en el área seleccionada. Verifica primero el área de la entidad, luego la del dispositivo.",
+    alert_attribute: "Atributo (opcional)",
+    alert_attribute_help: "ej. battery_level — deja vacío para usar el estado de la entidad. Soporta rutas anidadas: ej. activity.0.forecast",
+    secondary_entity: "Entidad de valor secundario (opcional)",
+    secondary_entity_help: "Muestra el valor en vivo de esta entidad como una línea extra debajo del mensaje.",
+    secondary_text: "Texto secundario estático (opcional)",
+    secondary_text_help: "Texto fijo mostrado debajo del mensaje. Soporta {state}, {name}, {entity}. No requiere entidad sensor.",
+    show_filter_name: "Mostrar nombre de la entidad (de entity_filter)",
+    show_filter_state: "Mostrar estado",
+    secondary_attribute: "Atributo de valor secundario",
+    show_secondary_name: "Mostrar nombre de la entidad junto al valor",
+    conditions_section: "Condiciones adicionales",
+    conditions_logic: "Lógica",
+    logic_and: "AND — todas deben coincidir",
+    logic_or: "OR — al menos una debe coincidir",
+    add_condition: "Añadir condición",
+    condition_entity: "Entidad de condición",
+    condition_attribute: "Atributo de condición",
+    tap_action_section: "Acción al tocar",
+    double_tap_action_section: "Acción al doble toque",
+    hold_action_section: "Acción al mantener (500ms)",
+    clear_tap_action_section: "Toque en la tarjeta 'todo bien'",
+    clear_double_tap_action_section: "Doble toque en la tarjeta 'todo bien'",
+    clear_hold_action_section: "Mantener en la tarjeta 'todo bien' (500ms)",
+    snooze_action_section: "Acción de posponer 💤 — ejecutada al tocar el botón de posponer",
+    timer_theme_category: "Temporizador",
+    message_placeholder_hint: "Marcadores: {name} nombre de entidad, {state} estado, {entity} ID de entidad, {device} nombre del dispositivo",
+    timer_placeholder_hint: "Usa {timer} en el mensaje para mostrar la cuenta atrás (ej. 'Deshabilitado por {timer}')",
+    action_type: "Tipo de acción",
+    action_none: "Ninguna",
+    action_call_service: "Llamar servicio",
+    action_navigate: "Navegar a página",
+    action_more_info: "Más información",
+    action_url: "Abrir URL",
+    action_service: "Servicio HA",
+    action_target: "Entidad objetivo",
+    action_service_data: "Datos extra (JSON opcional)",
+    action_navigate_path: "Ruta (ej. /lovelace/home)",
+    action_url_path: "URL a abrir",
+    delete_item: "Eliminar",
+    section_overlay: "Notificación Overlay 🔔",
+    overlay_mode: "Mostrar banner overlay cuando se active una alerta",
+    overlay_mode_help: "Muestra un banner fijo en la parte superior de la pantalla cuando una nueva alerta se activa — visible desde cualquier vista del panel.",
+    overlay_position: "Posición",
+    overlay_pos_top: "Arriba",
+    overlay_pos_bottom: "Abajo",
+    overlay_pos_center: "Centro",
+    overlay_duration: "Duración (segundos, 0 = solo cierre manual)",
+    overlay_duration_help: "Segundos antes de que el banner se cierre automáticamente. 0 = requiere cierre manual.",
+    overlay_scale: "Tamaño del banner",
+    overlay_scale_help: "Escala el texto y el icono para mejor visibilidad a distancia.",
+    overlay_how_works: "El banner aparece solo cuando la tarjeta no está visible en pantalla — en otra vista o fuera del campo de visión. No aparece cuando la alerta ya es visible.",
+    visible_to_section: "👤 Visibilidad de usuario",
+    visible_to_label: "Visible para",
+    visible_to_all: "Todos (predeterminado)",
+    visible_to_admin: "Solo administradores",
+    visible_to_non_admin: "Solo usuarios no administradores",
+    visible_to_custom: "Usuarios específicos...",
+    visible_to_help: "Filtra esta alerta por tipo de usuario HA. Con 'Usuarios específicos' introduce un nombre o lista separada por comas.",
+    visible_to_users_label: "Nombres de usuario (separados por comas)",
+    visible_to_loading: "Cargando usuarios...",
+    time_range_section: "🕐 Rango de tiempo activo",
+    time_range_from: "Desde (HH:MM)",
+    time_range_to: "Hasta (HH:MM)",
+    time_range_help: "Muestra esta alerta solo dentro de la ventana de tiempo especificada. Soporta cruce de medianoche (ej. 22:00–06:00). Deja en blanco para sin restricción.",
+    music_player_controls: "Controles del reproductor de música",
+    music_player_controls_help: "Muestra reproducir/pausar, anterior, siguiente y silenciar con portada del álbum como fondo. Solo funciona cuando la entidad es un media_player.",
+    music_player_color: "Color de acento",
   },
 };
 
@@ -3138,6 +3518,7 @@ const THEME_DESC_I18N = {
   satellite:    { it: "Segnale",               en: "Signal",               fr: "Signal",                de: "Signal",                nl: "Signaal"              },
   tips:         { it: "Consiglio",             en: "Tip",                  fr: "Conseil",               de: "Tipp",                  nl: "Tip"                  },
   light:        { it: "Bagliore caldo",        en: "Warm glow",            fr: "Lueur chaude",          de: "Warmes Leuchten",        nl: "Warm gloed"           },
+  music:        { it: "Note fluttuanti",      en: "Floating notes",       fr: "Notes flottantes",      de: "Schwebende Noten",       nl: "Zwevende noten"        },
   success:      { it: "Verde",                 en: "Green",                fr: "Vert",                  de: "Grün",                  nl: "Groen"                },
   check:        { it: "Anello pulsante",       en: "Pulsing ring",         fr: "Anneau pulsant",        de: "Pulsierender Ring",     nl: "Pulserende ring"      },
   confetti:     { it: "Coriandoli",            en: "Confetti",             fr: "Confettis",             de: "Konfetti",              nl: "Confetti"             },
@@ -3205,6 +3586,7 @@ const THEME_OPTIONS = [
   { value: "satellite"    },
   { value: "tips"         },
   { value: "light"        },
+  { value: "music"        },
   { value: "success"      },
   { value: "check"        },
   { value: "confetti"     },
@@ -3419,7 +3801,7 @@ class AlertTickerCardEditor extends LitElement {
       warning: "⚠️", caution: "🟡", radar: "🎯", temperature: "🌡️",
       battery: "🔋", door: "🚪", window: "🪟", smoke: "🌫️", wind: "💨", leak: "💧",
       info: "ℹ️", notification: "🔔", aurora: "🌌", hologram: "🔷",
-      presence: "🏠", update: "🔄", cloud: "☁️", satellite: "📡", tips: "💡", light: "🔆",
+      presence: "🏠", update: "🔄", cloud: "☁️", satellite: "📡", tips: "💡", light: "🔆", music: "🎵",
       success: "✅", check: "🟢", confetti: "🎉", heartbeat: "💓",
       shield: "🛡️", power: "⚡", sunrise: "🌅", plant: "🌱", lock: "🔒",
       ticker: "📰", neon: "⚡", glass: "🔮", matrix: "💻", minimal: "📋",
@@ -3775,16 +4157,18 @@ class AlertTickerCardEditor extends LitElement {
             <select class="native-select"
               @change="${(e) => this._fireConfig({ ...this._config, clear_display_mode: e.target.value })}"
             >
-              <option value="message"       ?selected="${(cfg.clear_display_mode || 'message') === 'message'}">${this._t("clear_mode_message")}</option>
-              <option value="clock"         ?selected="${cfg.clear_display_mode === 'clock'}">${this._t("clear_mode_clock")}</option>
-              <option value="weather"       ?selected="${cfg.clear_display_mode === 'weather'}">${this._t("clear_mode_weather")}</option>
-              <option value="weather_clock" ?selected="${cfg.clear_display_mode === 'weather_clock'}">${this._t("clear_mode_weather_clock")}</option>
+              <option value="message"          ?selected="${(cfg.clear_display_mode || 'message') === 'message'}">${this._t("clear_mode_message")}</option>
+              <option value="clock"            ?selected="${cfg.clear_display_mode === 'clock'}">${this._t("clear_mode_clock")}</option>
+              <option value="weather"          ?selected="${cfg.clear_display_mode === 'weather'}">${this._t("clear_mode_weather")}</option>
+              <option value="weather_clock"    ?selected="${cfg.clear_display_mode === 'weather_clock'}">${this._t("clear_mode_weather_clock")}</option>
+              <option value="forecast"         ?selected="${cfg.clear_display_mode === 'forecast'}">${this._t("clear_mode_forecast")}</option>
+              <option value="weather_forecast" ?selected="${cfg.clear_display_mode === 'weather_forecast'}">${this._t("clear_mode_weather_forecast")}</option>
             </select>
           </div>
         </div>
 
-        <!-- Weather entity (only for weather/weather_clock modes) -->
-        ${(cfg.clear_display_mode === 'weather' || cfg.clear_display_mode === 'weather_clock') ? html`
+        <!-- Weather entity (for weather/weather_clock/forecast/weather_forecast modes) -->
+        ${(cfg.clear_display_mode === 'weather' || cfg.clear_display_mode === 'weather_clock' || cfg.clear_display_mode === 'forecast' || cfg.clear_display_mode === 'weather_forecast') ? html`
           <div class="form-row">
             <ha-entity-picker
               .hass="${this._hass}"
@@ -3797,8 +4181,8 @@ class AlertTickerCardEditor extends LitElement {
           </div>
         ` : ''}
 
-        <!-- Date toggle + position (only for clock/weather_clock modes) -->
-        ${(cfg.clear_display_mode === 'clock' || cfg.clear_display_mode === 'weather_clock') ? html`
+        <!-- Date toggle + position (only for clock/weather_clock/weather_forecast modes) -->
+        ${(cfg.clear_display_mode === 'clock' || cfg.clear_display_mode === 'weather_clock' || cfg.clear_display_mode === 'weather_forecast') ? html`
           <div class="form-row">
             <div class="switch-row">
               <span class="switch-label">${this._t("clear_clock_show_date")}</span>
@@ -3821,6 +4205,15 @@ class AlertTickerCardEditor extends LitElement {
             </div>
           </div>
           ` : ''}
+          <div class="form-row">
+            <div class="switch-row">
+              <span class="switch-label">${this._t("clear_clock_12h")}</span>
+              <ha-switch
+                .checked="${!!cfg.clear_clock_12h}"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_clock_12h: e.target.checked })}"
+              ></ha-switch>
+            </div>
+          </div>
 
         ` : ''}
 
@@ -3841,8 +4234,8 @@ class AlertTickerCardEditor extends LitElement {
           </div>
         ` : ''}
 
-        <!-- Weather badge style (only for weather/weather_clock) -->
-        ${(cfg.clear_display_mode === 'weather' || cfg.clear_display_mode === 'weather_clock') ? html`
+        <!-- Weather badge style (for weather/weather_clock/weather_forecast) -->
+        ${(cfg.clear_display_mode === 'weather' || cfg.clear_display_mode === 'weather_clock' || cfg.clear_display_mode === 'weather_forecast') ? html`
           <div class="form-row">
             <div class="native-select-wrap">
               <label class="native-select-label">${this._t("clear_weather_style_label")}</label>
@@ -3853,8 +4246,8 @@ class AlertTickerCardEditor extends LitElement {
                 <option value="frosted"  ?selected="${cfg.clear_weather_style === 'frosted'}">${this._t("style_frosted")}</option>
                 <option value="solid"    ?selected="${cfg.clear_weather_style === 'solid'}">${this._t("style_solid")}</option>
                 <option value="minimal"  ?selected="${cfg.clear_weather_style === 'minimal'}">${this._t("style_minimal")}</option>
-                <option value="stage"     ?selected="${cfg.clear_weather_style === 'stage'}">${this._t("style_stage")}</option>
-                <option value="split"    ?selected="${cfg.clear_weather_style === 'split'}">${this._t("style_split")}</option>
+                <option value="stage"    ?selected="${cfg.clear_weather_style === 'stage'}">${this._t("style_stage")}</option>
+                <option value="split" ?selected="${cfg.clear_weather_style === 'split'}">${this._t("style_split")}</option>
                 <option value="cinematic" ?selected="${cfg.clear_weather_style === 'cinematic'}">${this._t("style_cinematic")}</option>
               </select>
             </div>
@@ -3890,6 +4283,8 @@ class AlertTickerCardEditor extends LitElement {
         <div class="form-row">
           ${this._renderThemeSelect("clear_theme", cfg.clear_theme || "success", (v) => this._clearThemeChanged(v), true)}
         </div>
+        ` : ''}
+        ${(cfg.show_when_clear || cfg.show_widget_in_cycle) ? html`
         ${this._renderCardActionConfig("clear_tap_action",        this._t("clear_tap_action_section"))}
         ${this._renderCardActionConfig("clear_double_tap_action", this._t("clear_double_tap_action_section"))}
         ${this._renderCardActionConfig("clear_hold_action",       this._t("clear_hold_action_section"))}
@@ -4089,10 +4484,10 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="theme-priority-theme">
                     ${this._renderThemeSelect(
                       "alert_theme",
-                      alert.theme || ((alert.entity || "").startsWith("timer.") ? "countdown" : "emergency"),
+                      alert.theme || (this._isTimerLike(alert.entity) ? "countdown" : "emergency"),
                       (v) => this._alertThemeChanged(v, index),
                       false,
-                      (alert.entity || alert.entity_filter || "").startsWith("timer.")
+                      this._isTimerLike(alert.entity) || (alert.entity_filter || "").startsWith("timer.")
                     )}
                   </div>
                   <div class="theme-priority-priority">
@@ -4116,7 +4511,7 @@ class AlertTickerCardEditor extends LitElement {
                     </ha-select>
                   </div>
                 </div>
-                ${(alert.entity || "").startsWith("timer.") ? html`
+                ${this._isTimerLike(alert.entity) ? html`
                   <div class="helper-text">${this._t("timer_placeholder_hint")}</div>
                 ` : ""}
 
@@ -4185,10 +4580,7 @@ class AlertTickerCardEditor extends LitElement {
                         next.add(index);
                         this._filterPreviewOpen = next;
                       }
-                      this._updateAlert(index, {
-                        entity_filter: e.target.value || undefined,
-                        entity: e.target.value ? undefined : alert.entity
-                      });
+                      this._alertFilterChanged(e.target.value, index);
                     }}"
                   ></ha-textfield>
                   <div class="helper-text">
@@ -4367,6 +4759,40 @@ class AlertTickerCardEditor extends LitElement {
                 ` : ""}
                 ` : ""}
 
+                <!-- ── MUSIC PLAYER OPTIONS ──────────────────────────────── -->
+                ${alert.theme === 'music' ? html`
+                  <div class="section-divider">🎵 ${this._t("music_player_controls")}</div>
+                  <div>
+                    <ha-formfield .label="${this._t("music_player_controls")}">
+                      <ha-switch
+                        ?checked="${!!alert.show_player_controls}"
+                        @change="${(e) => this._updateAlert(index, { show_player_controls: e.target.checked || undefined })}"
+                      ></ha-switch>
+                    </ha-formfield>
+                    <div class="helper-text">${this._t("music_player_controls_help")}</div>
+                  </div>
+                  ${alert.show_player_controls ? html`
+                    <div class="icon-color-row">
+                      <input
+                        type="color"
+                        class="icon-color-swatch"
+                        .value="${this._cssColorToHex(alert.music_player_color) || '#e040fb'}"
+                        @input="${(e) => this._updateAlert(index, { music_player_color: e.target.value })}"
+                        title="${this._t("music_player_color")}"
+                      />
+                      <ha-textfield
+                        .label="${this._t("music_player_color")}"
+                        .value="${alert.music_player_color || '#e040fb'}"
+                        placeholder="#e040fb"
+                        @change="${(e) => {
+                          const v = e.target.value.trim() || undefined;
+                          this._updateAlert(index, { music_player_color: v });
+                        }}"
+                      ></ha-textfield>
+                    </div>
+                  ` : ""}
+                ` : ""}
+
                 <!-- ── 2. CONDIZIONE ──────────────────────────────────────── -->
                 <div class="section-divider">⚡ ${this._t("conditions_section")}</div>
 
@@ -4524,6 +4950,8 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="helper-text">${this._t("auto_dismiss_after_help")}</div>
                 </div>
 
+                ${!(alert.theme === 'music' && alert.show_player_controls) ? html`
+
                 <!-- ── 4. MESSAGGIO ──────────────────────────────────────── -->
                 <div class="section-divider">💬 ${this._t("alert_message")}</div>
 
@@ -4637,6 +5065,7 @@ class AlertTickerCardEditor extends LitElement {
                   ></ha-textfield>
                   <div class="helper-text">${this._t("secondary_text_help")}</div>
                 </div>
+                ` : ""}
 
                 <!-- ── 5. OPZIONI ─────────────────────────────────────────── -->
                 <div class="section-divider">⚙️ ${this._t("snooze_duration")}</div>
@@ -4975,19 +5404,28 @@ class AlertTickerCardEditor extends LitElement {
   }
 
   // -------------------------------------------------------------------------
+  // Helper — true for timer.* entities AND device_class:timestamp sensors
+  // -------------------------------------------------------------------------
+  _isTimerLike(entityId) {
+    if (!entityId) return false;
+    if (entityId.startsWith("timer.")) return true;
+    return this._hass?.states[entityId]?.attributes?.device_class === "timestamp";
+  }
+
+  // -------------------------------------------------------------------------
   // Event handlers — individual alert fields
   // -------------------------------------------------------------------------
   _alertEntityChanged(value, index) {
     const alert = (this._config.alerts || [])[index] || {};
     const changes = { entity: value };
-    const isTimer = value && value.startsWith("timer.");
-    const wasTimer = (alert.entity || "").startsWith("timer.");
+    const isTimer     = value && value.startsWith("timer.");
+    const isTimestamp = value && !isTimer && this._hass?.states[value]?.attributes?.device_class === "timestamp";
+    const wasTimerLike = this._isTimerLike(alert.entity);
 
-    // Timer entity → auto-set state "active" and switch to first timer theme
+    // timer.* entity → auto-set state "active" and switch to first timer theme
     if (isTimer) {
       changes.state = "active";
       changes.operator = "=";
-      // Switch theme only if previous theme was not already a timer theme
       const prevThemeCat = (THEME_META[alert.theme] || {}).category;
       if (prevThemeCat !== "timer") {
         changes.theme = "countdown";
@@ -4995,13 +5433,48 @@ class AlertTickerCardEditor extends LitElement {
       }
     }
 
-    // Leaving timer entity → reset theme to emergency if it was a timer theme
-    if (!isTimer && wasTimer) {
+    // device_class:timestamp sensor — alert when timer IS running (state is a datetime).
+    // Alexa next_timer reports "unknown" when idle (most common), "unavailable" when
+    // device is offline, and "none" on some integrations. AND all three to be safe.
+    if (isTimestamp) {
+      changes.state = "unknown";
+      changes.operator = "!=";
+      changes.conditions = [
+        { entity: value, operator: "!=", state: "unavailable" },
+        { entity: value, operator: "!=", state: "none" },
+      ];
+      changes.conditions_logic = "and";
+      const prevThemeCat = (THEME_META[alert.theme] || {}).category;
+      if (prevThemeCat !== "timer") {
+        changes.theme = "countdown";
+        changes.icon = THEME_META.countdown.icon;
+      }
+    }
+
+    // Leaving a timer-like entity → reset theme to emergency if it was a timer theme
+    if (!isTimer && !isTimestamp && wasTimerLike) {
       const prevThemeCat = (THEME_META[alert.theme] || {}).category;
       if (prevThemeCat === "timer") {
         changes.theme = "emergency";
         changes.icon = THEME_META.emergency.icon;
       }
+    }
+
+    // media_player.* entity → auto-set theme to "music" + player controls
+    const isMediaPlayer = !!(value && value.startsWith("media_player."));
+    const wasMediaPlayer = !!(alert.entity && alert.entity.startsWith("media_player."));
+    if (isMediaPlayer && !isTimer && !isTimestamp && alert.theme !== "music") {
+      changes.theme = "music";
+      changes.icon = THEME_META.music.icon;
+      changes.show_player_controls = true;
+      changes.state = "playing";
+      changes.operator = "=";
+    }
+    // Leaving a media_player entity → reset theme/controls if it was music
+    if (!isMediaPlayer && wasMediaPlayer && alert.theme === "music") {
+      changes.theme = "emergency";
+      changes.icon = THEME_META.emergency.icon;
+      changes.show_player_controls = undefined;
     }
 
     // Auto-fill message with friendly name if message is still empty or the theme default
@@ -5015,6 +5488,24 @@ class AlertTickerCardEditor extends LitElement {
       }
     }
 
+    this._updateAlert(index, changes);
+  }
+
+  _alertFilterChanged(value, index) {
+    const alert = (this._config.alerts || [])[index] || {};
+    const changes = { entity_filter: value || undefined, entity: value ? undefined : alert.entity };
+    const isTimerFilter = !!(value && value.startsWith("timer."));
+    const wasTimerFilter = !!(alert.entity_filter && alert.entity_filter.startsWith("timer."));
+    const prevThemeCat = (THEME_META[alert.theme] || {}).category;
+    if (isTimerFilter && prevThemeCat !== "timer") {
+      changes.theme = "countdown";
+      changes.icon = THEME_META.countdown.icon;
+      changes.state = "active";
+      changes.operator = "=";
+    } else if (!isTimerFilter && wasTimerFilter && prevThemeCat === "timer") {
+      changes.theme = "emergency";
+      changes.icon = THEME_META.emergency.icon;
+    }
     this._updateAlert(index, changes);
   }
 
