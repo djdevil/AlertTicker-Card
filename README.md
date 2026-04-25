@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.2.5-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.2.6-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -11,6 +11,58 @@ A custom Lovelace card to display alerts and notifications based on entity state
 > ☕ If you enjoy this card and it saves you time, consider buying me a coffee — it keeps the updates coming!
 >
 > [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
+
+---
+
+## ✨ What's New in v1.2.6
+
+### 🎵 Music Player Mode — media_player as a full graphical player
+
+The `music` theme now supports a dedicated **player UI** when pointed at a `media_player.*` entity. Enable `show_player_controls: true` and the card transforms into a cinematic player card:
+
+- 🖼️ **Album art** fills the background as a blurred, saturated backdrop
+- 🎨 **Spinning vinyl thumbnail** on the right — rotates only when playing
+- 📊 **Animated equalizer bars** pulse next to the "NOW PLAYING" label while playing
+- 🎛️ **Glassmorphism controls**: ⏮ previous · ⏸/▶ play-pause · ⏭ next · 🔇/🔊 mute · volume slider
+- 🔊 **Live volume slider** — updates in real time while dragging, sends `volume_set` on release
+- 🎨 **Custom accent color** (`music_player_color`) — changes buttons, glow, equalizer, vinyl ring, and accent line all at once via a color picker in the editor
+- 🤖 **Auto-setup** — selecting a `media_player.*` entity in the editor automatically sets the `music` theme and enables player mode
+
+```yaml
+alerts:
+  - entity: media_player.spotify_davide
+    theme: music
+    show_player_controls: true
+    music_player_color: "#00ffb3"   # optional — any CSS color, default #e040fb
+```
+
+---
+
+### 🌤 Weather + 7-Day Forecast Widget
+
+Two new **clear display modes** for the all-clear state:
+
+- **`forecast`** — a full-width 7-day weather forecast grid. Each day shows a weather emoji, high/low temperature (color-coded), a day label, and a precipitation probability bar for days ≥20%. Today's column is highlighted with a frosted glass effect and a floating emoji animation.
+- **`weather_forecast`** — alternates every 5 seconds between the current weather view (condition, temperature, wind/humidity, clock) and the 7-day forecast grid using a smooth fade+slide transition.
+
+```yaml
+show_when_clear: true
+clear_display_mode: weather_forecast   # or: forecast
+clear_weather_entity: weather.home
+show_widget_in_cycle: true             # optional — also appears between alerts
+```
+
+Both modes work with all weather badge styles (including **Split** — weather + clock side by side) and are fully configurable from the visual editor.
+
+---
+
+### 🗓️ Also in 1.2.6
+
+- **Spanish language** (`es`) support — all card strings, editor labels, and TTS messages
+- **`device_class: timestamp` sensor** support for timer themes (e.g. Alexa Media Player timer sensors)
+- **12-hour clock format** (`clear_clock_12h`) for clock-based clear display modes
+- **`trigger_delay`** — alert only fires if the condition is continuously true for N seconds (like HA's `for:`)
+- **`label_filter` and `area_filter`** — filter entities by HA label or area in multi-entity mode
 
 ---
 
@@ -81,6 +133,8 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **🔊 TTS announcements** | **NEW** — read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (10 languages) |
 | **📷 Camera snapshot** | **NEW** — attach a live camera frame to the overlay banner, scaled proportionally with overlay zoom |
 | **Overlay scale** | Enlarge the overlay banner up to 3× for wall-mounted displays |
+| **🎵 Music player mode** | **NEW** — `media_player` entity shown as a cinematic player card with album art, equalizer, and controls |
+| **🌤 7-day forecast widget** | **NEW** — full forecast grid or alternating weather+forecast display mode |
 | **Weather/time in cycle** | Insert the clock/weather widget as a slide in the alert rotation |
 | **Large buttons** | Always-visible pill-shaped 💤 and 📋 buttons |
 | **Swipe to snooze** | Swipe left on the card to snooze — no conflict with `tap_action` |
@@ -93,7 +147,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Card border** | Toggle to show the standard HA border around the card — always visible, off by default |
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
-| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech, Portuguese (pt-BR) |
+| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech, Portuguese (pt-BR), Spanish |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
 ---
@@ -163,6 +217,59 @@ Per-alert fields override global card-level defaults, so you can have one speake
 
 ---
 
+## 🎵 Music Player Mode *(new in 1.2.6)*
+
+Turn any `media_player.*` entity into a full graphical player card. When `show_player_controls: true` is set and the entity is a media player, the `music` theme renders a cinematic player UI instead of the default floating notes.
+
+```yaml
+alerts:
+  - entity: media_player.spotify_davide
+    theme: music
+    show_player_controls: true
+    music_player_color: "#e040fb"   # optional accent color
+```
+
+### What the player shows
+
+| Element | Description |
+|---------|-------------|
+| **Album art background** | Blurred, saturated backdrop pulled from `entity_picture` |
+| **Spinning vinyl** | Circular album art thumbnail on the right — spins while playing, stops on pause |
+| **Equalizer bars** | 3 animated bars pulse next to "NOW PLAYING" when playing; ◼ pause dot when paused |
+| **Track info** | `media_title` as title, `media_artist` below |
+| **Playback controls** | ⏮ previous · ⏸/▶ play-pause · ⏭ next |
+| **Mute toggle** | 🔇/🔊 — highlights in accent color when muted |
+| **Volume slider** | Live range slider — gradient fills to current level, updates in real time while dragging |
+| **Accent line** | Animated gradient line at the bottom, pulses in the accent color |
+
+### Accent color
+
+All colors in the player UI (buttons, glow, equalizer, vinyl ring, accent line) are driven by a single **`--mu-accent` CSS custom property**, set from `music_player_color`. Change it from the editor's color picker to instantly retheme the entire player:
+
+```yaml
+music_player_color: "#00e5ff"   # cyan
+music_player_color: "#69f0ae"   # green
+music_player_color: "#ff4081"   # pink
+```
+
+### Auto-setup in the editor
+
+Selecting a `media_player.*` entity in the visual editor automatically:
+- Sets theme to `music`
+- Enables `show_player_controls`
+- Sets `state: playing` and `operator: =`
+
+Switching back to a non-media-player entity reverts to `emergency`.
+
+### Player-mode options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `show_player_controls` | `boolean` | `false` | Enable the graphical player UI (requires `media_player.*` entity) |
+| `music_player_color` | `string` | `#e040fb` | Accent color for all player UI elements — any CSS color |
+
+---
+
 ## 📷 Camera Snapshot in Overlay Banner *(new in 1.2.2)*
 
 Attach a **live camera frame** to the overlay toast — the moment a motion sensor, door contact, or intruder alert fires, the banner shows who or what triggered it.
@@ -226,6 +333,7 @@ The camera image appears **below the alert header row** inside the toast. The sn
 | `satellite` | 📡 | Radiating signal waves |
 | `tips` | 💡 | Amber lightbulb glow |
 | `light` | 🔆 | Warm incandescent glow with conical light beam fanning out from icon; bulb flares on pulse |
+| `music` | 🎵 | Dark purple/magenta card with musical notes (♪ ♫ ♩ ♬) floating upward and pulsing icon glow |
 
 ### ✅ OK / All Clear
 
@@ -255,7 +363,7 @@ The camera image appears **below the alert header row** inside the toast. The sn
 | `vapor` | 🌸 | Vaporwave perspective grid with pink/cyan gradient |
 | `lava` | 🌋 | Black card with floating orange lava blobs |
 
-### ⏱️ Timer *(only available for `timer.*` entities)*
+### ⏱️ Timer *(available for `timer.*` entities and sensors with `device_class: timestamp`)*
 
 | Theme | Icon | Visual style |
 |-------|------|-------------|
@@ -264,7 +372,7 @@ The camera image appears **below the alert header row** inside the toast. The sn
 | `timer_pulse` | 💥 | Card glows with a pulsing halo — pulse speed increases as time runs out. |
 | `timer_ring` | 🔵 | SVG circular ring on the right side with the countdown in the center. |
 
-All timer themes transition green → orange → red as the remaining time decreases.
+All timer themes transition green → orange → red as the remaining time decreases. When using a `device_class: timestamp` sensor (e.g. an Alexa/Echo timer sensor), the progress bar is hidden since no total duration is known — the countdown still shows.
 
 > **Note:** The `clear_theme` accepts any theme from the ✅ OK category: `success`, `check`, `confetti`, `heartbeat`, `shield`, `power`, `sunrise`, `plant`, `lock`.
 
@@ -428,13 +536,13 @@ The trigger threshold itself can be a Jinja2 template — useful when the thresh
 
 Any HA template that evaluates to a string or number works here.
 
-### All-clear widget (clock / weather)
+### All-clear widget (clock / weather / forecast)
 
-When `show_when_clear: true` is set and no alerts are active, the card can show an animated clock or live weather display instead of a plain text message:
+When `show_when_clear: true` is set and no alerts are active, the card can show an animated clock, live weather display, or 7-day forecast instead of a plain text message:
 
 ```yaml
 show_when_clear: true
-clear_display_mode: weather_clock     # message | clock | weather | weather_clock
+clear_display_mode: weather_forecast   # see modes below
 clear_weather_entity: weather.home
 ```
 
@@ -444,8 +552,22 @@ clear_weather_entity: weather.home
 | `clock` | Animated digital clock with date, deep navy background and blue glow |
 | `weather` | Animated weather background with condition, temperature, wind speed, humidity |
 | `weather_clock` | Weather background + clock badge in top-right corner |
+| `forecast` | **NEW** — full 7-day forecast grid: emoji, high/low temp, precipitation bars, today highlighted |
+| `weather_forecast` | **NEW** — alternates every 5 s between current weather + clock and 7-day forecast |
 
 Weather modes show full animated particle backgrounds (sun rays, stars/moon/aurora, floating clouds, fog, wind streaks, rain, snow, hail, lightning, exceptional). All weather info and the clock are rendered as frosted-glass corner badges so the animated sky stays fully visible.
+
+#### 🗓️ 7-day forecast widget
+
+The `forecast` and `weather_forecast` modes display a full-width daily forecast grid sourced from HA's `weather/subscribe_forecast` WebSocket API (HA 2023.9+):
+
+- **Weather emoji** and condition label for each day
+- **High / low temperatures** color-coded: blue (cold) → amber (warm) → red (hot)
+- **Precipitation probability bar** visible when ≥20%
+- **Today's column** elevated with frosted glass, floating emoji animation, and accent glow
+- Day labels auto-localized via `Intl.DateTimeFormat` in all 11 supported languages
+
+When used with `show_widget_in_cycle: true`, the card ensures **both** the weather panel and forecast panel have been shown before advancing to the next alert.
 
 #### Clock styles (`clear_display_mode: clock`)
 
@@ -456,7 +578,7 @@ Weather modes show full animated particle backgrounds (sun rays, stars/moon/auro
 | `gold` | Warm golden hue, thin weight digits |
 | `matrix` | Black background, monospace green digits with scanline glow |
 
-#### Weather badge styles (`clear_display_mode: weather` or `weather_clock`)
+#### Weather badge styles (all weather modes)
 
 | Style | Layout |
 |-------|--------|
@@ -464,6 +586,8 @@ Weather modes show full animated particle backgrounds (sun rays, stars/moon/auro
 | `stage` | Large centered clock on top; weather compacted into a single horizontal frosted pill below |
 | `split` | Card divided into two equal full-height panels — left: weather icon + temperature, right: clock |
 | `cinematic` | Animated weather background fills the entire card; all info condensed into a transparent caption bar pinned to the bottom |
+
+> The `split` style works with all weather modes including `weather_forecast` — the first panel shows weather + clock side by side, then alternates with the 7-day forecast.
 
 Configure these in the editor (All Clear tab). Use `clear_clock_show_date` to toggle the date display, and `clear_clock_date_position` (`above` / `below`) to choose its position relative to the time.
 
@@ -918,7 +1042,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `show_when_clear` | `boolean` | `false` | Show card when no alerts are active |
 | `clear_message` | `string` | `""` | Message shown in all-clear state (message mode) |
 | `clear_theme` | `string` | `success` | Theme for all-clear (`success`, `check`, `confetti`, …) |
-| `clear_display_mode` | `string` | `message` | All-clear widget: `message`, `clock`, `weather`, `weather_clock` |
+| `clear_display_mode` | `string` | `message` | All-clear widget: `message`, `clock`, `weather`, `weather_clock`, `forecast`, `weather_forecast` |
 | `clear_clock_style` | `string` | — | Clock style: `aurora`, `gold`, `matrix` |
 | `clear_weather_style` | `string` | — | Weather badge style: `stage`, `split`, `cinematic` |
 | `clear_clock_show_date` | `boolean` | `true` | Show or hide the date in clock / weather+clock mode |
@@ -990,6 +1114,8 @@ The tab shows an **ON** badge when overlay mode is active.
 | `tts_engine` | `string` | ❌ | Override the global TTS engine entity |
 | `tts_notify_service` | `string` | ❌ | Override the global notify service (for Alexa / push) |
 | `tts_message` | `string` | ❌ | Custom spoken text — omit for auto-generated multilingual sentence |
+| `show_player_controls` | `boolean` | ❌ | Enable graphical music player UI for `media_player.*` entities (requires `theme: music`) |
+| `music_player_color` | `string` | ❌ | Accent color for the music player UI — any CSS color (default `#e040fb`) |
 | `camera_entity` | `string` | ❌ | Camera entity whose live snapshot appears in the overlay banner |
 | `conditions_logic` | `string` | ❌ | `and` or `or` for extra conditions |
 | `conditions` | `list` | ❌ | Extra entity conditions |
@@ -1168,6 +1294,35 @@ alerts:
     theme: warning
 ```
 
+### Music player with custom accent color
+
+```yaml
+type: custom:alert-ticker-card
+alerts:
+  - entity: media_player.spotify_davide
+    theme: music
+    show_player_controls: true
+    music_player_color: "#00e5ff"
+    operator: "="
+    state: playing
+```
+
+### Weather + 7-day forecast alternating
+
+```yaml
+type: custom:alert-ticker-card
+show_when_clear: true
+clear_display_mode: weather_forecast
+clear_weather_entity: weather.home
+clear_weather_style: default
+show_widget_in_cycle: true
+alerts:
+  - entity: binary_sensor.smoke_detector
+    state: "on"
+    message: "Smoke detected!"
+    theme: fire
+```
+
 ### All-clear with animated weather + widget in cycle
 
 ```yaml
@@ -1234,8 +1389,10 @@ The card automatically detects the language from your Home Assistant settings.
 | Russian | `ru` | — |
 | Danish | `da` | — |
 | Czech | `cs` | — |
+| Portuguese | `pt` | — |
+| Spanish | `es` | — |
 
-TTS fallback messages (auto-generated when no `tts_message` is set) are available in all 9 languages and adapt automatically to the alert's theme category (critical / warning / info / ok / timer).
+TTS fallback messages (auto-generated when no `tts_message` is set) are available in all 11 languages and adapt automatically to the alert's theme category (critical / warning / info / ok / timer).
 
 ---
 
