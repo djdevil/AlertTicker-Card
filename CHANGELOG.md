@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.8.1] - 2026-04-26
+
+### Fixed
+
+- **URL actions opening two pages on HA Companion app (iOS/Android)** — tap and double-tap were simultaneously opening SFSafariViewController (in-app browser) and navigating the Home Assistant WebView, causing a double-open. Root cause: `window.open(url, "_blank", "noopener")` always returns `null` per the HTML spec when `"noopener"` is used, so the `!w` fallback (`window.location.assign`) always fired. Fixed by removing `"noopener"` so `window.open` returns a truthy reference on success.
+
+- **Hold URL action opening in-app browser instead of SFSafariViewController on Companion app** — the 500 ms hold timer fires in an async context; on iOS/WKWebView `pointercancel` may fire instead of `pointerup` after a long-press, so the deferred `_onPointerUp` handler was never reached. Fixed by firing hold URL actions immediately from the timer on the Companion app (detected via `HomeAssistant/` in the user agent), keeping the `_onPointerUp` deferral only for desktop browsers where `window.open("_blank")` is popup-blocked in async contexts.
+
+- **URL actions causing "404 not found" on Companion app after navigating back** — a previous attempted fix used `window.location.assign` on the Companion app, which navigated the WKWebView away from the HA page. Reverted to `window.open("_blank")` for all platforms; the Companion app correctly handles this by opening SFSafariViewController without leaving the HA page.
+
+- **HA parent click handler double-firing URL actions on iOS** — on iOS/WKWebView, a quick tap generates a `click` event that is re-dispatched (shadow DOM retargeting) at the card's host element, where HA parent handlers could intercept it and open a second browser instance. Added a host-level `click` listener that suppresses the re-dispatched event whenever the card has already handled the action via `pointerup`.
+
+---
+
 ## [1.2.8] - 2026-04-26
 
 ### Added
@@ -40,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Group alerts config error on enable** — `active` was declared `const` in `_computeActiveAlerts` but reassigned in the grouping pass, causing a `TypeError` the moment grouping was activated. Changed to `let`.
 
 - **Clock and date not shown on first render** — `_clockTime` and `_clockDate` were initialized as empty strings and only populated after the first `setInterval` tick (up to 1 second later), causing the clock to briefly show `00:00:00` or nothing on mount. Fixed by calling the clock update synchronously inside `_startTimerTick()` before the interval starts, so the correct time is shown immediately.
+
+
 
 ---
 

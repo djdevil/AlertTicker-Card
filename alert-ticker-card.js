@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.2.8
+ * AlertTicker Card v1.2.8.1
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 42 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.2.8";
+const CARD_VERSION = "1.2.8.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1339,6 +1339,19 @@ class AlertTickerCard extends LitElement {
     this._swipeStartY = 0;
     // Double-tap detection
     this._doubleTapTimer = null;
+    // Hold-action deferred firing (url actions need synchronous context for window.open)
+    this._pendingHoldAction = null;
+    // On iOS/WKWebView (Companion app) a tap generates a click event even after pointerup
+    // stopPropagation. That click is re-dispatched at the shadow host and reaches HA parent
+    // handlers which navigate/open Safari. This flag + host listener suppresses it.
+    this._suppressNextClick = false;
+    this._hostClickSuppressor = (e) => {
+      if (this._suppressNextClick) {
+        this._suppressNextClick = false;
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    };
     // on_change / auto_dismiss_after tracking
     this._changeTriggers   = {};       // "configIdx:entityId" → trigger timestamp (on_change)
     this._autoDismissTimers = {};      // "configIdx:entityId" → setTimeout ID
@@ -3250,7 +3263,11 @@ class AlertTickerCard extends LitElement {
       }
       case "url": {
         if (!cfg.url_path) return;
-        window.open(cfg.url_path, "_blank", "noopener");
+        // "noopener" makes window.open return null even on success — omit it so
+        // we can detect a real popup-block (null = blocked → fall back to same-tab).
+        // On the Companion app window.open("_blank") opens SFSafariViewController.
+        const w = window.open(cfg.url_path, "_blank");
+        if (!w) window.location.assign(cfg.url_path);
         break;
       }
     }
@@ -3261,6 +3278,7 @@ class AlertTickerCard extends LitElement {
     if (e.button !== undefined && e.button !== 0) return;
 
     this._holdFired = false;
+    this._pendingHoldAction = null;
     this._pendingTapCfg = tapCfg;
     this._pendingDoubleTapCfg = doubleTapCfg || null;
     // Capture pointer on the listener element (currentTarget = inner div) so pointerup
@@ -3273,10 +3291,19 @@ class AlertTickerCard extends LitElement {
       if (e.pointerType === 'touch') e.preventDefault();
       this._holdTimer = setTimeout(() => {
         this._holdFired = true;
-        this._handleAction(holdCfg);
-        // After hold-navigate, block pointer events briefly so the upcoming pointerup
-        // doesn't land on a new-view element at the same screen coordinates
-        this._blockPointerEvents(350);
+        if (holdCfg.action === "url" && !/HomeAssistant\//.test(navigator.userAgent)) {
+          // Desktop only: defer url actions to pointerup so window.open fires in a
+          // direct-gesture context (setTimeout is async → popup-blocked on desktop).
+          // On the Companion app window.open works fine from async context, and
+          // pointercancel may fire instead of pointerup after a long-press on iOS,
+          // so we fire immediately here for Companion app.
+          this._pendingHoldAction = holdCfg;
+        } else {
+          this._handleAction(holdCfg);
+          // After hold-navigate, block pointer events briefly so the upcoming pointerup
+          // doesn't land on a new-view element at the same screen coordinates
+          this._blockPointerEvents(350);
+        }
       }, 500);
     }
   }
@@ -3290,11 +3317,25 @@ class AlertTickerCard extends LitElement {
   /** Fire tap / double-tap action on pointer up (if hold didn't fire) */
   _onPointerUp(e) {
     this._cancelHold();
+    // Url hold actions are deferred here so window.open fires in a direct user-gesture context
+    if (this._holdFired && this._pendingHoldAction) {
+      const action = this._pendingHoldAction;
+      this._pendingHoldAction = null;
+      this._holdFired = false;
+      e.preventDefault();   // prevent synthetic click from bubbling to HA parent handlers
+      e.stopPropagation();
+      this._handleAction(action);
+      return;
+    }
     if (!this._holdFired) {
       // preventDefault stops the browser from generating a synthetic click event
       // from this pointer sequence, preventing tap bleed-through on navigate actions
       e.preventDefault();
       e.stopPropagation();
+      // Signal the host-level click suppressor to block the re-dispatched click that
+      // iOS/WKWebView generates after a tap (long-press does not generate click, so
+      // hold actions never reach HA parent — but tap/double-tap do without this flag).
+      this._suppressNextClick = true;
       const hasDoubleTap = this._pendingDoubleTapCfg &&
                            this._pendingDoubleTapCfg.action &&
                            this._pendingDoubleTapCfg.action !== "none";
@@ -3442,6 +3483,8 @@ class AlertTickerCard extends LitElement {
     this._loadHistory();
     this._startCycleTimer();
     this._startTimerTick();
+    // Catch the shadow-DOM-retargeted click before it reaches HA parent handlers
+    this.addEventListener('click', this._hostClickSuppressor);
   }
 
   disconnectedCallback() {
@@ -3449,6 +3492,7 @@ class AlertTickerCard extends LitElement {
     this._mounted = false;
     this._stopCycleTimer();
     this._stopTimerTick();
+    this.removeEventListener('click', this._hostClickSuppressor);
     if (this._snoozeOutsideHandler) {
       document.removeEventListener("pointerdown", this._snoozeOutsideHandler, true);
       this._snoozeOutsideHandler = null;
@@ -4622,14 +4666,14 @@ class AlertTickerCard extends LitElement {
             ${artist ? html`<div class="mu-player-artist">${artist}</div>` : ""}
           </div>
           <div class="mu-player-controls">
-            <button class="mu-ctrl-btn" @click="${() => call('media_previous_track')}">⏮</button>
+            <button class="mu-ctrl-btn" @click="${() => call('media_previous_track')}"><ha-icon icon="mdi:skip-previous"></ha-icon></button>
             <button class="mu-ctrl-btn mu-ctrl-btn--play" @click="${() => call('media_play_pause')}">
-              ${isPlaying ? "⏸" : "▶"}
+              <ha-icon icon="${isPlaying ? "mdi:pause" : "mdi:play"}"></ha-icon>
             </button>
-            <button class="mu-ctrl-btn" @click="${() => call('media_next_track')}">⏭</button>
+            <button class="mu-ctrl-btn" @click="${() => call('media_next_track')}"><ha-icon icon="mdi:skip-next"></ha-icon></button>
             <button class="mu-ctrl-btn ${isMuted ? 'mu-ctrl-btn--active' : ''}"
               @click="${() => call('volume_mute', { is_volume_muted: !isMuted })}">
-              ${isMuted ? "🔇" : "🔊"}
+              <ha-icon icon="${isMuted ? "mdi:volume-mute" : "mdi:volume-high"}"></ha-icon>
             </button>
             <input type="range" class="mu-vol-slider ${isMuted ? 'mu-vol-slider--muted' : ''}"
               min="0" max="100" step="1" .value="${vol}"
@@ -4857,7 +4901,8 @@ class AlertTickerCard extends LitElement {
           return html`<div class="atc-card-root"><div class="${this._hostClass}"><div class="atc-inner-clip">
             <div class="${wHasAction ? "atc-clickable" : ""}"
               @pointerdown="${wPd}" @pointerup="${wPu}"
-              @pointerleave="${wPl}" @pointercancel="${wPl}">${widget}</div>
+              @pointerleave="${wPl}" @pointercancel="${wPl}"
+              @click="${wHasAction ? (e) => { e.stopPropagation(); e.preventDefault(); } : null}">${widget}</div>
           </div></div></div>`;
         }
         // Build a virtual "all clear" alert and render it with the chosen clear theme
@@ -4883,7 +4928,8 @@ class AlertTickerCard extends LitElement {
             <div class="${this._hostClass}">
               <div class="at-fold-wrapper${clearHasAction ? " atc-clickable" : ""}"
                 @pointerdown="${clearPd}" @pointerup="${clearPu}"
-                @pointerleave="${clearPl}" @pointercancel="${clearPl}">
+                @pointerleave="${clearPl}" @pointercancel="${clearPl}"
+                @click="${clearHasAction ? (e) => { e.stopPropagation(); e.preventDefault(); } : null}">
                 ${this._renderForTheme(clearAlert.theme, clearAlert)}
               </div>
             </div>
@@ -4977,7 +5023,8 @@ class AlertTickerCard extends LitElement {
               <div class="${hasInteraction ? "atc-clickable" : ""}"
                 @pointerdown="${pdHandler}" @pointerup="${puHandler}"
                 @pointerleave="${plHandler}" @pointercancel="${plHandler}"
-                @touchstart="${swipeStart}" @touchend="${swipeEnd}">${inner}</div>
+                @touchstart="${swipeStart}" @touchend="${swipeEnd}"
+                @click="${hasInteraction ? (e) => { e.stopPropagation(); e.preventDefault(); } : null}">${inner}</div>
             </div>
             ${snoozeBtn}${groupBackBtn}${historyBtn}${snoozedPill}${counterOverlay}${navButtons}${touchHandle}
           </div>
@@ -4992,7 +5039,8 @@ class AlertTickerCard extends LitElement {
               data-anim="${this._config.cycle_animation || "fold"}"
               @pointerdown="${pdHandler}" @pointerup="${puHandler}"
               @pointerleave="${plHandler}" @pointercancel="${plHandler}"
-              @touchstart="${swipeStart}" @touchend="${swipeEnd}">${inner}</div>
+              @touchstart="${swipeStart}" @touchend="${swipeEnd}"
+              @click="${hasInteraction ? (e) => { e.stopPropagation(); e.preventDefault(); } : null}">${inner}</div>
           </div>
           ${snoozeBtn}${groupBackBtn}${historyBtn}${snoozedPill}${counterOverlay}${navButtons}${touchHandle}
         </div>
@@ -7352,8 +7400,9 @@ class AlertTickerCard extends LitElement {
       .mu-ctrl-btn {
         background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
         border-radius: 50%; width: 34px; height: 34px; cursor: pointer;
-        font-size: 0.88rem; display: flex; align-items: center; justify-content: center;
+        display: flex; align-items: center; justify-content: center;
         color: rgba(255,255,255,0.82); transition: all 0.15s ease; padding: 0;
+        --mdc-icon-size: 18px;
       }
       .mu-ctrl-btn:hover {
         background: color-mix(in srgb, var(--mu-accent, #e040fb) 28%, transparent);
@@ -7361,7 +7410,7 @@ class AlertTickerCard extends LitElement {
         color: #fff; transform: scale(1.1);
       }
       .mu-ctrl-btn--play {
-        width: 44px; height: 44px; font-size: 1.1rem;
+        width: 44px; height: 44px; --mdc-icon-size: 22px;
         background: color-mix(in srgb, var(--mu-accent, #e040fb) 35%, transparent);
         border-color: color-mix(in srgb, var(--mu-accent, #e040fb) 70%, transparent);
         color: #fff; box-shadow: 0 0 18px color-mix(in srgb, var(--mu-accent, #e040fb) 45%, transparent);
