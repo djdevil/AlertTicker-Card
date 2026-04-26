@@ -6,6 +6,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.8] - 2026-04-26
+
+### Added
+
+- **Grouped alerts (`group: true`)** — filter-mode alerts (device class, entity filter, label/area) can now be collapsed into a single summary slide when the number of active entities reaches a threshold. The group card shows a configurable message, the count of active entities, and a preview of their names; tapping it expands into individual alert slides and a `◀` chip collapses back to the group view. All fields are configurable in the visual editor under the new **🗂️ Raggruppa alert** section (visible only for filter-mode alerts).
+  - `group: true` — enable grouping for a filter-mode alert
+  - `group_min` — minimum number of active entities before collapsing (default: `3`)
+  - `group_message` — summary message; supports `{count}`, `{names}`, and full HA Jinja2 templates (`{{ states('sensor.x') }}` etc.)
+  - `group_expanded_message` — per-entity message shown when the group is expanded; supports `{state}`, `{name}`, `{entity}`, `{device}`, and Jinja2 templates
+  - Swipe-to-snooze on the group slide snoozes **all** members; swipe on each expanded slide snoozes that entity individually
+  ```yaml
+  alerts:
+    - device_class: battery
+      operator: "<"
+      state: "30"
+      theme: battery
+      group: true
+      group_min: 3
+      group_message: "{count} batteries low — {names}"
+      group_expanded_message: "{name}: {state}%"
+  ```
+
+- **`tts_notify_type` — Alexa group/multiroom announce support** ([#97](https://github.com/djdevil/AlertTicker-Card/issues/97)) — new per-alert and global option that sets the `type` field sent to the notify service. Use `announce` for Alexa speaker groups or multiroom setups; the default `tts` continues to work for individual devices as before. Configurable in the visual editor: once a notify service is selected in the alert's TTS section, a second dropdown appears immediately below it.
+  ```yaml
+  tts: true
+  tts_notify_service: alexa_media_zona_giorno
+  tts_notify_type: announce   # default: tts
+  ```
+
+### Fixed
+
+- **Group alerts config error on enable** — `active` was declared `const` in `_computeActiveAlerts` but reassigned in the grouping pass, causing a `TypeError` the moment grouping was activated. Changed to `let`.
+
+- **Clock and date not shown on first render** — `_clockTime` and `_clockDate` were initialized as empty strings and only populated after the first `setInterval` tick (up to 1 second later), causing the clock to briefly show `00:00:00` or nothing on mount. Fixed by calling the clock update synchronously inside `_startTimerTick()` before the interval starts, so the correct time is shown immediately.
+
+---
+
 ## [1.2.7] - 2026-04-25
 
 ### Added

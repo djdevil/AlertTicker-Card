@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.2.7-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.2.8-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -11,6 +11,44 @@ A custom Lovelace card to display alerts and notifications based on entity state
 > ☕ If you enjoy this card and it saves you time, consider buying me a coffee — it keeps the updates coming!
 >
 > [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
+
+---
+
+## ✨ What's New in v1.2.8
+
+### 🗂️ Grouped Alerts — collapse many into one summary slide
+
+When a filter-mode alert (device class, entity filter, label/area) has **too many active entities**, it can now automatically collapse into a single summary card. Tap it to expand into individual slides, and a **◀** chip collapses back.
+
+```yaml
+alerts:
+  - device_class: battery
+    operator: "<"
+    state: "30"
+    theme: battery
+    group: true
+    group_min: 3                            # collapse when ≥3 batteries are low
+    group_message: "{count} batteries low"  # also supports {{ states('sensor.x') }}
+    group_expanded_message: "{name}: {state}%"  # per-entity when expanded
+```
+
+| Key | Description |
+|-----|-------------|
+| `group: true` | Enable grouping for this filter-mode alert |
+| `group_min` | Minimum active entities before collapsing (default `3`) |
+| `group_message` | Summary message — `{count}`, `{names}`, full Jinja2 |
+| `group_expanded_message` | Per-entity message when expanded — `{state}`, `{name}`, `{entity}`, `{device}`, Jinja2 |
+
+- Swipe left on the group slide snoozes **all** members at once
+- Swipe left on an individual expanded slide snoozes that entity only
+- All options configurable in the visual editor under **🗂️ Raggruppa alert**
+
+---
+
+### 🗓️ Also in 1.2.8
+
+- **Alexa multiroom TTS (`tts_notify_type: announce`)** — set the notify type per-alert for Alexa speaker groups
+- **Clock/date shown immediately** on first render (no 1-second blank flash)
 
 ---
 

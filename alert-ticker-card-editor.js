@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.2.7
+ * AlertTicker Card Editor v1.2.8
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.2.6";
+const CARD_VERSION = "1.2.8";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -722,11 +722,15 @@ const ET = {
     tts_engine_global_help: "Entità TTS da usare (es. tts.piper, tts.home_assistant_cloud). Se non impostato, viene rilevato automaticamente.",
     tts_notify_service: "Servizio notify alternativo (Alexa / mobile)",
     tts_notify_service_help: "Nome del servizio notify da usare al posto di tts.speak (es. alexa_media_echo_cucina). Quando impostato, i campi speaker e motore TTS vengono ignorati.",
+    tts_notify_type: "Tipo notifica Alexa",
+    tts_notify_type_tts: "tts (singolo dispositivo)",
+    tts_notify_type_announce: "announce (gruppo / multiroom)",
     alert_tts: "Annuncio vocale TTS",
     alert_tts_help: "Quando l'avviso si attiva, il testo viene letto ad alta voce tramite il media player o il servizio notify configurato.",
     alert_tts_entity: "Speaker TTS (sovrascrive il globale)",
     alert_tts_engine: "Motore TTS (sovrascrive il globale)",
     alert_tts_notify_service: "Servizio notify (sovrascrive il globale)",
+    alert_tts_notify_type: "Tipo notifica (sovrascrive il globale)",
     alert_tts_message: "Testo TTS personalizzato",
     alert_tts_message_help: "Testo alternativo da leggere. Se vuoto, usa il messaggio dell'avviso.",
     alert_camera_entity: "Camera per snapshot nell'overlay",
@@ -850,6 +854,14 @@ const ET = {
     snooze_action_section: "Azione snooze 💤 — eseguita al tap sul tasto snooze",
     persistent: "Allarme persistente 🔒",
     persistent_help: "Rimane visibile anche quando il sensore torna alla normalità. Premi ✕ per rimuoverlo.",
+    group_section: "Raggruppa alert 🗂️",
+    group: "Abilita raggruppamento",
+    group_min: "Minimo per raggruppare",
+    group_min_help: "Numero minimo di entità attive prima di mostrare il riepilogo di gruppo (default: 3).",
+    group_message: "Messaggio di gruppo",
+    group_message_help: "Usa {count} per il numero di alert attivi e {names} per la lista dei nomi. Es. '{count} sensori attivi'. Supporta anche {{ states('sensor.x') }}.",
+    group_expanded_message: "Messaggio singolo (espanso)",
+    group_expanded_message_help: "Messaggio per ogni entità quando il gruppo è espanso. Usa {state}, {name}, {entity}, {device}. Supporta anche {{ states('sensor.x') }}.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Segnaposto: {name} nome entità, {state} stato, {entity} ID entità, {device} nome dispositivo",
     timer_placeholder_hint: "Usa {timer} nel messaggio per mostrare il countdown (es. 'Disabilitato per {timer}')",
@@ -985,11 +997,15 @@ const ET = {
     tts_engine_global_help: "TTS entity to use (e.g. tts.piper, tts.home_assistant_cloud). Auto-detected if not set.",
     tts_notify_service: "Notify service (Alexa / mobile)",
     tts_notify_service_help: "Notify service name to use instead of tts.speak (e.g. alexa_media_echo_kitchen). When set, speaker and engine fields are ignored.",
+    tts_notify_type: "Alexa notification type",
+    tts_notify_type_tts: "tts (single device)",
+    tts_notify_type_announce: "announce (group / multiroom)",
     alert_tts: "TTS voice announcement",
     alert_tts_help: "When the alert becomes active, the message is read aloud via the configured media player or notify service.",
     alert_tts_entity: "TTS speaker (overrides global)",
     alert_tts_engine: "TTS engine (overrides global)",
     alert_tts_notify_service: "Notify service (overrides global)",
+    alert_tts_notify_type: "Notification type (overrides global)",
     alert_tts_message: "Custom TTS text",
     alert_tts_message_help: "Alternative text to read aloud. If empty, uses the alert message.",
     alert_camera_entity: "Camera snapshot in overlay",
@@ -1113,6 +1129,14 @@ const ET = {
     snooze_action_section: "Snooze action 💤 — executed when the snooze button is tapped",
     persistent: "Persistent alarm 🔒",
     persistent_help: "Stays visible even after the sensor returns to normal. Press ✕ to dismiss.",
+    group_section: "Group alerts 🗂️",
+    group: "Enable grouping",
+    group_min: "Minimum to group",
+    group_min_help: "Minimum number of active entities before showing the group summary (default: 3).",
+    group_message: "Group message",
+    group_message_help: "Use {count} for the number of active alerts and {names} for the name list. E.g. '{count} sensors active'. Supports {{ states('sensor.x') }} templates.",
+    group_expanded_message: "Item message (expanded)",
+    group_expanded_message_help: "Message for each entity when the group is expanded. Use {state}, {name}, {entity}, {device}. Supports {{ states('sensor.x') }} templates.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Placeholders: {name} entity name, {state} state, {entity} entity ID, {device} device name",
     timer_placeholder_hint: "Use {timer} in the message to show the countdown (e.g. 'Disabled for {timer}')",
@@ -1248,11 +1272,15 @@ const ET = {
     tts_engine_global_help: "Entité TTS à utiliser (ex. tts.piper, tts.home_assistant_cloud). Détecté automatiquement si non défini.",
     tts_notify_service: "Service notify (Alexa / mobile)",
     tts_notify_service_help: "Nom du service notify à utiliser à la place de tts.speak (ex. alexa_media_echo_cuisine). Quand défini, les champs haut-parleur et moteur sont ignorés.",
+    tts_notify_type: "Type de notification Alexa",
+    tts_notify_type_tts: "tts (appareil individuel)",
+    tts_notify_type_announce: "announce (groupe / multiroom)",
     alert_tts: "Annonce vocale TTS",
     alert_tts_help: "Quand l'alerte s'active, le texte est lu à voix haute via le lecteur multimédia ou le service notify configuré.",
     alert_tts_entity: "Haut-parleur TTS (remplace le global)",
     alert_tts_engine: "Moteur TTS (remplace le global)",
     alert_tts_notify_service: "Service notify (remplace le global)",
+    alert_tts_notify_type: "Type de notification (remplace le global)",
     alert_tts_message: "Texte TTS personnalisé",
     alert_tts_message_help: "Texte alternatif à lire. Si vide, utilise le message de l'alerte.",
     alert_camera_entity: "Caméra snapshot dans l'overlay",
@@ -1376,6 +1404,14 @@ const ET = {
     snooze_action_section: "Action snooze 💤 — exécutée au tap sur le bouton snooze",
     persistent: "Alarme persistante 🔒",
     persistent_help: "Reste visible même après le retour à la normale du capteur. Appuyer sur ✕ pour fermer.",
+    group_section: "Grouper les alertes 🗂️",
+    group: "Activer le regroupement",
+    group_min: "Minimum pour grouper",
+    group_min_help: "Nombre minimal d'entités actives avant d'afficher le résumé de groupe (défaut : 3).",
+    group_message: "Message de groupe",
+    group_message_help: "Utilisez {count} pour le nombre d'alertes actives et {names} pour la liste des noms. Ex. '{count} capteurs actifs'. Supporte {{ states('sensor.x') }}.",
+    group_expanded_message: "Message unitaire (développé)",
+    group_expanded_message_help: "Message affiché pour chaque entité en vue développée. Utilisez {state}, {name}, {entity}, {device}. Supporte {{ states('sensor.x') }}.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Variables : {name} nom entité, {state} état, {entity} ID entité, {device} nom appareil",
     timer_placeholder_hint: "Utilisez {timer} dans le message pour afficher le compte à rebours (ex. 'Désactivé pour {timer}')",
@@ -1511,11 +1547,15 @@ const ET = {
     tts_engine_global_help: "TTS-Entität (z.B. tts.piper, tts.home_assistant_cloud). Wird automatisch erkannt, wenn nicht angegeben.",
     tts_notify_service: "Notify-Dienst (Alexa / Mobil)",
     tts_notify_service_help: "Name des Notify-Dienstes statt tts.speak (z.B. alexa_media_echo_kueche). Wenn gesetzt, werden Lautsprecher und Engine ignoriert.",
+    tts_notify_type: "Alexa-Benachrichtigungstyp",
+    tts_notify_type_tts: "tts (Einzelgerät)",
+    tts_notify_type_announce: "announce (Gruppe / Multiroom)",
     alert_tts: "TTS-Sprachansage",
     alert_tts_help: "Wenn die Warnung aktiv wird, wird der Text über den konfigurierten Mediaplayer oder Notify-Dienst vorgelesen.",
     alert_tts_entity: "TTS-Lautsprecher (überschreibt global)",
     alert_tts_engine: "TTS-Engine (überschreibt global)",
     alert_tts_notify_service: "Notify-Dienst (überschreibt global)",
+    alert_tts_notify_type: "Benachrichtigungstyp (überschreibt global)",
     alert_tts_message: "Benutzerdefinierter TTS-Text",
     alert_tts_message_help: "Alternativer Text zum Vorlesen. Wenn leer, wird der Warnungstext verwendet.",
     alert_camera_entity: "Kamera-Snapshot im Overlay",
@@ -1639,6 +1679,14 @@ const ET = {
     snooze_action_section: "Schlummern-Aktion 💤 — wird beim Tap auf den Schlummern-Button ausgeführt",
     persistent: "Dauerhafter Alarm 🔒",
     persistent_help: "Bleibt sichtbar, auch wenn der Sensor wieder normal ist. ✕ drücken zum Schließen.",
+    group_section: "Alarme gruppieren 🗂️",
+    group: "Gruppierung aktivieren",
+    group_min: "Minimum zum Gruppieren",
+    group_min_help: "Mindestanzahl aktiver Entitäten, bevor die Gruppenübersicht angezeigt wird (Standard: 3).",
+    group_message: "Gruppennachricht",
+    group_message_help: "Verwende {count} für die Anzahl aktiver Alarme und {names} für die Namensliste. Z.B. '{count} Sensoren aktiv'. Unterstützt {{ states('sensor.x') }}.",
+    group_expanded_message: "Einzelnachricht (erweitert)",
+    group_expanded_message_help: "Nachricht für jede Entität in der erweiterten Ansicht. Verwende {state}, {name}, {entity}, {device}. Unterstützt {{ states('sensor.x') }}.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Platzhalter: {name} Entitätsname, {state} Zustand, {entity} Entitäts-ID, {device} Gerätename",
     timer_placeholder_hint: "Verwende {timer} in der Nachricht für den Countdown (z.B. 'Deaktiviert für {timer}')",
@@ -1774,11 +1822,15 @@ const ET = {
     tts_engine_global_help: "TTS-entiteit (bijv. tts.piper, tts.home_assistant_cloud). Automatisch gedetecteerd als niet ingesteld.",
     tts_notify_service: "Notify-service (Alexa / mobiel)",
     tts_notify_service_help: "Naam van de notify-service in plaats van tts.speak (bijv. alexa_media_echo_keuken). Als ingesteld, worden luidspreker en engine genegeerd.",
+    tts_notify_type: "Alexa meldingstype",
+    tts_notify_type_tts: "tts (enkel apparaat)",
+    tts_notify_type_announce: "announce (groep / multiroom)",
     alert_tts: "TTS-spraakmelding",
     alert_tts_help: "Wanneer de melding actief wordt, wordt de tekst hardop gelezen via de geconfigureerde mediaspeler of notify-service.",
     alert_tts_entity: "TTS-luidspreker (overschrijft globaal)",
     alert_tts_engine: "TTS-engine (overschrijft globaal)",
     alert_tts_notify_service: "Notify-service (overschrijft globaal)",
+    alert_tts_notify_type: "Meldingstype (overschrijft globaal)",
     alert_tts_message: "Aangepaste TTS-tekst",
     alert_tts_message_help: "Alternatieve tekst om voor te lezen. Als leeg, wordt de meldingstekst gebruikt.",
     alert_camera_entity: "Camera snapshot in overlay",
@@ -1902,6 +1954,14 @@ const ET = {
     snooze_action_section: "Sluimer-actie 💤 — uitgevoerd bij tik op de sluimer-knop",
     persistent: "Aanhoudend alarm 🔒",
     persistent_help: "Blijft zichtbaar zelfs na herstel van de sensor. Druk op ✕ om te verwijderen.",
+    group_section: "Meldingen groeperen 🗂️",
+    group: "Groepering inschakelen",
+    group_min: "Minimum om te groeperen",
+    group_min_help: "Minimaal aantal actieve entiteiten voordat de groepsamenvatting wordt weergegeven (standaard: 3).",
+    group_message: "Groepsbericht",
+    group_message_help: "Gebruik {count} voor het aantal actieve meldingen en {names} voor de namenlijst. Bijv. '{count} sensoren actief'. Ondersteunt {{ states('sensor.x') }}.",
+    group_expanded_message: "Individueel bericht (uitgevouwen)",
+    group_expanded_message_help: "Bericht voor elke entiteit in uitgevouwen weergave. Gebruik {state}, {name}, {entity}, {device}. Ondersteunt {{ states('sensor.x') }}.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Plaatshouders: {name} entiteitsnaam, {state} toestand, {entity} entiteits-ID, {device} apparaatnaam",
     timer_placeholder_hint: "Gebruik {timer} in het bericht voor de countdown (bijv. 'Uitgeschakeld voor {timer}')",
@@ -2037,11 +2097,15 @@ const ET = {
     tts_engine_global_help: "Thực thể TTS (vd. tts.piper, tts.home_assistant_cloud). Tự động phát hiện nếu không đặt.",
     tts_notify_service: "Dịch vụ notify (Alexa / di động)",
     tts_notify_service_help: "Tên dịch vụ notify thay cho tts.speak (vd. alexa_media_echo_bep). Khi đặt, loa và bộ máy TTS bị bỏ qua.",
+    tts_notify_type: "Loại thông báo Alexa",
+    tts_notify_type_tts: "tts (thiết bị đơn)",
+    tts_notify_type_announce: "announce (nhóm / multiroom)",
     alert_tts: "Thông báo giọng nói TTS",
     alert_tts_help: "Khi báo động kích hoạt, văn bản được đọc to qua media player hoặc dịch vụ notify được cấu hình.",
     alert_tts_entity: "Loa TTS (ghi đè toàn cục)",
     alert_tts_engine: "Bộ máy TTS (ghi đè toàn cục)",
     alert_tts_notify_service: "Dịch vụ notify (ghi đè toàn cục)",
+    alert_tts_notify_type: "Loại thông báo (ghi đè toàn cục)",
     alert_tts_message: "Văn bản TTS tùy chỉnh",
     alert_tts_message_help: "Văn bản thay thế để đọc. Nếu trống, dùng thông điệp báo động.",
     alert_camera_entity: "Camera snapshot trong overlay",
@@ -2165,6 +2229,14 @@ const ET = {
     snooze_action_section: "Hành động tạm hoãn 💤 — thực hiện khi nhấn nút tạm hoãn",
     persistent: "Báo động liên tục 🔒",
     persistent_help: "Vẫn hiển thị dù cảm biến trở về bình thường. Nhấn ✕ để xóa bỏ.",
+    group_section: "Nhóm cảnh báo 🗂️",
+    group: "Bật nhóm",
+    group_min: "Tối thiểu để nhóm",
+    group_min_help: "Số lượng thực thể hoạt động tối thiểu trước khi hiển thị tóm tắt nhóm (mặc định: 3).",
+    group_message: "Tin nhắn nhóm",
+    group_message_help: "Dùng {count} cho số cảnh báo đang hoạt động và {names} cho danh sách tên. Ví dụ: '{count} cảm biến đang hoạt động'. Hỗ trợ {{ states('sensor.x') }}.",
+    group_expanded_message: "Tin nhắn đơn (đã mở rộng)",
+    group_expanded_message_help: "Tin nhắn cho từng thực thể khi nhóm được mở rộng. Dùng {state}, {name}, {entity}, {device}. Hỗ trợ {{ states('sensor.x') }}.",
     timer_theme_category: "Hẹn giờ",
     message_placeholder_hint: "Biến: {name} tên thực thể, {state} trạng thái, {entity} ID thực thể, {device} tên thiết bị",
     timer_placeholder_hint: "Dùng {timer} trong thông báo để hiển thị đếm ngược (vd. 'Đã tắt trong {timer}')",
@@ -2300,11 +2372,15 @@ const ET = {
     tts_engine_global_help: "Сущность TTS (напр. tts.piper, tts.home_assistant_cloud). Определяется автоматически, если не указан.",
     tts_notify_service: "Notify-сервис (Alexa / мобильный)",
     tts_notify_service_help: "Имя notify-сервиса вместо tts.speak (напр. alexa_media_echo_kuhnya). При указании поля динамика и движка игнорируются.",
+    tts_notify_type: "Тип уведомления Alexa",
+    tts_notify_type_tts: "tts (отдельное устройство)",
+    tts_notify_type_announce: "announce (группа / multiroom)",
     alert_tts: "Голосовое объявление TTS",
     alert_tts_help: "Когда оповещение активируется, текст читается вслух через настроенный медиаплеер или notify-сервис.",
     alert_tts_entity: "Динамик TTS (переопределяет глобальный)",
     alert_tts_engine: "Движок TTS (переопределяет глобальный)",
     alert_tts_notify_service: "Notify-сервис (переопределяет глобальный)",
+    alert_tts_notify_type: "Тип уведомления (переопределяет глобальный)",
     alert_tts_message: "Пользовательский текст TTS",
     alert_tts_message_help: "Альтернативный текст для чтения. Если пусто, используется сообщение оповещения.",
     alert_camera_entity: "Снимок камеры в оверлее",
@@ -2428,6 +2504,14 @@ const ET = {
     snooze_action_section: "Действие откладывания 💤 — выполняется при нажатии кнопки откладывания",
     persistent: "Постоянная тревога 🔒",
     persistent_help: "Остаётся видимым даже после нормализации датчика. Нажмите ✕ для сброса.",
+    group_section: "Группировка оповещений 🗂️",
+    group: "Включить группировку",
+    group_min: "Минимум для группировки",
+    group_min_help: "Минимальное количество активных объектов для отображения сводки группы (по умолчанию: 3).",
+    group_message: "Сообщение группы",
+    group_message_help: "Используйте {count} для количества активных оповещений и {names} для списка имён. Напр. '{count} датчиков активно'. Поддерживает {{ states('sensor.x') }}.",
+    group_expanded_message: "Сообщение элемента (развёрнуто)",
+    group_expanded_message_help: "Сообщение для каждой сущности при развёрнутом виде. Используйте {state}, {name}, {entity}, {device}. Поддерживает {{ states('sensor.x') }}.",
     timer_theme_category: "Таймер",
     message_placeholder_hint: "Переменные: {name} имя объекта, {state} состояние, {entity} ID объекта, {device} имя устройства",
     timer_placeholder_hint: "Используйте {timer} в сообщении для отображения обратного отсчёта (например 'Отключится через {timer}')",
@@ -2561,11 +2645,15 @@ const ET = {
     tts_engine_global_help: "TTS-entitet (f.eks. tts.piper, tts.home_assistant_cloud). Registreres automatisk hvis ikke angivet.",
     tts_notify_service: "Notify-tjeneste (Alexa / mobil)",
     tts_notify_service_help: "Navn på notify-tjeneste i stedet for tts.speak (f.eks. alexa_media_echo_koekkenet). Når angivet ignoreres højttaler og motor.",
+    tts_notify_type: "Alexa notifikationstype",
+    tts_notify_type_tts: "tts (enkelt enhed)",
+    tts_notify_type_announce: "announce (gruppe / multiroom)",
     alert_tts: "TTS-stemmemeddelelse",
     alert_tts_help: "Når advarslen aktiveres, læses teksten højt via den konfigurerede medieafspiller eller notify-tjeneste.",
     alert_tts_entity: "TTS-højttaler (tilsidesætter global)",
     alert_tts_engine: "TTS-motor (tilsidesætter global)",
     alert_tts_notify_service: "Notify-tjeneste (tilsidesætter global)",
+    alert_tts_notify_type: "Notifikationstype (tilsidesætter global)",
     alert_tts_message: "Brugerdefineret TTS-tekst",
     alert_tts_message_help: "Alternativ tekst der skal læses. Hvis tom, bruges advarslens besked.",
     alert_camera_entity: "Kamera-snapshot i overlay",
@@ -2689,6 +2777,14 @@ const ET = {
     snooze_action_section: "Slumre‑handling 💤 — udføres når slumre‑knappen trykkes",
     persistent: "Vedvarende alarm 🔒",
     persistent_help: "Forbliver synlig selvom sensoren returnerer til normal. Tryk ✕ for at afvise.",
+    group_section: "Grupper advarsler 🗂️",
+    group: "Aktiver gruppering",
+    group_min: "Minimum for gruppering",
+    group_min_help: "Minimalt antal aktive entiteter, inden gruppeoversigten vises (standard: 3).",
+    group_message: "Gruppebesked",
+    group_message_help: "Brug {count} til antal aktive advarsler og {names} til navnelisten. F.eks. '{count} sensorer aktive'. Understøtter {{ states('sensor.x') }}.",
+    group_expanded_message: "Enkeltbesked (udvidet)",
+    group_expanded_message_help: "Besked for hver entitet i udvidet visning. Brug {state}, {name}, {entity}, {device}. Understøtter {{ states('sensor.x') }}.",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Pladsholdere: {name} enheds‑navn, {state} tilstand, {entity} enheds‑ID, {device} enheds‑navn",
     timer_placeholder_hint: "Brug {timer} i beskeden for at vise nedtælling (f.eks. 'Deaktiveret i {timer}')",
@@ -2826,11 +2922,15 @@ const ET = {
     tts_engine_global_help: "TTS entita (např. tts.piper, tts.home_assistant_cloud). Automaticky zjištěno pokud není nastaveno.",
     tts_notify_service: "Notify služba (Alexa / mobil)",
     tts_notify_service_help: "Název notify služby místo tts.speak (např. alexa_media_echo_kuchyne). Když je nastaveno, reproduktor a engine jsou ignorovány.",
+    tts_notify_type: "Typ oznámení Alexa",
+    tts_notify_type_tts: "tts (jednotlivé zařízení)",
+    tts_notify_type_announce: "announce (skupina / multiroom)",
     alert_tts: "TTS hlasové oznámení",
     alert_tts_help: "Když je varování aktivní, text je přečten nahlas přes nakonfigurovaný přehrávač médií nebo notify službu.",
     alert_tts_entity: "TTS reproduktor (přepíše globální)",
     alert_tts_engine: "TTS engine (přepíše globální)",
     alert_tts_notify_service: "Notify služba (přepíše globální)",
+    alert_tts_notify_type: "Typ oznámení (přepíše globální)",
     alert_tts_message: "Vlastní TTS text",
     alert_tts_message_help: "Alternativní text k přečtení. Pokud prázdné, použije se zpráva varování.",
     alert_camera_entity: "Snímek kamery v overlay",
@@ -2954,6 +3054,14 @@ const ET = {
     snooze_action_section: "Akce odložení - spuštěno po kliknutí na tlačítko 💤",
     persistent: "Trvalý alarm 🔒",
     persistent_help: "Zůstává viditelný i po návratu senzoru do normálu. Stiskněte ✕ pro zavření.",
+    group_section: "Seskupit upozornění 🗂️",
+    group: "Povolit seskupení",
+    group_min: "Minimum pro seskupení",
+    group_min_help: "Minimální počet aktivních entit před zobrazením souhrnu skupiny (výchozí: 3).",
+    group_message: "Zpráva skupiny",
+    group_message_help: "Použijte {count} pro počet aktivních upozornění a {names} pro seznam jmen. Např. '{count} senzorů aktivních'. Podporuje {{ states('sensor.x') }}.",
+    group_expanded_message: "Zpráva položky (rozbaleno)",
+    group_expanded_message_help: "Zpráva pro každou entitu v rozbalené skupině. Použijte {state}, {name}, {entity}, {device}. Podporuje {{ states('sensor.x') }}.",
     timer_theme_category: "Časovač",
     message_placeholder_hint: "Zástupná slova: {name} název entity, {state} stav, {entity} ID entity, {device} název zařízení",
     timer_placeholder_hint: "Použijte {timer} v těle zprávy pro zobrazení odpočtu (např. 'Vypnuto za {timer}')",
@@ -3091,11 +3199,15 @@ const ET = {
     tts_engine_global_help: "Entidade TTS a usar (ex. tts.piper, tts.home_assistant_cloud). Detectado automaticamente se não definido.",
     tts_notify_service: "Serviço notify (Alexa / mobile)",
     tts_notify_service_help: "Nome do serviço notify para usar em vez de tts.speak (ex. alexa_media_echo_cozinha). Quando definido, os campos de alto-falante e motor são ignorados.",
+    tts_notify_type: "Tipo de notificação Alexa",
+    tts_notify_type_tts: "tts (dispositivo individual)",
+    tts_notify_type_announce: "announce (grupo / multiroom)",
     alert_tts: "Anúncio de voz TTS",
     alert_tts_help: "Quando o alerta fica ativo, a mensagem é lida em voz alta pelo media player ou serviço notify configurado.",
     alert_tts_entity: "Alto-falante TTS (substitui o global)",
     alert_tts_engine: "Motor TTS (substitui o global)",
     alert_tts_notify_service: "Serviço notify (substitui o global)",
+    alert_tts_notify_type: "Tipo de notificação (substitui o global)",
     alert_tts_message: "Texto TTS personalizado",
     alert_tts_message_help: "Texto alternativo para ler em voz alta. Se vazio, usa a mensagem do alerta.",
     alert_camera_entity: "Câmera para snapshot no overlay",
@@ -3219,6 +3331,14 @@ const ET = {
     snooze_action_section: "Ação de silenciar 💤 — executada ao tocar no botão de silenciar",
     persistent: "Alarme persistente 🔒",
     persistent_help: "Permanece visível mesmo após o sensor retornar ao normal. Pressione ✕ para descartar.",
+    group_section: "Agrupar alertas 🗂️",
+    group: "Ativar agrupamento",
+    group_min: "Mínimo para agrupar",
+    group_min_help: "Número mínimo de entidades ativas antes de exibir o resumo do grupo (padrão: 3).",
+    group_message: "Mensagem do grupo",
+    group_message_help: "Use {count} para o número de alertas ativos e {names} para a lista de nomes. Ex.: '{count} sensores ativos'. Suporta {{ states('sensor.x') }}.",
+    group_expanded_message: "Mensagem individual (expandida)",
+    group_expanded_message_help: "Mensagem para cada entidade quando o grupo está expandido. Use {state}, {name}, {entity}, {device}. Suporta {{ states('sensor.x') }}.",
     timer_theme_category: "Temporizador",
     message_placeholder_hint: "Espaços reservados: {name} nome da entidade, {state} estado, {entity} ID da entidade, {device} nome do dispositivo",
     timer_placeholder_hint: "Use {timer} na mensagem para mostrar a contagem regressiva (ex. 'Desabilitado por {timer}')",
@@ -3354,11 +3474,15 @@ const ET = {
     tts_engine_global_help: "Entidad TTS a usar (ej. tts.piper, tts.home_assistant_cloud). Detectado automáticamente si no está configurado.",
     tts_notify_service: "Servicio notify (Alexa / móvil)",
     tts_notify_service_help: "Nombre del servicio notify para usar en lugar de tts.speak (ej. alexa_media_echo_cocina). Cuando está configurado, los campos de altavoz y motor se ignoran.",
+    tts_notify_type: "Tipo de notificación Alexa",
+    tts_notify_type_tts: "tts (dispositivo individual)",
+    tts_notify_type_announce: "announce (grupo / multiroom)",
     alert_tts: "Anuncio de voz TTS",
     alert_tts_help: "Cuando la alerta se activa, el mensaje se lee en voz alta a través del media player o servicio notify configurado.",
     alert_tts_entity: "Altavoz TTS (reemplaza el global)",
     alert_tts_engine: "Motor TTS (reemplaza el global)",
     alert_tts_notify_service: "Servicio notify (reemplaza el global)",
+    alert_tts_notify_type: "Tipo de notificación (reemplaza el global)",
     alert_tts_message: "Texto TTS personalizado",
     alert_tts_message_help: "Texto alternativo para leer en voz alta. Si está vacío, usa el mensaje de la alerta.",
     alert_camera_entity: "Cámara para snapshot en overlay",
@@ -3482,6 +3606,14 @@ const ET = {
     snooze_action_section: "Acción de posponer 💤 — ejecutada al tocar el botón de posponer",
     persistent: "Alarma persistente 🔒",
     persistent_help: "Permanece visible incluso después de que el sensor vuelva a la normalidad. Pulse ✕ para descartar.",
+    group_section: "Agrupar alertas 🗂️",
+    group: "Activar agrupación",
+    group_min: "Mínimo para agrupar",
+    group_min_help: "Número mínimo de entidades activas antes de mostrar el resumen de grupo (por defecto: 3).",
+    group_message: "Mensaje de grupo",
+    group_message_help: "Use {count} para el número de alertas activas y {names} para la lista de nombres. Ej. '{count} sensores activos'. Admite {{ states('sensor.x') }}.",
+    group_expanded_message: "Mensaje individual (expandido)",
+    group_expanded_message_help: "Mensaje para cada entidad cuando el grupo está expandido. Use {state}, {name}, {entity}, {device}. Admite {{ states('sensor.x') }}.",
     timer_theme_category: "Temporizador",
     message_placeholder_hint: "Marcadores: {name} nombre de entidad, {state} estado, {entity} ID de entidad, {device} nombre del dispositivo",
     timer_placeholder_hint: "Usa {timer} en el mensaje para mostrar la cuenta atrás (ej. 'Deshabilitado por {timer}')",
@@ -4855,6 +4987,52 @@ class AlertTickerCardEditor extends LitElement {
                   ` : ""}
                 ` : ""}
 
+                <!-- Group settings — visible only for filter-mode alerts -->
+                ${this._getAlertMode(index, alert) === "filter" ? html`
+                <div class="section-divider">🗂️ ${this._t("group_section")}</div>
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("group")}</span>
+                    <ha-switch
+                      .checked="${!!alert.group}"
+                      @change="${(e) => this._updateAlert(index, { group: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </div>
+                </div>
+                ${alert.group ? html`
+                  <div class="form-row">
+                    <ha-textfield
+                      .label="${this._t("group_min")}"
+                      .value="${alert.group_min != null ? String(alert.group_min) : ""}"
+                      placeholder="3"
+                      @change="${(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        this._updateAlert(index, { group_min: (v >= 2 && !isNaN(v)) ? v : undefined });
+                      }}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("group_min_help")}</div>
+                  </div>
+                  <div class="form-row">
+                    <ha-textfield
+                      .label="${this._t("group_message")}"
+                      .value="${alert.group_message || ""}"
+                      placeholder="{count} alerts active"
+                      @change="${(e) => this._updateAlert(index, { group_message: e.target.value || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("group_message_help")}</div>
+                  </div>
+                  <div class="form-row">
+                    <ha-textfield
+                      .label="${this._t("group_expanded_message")}"
+                      .value="${alert.group_expanded_message || ""}"
+                      placeholder="{name}: {state}%"
+                      @change="${(e) => this._updateAlert(index, { group_expanded_message: e.target.value || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("group_expanded_message_help")}</div>
+                  </div>
+                ` : ""}
+                ` : ""}
+
                 <!-- ── 2. CONDIZIONE ──────────────────────────────────────── -->
                 <div class="section-divider">⚡ ${this._t("conditions_section")}</div>
 
@@ -5234,6 +5412,19 @@ class AlertTickerCardEditor extends LitElement {
                       </select>
                     </div>
                   </div>
+                  ${alert.tts_notify_service ? html`
+                  <div class="form-row">
+                    <div class="native-select-wrap">
+                      <label class="native-select-label">${this._t('alert_tts_notify_type')}</label>
+                      <select class="native-select"
+                        @change="${(e) => this._updateAlert(index, { tts_notify_type: e.target.value || undefined })}"
+                      >
+                        <option value="" ?selected="${!alert.tts_notify_type}">${this._t('tts_notify_type_tts')}</option>
+                        <option value="announce" ?selected="${alert.tts_notify_type === 'announce'}">${this._t('tts_notify_type_announce')}</option>
+                      </select>
+                    </div>
+                  </div>
+                  ` : ''}
                   <div class="form-row">
                     <ha-textfield
                       .label="${this._t("alert_tts_message")}"

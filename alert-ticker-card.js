@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.2.7
+ * AlertTicker Card v1.2.8
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 42 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.2.6";
+const CARD_VERSION = "1.2.8";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1312,6 +1312,7 @@ class AlertTickerCard extends LitElement {
     this._snoozedCount = 0;
     this._snoozed = new Map(); // snoozeKey → expiry timestamp
     this._persistentLatched = new Set(); // snoozeKey → latched persistent alert
+    this._expandedGroups = new Set(); // groupKey → expanded (shows individual slides)
     this._historyOpen = false;
     this._history = []; // { ts, message, theme, icon, entity }
     this._touchButtonsActive = false;
@@ -1401,7 +1402,8 @@ class AlertTickerCard extends LitElement {
     } else if (this._hass && !this._cycleTimer) {
       this._startCycleTimer();
     }
-    // Re-compute alerts if hass is already set
+    // Force full recompute so grouping/config changes take effect immediately
+    this._lastSignature = "";
     if (this._hass) {
       this._computeActiveAlerts();
     }
@@ -1542,7 +1544,7 @@ class AlertTickerCard extends LitElement {
 
     let snoozedCount = 0;
     const testMode = !!this._config.test_mode;
-    const active = expandedAlerts.filter((alert) => {
+    let active = expandedAlerts.filter((alert) => {
       const entityState = this._hass.states[alert.entity];
       if (!entityState) return false;
       if (!testMode) {
@@ -1718,6 +1720,78 @@ class AlertTickerCard extends LitElement {
     }
     this._initialLoadDone = true;
 
+    // --- Grouping pass: collapse filter alerts with group:true into summary slides ---
+    const _groupBuckets = new Map(); // configIdx → members[]
+    const _ungrouped = [];
+    for (const alert of active) {
+      const src = alert._sourceAlert;
+      if (src && src.group) {
+        const k = alert._configIdx;
+        if (!_groupBuckets.has(k)) _groupBuckets.set(k, []);
+        _groupBuckets.get(k).push(alert);
+      } else {
+        _ungrouped.push(alert);
+      }
+    }
+    for (const [key, members] of _groupBuckets) {
+      const src = members[0]._sourceAlert;
+      const minCount = src.group_min || 3;
+      const groupKey = `grp_${key}`;
+      if (this._expandedGroups.has(groupKey)) {
+        // Group is expanded — show individual member slides, optionally overriding message
+        _ungrouped.push(...members.map(m => ({
+          ...m,
+          _expandedMember: true,
+          _expandedGroupKey: groupKey,
+          ...(src.group_expanded_message ? { message: src.group_expanded_message } : {}),
+        })));
+      } else if (members.length >= minCount) {
+        const names = members.map(a => {
+          const s = this._hass?.states[a.entity];
+          return s?.attributes?.friendly_name || a.entity || "";
+        });
+        const rawMsg = src.group_message || `{count} alert`;
+        // Apply {count}/{names} substitutions
+        let msg = rawMsg
+          .replace(/\{count\}/g, members.length)
+          .replace(/\{names\}/g, names.join(", "));
+        // Jinja2/WS template support: resolve {{ ... }} in group_message
+        if (rawMsg.includes("{{")) {
+          const cached = this._tmplCache.get(rawMsg);
+          if (cached !== undefined) {
+            msg = cached
+              .replace(/\{count\}/g, members.length)
+              .replace(/\{names\}/g, names.join(", "));
+          } else {
+            this._subscribeTemplate(rawMsg);
+            msg = msg.replace(/\{\{\s*([\s\S]*?)\s*\}\}/g, (_, expr) => {
+              const v = this._evalJinjaExpr(expr.trim());
+              return v !== null ? v : "";
+            });
+          }
+        }
+        _ungrouped.push({
+          _isGroup: true,
+          _groupKey: groupKey,
+          _members: members,
+          _memberNames: names,
+          _configIdx: key,
+          theme: src.theme || "warning",
+          icon: src.icon,
+          priority: src.priority || 3,
+          message: msg,
+          entity: undefined,
+        });
+      } else {
+        _ungrouped.push(...members);
+      }
+    }
+    if (_groupBuckets.size > 0) {
+      _ungrouped.sort((a, b) => (a.priority || 3) - (b.priority || 3));
+      active = _ungrouped;
+    }
+    // --- end grouping pass ---
+
     this._lastSignature = signature;
     this._activeAlerts = active;
     this._snoozedCount = snoozedCount;
@@ -1816,8 +1890,28 @@ class AlertTickerCard extends LitElement {
 
   // ---- Timer tick (1s) — keeps countdown display live -----------------------
 
+  _tickClock() {
+    const clearMode = this._config?.clear_display_mode;
+    if ((this._config?.show_when_clear || this._config?.show_widget_in_cycle) &&
+        (clearMode === "clock" || clearMode === "weather_clock" || clearMode === "weather_forecast")) {
+      const n = new Date();
+      if (this._config?.clear_clock_12h) {
+        const h = n.getHours();
+        const h12 = h % 12 || 12;
+        const ampm = h < 12 ? "AM" : "PM";
+        this._clockTime = `${h12}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')} ${ampm}`;
+      } else {
+        this._clockTime = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+      }
+      const lang = this._hass?.language || 'en';
+      this._clockDate = n.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+  }
+
   _startTimerTick() {
     if (this._timerInterval) return;
+    // Populate clock immediately so it shows on first render without waiting 1 s
+    this._tickClock();
     this._timerInterval = setInterval(() => {
       const _timerThemes = new Set(["countdown", "hourglass", "timer_pulse", "timer_ring"]);
       const hasTimer = this._activeAlerts &&
@@ -1828,22 +1922,8 @@ class AlertTickerCard extends LitElement {
             this._hass?.states[a.entity]?.attributes?.device_class === "timestamp";
         });
       if (hasTimer) this.requestUpdate();
-      // Update clock when clear widget is clock, weather_clock or weather_forecast
-      const clearMode = this._config?.clear_display_mode;
-      if ((this._config?.show_when_clear || this._config?.show_widget_in_cycle) &&
-          (clearMode === "clock" || clearMode === "weather_clock" || clearMode === "weather_forecast")) {
-        const n = new Date();
-        if (this._config?.clear_clock_12h) {
-          const h = n.getHours();
-          const h12 = h % 12 || 12;
-          const ampm = h < 12 ? "AM" : "PM";
-          this._clockTime = `${h12}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')} ${ampm}`;
-        } else {
-          this._clockTime = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
-        }
-        const lang = this._hass?.language || 'en';
-        this._clockDate = n.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' });
-      }
+      // Update clock every second
+      this._tickClock();
       // Re-evaluate once per minute for time_range conditions
       const now = new Date();
       if (now.getSeconds() === 0) {
@@ -2352,6 +2432,8 @@ class AlertTickerCard extends LitElement {
     for (const alert of this._config?.alerts || []) {
       if ((alert.message || "").includes("{{")) needed.add(alert.message);
       if ((alert.secondary_text || "").includes("{{")) needed.add(alert.secondary_text);
+      if ((alert.group_message || "").includes("{{")) needed.add(alert.group_message);
+      if ((alert.group_expanded_message || "").includes("{{")) needed.add(alert.group_expanded_message);
     }
     // Unsubscribe stale
     for (const [tmpl, unsub] of this._tmplUnsubs) {
@@ -2765,10 +2847,11 @@ class AlertTickerCard extends LitElement {
     // Notify path (Alexa, mobile, etc.) — takes priority when set
     const notifyService = alert.tts_notify_service || this._config?.tts_notify_service;
     if (notifyService) {
+      const notifyType = alert.tts_notify_type || this._config?.tts_notify_type || "tts";
       try {
         this._hass.callService("notify", notifyService, {
           message,
-          data: { type: "tts" },
+          data: { type: notifyType },
         });
       } catch (_) {}
       return;
@@ -2920,8 +3003,57 @@ class AlertTickerCard extends LitElement {
    *  If snooze_default_duration is set (number): single tap → immediate snooze with that duration.
    *  Otherwise (default): tap opens duration menu on card.
    *  If snooze_action is configured (per-alert), it is also executed on tap. */
+  _renderGroupCard(group) {
+    try {
+      const themeMeta = THEME_META[group.theme] || {};
+      const icon = group.icon
+        ? (/^[\w-]+:/.test(group.icon) ? html`<ha-icon icon="${group.icon}" class="atc-ha-icon"></ha-icon>` : group.icon)
+        : (themeMeta.icon || "🔔");
+      const names = group._memberNames || [];
+      const preview = names.join(" · ");
+      return html`
+        <div class="at-${group.theme || "warning"}">
+          <div class="atc-group-inner">
+            <div class="atc-icon-wrap">${icon}</div>
+            <div class="atc-group-body">
+              <div class="atc-group-message">${group.message || ""}</div>
+              <div class="atc-group-names">${preview}</div>
+            </div>
+            <div class="atc-group-count">
+              <span class="atc-group-count-num">${(group._members || []).length}</span>
+              <span class="atc-group-expand-arrow">▼</span>
+            </div>
+          </div>
+        </div>`;
+    } catch (_) {
+      return html`<div class="at-warning"><div class="atc-group-inner">⚠️ group</div></div>`;
+    }
+  }
+
+  _snoozeGroup(group, durationH) {
+    group._members.forEach(m => this._snoozeAlert(m, durationH));
+  }
+
+  _expandGroup(group) {
+    this._expandedGroups.add(group._groupKey);
+    this._lastSignature = "";
+    this._computeActiveAlerts();
+    const firstIdx = this._activeAlerts.findIndex(a => a._expandedGroupKey === group._groupKey);
+    if (firstIdx >= 0) this._currentIndex = firstIdx;
+    this.requestUpdate();
+  }
+
+  _collapseGroup(groupKey) {
+    this._expandedGroups.delete(groupKey);
+    this._lastSignature = "";
+    this._computeActiveAlerts();
+    const groupIdx = this._activeAlerts.findIndex(a => a._groupKey === groupKey);
+    if (groupIdx >= 0) this._currentIndex = groupIdx;
+    this.requestUpdate();
+  }
+
   _renderSnoozeButton(alert) {
-    if (!alert || !alert.entity) return html``;
+    if (!alert || (!alert.entity && !alert._isGroup)) return html``;
     // Persistent alarm: snooze becomes a permanent Dismiss button
     if (alert.persistent) {
       return html`
@@ -2931,6 +3063,36 @@ class AlertTickerCard extends LitElement {
             title="${this._t("dismiss")}"
             @click="${(e) => { e.stopPropagation(); this._dismissPersistent(alert); }}"
           >✕</button>
+        </div>
+      `;
+    }
+    // Group slide: snooze all members with duration picker
+    if (alert._isGroup) {
+      const menuOpen = this._snoozeMenuOpen === alert._groupKey;
+      return html`
+        <div class="atc-snooze-wrap">
+          <button
+            class="atc-snooze-btn"
+            title="${this._t("snooze")}"
+            @click="${(e) => {
+              e.stopPropagation();
+              this._snoozeMenuOpen = this._snoozeMenuOpen === alert._groupKey ? null : alert._groupKey;
+              if (this._snoozeMenuOpen) this._bindSnoozeOutsideClick();
+              this.requestUpdate();
+            }}"
+          >💤</button>
+          ${menuOpen ? html`
+            <div class="atc-snooze-menu">
+              <div class="atc-snooze-label">${this._t("snooze")}</div>
+              ${[[1, "snooze_1h"], [4, "snooze_4h"], [8, "snooze_8h"], [24, "snooze_24h"]].map(
+                ([h, key]) => html`
+                  <button class="atc-snooze-option" @click="${() => this._snoozeGroup(alert, h)}">
+                    ${this._t(key)}
+                  </button>
+                `
+              )}
+            </div>
+          ` : ""}
         </div>
       `;
     }
@@ -3046,6 +3208,7 @@ class AlertTickerCard extends LitElement {
   /** Execute a tap_action / hold_action config object */
   _handleAction(cfg) {
     if (!cfg || !cfg.action || cfg.action === "none") return;
+    if (cfg.action === "_expand_group") { this._expandGroup(this._current); return; }
     switch (cfg.action) {
       case "call-service": {
         if (!cfg.service || !this._hass) return;
@@ -3183,7 +3346,13 @@ class AlertTickerCard extends LitElement {
       // Swipe left → snooze (if enabled) OR navigate next
       if (this._config.swipe_to_snooze) {
         const alert = this._current;
-        if (!alert || !alert.entity) return;
+        if (!alert) return;
+        if (alert._isGroup) {
+          const dur = this._config.snooze_default_duration ?? 1;
+          this._snoozeGroup(alert, dur === null ? 1 : dur);
+          return;
+        }
+        if (!alert.entity) return;
         if (alert.persistent) {
           this._dismissPersistent(alert);
           return;
@@ -4740,6 +4909,9 @@ class AlertTickerCard extends LitElement {
     const current = this._current;
     const snoozeBtn = this._renderSnoozeButton(current);
     const historyBtn = this._renderHistoryButton();
+    const groupBackBtn = (!isWidgetSlide && current && current._expandedMember)
+      ? html`<button class="atc-group-back-btn" title="Torna al gruppo" @click="${(e) => { e.stopPropagation(); this._collapseGroup(current._expandedGroupKey); }}">◀</button>`
+      : "";
 
     // Small pill shown at bottom-right when ≥1 alert is snoozed but others are still active
     const snoozedPill = (this._snoozedCount > 0 && this._config.show_snooze_bar !== false) ? html`
@@ -4769,12 +4941,17 @@ class AlertTickerCard extends LitElement {
 
     const inner = isWidgetSlide
       ? this._renderClearWidget()
-      : this._renderForTheme(current.theme || "emergency", current);
+      : (current && current._isGroup)
+        ? this._renderGroupCard(current)
+        : this._renderForTheme((current?.theme || "emergency"), current);
 
     // tap_action / double_tap_action / hold_action — backwards-compat: old "action" key maps to tap call-service
-    const tapCfg    = isWidgetSlide ? (this._config.clear_tap_action        || null) : (current.tap_action || (current.action ? { action: "call-service", ...current.action } : null));
-    const holdCfg   = isWidgetSlide ? (this._config.clear_hold_action       || null) : (current.hold_action       || null);
-    const dblTapCfg = isWidgetSlide ? (this._config.clear_double_tap_action || null) : (current.double_tap_action || null);
+    // Group slides use internal _expand_group tap so the whole card is tappable
+    const tapCfg    = isWidgetSlide ? (this._config.clear_tap_action        || null)
+                    : (current && current._isGroup) ? { action: "_expand_group" }
+                    : (current.tap_action || (current.action ? { action: "call-service", ...current.action } : null));
+    const holdCfg   = isWidgetSlide ? (this._config.clear_hold_action       || null) : (current && current._isGroup ? null : (current.hold_action       || null));
+    const dblTapCfg = isWidgetSlide ? (this._config.clear_double_tap_action || null) : (current && current._isGroup ? null : (current.double_tap_action || null));
     const hasInteraction = (tapCfg    && tapCfg.action    && tapCfg.action    !== "none") ||
                            (holdCfg   && holdCfg.action   && holdCfg.action   !== "none") ||
                            (dblTapCfg && dblTapCfg.action && dblTapCfg.action !== "none");
@@ -4802,7 +4979,7 @@ class AlertTickerCard extends LitElement {
                 @pointerleave="${plHandler}" @pointercancel="${plHandler}"
                 @touchstart="${swipeStart}" @touchend="${swipeEnd}">${inner}</div>
             </div>
-            ${snoozeBtn}${historyBtn}${snoozedPill}${counterOverlay}${navButtons}${touchHandle}
+            ${snoozeBtn}${groupBackBtn}${historyBtn}${snoozedPill}${counterOverlay}${navButtons}${touchHandle}
           </div>
           ${testModeBanner}
         </div>`;
@@ -4817,7 +4994,7 @@ class AlertTickerCard extends LitElement {
               @pointerleave="${plHandler}" @pointercancel="${plHandler}"
               @touchstart="${swipeStart}" @touchend="${swipeEnd}">${inner}</div>
           </div>
-          ${snoozeBtn}${historyBtn}${snoozedPill}${counterOverlay}${navButtons}${touchHandle}
+          ${snoozeBtn}${groupBackBtn}${historyBtn}${snoozedPill}${counterOverlay}${navButtons}${touchHandle}
         </div>
         ${testModeBanner}
       </div>
@@ -9039,6 +9216,76 @@ class AlertTickerCard extends LitElement {
         transform: translateY(10px);
         pointer-events: none;
       }
+
+      /* -----------------------------------------------------------------------
+       * GROUP CARD — collapsed summary slide for filter-grouped alerts
+       * --------------------------------------------------------------------- */
+      .atc-group-inner {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        min-height: 52px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .atc-group-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .atc-group-message {
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .atc-group-names {
+        font-size: 0.72rem;
+        opacity: 0.72;
+        margin-top: 2px;
+        white-space: normal;
+        line-height: 1.5;
+      }
+      .atc-group-count {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-left: 8px;
+        gap: 1px;
+      }
+      .atc-group-count-num {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        opacity: 0.85;
+      }
+      .atc-group-expand-arrow {
+        font-size: 0.6rem;
+        opacity: 0.55;
+        line-height: 1;
+      }
+      .atc-group-back-btn {
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.45);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 0.7rem;
+        padding: 2px 10px;
+        cursor: pointer;
+        z-index: 10;
+        opacity: 0.85;
+        white-space: nowrap;
+      }
+      .atc-group-back-btn:hover { opacity: 1; }
     `;
   }
 }
