@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.2.8
+ * AlertTicker Card Editor v1.2.9
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.2.8";
+const CARD_VERSION = "1.2.9";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -4299,7 +4299,7 @@ class AlertTickerCardEditor extends LitElement {
             @change="${(e) => this._fireConfig({ ...this._config, snooze_default_duration: e.target.value === "menu" ? undefined : parseFloat(e.target.value) })}"
           >
             <option value="menu" ?selected="${!cfg.snooze_default_duration}">${this._t("snooze_option_menu")}</option>
-            ${[[0.5, "30 min"], [1, "1h"], [4, "4h"], [8, "8h"], [24, "24h"]].map(([v, label]) => html`
+            ${[[0.5, "30 min"], [1, "1h"], [4, "4h"], [8, "8h"], [24, "24h"], [168, "1w"], [720, "1m"]].map(([v, label]) => html`
               <option value="${v}" ?selected="${cfg.snooze_default_duration === v}">${label}</option>
             `)}
           </select>
@@ -5388,10 +5388,12 @@ class AlertTickerCardEditor extends LitElement {
                   >
                     <option value="__global__" ?selected="${alert.snooze_duration === undefined}">${this._t("snooze_duration_global")}</option>
                     <option value="__menu__"   ?selected="${alert.snooze_duration === null}">${this._t("snooze_duration_menu")}</option>
-                    <option value="1"  ?selected="${alert.snooze_duration === 1}">1h</option>
-                    <option value="4"  ?selected="${alert.snooze_duration === 4}">4h</option>
-                    <option value="8"  ?selected="${alert.snooze_duration === 8}">8h</option>
-                    <option value="24" ?selected="${alert.snooze_duration === 24}">24h</option>
+                    <option value="1"   ?selected="${alert.snooze_duration === 1}">1h</option>
+                    <option value="4"   ?selected="${alert.snooze_duration === 4}">4h</option>
+                    <option value="8"   ?selected="${alert.snooze_duration === 8}">8h</option>
+                    <option value="24"  ?selected="${alert.snooze_duration === 24}">24h</option>
+                    <option value="168" ?selected="${alert.snooze_duration === 168}">1w</option>
+                    <option value="720" ?selected="${alert.snooze_duration === 720}">1m</option>
                   </select>
                 </div>
                 <div class="helper-text">${this._t("snooze_duration_help")}</div>
