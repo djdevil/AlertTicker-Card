@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **mobile push notifications**, **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.3-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -14,29 +14,67 @@ A custom Lovelace card to display alerts and notifications based on entity state
 
 ---
 
-## ✨ What's New in v1.2.9
+## ✨ What's New in v1.3
 
-### 🔔 Overlay fires for ALL matching entities in filter-mode
+### 📱 Mobile Push Notifications
 
-Previously, when a filter-mode alert (`device_class`, `entity_filter`, `label_filter`, `area_filter`) had multiple entities simultaneously satisfying the condition, the overlay banner fired only for the **first** entity — all others were silently ignored. Now every matching entity gets its own overlay, fired one at a time (2 s apart), with the correct per-entity message and name.
+Each alert can now send a **push notification** to any `notify.*` service the moment it activates. Title and message both support full Jinja2 templates; if left empty they fall back to the alert's badge label and message automatically.
+
+```yaml
+alerts:
+  - entity: binary_sensor.front_door
+    condition: "on"
+    theme: door
+    message: "Front door opened"
+    push_notify: true
+    push_notify_service: mobile_app_my_phone
+    push_notify_title: "🚪 Door Alert"
+    push_notify_message: "Front door has been opened — state: {state}"
+```
+
+| Key | Description |
+|-----|-------------|
+| `push_notify` | Enable push notification for this alert |
+| `push_notify_service` | `notify.*` service name (e.g. `mobile_app_my_phone`) |
+| `push_notify_title` | Optional Jinja2 title — defaults to the alert badge label |
+| `push_notify_message` | Optional Jinja2 message — defaults to the alert message |
+
+A global **📱 Push Notifications** section in the General tab provides a master on/off toggle (`push_notify_enabled`) to disable all push notifications at once without touching individual alerts. All fields are configurable from the visual editor — no YAML required.
 
 ---
 
-### 🌐 Full Jinja2 `{% if %}` / `{% else %}` block tag support
+### 🎵 Music player — MDI icons, iOS rendering, button fixes
 
-Template fields (`message`, `secondary_text`, `group_message`, `group_expanded_message`, `group_secondary_text`, overlay messages) now correctly evaluate Jinja2 **block tags** even without any `{{ }}` expression. No more `{{ "" }}` workaround needed:
+- **MDI icons for all controls** — play/pause, previous, next, and mute now use `<ha-icon mdi:...>` instead of emoji characters, rendering correctly in the HA Companion App on all platforms.
+- **Buttons unresponsive on desktop when `tap_action` is set** — play/pause, previous, next, mute and the volume slider now respond correctly to clicks even when the alert has a `tap_action` or `double_tap_action` configured. ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105))
+- **Blurred art and vinyl not rendering on iOS** — replaced `inset: 0` shorthand with explicit `top/left/right/bottom: 0`, added `-webkit-filter` and `will-change: transform` for correct GPU compositing on iOS Safari. ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105))
+- **Cover art too dark on desktop** — background brightness raised from `0.4` to `0.55`. ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105))
 
-```yaml
-message: >
-  Waste collection in {state}
-  {% if state_attr('sensor.bins','daysTo') == 1 %} day {% else %} days {% endif %}
-```
+---
+
+### ⏳ `trigger_delay` instant activation on page load
+
+If an entity was already in the trigger state when the dashboard was opened (e.g. a window left open for hours), the alert now activates **immediately** instead of restarting the full delay timer. The card reads `entity.last_changed`, subtracts the already-elapsed time, and waits only for the remaining duration. ([#88](https://github.com/djdevil/AlertTicker-Card/issues/88))
+
+---
+
+### 💤 Snooze pill visible over the clear widget
+
+When `show_when_clear: true` is configured and all active alerts are snoozed, the clear widget (weather, clock, forecast) now renders correctly with the 💤 snooze counter pill overlaid on top — so you can see and reset snoozed alerts without losing the weather view. ([#106](https://github.com/djdevil/AlertTicker-Card/issues/106))
+
+---
+
+### 🔔 Overlay improvements
+
+- **Overlay respects `trigger_delay`** — the overlay watcher now correctly waits the full configured delay before firing, regardless of how long the entity has been in the trigger state.
+- **Overlay no longer fires in the same view as the card** — three overlapping bugs caused the overlay to fire even when the card was visible on the current dashboard view: `_bases` not stamped on the first watcher tick when mounted, card-ID-based dedup key preventing cross-instance suppression, and `_overlayShown` gate blocking multiple `suppress()` calls. All three are fixed.
+- **Overlay fires for ALL matching entities in filter-mode** — previously only the first matching entity fired the overlay; now every entity gets its own banner, fired 2 s apart.
 
 ---
 
 ### 🗂️ Group tap / hold actions + custom secondary text
 
-Three new options for grouped filter alerts:
+Three new options for grouped filter alerts, all configurable in the visual editor:
 
 ```yaml
 alerts:
@@ -56,21 +94,29 @@ alerts:
 |-----|-------------|
 | `group_tap_action` | Action when tapping the collapsed group header (default: expand/collapse) |
 | `group_hold_action` | Action when holding the collapsed group header |
-| `group_secondary_text` | Custom secondary line replacing the auto-generated entity name list — supports `{count}`, `{names}`, Jinja2 |
+| `group_secondary_text` | Custom secondary line — supports `{count}`, `{names}`, Jinja2 |
 
-All three options are configurable in the visual editor under **🗂️ Group alerts**.
+---
+
+### 🌐 Full Jinja2 `{% if %}` / `{% else %}` block tag support
+
+Template fields (`message`, `secondary_text`, `group_message`, `group_expanded_message`, `group_secondary_text`, overlay messages) now correctly evaluate Jinja2 **block tags** even without any `{{ }}` expression. The `{{ "" }}` workaround is no longer needed. ([#102](https://github.com/djdevil/AlertTicker-Card/issues/102))
+
+```yaml
+message: >
+  Waste collection in {state}
+  {% if state_attr('sensor.bins','daysTo') == 1 %} day {% else %} days {% endif %}
+```
 
 ---
 
 ### 💤 Snooze menu: 1 week and 1 month
 
-The snooze duration menu now includes **1 week** (168 h) and **1 month** (720 h) alongside the existing options, available in all 10 supported languages. Useful for low-priority long-lived alerts like battery warnings.
-
-> For a **fixed** long snooze without a menu (single tap), use `snooze_duration: 168` or `snooze_default_duration: 720` directly in the config.
+The snooze duration menu now includes **1 week** (168 h) and **1 month** (720 h) alongside the existing options, available in all 11 supported languages. ([#100](https://github.com/djdevil/AlertTicker-Card/discussions/100))
 
 ---
 
-### 🗓️ Also in 1.2.9
+### 🗓️ Also in 1.3
 
 - **`hold_action: url` on desktop** — popup blockers no longer silently discard the new tab; the URL now opens from `pointerup` (direct user-interaction event)
 - **`hold_action: url` on mobile/touch** — iOS/Safari `pointercancel` after long-press no longer silences the navigation; touch gestures now use `window.location.href` directly
@@ -261,8 +307,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **HA icons** | Use any `mdi:` icon per alert via native icon picker |
 | **Sound notifications** | Per-alert audio — auto-generated tones or custom URL |
 | **🔊 TTS announcements** | Read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (11 languages) |
-| **🔔 Push notifications** | **NEW** — send a push notification to any `notify.*` service when an alert fires. Full Jinja2 support for title and message. Global master toggle. |
-| **🤖 Server-side automations** | **NEW** — card auto-creates HA automations for push and TTS so they fire 24/7, even when the browser is closed. Supports all filter types. |
+| **📱 Push notifications** | Send a push notification to any `notify.*` service when an alert fires. Full Jinja2 support for title and message. Global master toggle. |
 | **📷 Camera snapshot** | Attach a live camera frame to the overlay banner, scaled proportionally with overlay zoom |
 | **Overlay scale** | Enlarge the overlay banner up to 3× for wall-mounted displays |
 | **🎵 Music player mode** | **NEW** — `media_player` entity shown as a cinematic player card with album art, equalizer, and controls |
@@ -280,7 +325,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Card border** | Toggle to show the standard HA border around the card — always visible, off by default |
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
-| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech, Portuguese (pt-BR), Spanish |
+| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech, Portuguese (pt-BR), Spanish — **11 languages** |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
 ---
@@ -347,6 +392,41 @@ Per-alert fields override global card-level defaults, so you can have one speake
 | `tts_engine` | `string` | Override the global TTS engine |
 | `tts_notify_service` | `string` | Override the global notify service |
 | `tts_message` | `string` | Custom spoken text (supports `{name}`, `{state}`, Jinja2) |
+
+---
+
+## 📱 Mobile Push Notifications *(new in 1.3)*
+
+Send a push notification to any Home Assistant `notify.*` service the moment an alert fires — works with the HA Companion App, Telegram, Pushover, and any other notify integration.
+
+```yaml
+alerts:
+  - entity: binary_sensor.front_door
+    state: "on"
+    theme: door
+    message: "Front door open"
+    push_notify: true
+    push_notify_service: mobile_app_my_phone         # required
+    push_notify_title: "🚪 Door Alert"               # optional, Jinja2
+    push_notify_message: "Door opened — {state}"     # optional, Jinja2
+```
+
+### How it works
+
+- Enable `push_notify: true` on any individual alert.
+- If no `push_notify_title` is set, the card uses the alert's **badge label** (or `name` if set).
+- If no `push_notify_message` is set, the card uses the alert's **display message** (same text shown in the ticker).
+- Both fields support `{state}`, `{name}`, `{entity}`, `{device}` placeholders and full Jinja2 templates.
+- Set a global **master toggle** (`push_notify_enabled: false`) in the General tab → 📱 Push Notifications to disable all push notifications at once without touching individual alerts.
+
+### Per-alert push notification options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `push_notify` | `boolean` | Enable push notification for this alert |
+| `push_notify_service` | `string` | `notify.*` service name (e.g. `mobile_app_my_phone`, `notify.telegram`) |
+| `push_notify_title` | `string` | Notification title — Jinja2, defaults to badge label |
+| `push_notify_message` | `string` | Notification message — Jinja2, defaults to alert message |
 
 ---
 

@@ -6,9 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.2.9] - 2026-04-28
+## [1.3] - 2026-04-28
 
 ### Added
+
+- **Mobile push notifications** — new per-alert option `push_notify: true` that sends a mobile push notification via a HA `notify.*` service when the alert activates. Configurable in the visual editor (📱 Push Notifications section, per alert): service selector, optional Jinja2 title and message fields (both fall back to the alert badge label / message when empty). A global master toggle `push_notify_enabled` (default on) allows disabling all push notifications at once without touching individual alerts. Available in all 11 supported languages.
+
+- **Weather/clock widget visible when all alerts are snoozed** ([#106](https://github.com/djdevil/AlertTicker-Card/issues/106)) — when `show_when_clear: true` is configured, the clear widget (weather, clock, forecast) now correctly appears even when all active alerts are snoozed. Previously the snooze indicator bar was returned early, blocking the clear widget entirely. The snooze counter pill remains visible overlaid on the widget.
+
+- **Music player MDI icons** ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105)) — all music player control buttons (play/pause, previous, next, mute) now use `<ha-icon mdi:...>` instead of emoji characters, ensuring correct rendering in the HA Companion App on all platforms.
 
 - **Snooze menu: 1 week and 1 month options** ([#100](https://github.com/djdevil/AlertTicker-Card/discussions/100)) — the snooze duration menu now includes two additional options: **1 week** (168 h) and **1 month** (720 h), available in all 10 supported languages. Useful for low-priority alerts such as battery warnings on devices that last months before needing replacement.
 
@@ -32,6 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 
 ### Fixed
+
+- **`trigger_delay` resets to zero when the dashboard is reopened** ([#88](https://github.com/djdevil/AlertTicker-Card/issues/88#issuecomment-4329551563)) — if an entity had already been in the trigger state for longer than `trigger_delay` before the card was loaded (e.g. a window left open for hours before opening the dashboard), the card started the delay timer from scratch, showing "All Clear" for another full `trigger_delay` seconds instead of firing immediately. Root cause: the timer always started at `trigger_delay * 1000` ms with no reference to how long the entity had been in that state. Fixed by reading `entity.last_changed` at timer start, subtracting the already-elapsed time, and using only the remaining duration. If the entity has been in trigger state for longer than `trigger_delay`, the alert activates immediately. Fix applied to both the card-side render gate (`_triggerDelayTimers`) and the overlay watcher (`_ovDelayTimers`).
+
+- **Music player control buttons unresponsive on desktop when `tap_action` is configured** ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105)) — play/pause, previous, next, and mute buttons, as well as the volume slider, did not respond to clicks when the alert had a `tap_action` or `double_tap_action` configured. Root cause: the card's `_onPointerDown` handler on the outer container fired first when any inner element was pressed, then `_onPointerUp` called `e.preventDefault()` which suppressed the synthetic `click` event before it could reach the button. Fixed by adding `@pointerdown` and `@pointerup` `stopPropagation` to every interactive element inside `_renderMusicPlayer`, preventing card-level pointer handlers from intercepting button interactions.
+
+- **Music player blurred cover art not rendering on iOS** ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105)) — the blurred background (`mu-art-bg`) and the spinning vinyl thumbnail were invisible on iOS Safari. Root cause: `inset: 0` shorthand is not fully supported in iOS Safari older than 15.4; `filter` on a `position: absolute` element inside `overflow: hidden` requires the `-webkit-filter` prefix for older WebKit versions and `will-change: transform` to force a separate GPU compositing layer. Fixed by replacing `inset: 0` with explicit `top/left/right/bottom: 0`, adding `-webkit-filter` alongside `filter`, and adding `will-change: transform` to both the background and the thumbnail.
+
+- **Music player cover art too dark on desktop** ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105)) — the blurred album-art background used `brightness(0.4)`, making the overall card appear too dark. Increased to `brightness(0.55)` for a better visual balance.
 
 - **Overlay fires only for the first matching entity in filter-mode alerts** — when a `device_class`, `entity_filter`, `label_filter`, or `area_filter` alert had multiple entities simultaneously satisfying the condition (e.g. 3 batteries below 20%), only the first entity in iteration order ever triggered the overlay banner. All others were silently blocked because `newBases` tracked the alert by index only, and the dedup key was the same for all entities of the same filter alert. Fixed with `_filterNotified` (per-entity tracking per filter alert) and `_findAllFilterMatches` (returns all matching entities, not just the first). The overlay now fires one banner per entity, one per watcher tick (2 s apart), with correct per-entity messages. When an entity recovers (leaves the matched set), it is removed from `_filterNotified` so it can re-fire if its condition becomes active again.
 

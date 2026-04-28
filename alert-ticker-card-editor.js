@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.2.9
+ * AlertTicker Card Editor v1.3
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.2.9";
+const CARD_VERSION = "1.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -733,6 +733,16 @@ const ET = {
     alert_tts_notify_type: "Tipo notifica (sovrascrive il globale)",
     alert_tts_message: "Testo TTS personalizzato",
     alert_tts_message_help: "Testo alternativo da leggere. Se vuoto, usa il messaggio dell'avviso.",
+    section_push_notify: "📱 Notifiche push",
+    push_notify_master_toggle: "Abilita notifiche push mobile",
+    push_notify_master_toggle_help: "Interruttore master. Se disattivato, nessun avviso invia una notifica push, anche se abilitato sul singolo avviso.",
+    alert_push_notify: "Invia notifica push mobile",
+    alert_push_notify_help: "Quando l'avviso si attiva, invia una notifica push tramite il servizio notify selezionato.",
+    alert_push_notify_title: "Titolo notifica (Jinja2)",
+    alert_push_notify_title_help: "Titolo inviato nella notifica push. Se vuoto, usa l'etichetta badge dell'avviso.",
+    alert_push_notify_message: "Messaggio notifica (Jinja2)",
+    alert_push_notify_message_help: "Messaggio inviato nella notifica push. Se vuoto, usa il messaggio dell'avviso.",
+    alert_push_notify_service: "Servizio notify",
     alert_camera_entity: "Camera per snapshot nell'overlay",
     alert_camera_entity_help: "Quando l'avviso scatta, mostra uno snapshot di questa camera nel banner overlay. Visibile solo nell'overlay, non nella card.",
     test_mode: "Modalità test",
@@ -1012,6 +1022,16 @@ const ET = {
     alert_tts_notify_type: "Notification type (overrides global)",
     alert_tts_message: "Custom TTS text",
     alert_tts_message_help: "Alternative text to read aloud. If empty, uses the alert message.",
+    section_push_notify: "📱 Push Notifications",
+    push_notify_master_toggle: "Enable mobile push notifications",
+    push_notify_master_toggle_help: "Master switch. When off, no alert sends a push notification, even if enabled per alert.",
+    alert_push_notify: "Send mobile push notification",
+    alert_push_notify_help: "When this alert activates, sends a push notification via the selected notify service.",
+    alert_push_notify_title: "Notification title (Jinja2)",
+    alert_push_notify_title_help: "Title sent in the push notification. Leave empty to use the alert badge label.",
+    alert_push_notify_message: "Notification message (Jinja2)",
+    alert_push_notify_message_help: "Message sent in the push notification. Leave empty to use the alert message.",
+    alert_push_notify_service: "Notify service",
     alert_camera_entity: "Camera snapshot in overlay",
     alert_camera_entity_help: "When the alert triggers, shows a snapshot from this camera in the overlay banner. Only visible in the overlay, not in the card.",
     test_mode: "Test mode",
@@ -1291,6 +1311,16 @@ const ET = {
     alert_tts_notify_type: "Type de notification (remplace le global)",
     alert_tts_message: "Texte TTS personnalisé",
     alert_tts_message_help: "Texte alternatif à lire. Si vide, utilise le message de l'alerte.",
+    section_push_notify: "📱 Notifications push",
+    push_notify_master_toggle: "Activer les notifications push mobiles",
+    push_notify_master_toggle_help: "Interrupteur principal. Si désactivé, aucune alerte n'envoie de notification push, même si activé sur chaque alerte.",
+    alert_push_notify: "Envoyer une notification push mobile",
+    alert_push_notify_help: "Quand cette alerte se déclenche, envoie une notification push via le service notify sélectionné.",
+    alert_push_notify_title: "Titre de la notification (Jinja2)",
+    alert_push_notify_title_help: "Titre envoyé dans la notification push. Laisser vide pour utiliser le label badge de l'alerte.",
+    alert_push_notify_message: "Message de la notification (Jinja2)",
+    alert_push_notify_message_help: "Message envoyé dans la notification push. Laisser vide pour utiliser le message de l'alerte.",
+    alert_push_notify_service: "Service notify",
     alert_camera_entity: "Caméra snapshot dans l'overlay",
     alert_camera_entity_help: "Quand l'alerte se déclenche, affiche un snapshot de cette caméra dans le banner overlay. Visible uniquement dans l'overlay, pas dans la carte.",
     test_mode: "Mode test",
@@ -1570,6 +1600,16 @@ const ET = {
     alert_tts_notify_type: "Benachrichtigungstyp (überschreibt global)",
     alert_tts_message: "Benutzerdefinierter TTS-Text",
     alert_tts_message_help: "Alternativer Text zum Vorlesen. Wenn leer, wird der Warnungstext verwendet.",
+    section_push_notify: "📱 Push-Benachrichtigungen",
+    push_notify_master_toggle: "Mobile Push-Benachrichtigungen aktivieren",
+    push_notify_master_toggle_help: "Hauptschalter. Wenn deaktiviert, sendet keine Warnung eine Push-Benachrichtigung, auch wenn für einzelne Warnungen aktiviert.",
+    alert_push_notify: "Mobile Push-Benachrichtigung senden",
+    alert_push_notify_help: "Wenn diese Warnung aktiv wird, sendet eine Push-Benachrichtigung über den ausgewählten Notify-Dienst.",
+    alert_push_notify_title: "Benachrichtigungstitel (Jinja2)",
+    alert_push_notify_title_help: "Titel in der Push-Benachrichtigung. Leer lassen für das Standard-Badge-Label der Warnung.",
+    alert_push_notify_message: "Benachrichtigungsnachricht (Jinja2)",
+    alert_push_notify_message_help: "Nachricht in der Push-Benachrichtigung. Leer lassen für die Warnungsnachricht.",
+    alert_push_notify_service: "Notify-Dienst",
     alert_camera_entity: "Kamera-Snapshot im Overlay",
     alert_camera_entity_help: "Wenn die Warnung ausgelöst wird, zeigt einen Snapshot dieser Kamera im Overlay-Banner. Nur im Overlay sichtbar, nicht in der Karte.",
     test_mode: "Testmodus",
@@ -1849,6 +1889,16 @@ const ET = {
     alert_tts_notify_type: "Meldingstype (overschrijft globaal)",
     alert_tts_message: "Aangepaste TTS-tekst",
     alert_tts_message_help: "Alternatieve tekst om voor te lezen. Als leeg, wordt de meldingstekst gebruikt.",
+    section_push_notify: "📱 Push-meldingen",
+    push_notify_master_toggle: "Mobiele push-meldingen inschakelen",
+    push_notify_master_toggle_help: "Hoofdschakelaar. Als uitgeschakeld, stuurt geen melding een push-notificatie, ook als het per melding is ingeschakeld.",
+    alert_push_notify: "Mobiele push-melding versturen",
+    alert_push_notify_help: "Wanneer deze melding activeert, stuurt een push-melding via de geselecteerde notify-service.",
+    alert_push_notify_title: "Meldingstitel (Jinja2)",
+    alert_push_notify_title_help: "Titel in de push-melding. Leeg laten voor het standaard badge-label van de melding.",
+    alert_push_notify_message: "Meldingsbericht (Jinja2)",
+    alert_push_notify_message_help: "Bericht in de push-melding. Leeg laten voor het meldingsbericht.",
+    alert_push_notify_service: "Notify-service",
     alert_camera_entity: "Camera snapshot in overlay",
     alert_camera_entity_help: "Wanneer de melding activeert, toont een snapshot van deze camera in de overlay banner. Alleen zichtbaar in de overlay, niet in de kaart.",
     test_mode:"Testmodus",
@@ -2128,6 +2178,16 @@ const ET = {
     alert_tts_notify_type: "Loại thông báo (ghi đè toàn cục)",
     alert_tts_message: "Văn bản TTS tùy chỉnh",
     alert_tts_message_help: "Văn bản thay thế để đọc. Nếu trống, dùng thông điệp báo động.",
+    section_push_notify: "📱 Thông báo đẩy",
+    push_notify_master_toggle: "Bật thông báo đẩy di động",
+    push_notify_master_toggle_help: "Công tắc chính. Khi tắt, không có báo động nào gửi thông báo đẩy, ngay cả khi được bật cho từng báo động.",
+    alert_push_notify: "Gửi thông báo đẩy di động",
+    alert_push_notify_help: "Khi báo động này kích hoạt, gửi thông báo đẩy qua dịch vụ notify đã chọn.",
+    alert_push_notify_title: "Tiêu đề thông báo (Jinja2)",
+    alert_push_notify_title_help: "Tiêu đề gửi trong thông báo đẩy. Để trống để dùng nhãn huy hiệu của báo động.",
+    alert_push_notify_message: "Nội dung thông báo (Jinja2)",
+    alert_push_notify_message_help: "Nội dung gửi trong thông báo đẩy. Để trống để dùng thông điệp báo động.",
+    alert_push_notify_service: "Dịch vụ notify",
     alert_camera_entity: "Camera snapshot trong overlay",
     alert_camera_entity_help: "Khi báo động kích hoạt, hiển thị snapshot từ camera này trong banner overlay. Chỉ hiện trong overlay, không trong card.",
     test_mode: "Chế độ thử",
@@ -2407,6 +2467,16 @@ const ET = {
     alert_tts_notify_type: "Тип уведомления (переопределяет глобальный)",
     alert_tts_message: "Пользовательский текст TTS",
     alert_tts_message_help: "Альтернативный текст для чтения. Если пусто, используется сообщение оповещения.",
+    section_push_notify: "📱 Push-уведомления",
+    push_notify_master_toggle: "Включить мобильные push-уведомления",
+    push_notify_master_toggle_help: "Главный переключатель. Когда выключен, ни одно оповещение не отправляет push-уведомление, даже если включено для отдельных оповещений.",
+    alert_push_notify: "Отправить мобильное push-уведомление",
+    alert_push_notify_help: "Когда это оповещение активируется, отправляет push-уведомление через выбранный notify-сервис.",
+    alert_push_notify_title: "Заголовок уведомления (Jinja2)",
+    alert_push_notify_title_help: "Заголовок push-уведомления. Оставьте пустым для использования метки значка оповещения.",
+    alert_push_notify_message: "Сообщение уведомления (Jinja2)",
+    alert_push_notify_message_help: "Сообщение push-уведомления. Оставьте пустым для использования сообщения оповещения.",
+    alert_push_notify_service: "Notify-сервис",
     alert_camera_entity: "Снимок камеры в оверлее",
     alert_camera_entity_help: "При срабатывании оповещения показывает снимок с этой камеры в баннере оверлея. Видно только в оверлее, не в карточке.",
     test_mode: "Режим тестирования",
@@ -2684,6 +2754,16 @@ const ET = {
     alert_tts_notify_type: "Notifikationstype (tilsidesætter global)",
     alert_tts_message: "Brugerdefineret TTS-tekst",
     alert_tts_message_help: "Alternativ tekst der skal læses. Hvis tom, bruges advarslens besked.",
+    section_push_notify: "📱 Push-notifikationer",
+    push_notify_master_toggle: "Aktivér mobile push-notifikationer",
+    push_notify_master_toggle_help: "Hovedkontakt. Når slået fra, sender ingen advarsel en push-notifikation, selv hvis aktiveret på individuelle advarsler.",
+    alert_push_notify: "Send mobil push-notifikation",
+    alert_push_notify_help: "Når denne advarsel aktiveres, sendes en push-notifikation via den valgte notify-tjeneste.",
+    alert_push_notify_title: "Notifikationstitel (Jinja2)",
+    alert_push_notify_title_help: "Titel sendt i push-notifikationen. Efterlad tom for at bruge advarslens badge-label.",
+    alert_push_notify_message: "Notifikationsbesked (Jinja2)",
+    alert_push_notify_message_help: "Besked sendt i push-notifikationen. Efterlad tom for at bruge advarslens besked.",
+    alert_push_notify_service: "Notify-tjeneste",
     alert_camera_entity: "Kamera-snapshot i overlay",
     alert_camera_entity_help: "Når advarslen udløses, vises et snapshot fra dette kamera i overlay-banneret. Kun synligt i overlay, ikke i kortet.",
     test_mode: "Testtilstand",
@@ -2965,6 +3045,16 @@ const ET = {
     alert_tts_notify_type: "Typ oznámení (přepíše globální)",
     alert_tts_message: "Vlastní TTS text",
     alert_tts_message_help: "Alternativní text k přečtení. Pokud prázdné, použije se zpráva varování.",
+    section_push_notify: "📱 Push notifikace",
+    push_notify_master_toggle: "Povolit mobilní push notifikace",
+    push_notify_master_toggle_help: "Hlavní přepínač. Když je vypnutý, žádné varování neposílá push notifikaci, i když je povoleno pro jednotlivá varování.",
+    alert_push_notify: "Odeslat mobilní push notifikaci",
+    alert_push_notify_help: "Když se toto varování aktivuje, odešle push notifikaci přes vybranou notify službu.",
+    alert_push_notify_title: "Název notifikace (Jinja2)",
+    alert_push_notify_title_help: "Název odeslaný v push notifikaci. Nechte prázdné pro použití badge štítku varování.",
+    alert_push_notify_message: "Zpráva notifikace (Jinja2)",
+    alert_push_notify_message_help: "Zpráva odeslaná v push notifikaci. Nechte prázdné pro použití zprávy varování.",
+    alert_push_notify_service: "Notify služba",
     alert_camera_entity: "Snímek kamery v overlay",
     alert_camera_entity_help: "Když se varování aktivuje, zobrazí snímek z této kamery v overlay banneru. Viditelné pouze v overlay, ne v kartě.",
     test_mode: "Testovací režim",
@@ -3246,6 +3336,16 @@ const ET = {
     alert_tts_notify_type: "Tipo de notificação (substitui o global)",
     alert_tts_message: "Texto TTS personalizado",
     alert_tts_message_help: "Texto alternativo para ler em voz alta. Se vazio, usa a mensagem do alerta.",
+    section_push_notify: "📱 Notificações push",
+    push_notify_master_toggle: "Habilitar notificações push móveis",
+    push_notify_master_toggle_help: "Interruptor principal. Quando desligado, nenhum alerta envia uma notificação push, mesmo que habilitado em alertas individuais.",
+    alert_push_notify: "Enviar notificação push móvel",
+    alert_push_notify_help: "Quando este alerta for ativado, envia uma notificação push via o serviço notify selecionado.",
+    alert_push_notify_title: "Título da notificação (Jinja2)",
+    alert_push_notify_title_help: "Título enviado na notificação push. Deixe vazio para usar o rótulo badge do alerta.",
+    alert_push_notify_message: "Mensagem da notificação (Jinja2)",
+    alert_push_notify_message_help: "Mensagem enviada na notificação push. Deixe vazio para usar a mensagem do alerta.",
+    alert_push_notify_service: "Serviço notify",
     alert_camera_entity: "Câmera para snapshot no overlay",
     alert_camera_entity_help: "Quando o alerta disparar, mostra um snapshot desta câmera no banner overlay. Visível apenas no overlay, não no card.",
     test_mode: "Modo de teste",
@@ -3525,6 +3625,16 @@ const ET = {
     alert_tts_notify_type: "Tipo de notificación (reemplaza el global)",
     alert_tts_message: "Texto TTS personalizado",
     alert_tts_message_help: "Texto alternativo para leer en voz alta. Si está vacío, usa el mensaje de la alerta.",
+    section_push_notify: "📱 Notificaciones push",
+    push_notify_master_toggle: "Activar notificaciones push móviles",
+    push_notify_master_toggle_help: "Interruptor principal. Cuando está desactivado, ninguna alerta envía una notificación push, incluso si está activado en alertas individuales.",
+    alert_push_notify: "Enviar notificación push móvil",
+    alert_push_notify_help: "Cuando esta alerta se activa, envía una notificación push a través del servicio notify seleccionado.",
+    alert_push_notify_title: "Título de la notificación (Jinja2)",
+    alert_push_notify_title_help: "Título enviado en la notificación push. Dejar vacío para usar la etiqueta badge de la alerta.",
+    alert_push_notify_message: "Mensaje de la notificación (Jinja2)",
+    alert_push_notify_message_help: "Mensaje enviado en la notificación push. Dejar vacío para usar el mensaje de la alerta.",
+    alert_push_notify_service: "Servicio notify",
     alert_camera_entity: "Cámara para snapshot en overlay",
     alert_camera_entity_help: "Cuando la alerta se activa, muestra un snapshot de esta cámara en el banner overlay. Solo visible en el overlay, no en la tarjeta.",
     test_mode: "Modo de prueba",
@@ -4336,6 +4446,19 @@ class AlertTickerCardEditor extends LitElement {
           ></ha-switch>
         </div>
         <div class="helper-text">${this._t("tts_master_toggle_help")}</div>
+      </div>
+
+      <!-- ── PUSH NOTIFY MASTER ─────────────────────────────────────────── -->
+      <div class="section-divider">${this._t("section_push_notify")}</div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("push_notify_master_toggle")}</span>
+          <ha-switch
+            .checked="${cfg.push_notify_enabled !== false}"
+            @change="${(e) => this._fireConfig({ ...this._config, push_notify_enabled: e.target.checked ? undefined : false })}"
+          ></ha-switch>
+        </div>
+        <div class="helper-text">${this._t("push_notify_master_toggle_help")}</div>
       </div>
 
       <!-- ── HISTORY ───────────────────────────────────────────────────── -->
@@ -5489,6 +5612,50 @@ class AlertTickerCardEditor extends LitElement {
                       @change="${(e) => this._updateAlert(index, { tts_message: e.target.value || undefined })}"
                     ></ha-textfield>
                     <div class="helper-text">${this._t("alert_tts_message_help")}</div>
+                  </div>
+                ` : ""}
+
+                <!-- Push notify per alert -->
+                <div class="section-divider">${this._t("section_push_notify")}</div>
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("alert_push_notify")}</span>
+                    <ha-switch
+                      .checked="${!!alert.push_notify}"
+                      @change="${(e) => this._updateAlert(index, { push_notify: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </div>
+                  <div class="helper-text">${this._t("alert_push_notify_help")}</div>
+                </div>
+                ${alert.push_notify ? html`
+                  <div class="form-row">
+                    <ha-textfield
+                      .label="${this._t('alert_push_notify_title')}"
+                      .value="${alert.push_notify_title || ''}"
+                      @change="${(e) => this._updateAlert(index, { push_notify_title: e.target.value || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("alert_push_notify_title_help")}</div>
+                  </div>
+                  <div class="form-row">
+                    <ha-textfield
+                      .label="${this._t('alert_push_notify_message')}"
+                      .value="${alert.push_notify_message || ''}"
+                      @change="${(e) => this._updateAlert(index, { push_notify_message: e.target.value || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("alert_push_notify_message_help")}</div>
+                  </div>
+                  <div class="form-row">
+                    <div class="native-select-wrap">
+                      <label class="native-select-label">${this._t('alert_push_notify_service')}</label>
+                      <select class="native-select"
+                        @change="${(e) => this._updateAlert(index, { push_notify_service: e.target.value || undefined })}"
+                      >
+                        <option value="" ?selected="${!alert.push_notify_service}">—</option>
+                        ${Object.keys(this._hass?.services?.notify || {}).sort().map((svc) => html`
+                          <option value="${svc}" ?selected="${alert.push_notify_service === svc}">notify.${svc}</option>
+                        `)}
+                      </select>
+                    </div>
                   </div>
                 ` : ""}
 

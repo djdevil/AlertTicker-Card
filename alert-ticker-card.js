@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.2.9
+ * AlertTicker Card v1.3
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 42 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.2.9";
+const CARD_VERSION = "1.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1166,13 +1166,31 @@ const _ATC_OVERLAY = (() => {
         _bases.set(id, newBases);
 
         // First tick = baseline: record current state, don't fire.
-        // Prevents banners for alerts already active at page load.
-        if (isFirst) continue;
+        // If the card is already mounted at baseline, stamp all currently-active alerts
+        // immediately so the second tick doesn't re-fire them (prevents overlay on page load
+        // when condition was already active and card is on screen).
+        const el = reg.element;
+        if (isFirst) {
+          if (el && el._mounted) {
+            const cfnFirst = _filterNotified.get(id) || new Map();
+            for (const i of curActive) {
+              newBases.add(i);
+              const a = reg.alerts[i];
+              if (!a.entity && (a.entity_filter || a.device_class || a.label_filter || a.area_filter)) {
+                const notifiedEids = cfnFirst.get(i) || new Set();
+                for (const [eid] of _findAllFilterMatches(hass, a)) notifiedEids.add(eid);
+                cfnFirst.set(i, notifiedEids);
+              }
+            }
+            _filterNotified.set(id, cfnFirst);
+            _bases.set(id, newBases);
+          }
+          continue;
+        }
 
         // Card is visible on the current view — watcher must not fire.
         // Also stamp all currently-active alerts into bases so a brief unmount
         // (e.g. config save in editor) doesn't re-fire already-visible alerts.
-        const el = reg.element;
         if (el && el._mounted) {
           const cardFN = _filterNotified.get(id) || new Map();
           for (const i of curActive) {
@@ -1257,7 +1275,7 @@ const _ATC_OVERLAY = (() => {
 
           // ── Single-entity alerts ──────────────────────────────────────────────
           if (newBases.has(i)) continue; // already notified or was already active
-          const key = id + ":" + (a.entity || "") + ":" + i;
+          const key = "e:" + (a.entity || a.entity_filter || a.device_class || "") + ":" + i;
           if (_isDupe(key)) continue;
           const cat     = (THEME_META[a.theme] || {}).category || "info";
           const rawIcon = a.icon || (THEME_META[a.theme] || {}).icon || "🔔";
@@ -1724,17 +1742,27 @@ class AlertTickerCard extends LitElement {
             }
             return false;
           }
-          // trigger_delay: condition must stay true for N seconds before alert becomes visible
+          // trigger_delay: condition must stay true for N seconds before alert becomes visible.
+          // Subtract time already elapsed since last_changed so the delay is respected
+          // even when the dashboard is opened mid-condition (not reset to zero on page load).
           if (alert.trigger_delay) {
             if (!this._triggerDelayActive.has(key)) {
               if (!this._triggerDelayTimers[key]) {
-                this._triggerDelayTimers[key] = setTimeout(() => {
+                const lc = entityState && entityState.last_changed
+                  ? new Date(entityState.last_changed).getTime() : 0;
+                const elapsed = lc ? (Date.now() - lc) / 1000 : 0;
+                const remaining = Math.max(0, alert.trigger_delay - elapsed);
+                if (remaining === 0) {
                   this._triggerDelayActive.add(key);
-                  delete this._triggerDelayTimers[key];
-                  this.requestUpdate();
-                }, alert.trigger_delay * 1000);
+                } else {
+                  this._triggerDelayTimers[key] = setTimeout(() => {
+                    this._triggerDelayActive.add(key);
+                    delete this._triggerDelayTimers[key];
+                    this.requestUpdate();
+                  }, remaining * 1000);
+                }
               }
-              return false; // still waiting for delay to elapse
+              if (!this._triggerDelayActive.has(key)) return false;
             }
           }
           // auto_dismiss_after for normal condition alerts
@@ -1809,13 +1837,13 @@ class AlertTickerCard extends LitElement {
             this._recordHistory(alert);
             this._playAlertSound(alert);
             this._speakAlert(alert);
+            this._pushNotifyAlert(alert);
             // Overlay: the watcher handles all display. The card-path only
             // calls suppress() to prevent the watcher from double-firing when
             // the card is mounted and visible. No showDirect() here — avoids
             // the race condition where set hass() fires before connectedCallback.
-            if (this._config?.overlay_mode && !_overlayShown && this._mounted) {
-              _overlayShown = true;
-              const dedupeKey = this._cardId + ":" + (alert.entity || "") + ":" + (alert._configIdx ?? 0);
+            if (this._config?.overlay_mode && this._mounted) {
+              const dedupeKey = "e:" + (alert.entity || alert.entity_filter || alert.device_class || "") + ":" + (alert._configIdx ?? 0);
               _ATC_OVERLAY.suppress(dedupeKey);
             }
           }
@@ -2998,6 +3026,27 @@ class AlertTickerCard extends LitElement {
         media_player_entity_id: mediaPlayer,
         message,
         ...(this._config?.tts_language ? { language: this._config.tts_language } : {}),
+      });
+    } catch (_) {}
+  }
+
+  _pushNotifyAlert(alert) {
+    if (!alert.push_notify) return;
+    if (this._config?.push_notify_enabled === false) return;
+    if (!this._hass) return;
+    const notifyService = alert.push_notify_service;
+    if (!notifyService) return;
+    const title = alert.push_notify_title
+      ? this._resolveMessage({ ...alert, message: alert.push_notify_title })
+      : (alert.badge_label || alert.name || undefined);
+    const message = alert.push_notify_message
+      ? this._resolveMessage({ ...alert, message: alert.push_notify_message })
+      : this._resolveMessage(alert);
+    if (!message) return;
+    try {
+      this._hass.callService("notify", notifyService, {
+        ...(title ? { title } : {}),
+        message,
       });
     } catch (_) {}
   }
@@ -4776,18 +4825,30 @@ class AlertTickerCard extends LitElement {
             ${artist ? html`<div class="mu-player-artist">${artist}</div>` : ""}
           </div>
           <div class="mu-player-controls">
-            <button class="mu-ctrl-btn" @click="${() => call('media_previous_track')}">⏮</button>
-            <button class="mu-ctrl-btn mu-ctrl-btn--play" @click="${() => call('media_play_pause')}">
-              ${isPlaying ? "⏸" : "▶"}
+            <button class="mu-ctrl-btn"
+              @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+              @click="${() => call('media_previous_track')}">
+              <ha-icon icon="mdi:skip-previous" style="--mdc-icon-size:18px"></ha-icon>
             </button>
-            <button class="mu-ctrl-btn" @click="${() => call('media_next_track')}">⏭</button>
+            <button class="mu-ctrl-btn mu-ctrl-btn--play"
+              @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+              @click="${() => call('media_play_pause')}">
+              <ha-icon icon="${isPlaying ? 'mdi:pause' : 'mdi:play'}" style="--mdc-icon-size:22px"></ha-icon>
+            </button>
+            <button class="mu-ctrl-btn"
+              @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+              @click="${() => call('media_next_track')}">
+              <ha-icon icon="mdi:skip-next" style="--mdc-icon-size:18px"></ha-icon>
+            </button>
             <button class="mu-ctrl-btn ${isMuted ? 'mu-ctrl-btn--active' : ''}"
+              @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
               @click="${() => call('volume_mute', { is_volume_muted: !isMuted })}">
-              ${isMuted ? "🔇" : "🔊"}
+              <ha-icon icon="${isMuted ? 'mdi:volume-off' : 'mdi:volume-high'}" style="--mdc-icon-size:18px"></ha-icon>
             </button>
             <input type="range" class="mu-vol-slider ${isMuted ? 'mu-vol-slider--muted' : ''}"
               min="0" max="100" step="1" .value="${vol}"
               style="background:${volBg}"
+              @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
               @input="${(e) => { e.target.style.background = `linear-gradient(to right, var(--mu-accent, #e040fb) ${e.target.value}%, rgba(255,255,255,0.15) ${e.target.value}%)`; }}"
               @change="${(e) => call('volume_set', { volume_level: parseFloat(e.target.value) / 100 })}"
             />
@@ -4990,12 +5051,18 @@ class AlertTickerCard extends LitElement {
     // No active alerts
     if (this._activeAlerts.length === 0) {
       // Some alerts match but are snoozed — show a minimal indicator with reset button
-      if (this._snoozedCount > 0 && this._config.show_snooze_bar !== false) {
+      // Exception: if show_when_clear is set, fall through to the clear widget instead
+      // (the snooze pill is already overlaid in the normal render path)
+      if (this._snoozedCount > 0 && this._config.show_snooze_bar !== false && !this._config.show_when_clear) {
         return html`
           <div class="atc-card-root">
             <div class="${this._hostClass}">${this._renderSnoozedIndicator()}</div>
           </div>`;
       }
+      const clearSnoozedPill = (this._snoozedCount > 0 && this._config.show_snooze_bar !== false) ? html`
+        <button class="atc-snoozed-pill" title="${this._t("snooze_reset")}" @click="${() => this._resetSnooze()}">
+          💤 ${this._snoozedCount}
+        </button>` : "";
       if (this._config.show_when_clear) {
         const widget = this._renderClearWidget();
         if (widget) {
@@ -5012,7 +5079,7 @@ class AlertTickerCard extends LitElement {
             <div class="${wHasAction ? "atc-clickable" : ""}"
               @pointerdown="${wPd}" @pointerup="${wPu}"
               @pointerleave="${wPl}" @pointercancel="${wPl}">${widget}</div>
-          </div></div></div>`;
+          </div>${clearSnoozedPill}</div></div>`;
         }
         // Build a virtual "all clear" alert and render it with the chosen clear theme
         const clearAlert = {
@@ -5040,6 +5107,7 @@ class AlertTickerCard extends LitElement {
                 @pointerleave="${clearPl}" @pointercancel="${clearPl}">
                 ${this._renderForTheme(clearAlert.theme, clearAlert)}
               </div>
+              ${clearSnoozedPill}
             </div>
           </div>`;
       }
@@ -7466,11 +7534,14 @@ class AlertTickerCard extends LitElement {
       /* --- Music player mode ------------------------------------------------ */
       .at-music--player { padding: 0; min-height: 90px; align-items: stretch; }
       .mu-art-bg {
-        position: absolute; inset: 0; background-size: cover; background-position: center;
-        filter: blur(14px) brightness(0.4) saturate(1.5); transform: scale(1.1);
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background-size: cover; background-position: center;
+        -webkit-filter: blur(14px) brightness(0.55) saturate(1.5);
+        filter: blur(14px) brightness(0.55) saturate(1.5);
+        transform: scale(1.1); will-change: transform;
       }
       .mu-art-overlay {
-        position: absolute; inset: 0;
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
         background: linear-gradient(90deg, rgba(12,0,22,0.93) 0%, rgba(12,0,22,0.62) 52%, rgba(12,0,22,0.12) 100%);
       }
       .mu-player-body {
@@ -7506,9 +7577,10 @@ class AlertTickerCard extends LitElement {
       .mu-ctrl-btn {
         background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
         border-radius: 50%; width: 34px; height: 34px; cursor: pointer;
-        font-size: 0.88rem; display: flex; align-items: center; justify-content: center;
+        display: flex; align-items: center; justify-content: center;
         color: rgba(255,255,255,0.82); transition: all 0.15s ease; padding: 0;
       }
+      .mu-ctrl-btn ha-icon { display: block; color: inherit; }
       .mu-ctrl-btn:hover {
         background: color-mix(in srgb, var(--mu-accent, #e040fb) 28%, transparent);
         border-color: color-mix(in srgb, var(--mu-accent, #e040fb) 55%, transparent);
@@ -7554,6 +7626,7 @@ class AlertTickerCard extends LitElement {
         margin: auto 14px auto 0;
         border: 2px solid color-mix(in srgb, var(--mu-accent, #e040fb) 45%, transparent);
         box-shadow: 0 0 0 4px color-mix(in srgb, var(--mu-accent, #e040fb) 12%, transparent), 0 4px 22px rgba(0,0,0,0.55);
+        will-change: transform;
       }
       .mu-art-thumb--playing {
         animation: muSpin 10s linear infinite;
