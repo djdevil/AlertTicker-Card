@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.2.8.1
+ * AlertTicker Card v1.2.9
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 42 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.2.8.1";
+const CARD_VERSION = "1.2.9";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -206,6 +206,8 @@ const T = {
     snooze_4h: "4 ore",
     snooze_8h: "8 ore",
     snooze_24h: "24 ore",
+    snooze_1w: "1 settimana",
+    snooze_1m: "1 mese",
     snooze_reset: "Riattiva tutti",
     dismiss: "Rimuovi",
     alerts_snoozed: "avvisi sospesi",
@@ -241,6 +243,8 @@ const T = {
     snooze_4h: "4 hours",
     snooze_8h: "8 hours",
     snooze_24h: "24 hours",
+    snooze_1w: "1 week",
+    snooze_1m: "1 month",
     snooze_reset: "Resume all",
     dismiss: "Dismiss",
     alerts_snoozed: "alerts snoozed",
@@ -276,6 +280,8 @@ const T = {
     snooze_4h: "4 heures",
     snooze_8h: "8 heures",
     snooze_24h: "24 heures",
+    snooze_1w: "1 semaine",
+    snooze_1m: "1 mois",
     snooze_reset: "Réactiver tout",
     dismiss: "Effacer",
     alerts_snoozed: "alertes suspendues",
@@ -311,6 +317,8 @@ const T = {
     snooze_4h: "4 Stunden",
     snooze_8h: "8 Stunden",
     snooze_24h: "24 Stunden",
+    snooze_1w: "1 Woche",
+    snooze_1m: "1 Monat",
     snooze_reset: "Alle fortsetzen",
     dismiss: "Verwerfen",
     alerts_snoozed: "Warnungen pausiert",
@@ -346,6 +354,8 @@ const T = {
     snooze_4h: "4 uur",
     snooze_8h: "8 uur",
     snooze_24h: "24 uur",
+    snooze_1w: "1 week",
+    snooze_1m: "1 maand",
     snooze_reset: "Alles hervatten",
     dismiss: "Verwijderen",
     alerts_snoozed: "meldingen gesluimerd",
@@ -381,6 +391,8 @@ const T = {
     snooze_4h: "4 giờ",
     snooze_8h: "8 giờ",
     snooze_24h: "24 giờ",
+    snooze_1w: "1 tuần",
+    snooze_1m: "1 tháng",
     snooze_reset: "Bỏ tạm hoãn tất cả",
     dismiss: "Xóa bỏ",
     alerts_snoozed: "báo động đã tạm hoãn",
@@ -416,6 +428,8 @@ const T = {
     snooze_4h: "4 часа",
     snooze_8h: "8 часов",
     snooze_24h: "24 часа",
+    snooze_1w: "1 неделя",
+    snooze_1m: "1 месяц",
     snooze_reset: "Восстановить все",
     dismiss: "Сбросить",
     alerts_snoozed: "оповещений отложено",
@@ -451,6 +465,8 @@ const T = {
     snooze_4h: "4 timer",
     snooze_8h: "8 timer",
     snooze_24h: "24 timer",
+    snooze_1w: "1 uge",
+    snooze_1m: "1 måned",
     snooze_reset: "Genoptag alle",
     dismiss: "Afvis",
     alerts_snoozed: "alarmer udsat",
@@ -486,6 +502,8 @@ const T = {
     snooze_4h: "4 hodiny",
     snooze_8h: "8 hodin",
     snooze_24h: "24 hodin",
+    snooze_1w: "1 týden",
+    snooze_1m: "1 měsíc",
     snooze_reset: "Obnovit vše",
     dismiss: "Zamítnout",
     alerts_snoozed: "varování odložena",
@@ -521,6 +539,8 @@ const T = {
     snooze_4h: "4 horas",
     snooze_8h: "8 horas",
     snooze_24h: "24 horas",
+    snooze_1w: "1 semana",
+    snooze_1m: "1 mês",
     snooze_reset: "Retomar todos",
     dismiss: "Descartar",
     alerts_snoozed: "alertas silenciados",
@@ -556,6 +576,8 @@ const T = {
     snooze_4h: "4 horas",
     snooze_8h: "8 horas",
     snooze_24h: "24 horas",
+    snooze_1w: "1 semana",
+    snooze_1m: "1 mes",
     snooze_reset: "Reanudar todo",
     dismiss: "Descartar",
     alerts_snoozed: "alertas pospuestas",
@@ -864,9 +886,10 @@ const _ATC_OVERLAY = (() => {
   // regs:  cardId → { alerts: [], config: {}, lang: "" }
   // bases: cardId → Set<number>   (active alert indices on last tick)
   // prevS: cardId → Map<string, string> (entity+attr → state on last tick)
-  let _regs        = new Map();
-  let _bases       = new Map();
-  let _prevS       = new Map();
+  let _regs          = new Map();
+  let _bases         = new Map();
+  let _prevS         = new Map();
+  let _filterNotified = new Map(); // cardId → Map<alertIndex, Set<entityId>> — per-entity dedup for filter alerts
   let _watchInterval = null;
   // trigger_delay tracking for overlay (mirrors card-side logic for when card is not mounted)
   const _ovDelayTimers = new Map(); // "cardId:i" → setTimeout ID
@@ -941,6 +964,38 @@ const _ATC_OVERLAY = (() => {
   }
 
   function _evalFilterAlert(hass, a) { return _findFilterMatch(hass, a) !== null; }
+
+  // Returns ALL [entityId, entityState] pairs that match a filter alert — used to fire one
+  // overlay per entity rather than only for the first match.
+  function _findAllFilterMatches(hass, a) {
+    const f = (a.entity_filter || "").toLowerCase();
+    const hasWild = f.includes("*");
+    const re = hasWild ? new RegExp("^" + f.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$") : null;
+    const matchFn = f ? ((t) => hasWild ? re.test(t.toLowerCase()) : t.toLowerCase().includes(f)) : null;
+    const excluded = new Set(a.entity_filter_exclude || []);
+    const labelFilter = a.label_filter ? (Array.isArray(a.label_filter) ? a.label_filter : [a.label_filter]) : null;
+    const areaFilter  = a.area_filter  ? (Array.isArray(a.area_filter)  ? a.area_filter  : [a.area_filter])  : null;
+    const result = [];
+    for (const [eid, es] of Object.entries(hass.states)) {
+      if (excluded.has(eid)) continue;
+      if (a.device_class && es.attributes?.device_class !== a.device_class) continue;
+      if (matchFn && !matchFn(eid) && !matchFn(es.attributes?.friendly_name || "")) continue;
+      if (labelFilter) {
+        const entityLabels = hass.entities?.[eid]?.labels || [];
+        if (!labelFilter.some(l => entityLabels.includes(l))) continue;
+      }
+      if (areaFilter) {
+        const meta = hass.entities?.[eid];
+        const entityArea = meta?.area_id;
+        const deviceArea = meta?.device_id ? hass.devices?.[meta.device_id]?.area_id : null;
+        if (!areaFilter.some(ar => ar === entityArea || ar === deviceArea)) continue;
+      }
+      let actual = es.state;
+      if (a.attribute) { let v = es.attributes; for (const p of String(a.attribute).split(".")) v = v?.[p]; actual = v != null ? String(v) : es.state; }
+      if (_matchOp(actual, a.operator || "=", a.state ?? "on")) result.push([eid, es]);
+    }
+    return result;
+  }
 
   function _evalAlert(hass, a, prevMap) {
     if (!_evalVisibleTo(hass, a)) return false;
@@ -1032,7 +1087,7 @@ const _ATC_OVERLAY = (() => {
   function _resolveMsgAsync(hass, a) {
     const fallback = _resolveMsg(hass, a);
     const raw = a.message || "";
-    if (!raw.includes("{{")) return Promise.resolve(fallback);
+    if (!raw.includes("{{") && !raw.includes("{%")) return Promise.resolve(fallback);
     // Substitute {placeholders} before sending to HA so {entity} becomes the real ID
     const tpl = _resolvePlaceholders(hass, a, raw);
     // Fast synchronous path for simple supported patterns
@@ -1119,14 +1174,89 @@ const _ATC_OVERLAY = (() => {
         // (e.g. config save in editor) doesn't re-fire already-visible alerts.
         const el = reg.element;
         if (el && el._mounted) {
-          for (const i of curActive) newBases.add(i);
+          const cardFN = _filterNotified.get(id) || new Map();
+          for (const i of curActive) {
+            newBases.add(i);
+            const a = reg.alerts[i];
+            if (!a.entity && (a.entity_filter || a.device_class || a.label_filter || a.area_filter)) {
+              const notifiedEids = cardFN.get(i) || new Set();
+              for (const [eid] of _findAllFilterMatches(hass, a)) notifiedEids.add(eid);
+              cardFN.set(i, notifiedEids);
+            }
+          }
+          _filterNotified.set(id, cardFN);
           _bases.set(id, newBases);
           continue;
         }
 
+        // For filter-mode alerts: remove entities from _filterNotified that no longer match
+        // so they can re-fire the overlay if they become active again.
+        {
+          const cardFN = _filterNotified.get(id);
+          if (cardFN) {
+            for (const [fi, notifiedEids] of cardFN) {
+              if (!curActive.has(fi)) { cardFN.delete(fi); continue; } // whole alert inactive — clear
+              const a = reg.alerts[fi];
+              if (!a || a.entity) continue;
+              const currentEids = new Set(_findAllFilterMatches(hass, a).map(([eid]) => eid));
+              for (const eid of [...notifiedEids]) { if (!currentEids.has(eid)) notifiedEids.delete(eid); }
+            }
+          }
+        }
+
         for (const i of curActive) {
+          const a = reg.alerts[i];
+          const isFilterMode = !a.entity && (a.entity_filter || a.device_class || a.label_filter || a.area_filter);
+
+          // ── Filter-mode alerts: fire one overlay per matching entity ──────────
+          if (isFilterMode) {
+            const allMatches = _findAllFilterMatches(hass, a);
+            const cardFN = _filterNotified.get(id) || new Map();
+            const notifiedEids = cardFN.get(i) || new Set();
+            let firedFilter = false;
+            for (const [eid, fes] of allMatches) {
+              if (notifiedEids.has(eid)) continue;
+              const key = id + ":" + eid + ":" + i;
+              if (_isDupe(key)) { notifiedEids.add(eid); continue; }
+              if (firedFilter) break; // one overlay per tick; remaining entities fire on next ticks
+              const fname  = fes.attributes?.friendly_name || eid;
+              const fstate = _ovFmtState(hass, fes, a.attribute || null);
+              const rawFilter = (a.message || "")
+                .replace(/\{state\}/g, fstate).replace(/\{name\}/g, fname)
+                .replace(/\{entity\}/g, eid).replace(/\{device\}/g, "").replace(/\{timer\}/g, "");
+              const needsWS = rawFilter.includes("{{") || rawFilter.includes("{%");
+              const quickFilter = needsWS ? _evalTemplate(hass, rawFilter) : null;
+              const filterMsgPromise = needsWS
+                ? (quickFilter !== null
+                    ? Promise.resolve(quickFilter.replace(/\s+/g, " ").trim() || fname)
+                    : _resolveMsgAsync(hass, { ...a, entity: eid, message: rawFilter }))
+                : Promise.resolve(rawFilter.replace(/\s+/g, " ").trim() || fname);
+              let filterSecondary = "";
+              if (a.show_filter_name !== false) filterSecondary = a.show_filter_state ? `${fname}: ${fstate}` : fname;
+              const cat     = (THEME_META[a.theme] || {}).category || "info";
+              const rawIcon = a.icon || (THEME_META[a.theme] || {}).icon || "🔔";
+              const icon    = (rawIcon && /^[\w-]+:/.test(rawIcon))
+                ? `<ha-icon icon="${rawIcon}"${a.icon_color ? ` style="color:${a.icon_color}"` : ""}></ha-icon>` : rawIcon;
+              const tLang  = T[reg.lang] || T.en;
+              const badge  = a.show_badge === false ? "" : (a.badge_label || ({ critical: tLang.critical, warning: tLang.warning_label, ok: tLang.success_label }[cat] ?? tLang.info_label));
+              const camUrl = a.camera_entity ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
+              const paintCfg = reg.config, paintTheme = a.theme;
+              notifiedEids.add(eid);
+              firedFilter = true;
+              filterMsgPromise.then(resolvedMsg => {
+                const parts = filterSecondary ? [filterSecondary] : [];
+                try { _paint(icon, cat, badge, resolvedMsg || fname, paintCfg, paintTheme, parts.join("\n"), camUrl); } catch (_) {}
+              });
+            }
+            cardFN.set(i, notifiedEids);
+            _filterNotified.set(id, cardFN);
+            newBases.add(i);
+            if (firedFilter) break; // one overlay per tick total
+            continue;
+          }
+
+          // ── Single-entity alerts ──────────────────────────────────────────────
           if (newBases.has(i)) continue; // already notified or was already active
-          const a   = reg.alerts[i];
           const key = id + ":" + (a.entity || "") + ":" + i;
           if (_isDupe(key)) continue;
           const cat     = (THEME_META[a.theme] || {}).category || "info";
@@ -1136,31 +1266,7 @@ const _ATC_OVERLAY = (() => {
             : rawIcon;
           const tLang  = T[reg.lang] || T.en;
           const badge  = a.show_badge === false ? "" : (a.badge_label || ({ critical: tLang.critical, warning: tLang.warning_label, ok: tLang.success_label }[cat] ?? tLang.info_label));
-
-          // For entity_filter / device_class alerts: find the triggering entity and resolve msg/secondary
-          let msgPromise, filterSecondary = "";
-          if ((a.entity_filter || a.device_class || a.label_filter || a.area_filter) && !a.entity) {
-            const match = _findFilterMatch(hass, a);
-            if (match) {
-              const [eid, fes] = match;
-              const fname = fes.attributes?.friendly_name || eid;
-              const fstate = _ovFmtState(hass, fes, a.attribute || null);
-              const rawFilter = (a.message || "")
-                .replace(/\{state\}/g, fstate).replace(/\{name\}/g, fname)
-                .replace(/\{entity\}/g, eid).replace(/\{device\}/g, "").replace(/\{timer\}/g, "");
-              const quickFilter = _evalTemplate(hass, rawFilter);
-              const filterMsg = quickFilter !== null
-                ? quickFilter.replace(/\s+/g, " ").trim() || fname
-                : rawFilter.replace(/\{%-?\s*[\s\S]*?-?%\}/g, "").replace(/\{\{[\s\S]*?\}\}/g, "…").replace(/\s+/g, " ").trim() || fname;
-              msgPromise = Promise.resolve(filterMsg);
-              if (a.show_filter_name !== false) {
-                filterSecondary = a.show_filter_state ? `${fname}: ${fstate}` : fname;
-              }
-            } else { msgPromise = Promise.resolve(a.message || ""); }
-          } else {
-            msgPromise = _resolveMsgAsync(hass, a);
-          }
-
+          const msgPromise = _resolveMsgAsync(hass, a);
           const entityPart = (() => {
             if (!a.secondary_entity) return "";
             const es = hass.states[a.secondary_entity];
@@ -1168,18 +1274,15 @@ const _ATC_OVERLAY = (() => {
             const st = _ovFmtState(hass, es, a.secondary_attribute || null);
             return a.show_secondary_name ? `${es.attributes?.friendly_name || a.secondary_entity} ${st}` : st;
           })();
-          // Resolve secondary_text — async if it contains {{ }} (same engine as msgPromise)
           let secondaryTextPromise;
           if (a.secondary_text) {
-            if (/\{\{/.test(a.secondary_text)) {
+            if (/\{\{/.test(a.secondary_text) || /\{%/.test(a.secondary_text)) {
               const quick = _evalTemplate(hass, a.secondary_text);
               secondaryTextPromise = quick !== null
                 ? Promise.resolve(quick.replace(/\s+/g, " ").trim())
                 : _resolveMsgAsync(hass, { ...a, message: a.secondary_text });
             } else {
-              secondaryTextPromise = Promise.resolve(
-                a.secondary_text.replace(/\{%-?\s*[\s\S]*?-?%\}/g, "").replace(/\s+/g, " ").trim()
-              );
+              secondaryTextPromise = Promise.resolve(a.secondary_text.replace(/\s+/g, " ").trim());
             }
           } else {
             secondaryTextPromise = Promise.resolve("");
@@ -1190,7 +1293,6 @@ const _ATC_OVERLAY = (() => {
           Promise.all([msgPromise, secondaryTextPromise]).then(([resolvedMsg, resolvedSecondary]) => {
             const resolvedParts = [];
             if (resolvedSecondary) resolvedParts.push(resolvedSecondary);
-            if (filterSecondary)   resolvedParts.push(filterSecondary);
             if (entityPart)        resolvedParts.push(entityPart);
             try { _paint(icon, cat, badge, resolvedMsg, paintCfg, paintTheme, resolvedParts.join("\n"), camUrl); } catch (_) {}
           });
@@ -1228,7 +1330,7 @@ const _ATC_OVERLAY = (() => {
           const isOrphan   = !oreg.disconnected;       // never called detach() — leftover
           const isSameSlot = oreg.disconnected && ofp === fp; // same card remounting
           if (isOrphan || isSameSlot) {
-            _regs.delete(oid); _prevS.delete(oid); _bases.delete(oid);
+            _regs.delete(oid); _prevS.delete(oid); _bases.delete(oid); _filterNotified.delete(oid);
           }
         }
         // If the alerts array changed (entity set or order), reset state so stale
@@ -1237,7 +1339,7 @@ const _ATC_OVERLAY = (() => {
         if (existing) {
           const oldSig = (existing.alerts || []).map((a, i) => i + ":" + (a.entity || a.entity_filter || "")).join("|");
           const newSig = (alerts || []).map((a, i) => i + ":" + (a.entity || a.entity_filter || "")).join("|");
-          if (oldSig !== newSig) { _bases.delete(id); _prevS.delete(id); }
+          if (oldSig !== newSig) { _bases.delete(id); _prevS.delete(id); _filterNotified.delete(id); }
         }
         _regs.set(id, { alerts: alerts || [], config, lang, element, disconnected: false });
         if (!_watchInterval) _watchInterval = setInterval(_tick, 2000);
@@ -1339,19 +1441,8 @@ class AlertTickerCard extends LitElement {
     this._swipeStartY = 0;
     // Double-tap detection
     this._doubleTapTimer = null;
-    // Hold-action deferred firing (url actions need synchronous context for window.open)
-    this._pendingHoldAction = null;
-    // On iOS/WKWebView (Companion app) a tap generates a click event even after pointerup
-    // stopPropagation. That click is re-dispatched at the shadow host and reaches HA parent
-    // handlers which navigate/open Safari. This flag + host listener suppresses it.
-    this._suppressNextClick = false;
-    this._hostClickSuppressor = (e) => {
-      if (this._suppressNextClick) {
-        this._suppressNextClick = false;
-        e.stopPropagation();
-        e.preventDefault();
-      }
-    };
+    // URL deferred from hold timer so window.open fires in a direct pointerup gesture context
+    this._pendingHoldUrl = null;
     // on_change / auto_dismiss_after tracking
     this._changeTriggers   = {};       // "configIdx:entityId" → trigger timestamp (on_change)
     this._autoDismissTimers = {};      // "configIdx:entityId" → setTimeout ID
@@ -1768,8 +1859,8 @@ class AlertTickerCard extends LitElement {
         let msg = rawMsg
           .replace(/\{count\}/g, members.length)
           .replace(/\{names\}/g, names.join(", "));
-        // Jinja2/WS template support: resolve {{ ... }} in group_message
-        if (rawMsg.includes("{{")) {
+        // Jinja2/WS template support: resolve {{ ... }} / {% %} in group_message
+        if (rawMsg.includes("{{") || rawMsg.includes("{%")) {
           const cached = this._tmplCache.get(rawMsg);
           if (cached !== undefined) {
             msg = cached
@@ -1783,6 +1874,27 @@ class AlertTickerCard extends LitElement {
             });
           }
         }
+        let grpSecondary = null;
+        if (src.group_secondary_text) {
+          const rawSec = src.group_secondary_text;
+          grpSecondary = rawSec
+            .replace(/\{count\}/g, members.length)
+            .replace(/\{names\}/g, names.join(", "));
+          if (rawSec.includes("{{") || rawSec.includes("{%")) {
+            const cachedSec = this._tmplCache.get(rawSec);
+            if (cachedSec !== undefined) {
+              grpSecondary = cachedSec
+                .replace(/\{count\}/g, members.length)
+                .replace(/\{names\}/g, names.join(", "));
+            } else {
+              this._subscribeTemplate(rawSec);
+              grpSecondary = grpSecondary.replace(/\{\{\s*([\s\S]*?)\s*\}\}/g, (_, expr) => {
+                const v = this._evalJinjaExpr(expr.trim());
+                return v !== null ? v : "";
+              });
+            }
+          }
+        }
         _ungrouped.push({
           _isGroup: true,
           _groupKey: groupKey,
@@ -1793,7 +1905,11 @@ class AlertTickerCard extends LitElement {
           icon: src.icon,
           priority: src.priority || 3,
           message: msg,
+          secondary_text: grpSecondary,
           entity: undefined,
+          group_tap_action:        src.group_tap_action        || null,
+          group_hold_action:       src.group_hold_action       || null,
+          group_double_tap_action: src.group_double_tap_action || null,
         });
       } else {
         _ungrouped.push(...members);
@@ -2443,10 +2559,11 @@ class AlertTickerCard extends LitElement {
   _syncTemplates() {
     const needed = new Set();
     for (const alert of this._config?.alerts || []) {
-      if ((alert.message || "").includes("{{")) needed.add(alert.message);
-      if ((alert.secondary_text || "").includes("{{")) needed.add(alert.secondary_text);
-      if ((alert.group_message || "").includes("{{")) needed.add(alert.group_message);
-      if ((alert.group_expanded_message || "").includes("{{")) needed.add(alert.group_expanded_message);
+      if ((alert.message || "").includes("{{") || (alert.message || "").includes("{%")) needed.add(alert.message);
+      if ((alert.secondary_text || "").includes("{{") || (alert.secondary_text || "").includes("{%")) needed.add(alert.secondary_text);
+      if ((alert.group_message || "").includes("{{") || (alert.group_message || "").includes("{%")) needed.add(alert.group_message);
+      if ((alert.group_expanded_message || "").includes("{{") || (alert.group_expanded_message || "").includes("{%")) needed.add(alert.group_expanded_message);
+      if ((alert.group_secondary_text || "").includes("{{") || (alert.group_secondary_text || "").includes("{%")) needed.add(alert.group_secondary_text);
     }
     // Unsubscribe stale
     for (const [tmpl, unsub] of this._tmplUnsubs) {
@@ -2526,7 +2643,7 @@ class AlertTickerCard extends LitElement {
 
     // Pre-substitute {entity}/{state}/{name}/{device} BEFORE passing to HA's template engine,
     // so that patterns like {{ area_name('{entity}') }} receive the real entity ID.
-    if (msg.includes("{{") && alert.entity && this._hass) {
+    if ((msg.includes("{{") || msg.includes("{%")) && alert.entity && this._hass) {
       const es = this._hass.states[alert.entity];
       if (es) {
         const translatedState = this._formatStateValue(es, alert.attribute);
@@ -2545,8 +2662,8 @@ class AlertTickerCard extends LitElement {
       }
     }
 
-    // {{ ... }} Full HA template rendering via WebSocket render_template
-    if (msg.includes("{{")) {
+    // {{ ... }} / {% %} Full HA template rendering via WebSocket render_template
+    if (msg.includes("{{") || msg.includes("{%")) {
       const cached = this._tmplCache.get(msg);
       if (cached !== undefined) {
         // WS result available — use it (already fully rendered by HA)
@@ -2641,7 +2758,7 @@ class AlertTickerCard extends LitElement {
     }
 
     // Resolve {{ }} Jinja2 templates in the state value (e.g. states('input_number.threshold'))
-    if (typeof trigger === "string" && trigger.includes("{{")) {
+    if (typeof trigger === "string" && (trigger.includes("{{") || trigger.includes("{%"))) {
       const cached = this._tmplCache.get(trigger);
       if (cached !== undefined) {
         trigger = cached;
@@ -2807,7 +2924,7 @@ class AlertTickerCard extends LitElement {
     // If message contains {{ }}, the WS result may not be cached yet.
     // Resolve async and patch the entry once HA responds.
     const raw = alert.message || "";
-    if (!raw.includes("{{") || !this._hass?.connection) return;
+    if ((!raw.includes("{{") && !raw.includes("{%")) || !this._hass?.connection) return;
     const cached = this._tmplCache?.get(raw);
     if (cached !== undefined) { entry.message = cached || entry.message; this._saveHistory(); return; }
     // Substitute {placeholders} before sending to HA engine
@@ -3030,7 +3147,7 @@ class AlertTickerCard extends LitElement {
             <div class="atc-icon-wrap">${icon}</div>
             <div class="atc-group-body">
               <div class="atc-group-message">${group.message || ""}</div>
-              <div class="atc-group-names">${preview}</div>
+              <div class="atc-group-names">${group.secondary_text ?? preview}</div>
             </div>
             <div class="atc-group-count">
               <span class="atc-group-count-num">${(group._members || []).length}</span>
@@ -3097,7 +3214,7 @@ class AlertTickerCard extends LitElement {
           ${menuOpen ? html`
             <div class="atc-snooze-menu">
               <div class="atc-snooze-label">${this._t("snooze")}</div>
-              ${[[1, "snooze_1h"], [4, "snooze_4h"], [8, "snooze_8h"], [24, "snooze_24h"]].map(
+              ${[[1, "snooze_1h"], [4, "snooze_4h"], [8, "snooze_8h"], [24, "snooze_24h"], [168, "snooze_1w"], [720, "snooze_1m"]].map(
                 ([h, key]) => html`
                   <button class="atc-snooze-option" @click="${() => this._snoozeGroup(alert, h)}">
                     ${this._t(key)}
@@ -3132,7 +3249,7 @@ class AlertTickerCard extends LitElement {
           ${menuOpen ? html`
             <div class="atc-snooze-menu">
               <div class="atc-snooze-label">${this._t("snooze")}</div>
-              ${[[1, "snooze_1h"], [4, "snooze_4h"], [8, "snooze_8h"], [24, "snooze_24h"]].map(
+              ${[[1, "snooze_1h"], [4, "snooze_4h"], [8, "snooze_8h"], [24, "snooze_24h"], [168, "snooze_1w"], [720, "snooze_1m"]].map(
                 ([h, key]) => html`
                   <button class="atc-snooze-option" @click="${() => this._snoozeAlert(alert, h)}">
                     ${this._t(key)}
@@ -3263,11 +3380,7 @@ class AlertTickerCard extends LitElement {
       }
       case "url": {
         if (!cfg.url_path) return;
-        // "noopener" makes window.open return null even on success — omit it so
-        // we can detect a real popup-block (null = blocked → fall back to same-tab).
-        // On the Companion app window.open("_blank") opens SFSafariViewController.
-        const w = window.open(cfg.url_path, "_blank");
-        if (!w) window.location.assign(cfg.url_path);
+        window.open(cfg.url_path, "_blank", "noopener");
         break;
       }
     }
@@ -3278,7 +3391,6 @@ class AlertTickerCard extends LitElement {
     if (e.button !== undefined && e.button !== 0) return;
 
     this._holdFired = false;
-    this._pendingHoldAction = null;
     this._pendingTapCfg = tapCfg;
     this._pendingDoubleTapCfg = doubleTapCfg || null;
     // Capture pointer on the listener element (currentTarget = inner div) so pointerup
@@ -3289,21 +3401,25 @@ class AlertTickerCard extends LitElement {
       // before our 500 ms hold threshold — without this the gesture is silently
       // hijacked on mobile and the hold never fires.
       if (e.pointerType === 'touch') e.preventDefault();
+      const _isTouch = e.pointerType === 'touch';
       this._holdTimer = setTimeout(() => {
         this._holdFired = true;
-        if (holdCfg.action === "url" && !/HomeAssistant\//.test(navigator.userAgent)) {
-          // Desktop only: defer url actions to pointerup so window.open fires in a
-          // direct-gesture context (setTimeout is async → popup-blocked on desktop).
-          // On the Companion app window.open works fine from async context, and
-          // pointercancel may fire instead of pointerup after a long-press on iOS,
-          // so we fire immediately here for Companion app.
-          this._pendingHoldAction = holdCfg;
+        if (holdCfg.action === "url" && holdCfg.url_path) {
+          // URL hold on touch: open via location.href immediately (window.open from setTimeout is
+          // popup-blocked; pointercancel on iOS means pointerup never fires so we can't defer).
+          // URL hold on desktop: defer to pointerup which carries real user-activation so
+          // window.open won't be blocked — store URL and open it there.
+          if (_isTouch) {
+            window.location.href = holdCfg.url_path;
+          } else {
+            this._pendingHoldUrl = holdCfg.url_path;
+          }
         } else {
           this._handleAction(holdCfg);
-          // After hold-navigate, block pointer events briefly so the upcoming pointerup
-          // doesn't land on a new-view element at the same screen coordinates
-          this._blockPointerEvents(350);
         }
+        // After hold-navigate, block pointer events briefly so the upcoming pointerup
+        // doesn't land on a new-view element at the same screen coordinates
+        this._blockPointerEvents(350);
       }, 500);
     }
   }
@@ -3317,14 +3433,14 @@ class AlertTickerCard extends LitElement {
   /** Fire tap / double-tap action on pointer up (if hold didn't fire) */
   _onPointerUp(e) {
     this._cancelHold();
-    // Url hold actions are deferred here so window.open fires in a direct user-gesture context
-    if (this._holdFired && this._pendingHoldAction) {
-      const action = this._pendingHoldAction;
-      this._pendingHoldAction = null;
+    // Desktop hold_action: url — open the deferred URL now; pointerup carries user-activation
+    // so window.open won't be blocked by the browser's popup blocker.
+    if (this._holdFired && this._pendingHoldUrl) {
+      const url = this._pendingHoldUrl;
+      this._pendingHoldUrl = null;
       this._holdFired = false;
-      e.preventDefault();   // prevent synthetic click from bubbling to HA parent handlers
-      e.stopPropagation();
-      this._handleAction(action);
+      const w = window.open(url, "_blank");
+      if (!w) window.location.assign(url);
       return;
     }
     if (!this._holdFired) {
@@ -3332,10 +3448,6 @@ class AlertTickerCard extends LitElement {
       // from this pointer sequence, preventing tap bleed-through on navigate actions
       e.preventDefault();
       e.stopPropagation();
-      // Signal the host-level click suppressor to block the re-dispatched click that
-      // iOS/WKWebView generates after a tap (long-press does not generate click, so
-      // hold actions never reach HA parent — but tap/double-tap do without this flag).
-      this._suppressNextClick = true;
       const hasDoubleTap = this._pendingDoubleTapCfg &&
                            this._pendingDoubleTapCfg.action &&
                            this._pendingDoubleTapCfg.action !== "none";
@@ -3365,6 +3477,7 @@ class AlertTickerCard extends LitElement {
 
   _cancelHold() {
     if (this._holdTimer) { clearTimeout(this._holdTimer); this._holdTimer = null; }
+    this._pendingHoldUrl = null;
   }
 
   /** Swipe-to-snooze: record touch start position */
@@ -3483,8 +3596,6 @@ class AlertTickerCard extends LitElement {
     this._loadHistory();
     this._startCycleTimer();
     this._startTimerTick();
-    // Catch the shadow-DOM-retargeted click before it reaches HA parent handlers
-    this.addEventListener('click', this._hostClickSuppressor);
   }
 
   disconnectedCallback() {
@@ -3492,7 +3603,6 @@ class AlertTickerCard extends LitElement {
     this._mounted = false;
     this._stopCycleTimer();
     this._stopTimerTick();
-    this.removeEventListener('click', this._hostClickSuppressor);
     if (this._snoozeOutsideHandler) {
       document.removeEventListener("pointerdown", this._snoozeOutsideHandler, true);
       this._snoozeOutsideHandler = null;
@@ -4666,14 +4776,14 @@ class AlertTickerCard extends LitElement {
             ${artist ? html`<div class="mu-player-artist">${artist}</div>` : ""}
           </div>
           <div class="mu-player-controls">
-            <button class="mu-ctrl-btn" @click="${() => call('media_previous_track')}"><ha-icon icon="mdi:skip-previous"></ha-icon></button>
+            <button class="mu-ctrl-btn" @click="${() => call('media_previous_track')}">⏮</button>
             <button class="mu-ctrl-btn mu-ctrl-btn--play" @click="${() => call('media_play_pause')}">
-              <ha-icon icon="${isPlaying ? "mdi:pause" : "mdi:play"}"></ha-icon>
+              ${isPlaying ? "⏸" : "▶"}
             </button>
-            <button class="mu-ctrl-btn" @click="${() => call('media_next_track')}"><ha-icon icon="mdi:skip-next"></ha-icon></button>
+            <button class="mu-ctrl-btn" @click="${() => call('media_next_track')}">⏭</button>
             <button class="mu-ctrl-btn ${isMuted ? 'mu-ctrl-btn--active' : ''}"
               @click="${() => call('volume_mute', { is_volume_muted: !isMuted })}">
-              <ha-icon icon="${isMuted ? "mdi:volume-mute" : "mdi:volume-high"}"></ha-icon>
+              ${isMuted ? "🔇" : "🔊"}
             </button>
             <input type="range" class="mu-vol-slider ${isMuted ? 'mu-vol-slider--muted' : ''}"
               min="0" max="100" step="1" .value="${vol}"
@@ -4901,8 +5011,7 @@ class AlertTickerCard extends LitElement {
           return html`<div class="atc-card-root"><div class="${this._hostClass}"><div class="atc-inner-clip">
             <div class="${wHasAction ? "atc-clickable" : ""}"
               @pointerdown="${wPd}" @pointerup="${wPu}"
-              @pointerleave="${wPl}" @pointercancel="${wPl}"
-              @click="${wHasAction ? (e) => { e.stopPropagation(); e.preventDefault(); } : null}">${widget}</div>
+              @pointerleave="${wPl}" @pointercancel="${wPl}">${widget}</div>
           </div></div></div>`;
         }
         // Build a virtual "all clear" alert and render it with the chosen clear theme
@@ -4928,8 +5037,7 @@ class AlertTickerCard extends LitElement {
             <div class="${this._hostClass}">
               <div class="at-fold-wrapper${clearHasAction ? " atc-clickable" : ""}"
                 @pointerdown="${clearPd}" @pointerup="${clearPu}"
-                @pointerleave="${clearPl}" @pointercancel="${clearPl}"
-                @click="${clearHasAction ? (e) => { e.stopPropagation(); e.preventDefault(); } : null}">
+                @pointerleave="${clearPl}" @pointercancel="${clearPl}">
                 ${this._renderForTheme(clearAlert.theme, clearAlert)}
               </div>
             </div>
@@ -4994,10 +5102,10 @@ class AlertTickerCard extends LitElement {
     // tap_action / double_tap_action / hold_action — backwards-compat: old "action" key maps to tap call-service
     // Group slides use internal _expand_group tap so the whole card is tappable
     const tapCfg    = isWidgetSlide ? (this._config.clear_tap_action        || null)
-                    : (current && current._isGroup) ? { action: "_expand_group" }
+                    : (current && current._isGroup) ? (current.group_tap_action        || { action: "_expand_group" })
                     : (current.tap_action || (current.action ? { action: "call-service", ...current.action } : null));
-    const holdCfg   = isWidgetSlide ? (this._config.clear_hold_action       || null) : (current && current._isGroup ? null : (current.hold_action       || null));
-    const dblTapCfg = isWidgetSlide ? (this._config.clear_double_tap_action || null) : (current && current._isGroup ? null : (current.double_tap_action || null));
+    const holdCfg   = isWidgetSlide ? (this._config.clear_hold_action       || null) : (current && current._isGroup ? (current.group_hold_action       || null) : (current.hold_action       || null));
+    const dblTapCfg = isWidgetSlide ? (this._config.clear_double_tap_action || null) : (current && current._isGroup ? (current.group_double_tap_action || null) : (current.double_tap_action || null));
     const hasInteraction = (tapCfg    && tapCfg.action    && tapCfg.action    !== "none") ||
                            (holdCfg   && holdCfg.action   && holdCfg.action   !== "none") ||
                            (dblTapCfg && dblTapCfg.action && dblTapCfg.action !== "none");
@@ -5023,8 +5131,7 @@ class AlertTickerCard extends LitElement {
               <div class="${hasInteraction ? "atc-clickable" : ""}"
                 @pointerdown="${pdHandler}" @pointerup="${puHandler}"
                 @pointerleave="${plHandler}" @pointercancel="${plHandler}"
-                @touchstart="${swipeStart}" @touchend="${swipeEnd}"
-                @click="${hasInteraction ? (e) => { e.stopPropagation(); e.preventDefault(); } : null}">${inner}</div>
+                @touchstart="${swipeStart}" @touchend="${swipeEnd}">${inner}</div>
             </div>
             ${snoozeBtn}${groupBackBtn}${historyBtn}${snoozedPill}${counterOverlay}${navButtons}${touchHandle}
           </div>
@@ -5039,8 +5146,7 @@ class AlertTickerCard extends LitElement {
               data-anim="${this._config.cycle_animation || "fold"}"
               @pointerdown="${pdHandler}" @pointerup="${puHandler}"
               @pointerleave="${plHandler}" @pointercancel="${plHandler}"
-              @touchstart="${swipeStart}" @touchend="${swipeEnd}"
-              @click="${hasInteraction ? (e) => { e.stopPropagation(); e.preventDefault(); } : null}">${inner}</div>
+              @touchstart="${swipeStart}" @touchend="${swipeEnd}">${inner}</div>
           </div>
           ${snoozeBtn}${groupBackBtn}${historyBtn}${snoozedPill}${counterOverlay}${navButtons}${touchHandle}
         </div>
@@ -7400,9 +7506,8 @@ class AlertTickerCard extends LitElement {
       .mu-ctrl-btn {
         background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
         border-radius: 50%; width: 34px; height: 34px; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
+        font-size: 0.88rem; display: flex; align-items: center; justify-content: center;
         color: rgba(255,255,255,0.82); transition: all 0.15s ease; padding: 0;
-        --mdc-icon-size: 18px;
       }
       .mu-ctrl-btn:hover {
         background: color-mix(in srgb, var(--mu-accent, #e040fb) 28%, transparent);
@@ -7410,7 +7515,7 @@ class AlertTickerCard extends LitElement {
         color: #fff; transform: scale(1.1);
       }
       .mu-ctrl-btn--play {
-        width: 44px; height: 44px; --mdc-icon-size: 22px;
+        width: 44px; height: 44px; font-size: 1.1rem;
         background: color-mix(in srgb, var(--mu-accent, #e040fb) 35%, transparent);
         border-color: color-mix(in srgb, var(--mu-accent, #e040fb) 70%, transparent);
         color: #fff; box-shadow: 0 0 18px color-mix(in srgb, var(--mu-accent, #e040fb) 45%, transparent);

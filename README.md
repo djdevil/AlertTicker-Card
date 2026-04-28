@@ -3,7 +3,7 @@
 A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.2.8-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -11,6 +11,69 @@ A custom Lovelace card to display alerts and notifications based on entity state
 > ☕ If you enjoy this card and it saves you time, consider buying me a coffee — it keeps the updates coming!
 >
 > [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
+
+---
+
+## ✨ What's New in v1.2.9
+
+### 🔔 Overlay fires for ALL matching entities in filter-mode
+
+Previously, when a filter-mode alert (`device_class`, `entity_filter`, `label_filter`, `area_filter`) had multiple entities simultaneously satisfying the condition, the overlay banner fired only for the **first** entity — all others were silently ignored. Now every matching entity gets its own overlay, fired one at a time (2 s apart), with the correct per-entity message and name.
+
+---
+
+### 🌐 Full Jinja2 `{% if %}` / `{% else %}` block tag support
+
+Template fields (`message`, `secondary_text`, `group_message`, `group_expanded_message`, `group_secondary_text`, overlay messages) now correctly evaluate Jinja2 **block tags** even without any `{{ }}` expression. No more `{{ "" }}` workaround needed:
+
+```yaml
+message: >
+  Waste collection in {state}
+  {% if state_attr('sensor.bins','daysTo') == 1 %} day {% else %} days {% endif %}
+```
+
+---
+
+### 🗂️ Group tap / hold actions + custom secondary text
+
+Three new options for grouped filter alerts:
+
+```yaml
+alerts:
+  - device_class: update
+    group: true
+    group_message: "🐳 {count} updates available"
+    group_secondary_text: "Tap to manage · {count} pending"
+    group_tap_action:
+      action: navigate
+      navigation_path: /update
+    group_hold_action:
+      action: url
+      url_path: http://portainer.local
+```
+
+| Key | Description |
+|-----|-------------|
+| `group_tap_action` | Action when tapping the collapsed group header (default: expand/collapse) |
+| `group_hold_action` | Action when holding the collapsed group header |
+| `group_secondary_text` | Custom secondary line replacing the auto-generated entity name list — supports `{count}`, `{names}`, Jinja2 |
+
+All three options are configurable in the visual editor under **🗂️ Group alerts**.
+
+---
+
+### 💤 Snooze menu: 1 week and 1 month
+
+The snooze duration menu now includes **1 week** (168 h) and **1 month** (720 h) alongside the existing options, available in all 10 supported languages. Useful for low-priority long-lived alerts like battery warnings.
+
+> For a **fixed** long snooze without a menu (single tap), use `snooze_duration: 168` or `snooze_default_duration: 720` directly in the config.
+
+---
+
+### 🗓️ Also in 1.2.9
+
+- **`hold_action: url` on desktop** — popup blockers no longer silently discard the new tab; the URL now opens from `pointerup` (direct user-interaction event)
+- **`hold_action: url` on mobile/touch** — iOS/Safari `pointercancel` after long-press no longer silences the navigation; touch gestures now use `window.location.href` directly
 
 ---
 
@@ -197,8 +260,10 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Timer themes** | 4 animated themes for `timer.*` entities with live countdown |
 | **HA icons** | Use any `mdi:` icon per alert via native icon picker |
 | **Sound notifications** | Per-alert audio — auto-generated tones or custom URL |
-| **🔊 TTS announcements** | **NEW** — read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (10 languages) |
-| **📷 Camera snapshot** | **NEW** — attach a live camera frame to the overlay banner, scaled proportionally with overlay zoom |
+| **🔊 TTS announcements** | Read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (11 languages) |
+| **🔔 Push notifications** | **NEW** — send a push notification to any `notify.*` service when an alert fires. Full Jinja2 support for title and message. Global master toggle. |
+| **🤖 Server-side automations** | **NEW** — card auto-creates HA automations for push and TTS so they fire 24/7, even when the browser is closed. Supports all filter types. |
+| **📷 Camera snapshot** | Attach a live camera frame to the overlay banner, scaled proportionally with overlay zoom |
 | **Overlay scale** | Enlarge the overlay banner up to 3× for wall-mounted displays |
 | **🎵 Music player mode** | **NEW** — `media_player` entity shown as a cinematic player card with album art, equalizer, and controls |
 | **🌤 7-day forecast widget** | **NEW** — full forecast grid or alternating weather+forecast display mode |
@@ -1140,6 +1205,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `tts_engine` | `string` | *(auto)* | TTS engine entity (auto-detected from first `tts.*` state if omitted) |
 | `tts_notify_service` | `string` | — | Default notify service for Alexa / push (e.g. `alexa_media_echo_dot`) |
 | `tts_language` | `string` | — | Language code passed to `tts.speak` (e.g. `it-IT`) |
+| `notify_push_enabled` | `boolean` | `true` | Master toggle — set `false` to disable all push notifications globally |
 | `test_mode` | `boolean` | `false` | Show all alerts as active (ignore conditions) — for editor preview only |
 | `alerts` | `list` | `[]` | List of alert objects |
 
@@ -1181,7 +1247,12 @@ The tab shows an **ON** badge when overlay mode is active.
 | `tts_entity` | `string` | ❌ | Override the global `media_player.*` speaker for this alert |
 | `tts_engine` | `string` | ❌ | Override the global TTS engine entity |
 | `tts_notify_service` | `string` | ❌ | Override the global notify service (for Alexa / push) |
+| `tts_notify_type` | `string` | `tts` | Notify type sent to the service — use `announce` for Alexa speaker groups |
 | `tts_message` | `string` | ❌ | Custom spoken text — omit for auto-generated multilingual sentence |
+| `notify_push` | `boolean` | `false` | Send a push notification when this alert becomes active |
+| `notify_push_service` | `string` | ❌ | Target `notify.*` service (without prefix, e.g. `mobile_app_iphone`) |
+| `notify_push_title` | `string` | ❌ | Notification title — supports `{name}`, `{state}`, `{entity}`, `{device}`, Jinja2 |
+| `notify_push_message` | `string` | ❌ | Notification body — same placeholders; falls back to `message` if empty |
 | `show_player_controls` | `boolean` | ❌ | Enable graphical music player UI for `media_player.*` entities (requires `theme: music`) |
 | `music_player_color` | `string` | ❌ | Accent color for the music player UI — any CSS color (default `#e040fb`) |
 | `camera_entity` | `string` | ❌ | Camera entity whose live snapshot appears in the overlay banner |
@@ -1362,6 +1433,21 @@ alerts:
     theme: warning
 ```
 
+### Push notification on door open
+
+```yaml
+type: custom:alert-ticker-card
+alerts:
+  - entity: binary_sensor.front_door
+    state: "on"
+    message: "Front door open"
+    theme: door
+    notify_push: true
+    notify_push_service: mobile_app_iphone_di_mario
+    notify_push_title: "Door Alert"
+    notify_push_message: "{name} opened at {{ now().strftime('%H:%M') }}"
+```
+
 ### Music player with custom accent color
 
 ```yaml
@@ -1493,6 +1579,10 @@ TTS fallback messages (auto-generated when no `tts_message` is set) are availabl
 
 **TTS not playing**
 - Check that `tts_enabled` is not `false`. For standard TTS, ensure `tts_entity` is a valid `media_player.*`. For Alexa, set `tts_notify_service` to the correct `alexa_media_*` service name (visible in Developer Tools → Services). The TTS engine is auto-detected from the first `tts.*` state — if none is found, set `tts_engine` explicitly.
+- TTS (and push notifications) fired from the browser tab only work while the dashboard is open. To receive alerts when the browser is closed, the card automatically creates server-side HA automations (`[AlertTicker] TTS` and `[AlertTicker] Push Notifications`) via the REST API when the config is saved — check **Settings → Automations** to verify they exist.
+
+**Push notifications not arriving**
+- Verify `notify_push_enabled` is not `false`. Check that `notify_push_service` matches the service name exactly (without the `notify.` prefix). The card sends push via HA WebSocket when the dashboard is open; for 24/7 delivery, the auto-created `[AlertTicker] Push Notifications` automation in **Settings → Automations** must be present and enabled.
 
 **Camera image not appearing in overlay**
 - Verify the `camera_entity` entity exists and has an `entity_picture` attribute in Developer Tools → States. The image is loaded directly from the HA proxied URL — no extra authentication needed on the local network.

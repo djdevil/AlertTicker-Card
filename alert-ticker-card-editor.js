@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.2.8.1
+ * AlertTicker Card Editor v1.2.8
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.2.8.1";
+const CARD_VERSION = "1.2.8";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -860,8 +860,12 @@ const ET = {
     group_min_help: "Numero minimo di entità attive prima di mostrare il riepilogo di gruppo (default: 3).",
     group_message: "Messaggio di gruppo",
     group_message_help: "Usa {count} per il numero di alert attivi e {names} per la lista dei nomi. Es. '{count} sensori attivi'. Supporta anche {{ states('sensor.x') }}.",
+    group_secondary_text: "Testo secondario di gruppo",
+    group_secondary_text_help: "Riga secondaria sotto il messaggio di gruppo. Usa {count} e {names}. Se non impostato mostra l'elenco dei nomi.",
     group_expanded_message: "Messaggio singolo (espanso)",
     group_expanded_message_help: "Messaggio per ogni entità quando il gruppo è espanso. Usa {state}, {name}, {entity}, {device}. Supporta anche {{ states('sensor.x') }}.",
+    group_tap_action_section: "Tap sul gruppo — azione al tocco",
+    group_hold_action_section: "Hold sul gruppo — azione pressione lunga",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Segnaposto: {name} nome entità, {state} stato, {entity} ID entità, {device} nome dispositivo",
     timer_placeholder_hint: "Usa {timer} nel messaggio per mostrare il countdown (es. 'Disabilitato per {timer}')",
@@ -1135,8 +1139,12 @@ const ET = {
     group_min_help: "Minimum number of active entities before showing the group summary (default: 3).",
     group_message: "Group message",
     group_message_help: "Use {count} for the number of active alerts and {names} for the name list. E.g. '{count} sensors active'. Supports {{ states('sensor.x') }} templates.",
+    group_secondary_text: "Group secondary text",
+    group_secondary_text_help: "Secondary line below the group message. Supports {count} and {names}. If not set, shows the entity name list.",
     group_expanded_message: "Item message (expanded)",
     group_expanded_message_help: "Message for each entity when the group is expanded. Use {state}, {name}, {entity}, {device}. Supports {{ states('sensor.x') }} templates.",
+    group_tap_action_section: "Group tap action",
+    group_hold_action_section: "Group hold action",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Placeholders: {name} entity name, {state} state, {entity} entity ID, {device} device name",
     timer_placeholder_hint: "Use {timer} in the message to show the countdown (e.g. 'Disabled for {timer}')",
@@ -1410,8 +1418,12 @@ const ET = {
     group_min_help: "Nombre minimal d'entités actives avant d'afficher le résumé de groupe (défaut : 3).",
     group_message: "Message de groupe",
     group_message_help: "Utilisez {count} pour le nombre d'alertes actives et {names} pour la liste des noms. Ex. '{count} capteurs actifs'. Supporte {{ states('sensor.x') }}.",
+    group_secondary_text: "Texte secondaire du groupe",
+    group_secondary_text_help: "Ligne secondaire sous le message du groupe. Supporte {count} et {names}. Si non défini, affiche la liste des noms.",
     group_expanded_message: "Message unitaire (développé)",
     group_expanded_message_help: "Message affiché pour chaque entité en vue développée. Utilisez {state}, {name}, {entity}, {device}. Supporte {{ states('sensor.x') }}.",
+    group_tap_action_section: "Action tap sur le groupe",
+    group_hold_action_section: "Action appui long sur le groupe",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Variables : {name} nom entité, {state} état, {entity} ID entité, {device} nom appareil",
     timer_placeholder_hint: "Utilisez {timer} dans le message pour afficher le compte à rebours (ex. 'Désactivé pour {timer}')",
@@ -1685,8 +1697,12 @@ const ET = {
     group_min_help: "Mindestanzahl aktiver Entitäten, bevor die Gruppenübersicht angezeigt wird (Standard: 3).",
     group_message: "Gruppennachricht",
     group_message_help: "Verwende {count} für die Anzahl aktiver Alarme und {names} für die Namensliste. Z.B. '{count} Sensoren aktiv'. Unterstützt {{ states('sensor.x') }}.",
+    group_secondary_text: "Sekundärer Gruppentext",
+    group_secondary_text_help: "Sekundärzeile unter der Gruppennachricht. Unterstützt {count} und {names}. Wenn nicht gesetzt, wird die Namensliste angezeigt.",
     group_expanded_message: "Einzelnachricht (erweitert)",
     group_expanded_message_help: "Nachricht für jede Entität in der erweiterten Ansicht. Verwende {state}, {name}, {entity}, {device}. Unterstützt {{ states('sensor.x') }}.",
+    group_tap_action_section: "Gruppen-Tap-Aktion",
+    group_hold_action_section: "Gruppen-Halte-Aktion",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Platzhalter: {name} Entitätsname, {state} Zustand, {entity} Entitäts-ID, {device} Gerätename",
     timer_placeholder_hint: "Verwende {timer} in der Nachricht für den Countdown (z.B. 'Deaktiviert für {timer}')",
@@ -1960,8 +1976,12 @@ const ET = {
     group_min_help: "Minimaal aantal actieve entiteiten voordat de groepsamenvatting wordt weergegeven (standaard: 3).",
     group_message: "Groepsbericht",
     group_message_help: "Gebruik {count} voor het aantal actieve meldingen en {names} voor de namenlijst. Bijv. '{count} sensoren actief'. Ondersteunt {{ states('sensor.x') }}.",
+    group_secondary_text: "Secundaire groepstekst",
+    group_secondary_text_help: "Secundaire regel onder het groepsbericht. Ondersteunt {count} en {names}. Indien niet ingesteld, wordt de namenlijst weergegeven.",
     group_expanded_message: "Individueel bericht (uitgevouwen)",
     group_expanded_message_help: "Bericht voor elke entiteit in uitgevouwen weergave. Gebruik {state}, {name}, {entity}, {device}. Ondersteunt {{ states('sensor.x') }}.",
+    group_tap_action_section: "Groepstik-actie",
+    group_hold_action_section: "Groeps-houd-actie",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Plaatshouders: {name} entiteitsnaam, {state} toestand, {entity} entiteits-ID, {device} apparaatnaam",
     timer_placeholder_hint: "Gebruik {timer} in het bericht voor de countdown (bijv. 'Uitgeschakeld voor {timer}')",
@@ -2235,8 +2255,12 @@ const ET = {
     group_min_help: "Số lượng thực thể hoạt động tối thiểu trước khi hiển thị tóm tắt nhóm (mặc định: 3).",
     group_message: "Tin nhắn nhóm",
     group_message_help: "Dùng {count} cho số cảnh báo đang hoạt động và {names} cho danh sách tên. Ví dụ: '{count} cảm biến đang hoạt động'. Hỗ trợ {{ states('sensor.x') }}.",
+    group_secondary_text: "Văn bản phụ của nhóm",
+    group_secondary_text_help: "Dòng phụ bên dưới tin nhắn nhóm. Hỗ trợ {count} và {names}. Nếu không đặt, hiển thị danh sách tên.",
     group_expanded_message: "Tin nhắn đơn (đã mở rộng)",
     group_expanded_message_help: "Tin nhắn cho từng thực thể khi nhóm được mở rộng. Dùng {state}, {name}, {entity}, {device}. Hỗ trợ {{ states('sensor.x') }}.",
+    group_tap_action_section: "Hành động nhấn vào nhóm",
+    group_hold_action_section: "Hành động nhấn giữ vào nhóm",
     timer_theme_category: "Hẹn giờ",
     message_placeholder_hint: "Biến: {name} tên thực thể, {state} trạng thái, {entity} ID thực thể, {device} tên thiết bị",
     timer_placeholder_hint: "Dùng {timer} trong thông báo để hiển thị đếm ngược (vd. 'Đã tắt trong {timer}')",
@@ -2510,8 +2534,12 @@ const ET = {
     group_min_help: "Минимальное количество активных объектов для отображения сводки группы (по умолчанию: 3).",
     group_message: "Сообщение группы",
     group_message_help: "Используйте {count} для количества активных оповещений и {names} для списка имён. Напр. '{count} датчиков активно'. Поддерживает {{ states('sensor.x') }}.",
+    group_secondary_text: "Дополнительный текст группы",
+    group_secondary_text_help: "Дополнительная строка под сообщением группы. Поддерживает {count} и {names}. Если не задано, показывает список имён.",
     group_expanded_message: "Сообщение элемента (развёрнуто)",
     group_expanded_message_help: "Сообщение для каждой сущности при развёрнутом виде. Используйте {state}, {name}, {entity}, {device}. Поддерживает {{ states('sensor.x') }}.",
+    group_tap_action_section: "Действие по нажатию на группу",
+    group_hold_action_section: "Действие по удержанию группы",
     timer_theme_category: "Таймер",
     message_placeholder_hint: "Переменные: {name} имя объекта, {state} состояние, {entity} ID объекта, {device} имя устройства",
     timer_placeholder_hint: "Используйте {timer} в сообщении для отображения обратного отсчёта (например 'Отключится через {timer}')",
@@ -2783,8 +2811,12 @@ const ET = {
     group_min_help: "Minimalt antal aktive entiteter, inden gruppeoversigten vises (standard: 3).",
     group_message: "Gruppebesked",
     group_message_help: "Brug {count} til antal aktive advarsler og {names} til navnelisten. F.eks. '{count} sensorer aktive'. Understøtter {{ states('sensor.x') }}.",
+    group_secondary_text: "Sekundær gruppetekst",
+    group_secondary_text_help: "Sekundær linje under gruppebesked. Understøtter {count} og {names}. Viser navneliste hvis ikke angivet.",
     group_expanded_message: "Enkeltbesked (udvidet)",
     group_expanded_message_help: "Besked for hver entitet i udvidet visning. Brug {state}, {name}, {entity}, {device}. Understøtter {{ states('sensor.x') }}.",
+    group_tap_action_section: "Tap-handling på gruppe",
+    group_hold_action_section: "Hold-handling på gruppe",
     timer_theme_category: "Timer",
     message_placeholder_hint: "Pladsholdere: {name} enheds‑navn, {state} tilstand, {entity} enheds‑ID, {device} enheds‑navn",
     timer_placeholder_hint: "Brug {timer} i beskeden for at vise nedtælling (f.eks. 'Deaktiveret i {timer}')",
@@ -3060,8 +3092,12 @@ const ET = {
     group_min_help: "Minimální počet aktivních entit před zobrazením souhrnu skupiny (výchozí: 3).",
     group_message: "Zpráva skupiny",
     group_message_help: "Použijte {count} pro počet aktivních upozornění a {names} pro seznam jmen. Např. '{count} senzorů aktivních'. Podporuje {{ states('sensor.x') }}.",
+    group_secondary_text: "Sekundární text skupiny",
+    group_secondary_text_help: "Sekundární řádek pod zprávou skupiny. Podporuje {count} a {names}. Pokud není nastaveno, zobrazí seznam jmen.",
     group_expanded_message: "Zpráva položky (rozbaleno)",
     group_expanded_message_help: "Zpráva pro každou entitu v rozbalené skupině. Použijte {state}, {name}, {entity}, {device}. Podporuje {{ states('sensor.x') }}.",
+    group_tap_action_section: "Akce při doteku skupiny",
+    group_hold_action_section: "Akce při dlouhém doteku skupiny",
     timer_theme_category: "Časovač",
     message_placeholder_hint: "Zástupná slova: {name} název entity, {state} stav, {entity} ID entity, {device} název zařízení",
     timer_placeholder_hint: "Použijte {timer} v těle zprávy pro zobrazení odpočtu (např. 'Vypnuto za {timer}')",
@@ -3337,8 +3373,12 @@ const ET = {
     group_min_help: "Número mínimo de entidades ativas antes de exibir o resumo do grupo (padrão: 3).",
     group_message: "Mensagem do grupo",
     group_message_help: "Use {count} para o número de alertas ativos e {names} para a lista de nomes. Ex.: '{count} sensores ativos'. Suporta {{ states('sensor.x') }}.",
+    group_secondary_text: "Texto secundário do grupo",
+    group_secondary_text_help: "Linha secundária abaixo da mensagem do grupo. Suporta {count} e {names}. Se não definido, mostra a lista de nomes.",
     group_expanded_message: "Mensagem individual (expandida)",
     group_expanded_message_help: "Mensagem para cada entidade quando o grupo está expandido. Use {state}, {name}, {entity}, {device}. Suporta {{ states('sensor.x') }}.",
+    group_tap_action_section: "Ação de toque no grupo",
+    group_hold_action_section: "Ação de pressão longa no grupo",
     timer_theme_category: "Temporizador",
     message_placeholder_hint: "Espaços reservados: {name} nome da entidade, {state} estado, {entity} ID da entidade, {device} nome do dispositivo",
     timer_placeholder_hint: "Use {timer} na mensagem para mostrar a contagem regressiva (ex. 'Desabilitado por {timer}')",
@@ -3612,8 +3652,12 @@ const ET = {
     group_min_help: "Número mínimo de entidades activas antes de mostrar el resumen de grupo (por defecto: 3).",
     group_message: "Mensaje de grupo",
     group_message_help: "Use {count} para el número de alertas activas y {names} para la lista de nombres. Ej. '{count} sensores activos'. Admite {{ states('sensor.x') }}.",
+    group_secondary_text: "Texto secundario del grupo",
+    group_secondary_text_help: "Línea secundaria bajo el mensaje del grupo. Admite {count} y {names}. Si no se define, muestra la lista de nombres.",
     group_expanded_message: "Mensaje individual (expandido)",
     group_expanded_message_help: "Mensaje para cada entidad cuando el grupo está expandido. Use {state}, {name}, {entity}, {device}. Admite {{ states('sensor.x') }}.",
+    group_tap_action_section: "Acción de toque en el grupo",
+    group_hold_action_section: "Acción de pulsación larga en el grupo",
     timer_theme_category: "Temporizador",
     message_placeholder_hint: "Marcadores: {name} nombre de entidad, {state} estado, {entity} ID de entidad, {device} nombre del dispositivo",
     timer_placeholder_hint: "Usa {timer} en el mensaje para mostrar la cuenta atrás (ej. 'Deshabilitado por {timer}')",
@@ -5023,6 +5067,15 @@ class AlertTickerCardEditor extends LitElement {
                   </div>
                   <div class="form-row">
                     <ha-textfield
+                      .label="${this._t("group_secondary_text")}"
+                      .value="${alert.group_secondary_text || ""}"
+                      placeholder="Tocca per gestire"
+                      @change="${(e) => this._updateAlert(index, { group_secondary_text: e.target.value || undefined })}"
+                    ></ha-textfield>
+                    <div class="helper-text">${this._t("group_secondary_text_help")}</div>
+                  </div>
+                  <div class="form-row">
+                    <ha-textfield
                       .label="${this._t("group_expanded_message")}"
                       .value="${alert.group_expanded_message || ""}"
                       placeholder="{name}: {state}%"
@@ -5030,6 +5083,8 @@ class AlertTickerCardEditor extends LitElement {
                     ></ha-textfield>
                     <div class="helper-text">${this._t("group_expanded_message_help")}</div>
                   </div>
+                  ${this._renderActionConfig(alert, index, "group_tap_action",  this._t("group_tap_action_section"))}
+                  ${this._renderActionConfig(alert, index, "group_hold_action", this._t("group_hold_action_section"))}
                 ` : ""}
                 ` : ""}
 

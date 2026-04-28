@@ -6,41 +6,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.2.8.1] - 2026-04-26
+## [1.2.9] - 2026-04-28
+
+### Added
+
+- **Snooze menu: 1 week and 1 month options** ([#100](https://github.com/djdevil/AlertTicker-Card/discussions/100)) — the snooze duration menu now includes two additional options: **1 week** (168 h) and **1 month** (720 h), available in all 10 supported languages. Useful for low-priority alerts such as battery warnings on devices that last months before needing replacement.
+
+- **`group_tap_action` and `group_hold_action`** ([#103](https://github.com/djdevil/AlertTicker-Card/issues/103)) — new per-alert options that configure the tap and hold gesture on the collapsed group header. By default (when not set) the group tap continues to expand/collapse the group as before (non-breaking). When set, the configured action is executed instead. Both actions are configurable in the visual editor (Group section, visible only for filter-mode alerts).
+  ```yaml
+  alerts:
+    - entity_filter: "update.*"
+      group: true
+      group_message: "🐳 {count} aggiornamenti"
+      group_tap_action:
+        action: navigate
+        navigation_path: /update
+      group_hold_action:
+        action: url
+        url_path: http://portainer.local
+  ```
+
+- **`group_secondary_text`** ([#103](https://github.com/djdevil/AlertTicker-Card/issues/103)) — new per-alert option that sets a custom secondary line on the collapsed group slide, replacing the auto-generated entity-name list. Supports `{count}`, `{names}` placeholders and Jinja2 templates. Configurable in the visual editor.
+  ```yaml
+  group_secondary_text: "Tocca per gestire · {count} in attesa"
+  ```
 
 ### Fixed
 
-- **URL actions opening two pages on HA Companion app (iOS/Android)** — tap and double-tap were simultaneously opening SFSafariViewController (in-app browser) and navigating the Home Assistant WebView, causing a double-open. Root cause: `window.open(url, "_blank", "noopener")` always returns `null` per the HTML spec when `"noopener"` is used, so the `!w` fallback (`window.location.assign`) always fired. Fixed by removing `"noopener"` so `window.open` returns a truthy reference on success.
+- **Overlay fires only for the first matching entity in filter-mode alerts** — when a `device_class`, `entity_filter`, `label_filter`, or `area_filter` alert had multiple entities simultaneously satisfying the condition (e.g. 3 batteries below 20%), only the first entity in iteration order ever triggered the overlay banner. All others were silently blocked because `newBases` tracked the alert by index only, and the dedup key was the same for all entities of the same filter alert. Fixed with `_filterNotified` (per-entity tracking per filter alert) and `_findAllFilterMatches` (returns all matching entities, not just the first). The overlay now fires one banner per entity, one per watcher tick (2 s apart), with correct per-entity messages. When an entity recovers (leaves the matched set), it is removed from `_filterNotified` so it can re-fire if its condition becomes active again.
 
-- **Hold URL action opening in-app browser instead of SFSafariViewController on Companion app** — the 500 ms hold timer fires in an async context; on iOS/WKWebView `pointercancel` may fire instead of `pointerup` after a long-press, so the deferred `_onPointerUp` handler was never reached. Fixed by firing hold URL actions immediately from the timer on the Companion app (detected via `HomeAssistant/` in the user agent), keeping the `_onPointerUp` deferral only for desktop browsers where `window.open("_blank")` is popup-blocked in async contexts.
+- **`hold_action: url` on desktop** — `window.open("_blank")` called from inside the 500 ms `setTimeout` callback loses user-activation status, causing popup blockers to silently discard the new tab. Fixed by storing the URL in `_pendingHoldUrl` when the hold fires for a mouse/desktop gesture and opening it from `pointerup` instead, which is a direct user-interaction event and is never blocked.
 
-- **URL actions causing "404 not found" on Companion app after navigating back** — a previous attempted fix used `window.location.assign` on the Companion app, which navigated the WKWebView away from the HA page. Reverted to `window.open("_blank")` for all platforms; the Companion app correctly handles this by opening SFSafariViewController without leaving the HA page.
+- **`hold_action: url` on mobile/touch** — after a long-press, iOS/Safari sends `pointercancel` instead of `pointerup` (WKWebView limitation), so the deferred `_pendingHoldUrl` path was never reached and the URL never opened. Fixed by opening the URL with `window.location.href` directly from the hold timer for touch gestures, which navigates in-app without requiring user-activation. Note: opening an external URL in a new Safari tab from a hold gesture is a [known WKWebView platform limitation](https://github.com/home-assistant/frontend/issues/18474) that affects all Lovelace cards; use `tap_action: url` on iOS if you need a new Safari window.
 
-- **HA parent click handler double-firing URL actions on iOS** — on iOS/WKWebView, a quick tap generates a `click` event that is re-dispatched (shadow DOM retargeting) at the card's host element, where HA parent handlers could intercept it and open a second browser instance. Added a host-level `click` listener that suppresses the re-dispatched event whenever the card has already handled the action via `pointerup`.
+- **Jinja2 `{% if %}` / `{% else %}` block tags not evaluated in any template field** ([#102](https://github.com/djdevil/AlertTicker-Card/issues/102)) — `message`, `secondary_text`, `group_message`, `group_expanded_message`, and overlay messages that contained only Jinja2 block tags (`{% if %}`, `{% else %}`, `{% endif %}`, etc.) without any `{{ }}` expression were rendered verbatim. Root cause: every template-detection gate checked `includes("{{")` only. Fixed by also checking `includes("{%")` at all detection points: `_resolveMsgAsync`, `_resolveMessage`, `_syncTemplates` (all 4 template fields), group-message WS path, history async patch, overlay filter-mode message path, overlay `secondary_text` path, and trigger state resolution. The `{% if %}` / `{% else %}` blocks now correctly trigger WebSocket server-side rendering; the `{{ "" }}` workaround is no longer needed.
 
 ---
 
 ## [1.2.8] - 2026-04-26
 
-### Added
 
-- **Grouped alerts (`group: true`)** — filter-mode alerts (device class, entity filter, label/area) can now be collapsed into a single summary slide when the number of active entities reaches a threshold. The group card shows a configurable message, the count of active entities, and a preview of their names; tapping it expands into individual alert slides and a `◀` chip collapses back to the group view. All fields are configurable in the visual editor under the new **🗂️ Raggruppa alert** section (visible only for filter-mode alerts).
-  - `group: true` — enable grouping for a filter-mode alert
-  - `group_min` — minimum number of active entities before collapsing (default: `3`)
-  - `group_message` — summary message; supports `{count}`, `{names}`, and full HA Jinja2 templates (`{{ states('sensor.x') }}` etc.)
-  - `group_expanded_message` — per-entity message shown when the group is expanded; supports `{state}`, `{name}`, `{entity}`, `{device}`, and Jinja2 templates
-  - Swipe-to-snooze on the group slide snoozes **all** members; swipe on each expanded slide snoozes that entity individually
-  ```yaml
-  alerts:
-    - device_class: battery
-      operator: "<"
-      state: "30"
-      theme: battery
-      group: true
-      group_min: 3
-      group_message: "{count} batteries low — {names}"
-      group_expanded_message: "{name}: {state}%"
-  ```
 
 - **`tts_notify_type` — Alexa group/multiroom announce support** ([#97](https://github.com/djdevil/AlertTicker-Card/issues/97)) — new per-alert and global option that sets the `type` field sent to the notify service. Use `announce` for Alexa speaker groups or multiroom setups; the default `tts` continues to work for individual devices as before. Configurable in the visual editor: once a notify service is selected in the alert's TTS section, a second dropdown appears immediately below it.
   ```yaml
