@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3
+ * AlertTicker Card Editor v1.3.1
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3";
+const CARD_VERSION = "1.3.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -693,6 +693,11 @@ const ET = {
     card_border: "Mostra bordo e nome card",
     card_border_help: "Aggiunge il bordo standard di Home Assistant attorno alla card. Quando non ci sono avvisi attivi, mostra un segnaposto con il nome della card invece di nasconderla completamente.",
     show_snooze_bar: "Mostra barra di riattivazione snooze 💤",
+    show_snooze_button: "Mostra pulsante snooze 💤",
+    show_history_button: "Mostra pulsante cronologia 📋",
+    secondary_value_align: "Posizione valore secondario",
+    secondary_value_align_below: "Sotto il titolo (predefinito)",
+    secondary_value_align_right: "A destra del titolo",
     snooze_default_duration: "Comportamento snooze 💤",
     snooze_default_duration_help: "Menu durata: tap su 💤 apre il menu per scegliere quanto silenziare. Durata fissa: tap su 💤 silenzia subito senza menu.",
     snooze_option_menu: "Mostra menu durata (come prima)",
@@ -743,8 +748,12 @@ const ET = {
     alert_push_notify_message: "Messaggio notifica (Jinja2)",
     alert_push_notify_message_help: "Messaggio inviato nella notifica push. Se vuoto, usa il messaggio dell'avviso.",
     alert_push_notify_service: "Servizio notify",
-    alert_camera_entity: "Camera per snapshot nell'overlay",
-    alert_camera_entity_help: "Quando l'avviso scatta, mostra uno snapshot di questa camera nel banner overlay. Visibile solo nell'overlay, non nella card.",
+    alert_camera_entity: "Camera nell'overlay",
+    alert_camera_entity_help: "Quando l'avviso scatta, mostra questa camera nel banner overlay. Visibile solo nell'overlay, non nella card.",
+    alert_camera_live: "📹 Live stream (al posto dello snapshot)",
+    alert_camera_live_help: "Mostra il live stream della camera invece di un fotogramma statico. Richiede una camera con supporto streaming.",
+    alert_camera_in_card: "Mostra come sfondo nell'avviso",
+    alert_camera_in_card_help: "La camera appare come sfondo sfocato direttamente nello slide dell'avviso, visibile ad ogni rotazione — non solo nell'overlay.",
     test_mode: "Modalità test",
     test_mode_desc: "Mostra tutti gli avvisi come attivi, ignorando le condizioni. L'animazione di scorrimento è sospesa — apri un avviso nell'editor per vederlo subito sulla card.",
     test_mode_warning: "Ricordati di disattivare la modalità test prima di salvare!",
@@ -982,6 +991,11 @@ const ET = {
     card_border: "Show card border & name",
     card_border_help: "Adds the standard Home Assistant border around the card. When no alerts are active, shows a placeholder with the card name instead of hiding completely.",
     show_snooze_bar: "Show snooze reactivation bar 💤",
+    show_snooze_button: "Show snooze button 💤",
+    show_history_button: "Show history button 📋",
+    secondary_value_align: "Secondary value position",
+    secondary_value_align_below: "Below title (default)",
+    secondary_value_align_right: "Right of title",
     snooze_default_duration: "Snooze 💤 behaviour",
     snooze_default_duration_help: "Duration menu: tap on 💤 opens a menu to choose how long to snooze. Fixed duration: tap on 💤 snoozes immediately with no menu.",
     snooze_option_menu: "Show duration menu (as before)",
@@ -1032,8 +1046,12 @@ const ET = {
     alert_push_notify_message: "Notification message (Jinja2)",
     alert_push_notify_message_help: "Message sent in the push notification. Leave empty to use the alert message.",
     alert_push_notify_service: "Notify service",
-    alert_camera_entity: "Camera snapshot in overlay",
-    alert_camera_entity_help: "When the alert triggers, shows a snapshot from this camera in the overlay banner. Only visible in the overlay, not in the card.",
+    alert_camera_entity: "Camera in overlay",
+    alert_camera_entity_help: "When the alert triggers, shows this camera in the overlay banner. Only visible in the overlay, not in the card.",
+    alert_camera_live: "📹 Live stream (instead of snapshot)",
+    alert_camera_live_help: "Shows a live stream instead of a static snapshot. Requires a camera with stream support.",
+    alert_camera_in_card: "Show as background in the alert",
+    alert_camera_in_card_help: "The camera appears as a blurred background inside the alert slide itself, visible on every rotation — not just in the overlay.",
     test_mode: "Test mode",
     test_mode_desc: "Shows all alerts as active, ignoring conditions. Cycling animation is paused — expand an alert in the editor to preview it instantly on the card.",
     test_mode_warning: "Remember to disable test mode before saving!",
@@ -1271,6 +1289,11 @@ const ET = {
     card_border: "Afficher la bordure et le nom",
     card_border_help: "Ajoute la bordure standard de Home Assistant autour de la carte. Quand aucune alerte n'est active, affiche un espace réservé avec le nom de la carte au lieu de la masquer complètement.",
     show_snooze_bar: "Afficher la barre de réactivation snooze 💤",
+    show_snooze_button: "Afficher le bouton snooze 💤",
+    show_history_button: "Afficher le bouton historique 📋",
+    secondary_value_align: "Position de la valeur secondaire",
+    secondary_value_align_below: "Sous le titre (défaut)",
+    secondary_value_align_right: "À droite du titre",
     snooze_default_duration: "Comportement snooze 💤",
     snooze_default_duration_help: "Menu de durée: tap sur 💤 ouvre un menu pour choisir la durée. Durée fixe: tap sur 💤 met en veille immédiatement sans menu.",
     snooze_option_menu: "Afficher le menu de durée (comme avant)",
@@ -1321,8 +1344,12 @@ const ET = {
     alert_push_notify_message: "Message de la notification (Jinja2)",
     alert_push_notify_message_help: "Message envoyé dans la notification push. Laisser vide pour utiliser le message de l'alerte.",
     alert_push_notify_service: "Service notify",
-    alert_camera_entity: "Caméra snapshot dans l'overlay",
-    alert_camera_entity_help: "Quand l'alerte se déclenche, affiche un snapshot de cette caméra dans le banner overlay. Visible uniquement dans l'overlay, pas dans la carte.",
+    alert_camera_entity: "Caméra dans l'overlay",
+    alert_camera_entity_help: "Quand l'alerte se déclenche, affiche cette caméra dans le banner overlay. Visible uniquement dans l'overlay, pas dans la carte.",
+    alert_camera_live: "📹 Live stream (à la place du snapshot)",
+    alert_camera_live_help: "Affiche un live stream au lieu d'un snapshot statique. Nécessite une caméra avec support streaming.",
+    alert_camera_in_card: "Afficher comme fond dans l'alerte",
+    alert_camera_in_card_help: "La caméra apparaît comme fond flouté dans la diapositive de l'alerte, visible à chaque rotation — pas seulement dans l'overlay.",
     test_mode: "Mode test",
     test_mode_desc: "Affiche toutes les alertes comme actives, en ignorant leurs conditions. L'animation de défilement est suspendue — ouvrez une alerte dans l'éditeur pour la voir immédiatement sur la carte.",
     test_mode_warning: "N'oubliez pas de désactiver le mode test avant de sauvegarder !",
@@ -1560,6 +1587,11 @@ const ET = {
     card_border: "Rahmen und Namen anzeigen",
     card_border_help: "Fügt den Standard-Home-Assistant-Rahmen um die Karte hinzu. Wenn keine Alerts aktiv sind, wird ein Platzhalter mit dem Kartennamen angezeigt, anstatt die Karte vollständig auszublenden.",
     show_snooze_bar: "Schlummern-Reaktivierungsleiste anzeigen 💤",
+    show_snooze_button: "Schlummern-Schaltfläche anzeigen 💤",
+    show_history_button: "Verlauf-Schaltfläche anzeigen 📋",
+    secondary_value_align: "Position des Sekundärwerts",
+    secondary_value_align_below: "Unter dem Titel (Standard)",
+    secondary_value_align_right: "Rechts vom Titel",
     snooze_default_duration: "Schlummern 💤 Verhalten",
     snooze_default_duration_help: "Dauermenü: Tap auf 💤 öffnet ein Menü zur Auswahl der Dauer. Feste Dauer: Tap auf 💤 schlummert sofort ohne Menü.",
     snooze_option_menu: "Dauermenü anzeigen (wie bisher)",
@@ -1610,8 +1642,12 @@ const ET = {
     alert_push_notify_message: "Benachrichtigungsnachricht (Jinja2)",
     alert_push_notify_message_help: "Nachricht in der Push-Benachrichtigung. Leer lassen für die Warnungsnachricht.",
     alert_push_notify_service: "Notify-Dienst",
-    alert_camera_entity: "Kamera-Snapshot im Overlay",
-    alert_camera_entity_help: "Wenn die Warnung ausgelöst wird, zeigt einen Snapshot dieser Kamera im Overlay-Banner. Nur im Overlay sichtbar, nicht in der Karte.",
+    alert_camera_entity: "Kamera im Overlay",
+    alert_camera_entity_help: "Wenn die Warnung ausgelöst wird, zeigt diese Kamera im Overlay-Banner. Nur im Overlay sichtbar, nicht in der Karte.",
+    alert_camera_live: "📹 Live-Stream (statt Snapshot)",
+    alert_camera_live_help: "Zeigt einen Live-Stream statt eines statischen Snapshots. Benötigt eine Kamera mit Stream-Unterstützung.",
+    alert_camera_in_card: "Als Hintergrund in der Warnung anzeigen",
+    alert_camera_in_card_help: "Die Kamera erscheint als unscharfer Hintergrund in der Warn-Folie, sichtbar bei jeder Rotation — nicht nur im Overlay.",
     test_mode: "Testmodus",
     test_mode_desc: "Zeigt alle Warnungen als aktiv an, unabhängig von ihren Bedingungen. Die Scroll-Animation ist angehalten — öffne eine Warnung im Editor, um sie sofort auf der Karte anzuzeigen.",
     test_mode_warning: "Denk daran, den Testmodus vor dem Speichern zu deaktivieren!",
@@ -1849,6 +1885,11 @@ const ET = {
     card_border: "Toon rand en naam",
     card_border_help: "Voegt de standaard Home Assistant rand toe rond de kaart. Wanneer er geen meldingen actief zijn, wordt een tijdelijke aanduiding met de kaartnaam weergegeven in plaats van de kaart volledig te verbergen.",
     show_snooze_bar: "Sluimer-reactiveringsbalk weergeven 💤",
+    show_snooze_button: "Sluimerknop weergeven 💤",
+    show_history_button: "Geschiedenisknop weergeven 📋",
+    secondary_value_align: "Positie secundaire waarde",
+    secondary_value_align_below: "Onder de titel (standaard)",
+    secondary_value_align_right: "Rechts van de titel",
     snooze_default_duration: "Sluimer 💤 gedrag",
     snooze_default_duration_help: "Duurmenu: tik op 💤 opent een menu om de duur te kiezen. Vaste duur: tik op 💤 sluimert direct zonder menu.",
     snooze_option_menu: "Duurmenu tonen (zoals voorheen)",
@@ -1899,8 +1940,12 @@ const ET = {
     alert_push_notify_message: "Meldingsbericht (Jinja2)",
     alert_push_notify_message_help: "Bericht in de push-melding. Leeg laten voor het meldingsbericht.",
     alert_push_notify_service: "Notify-service",
-    alert_camera_entity: "Camera snapshot in overlay",
-    alert_camera_entity_help: "Wanneer de melding activeert, toont een snapshot van deze camera in de overlay banner. Alleen zichtbaar in de overlay, niet in de kaart.",
+    alert_camera_entity: "Camera in overlay",
+    alert_camera_entity_help: "Wanneer de melding activeert, toont deze camera in de overlay banner. Alleen zichtbaar in de overlay, niet in de kaart.",
+    alert_camera_live: "📹 Live stream (in plaats van snapshot)",
+    alert_camera_live_help: "Toont een live stream in plaats van een statische snapshot. Vereist een camera met streamondersteuning.",
+    alert_camera_in_card: "Tonen als achtergrond in de melding",
+    alert_camera_in_card_help: "De camera verschijnt als wazige achtergrond in de meldingsdia, zichtbaar bij elke rotatie — niet alleen in de overlay.",
     test_mode:"Testmodus",
     test_mode_desc: "Toont alle meldingen als actief, ongeacht hun voorwaarden. De scroll-animatie is gepauzeerd — open een melding in de editor om deze direct op de kaart te zien.",
     test_mode_warning: "Vergeet niet de testmodus uit te schakelen voor het opslaan!",
@@ -2138,6 +2183,11 @@ const ET = {
     card_border: "Hiển thị viền và tên card",
     card_border_help: "Thêm viền chuẩn Home Assistant xung quanh card. Khi không có cảnh báo nào hoạt động, hiển thị placeholder với tên card thay vì ẩn hoàn toàn.",
     show_snooze_bar: "Hiển thị thanh kích hoạt lại tạm hoãn 💤",
+    show_snooze_button: "Hiển thị nút tạm hoãn 💤",
+    show_history_button: "Hiển thị nút lịch sử 📋",
+    secondary_value_align: "Vị trí giá trị phụ",
+    secondary_value_align_below: "Dưới tiêu đề (mặc định)",
+    secondary_value_align_right: "Bên phải tiêu đề",
     snooze_default_duration: "Hành vi tạm hoãn 💤",
     snooze_default_duration_help: "Menu thời gian: nhấn 💤 mở menu chọn thời lượng. Thời lượng cố định: nhấn 💤 tạm hoãn ngay không cần menu.",
     snooze_option_menu: "Hiển thị menu thời lượng (như trước)",
@@ -2188,8 +2238,12 @@ const ET = {
     alert_push_notify_message: "Nội dung thông báo (Jinja2)",
     alert_push_notify_message_help: "Nội dung gửi trong thông báo đẩy. Để trống để dùng thông điệp báo động.",
     alert_push_notify_service: "Dịch vụ notify",
-    alert_camera_entity: "Camera snapshot trong overlay",
-    alert_camera_entity_help: "Khi báo động kích hoạt, hiển thị snapshot từ camera này trong banner overlay. Chỉ hiện trong overlay, không trong card.",
+    alert_camera_entity: "Camera trong overlay",
+    alert_camera_entity_help: "Khi báo động kích hoạt, hiển thị camera này trong banner overlay. Chỉ hiện trong overlay, không trong card.",
+    alert_camera_live: "📹 Live stream (thay vì snapshot)",
+    alert_camera_live_help: "Hiển thị live stream thay vì ảnh tĩnh. Yêu cầu camera hỗ trợ streaming.",
+    alert_camera_in_card: "Hiển thị làm nền trong thông báo",
+    alert_camera_in_card_help: "Camera hiển thị như nền mờ trong slide thông báo, thấy mỗi lần xoay — không chỉ trong overlay.",
     test_mode: "Chế độ thử",
     test_mode_desc: "Hiển thị tất cả báo động như đang hoạt động, bỏ qua điều kiện. Hoạt ảnh cuộn bị tạm dừng — mở một báo động trong trình chỉnh sửa để xem ngay trên thẻ.",
     test_mode_warning: "Nhớ tắt chế độ thử trước khi lưu!",
@@ -2427,6 +2481,11 @@ const ET = {
     card_border: "Показывать рамку и название",
     card_border_help: "Добавляет стандартную рамку Home Assistant вокруг карточки. Когда нет активных оповещений, отображается заполнитель с названием карточки вместо полного скрытия.",
     show_snooze_bar: "Показывать полосу восстановления отложенных 💤",
+    show_snooze_button: "Показывать кнопку отложить 💤",
+    show_history_button: "Показывать кнопку истории 📋",
+    secondary_value_align: "Положение дополнительного значения",
+    secondary_value_align_below: "Под заголовком (по умолчанию)",
+    secondary_value_align_right: "Справа от заголовка",
     snooze_default_duration: "Поведение при откладывании 💤",
     snooze_default_duration_help: "Меню длительности: нажатие 💤 открывает меню выбора времени. Фиксированная длительность: нажатие 💤 откладывает сразу без меню.",
     snooze_option_menu: "Показать меню длительности (как раньше)",
@@ -2477,8 +2536,12 @@ const ET = {
     alert_push_notify_message: "Сообщение уведомления (Jinja2)",
     alert_push_notify_message_help: "Сообщение push-уведомления. Оставьте пустым для использования сообщения оповещения.",
     alert_push_notify_service: "Notify-сервис",
-    alert_camera_entity: "Снимок камеры в оверлее",
-    alert_camera_entity_help: "При срабатывании оповещения показывает снимок с этой камеры в баннере оверлея. Видно только в оверлее, не в карточке.",
+    alert_camera_entity: "Камера в оверлее",
+    alert_camera_entity_help: "При срабатывании оповещения показывает эту камеру в баннере оверлея. Видно только в оверлее, не в карточке.",
+    alert_camera_live: "📹 Live-трансляция (вместо снимка)",
+    alert_camera_live_help: "Показывает прямую трансляцию вместо статичного снимка. Требует камеру с поддержкой стриминга.",
+    alert_camera_in_card: "Показать как фон в оповещении",
+    alert_camera_in_card_help: "Камера отображается как размытый фон прямо в слайде оповещения, видна при каждой ротации — не только в оверлее.",
     test_mode: "Режим тестирования",
     test_mode_desc: "Показывает все оповещения как активные, игнорируя условия. Анимация прокрутки остановлена — откройте оповещение в редакторе, чтобы сразу увидеть его на карточке.",
     test_mode_warning: "Не забудьте отключить режим тестирования перед сохранением!",
@@ -2714,6 +2777,11 @@ const ET = {
     card_height: "Fast kort‑højde (px)",
     card_height_help: "Låser højden for at undgå layout‑skift, når advarsler ændres. Lad stå tom for automatisk højde.",
     show_snooze_bar: "Vis reaktiveringsbar for slumre 💤",
+    show_snooze_button: "Vis slumreknap 💤",
+    show_history_button: "Vis historikknap 📋",
+    secondary_value_align: "Placering af sekundær værdi",
+    secondary_value_align_below: "Under titel (standard)",
+    secondary_value_align_right: "Til højre for titel",
     snooze_default_duration: "Slumre 💤‑adfærd",
     snooze_default_duration_help: "Varighedsmenu: klik på 💤 åbner en menu, hvor du vælger, hvor længe du vil slumre. Fast varighed: klik på 💤 slumrer med det samme, uden menu.",
     snooze_option_menu: "Vis varighedsmenu (som før)",
@@ -2764,8 +2832,12 @@ const ET = {
     alert_push_notify_message: "Notifikationsbesked (Jinja2)",
     alert_push_notify_message_help: "Besked sendt i push-notifikationen. Efterlad tom for at bruge advarslens besked.",
     alert_push_notify_service: "Notify-tjeneste",
-    alert_camera_entity: "Kamera-snapshot i overlay",
-    alert_camera_entity_help: "Når advarslen udløses, vises et snapshot fra dette kamera i overlay-banneret. Kun synligt i overlay, ikke i kortet.",
+    alert_camera_entity: "Kamera i overlay",
+    alert_camera_entity_help: "Når advarslen udløses, vises dette kamera i overlay-banneret. Kun synligt i overlay, ikke i kortet.",
+    alert_camera_live: "📹 Live stream (i stedet for snapshot)",
+    alert_camera_live_help: "Viser et live stream i stedet for et statisk snapshot. Kræver et kamera med stream-understøttelse.",
+    alert_camera_in_card: "Vis som baggrund i advarslen",
+    alert_camera_in_card_help: "Kameraet vises som en sløret baggrund i advarselsslide, synlig ved hver rotation — ikke kun i overlay.",
     test_mode: "Testtilstand",
     test_mode_desc: "Viser alle advarsler som aktive og ignorerer betingelser. Cykling og animation er pauset – udvid en advarsel i editoren for at se den med det samme på kortet.",
     test_mode_warning: "Husk at deaktivere testtilstand, før du gemmer!",
@@ -3005,6 +3077,11 @@ const ET = {
     card_border: "Zobrazit okraje a název",
     card_border_help: "Přidá standardní okraje Home Assistenta okolo karty. Zobrazí kartu, pokud nejsou aktivní žádná varování, namísto úplného schování karty.",
     show_snooze_bar: "Zobrazit nástroj pro reaktivaci odložených varování 💤",
+    show_snooze_button: "Zobrazit tlačítko odložit 💤",
+    show_history_button: "Zobrazit tlačítko historie 📋",
+    secondary_value_align: "Pozice sekundární hodnoty",
+    secondary_value_align_below: "Pod nadpisem (výchozí)",
+    secondary_value_align_right: "Napravo od nadpisu",
     snooze_default_duration: "Chování funkce odložení 💤",
     snooze_default_duration_help: "Menu odložení: kliknutí na 💤 otevře menu pro výběr délky odložení. Pevná doba: kliknutí na 💤 odloží oznámení bez zobrazení menu.",
     snooze_option_menu: "Zobraz výběr doby (jako dříve)",
@@ -3055,8 +3132,12 @@ const ET = {
     alert_push_notify_message: "Zpráva notifikace (Jinja2)",
     alert_push_notify_message_help: "Zpráva odeslaná v push notifikaci. Nechte prázdné pro použití zprávy varování.",
     alert_push_notify_service: "Notify služba",
-    alert_camera_entity: "Snímek kamery v overlay",
-    alert_camera_entity_help: "Když se varování aktivuje, zobrazí snímek z této kamery v overlay banneru. Viditelné pouze v overlay, ne v kartě.",
+    alert_camera_entity: "Kamera v overlay",
+    alert_camera_entity_help: "Když se varování aktivuje, zobrazí tuto kameru v overlay banneru. Viditelné pouze v overlay, ne v kartě.",
+    alert_camera_live: "📹 Live stream (místo snapshotu)",
+    alert_camera_live_help: "Zobrazí živý přenos místo statického snímku. Vyžaduje kameru s podporou streamování.",
+    alert_camera_in_card: "Zobrazit jako pozadí ve varování",
+    alert_camera_in_card_help: "Kamera se zobrazí jako rozmazané pozadí přímo v dlaždici varování, viditelné při každé rotaci — nejen v overlay.",
     test_mode: "Testovací režim",
     test_mode_desc: "Zobrazí všechna varování jako aktivní, bez ohledu na nastavené podmínky. Rotace varování je pozastavena. Rozklikni varování v editoru pro jeho zobrazení.",
     test_mode_warning: "Nezapomeňte vypnout testovací režim před uložením!",
@@ -3296,6 +3377,11 @@ const ET = {
     card_border: "Mostrar borda e nome do card",
     card_border_help: "Adiciona a borda padrão do Home Assistant ao redor do card. Quando não há alertas ativos, mostra um espaço reservado com o nome do card em vez de ocultá-lo completamente.",
     show_snooze_bar: "Mostrar barra de reativação do silenciar 💤",
+    show_snooze_button: "Mostrar botão de silenciar 💤",
+    show_history_button: "Mostrar botão de histórico 📋",
+    secondary_value_align: "Posição do valor secundário",
+    secondary_value_align_below: "Abaixo do título (padrão)",
+    secondary_value_align_right: "À direita do título",
     snooze_default_duration: "Comportamento do silenciar 💤",
     snooze_default_duration_help: "Menu de duração: toque em 💤 abre um menu para escolher quanto tempo silenciar. Duração fixa: toque em 💤 silencia imediatamente sem menu.",
     snooze_option_menu: "Mostrar menu de duração (como antes)",
@@ -3346,8 +3432,12 @@ const ET = {
     alert_push_notify_message: "Mensagem da notificação (Jinja2)",
     alert_push_notify_message_help: "Mensagem enviada na notificação push. Deixe vazio para usar a mensagem do alerta.",
     alert_push_notify_service: "Serviço notify",
-    alert_camera_entity: "Câmera para snapshot no overlay",
-    alert_camera_entity_help: "Quando o alerta disparar, mostra um snapshot desta câmera no banner overlay. Visível apenas no overlay, não no card.",
+    alert_camera_entity: "Câmera no overlay",
+    alert_camera_entity_help: "Quando o alerta disparar, mostra esta câmera no banner overlay. Visível apenas no overlay, não no card.",
+    alert_camera_live: "📹 Live stream (em vez de snapshot)",
+    alert_camera_live_help: "Mostra um live stream em vez de um snapshot estático. Requer uma câmera com suporte a streaming.",
+    alert_camera_in_card: "Mostrar como fundo no alerta",
+    alert_camera_in_card_help: "A câmera aparece como fundo desfocado no slide do alerta, visível a cada rotação — não apenas no overlay.",
     test_mode: "Modo de teste",
     test_mode_desc: "Mostra todos os alertas como ativos, ignorando as condições. A animação de ciclo está pausada — expanda um alerta no editor para pré-visualizá-lo instantaneamente no card.",
     test_mode_warning: "Lembre-se de desativar o modo de teste antes de salvar!",
@@ -3585,6 +3675,11 @@ const ET = {
     card_border: "Mostrar borde y nombre de la tarjeta",
     card_border_help: "Añade el borde estándar de Home Assistant alrededor de la tarjeta. Cuando no hay alertas activas, muestra un marcador con el nombre de la tarjeta en lugar de ocultarla.",
     show_snooze_bar: "Mostrar barra de reactivación de posponer 💤",
+    show_snooze_button: "Mostrar botón de posponer 💤",
+    show_history_button: "Mostrar botón de historial 📋",
+    secondary_value_align: "Posición del valor secundario",
+    secondary_value_align_below: "Debajo del título (predeterminado)",
+    secondary_value_align_right: "A la derecha del título",
     snooze_default_duration: "Comportamiento de posponer 💤",
     snooze_default_duration_help: "Menú de duración: toca 💤 para abrir un menú y elegir cuánto tiempo posponer. Duración fija: toca 💤 para posponer inmediatamente sin menú.",
     snooze_option_menu: "Mostrar menú de duración (como antes)",
@@ -3635,8 +3730,12 @@ const ET = {
     alert_push_notify_message: "Mensaje de la notificación (Jinja2)",
     alert_push_notify_message_help: "Mensaje enviado en la notificación push. Dejar vacío para usar el mensaje de la alerta.",
     alert_push_notify_service: "Servicio notify",
-    alert_camera_entity: "Cámara para snapshot en overlay",
-    alert_camera_entity_help: "Cuando la alerta se activa, muestra un snapshot de esta cámara en el banner overlay. Solo visible en el overlay, no en la tarjeta.",
+    alert_camera_entity: "Cámara en overlay",
+    alert_camera_entity_help: "Cuando la alerta se activa, muestra esta cámara en el banner overlay. Solo visible en el overlay, no en la tarjeta.",
+    alert_camera_live: "📹 Live stream (en lugar de snapshot)",
+    alert_camera_live_help: "Muestra un live stream en lugar de un snapshot estático. Requiere una cámara con soporte de streaming.",
+    alert_camera_in_card: "Mostrar como fondo en la alerta",
+    alert_camera_in_card_help: "La cámara aparece como fondo difuminado dentro del slide de la alerta, visible en cada rotación — no solo en el overlay.",
     test_mode: "Modo de prueba",
     test_mode_desc: "Muestra todas las alertas como activas, ignorando las condiciones. La animación de ciclo está pausada — expande una alerta en el editor para previsualizarla instantáneamente.",
     test_mode_warning: "¡Recuerda desactivar el modo de prueba antes de guardar!",
@@ -4434,6 +4533,24 @@ class AlertTickerCardEditor extends LitElement {
           ></ha-switch>
         </div>
       </div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("show_snooze_button")}</span>
+          <ha-switch
+            .checked="${cfg.show_snooze_button !== false}"
+            @change="${(e) => this._fireConfig({ ...this._config, show_snooze_button: e.target.checked ? undefined : false })}"
+          ></ha-switch>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("show_history_button")}</span>
+          <ha-switch
+            .checked="${cfg.show_history_button !== false}"
+            @change="${(e) => this._fireConfig({ ...this._config, show_history_button: e.target.checked ? undefined : false })}"
+          ></ha-switch>
+        </div>
+      </div>
 
       <!-- ── TTS MASTER ───────────────────────────────────────────────── -->
       <div class="section-divider">${this._t("section_tts")}</div>
@@ -5152,6 +5269,12 @@ class AlertTickerCardEditor extends LitElement {
                       ></ha-textfield>
                     </div>
                   ` : ""}
+                  <ha-textfield
+                    .label="${this._t("badge_label")}"
+                    .value="${alert.badge_label || ""}"
+                    placeholder="NOW PLAYING"
+                    @change="${(e) => this._updateAlert(index, { badge_label: e.target.value.trim() || undefined })}"
+                  ></ha-textfield>
                 ` : ""}
 
                 <!-- Group settings — visible only for filter-mode alerts -->
@@ -5483,6 +5606,24 @@ class AlertTickerCardEditor extends LitElement {
                   ></ha-textfield>
                   <div class="helper-text">${this._t("secondary_text_help")}</div>
                 </div>
+                <div class="form-row">
+                  <ha-select
+                    .label="${this._t("secondary_value_align")}"
+                    .value="${alert.secondary_value_align || 'below'}"
+                    fixedMenuPosition naturalMenuWidth
+                    @closed="${(e) => e.stopPropagation()}"
+                  >
+                    ${["below","right"].map(opt => html`
+                      <mwc-list-item value="${opt}" ?selected="${(alert.secondary_value_align || 'below') === opt}"
+                        @request-selected="${(e) => {
+                          if (e.detail.source !== "interaction") return;
+                          const v = e.target.getAttribute("value");
+                          this._updateAlert(index, { secondary_value_align: v === 'below' ? undefined : v });
+                        }}"
+                      >${this._t("secondary_value_align_" + opt)}</mwc-list-item>
+                    `)}
+                  </ha-select>
+                </div>
                 ` : ""}
 
                 <!-- ── 5. OPZIONI ─────────────────────────────────────────── -->
@@ -5659,8 +5800,9 @@ class AlertTickerCardEditor extends LitElement {
                   </div>
                 ` : ""}
 
-                <!-- Camera snapshot in overlay -->
-                <div class="section-divider">📷 ${this._t("alert_camera_entity")}</div>
+                <!-- Camera in overlay — hidden for music player theme -->
+                ${alert.theme !== 'music' ? html`
+                <div class="section-divider">${alert.camera_live ? "📹" : "📷"} ${this._t("alert_camera_entity")}</div>
                 <div class="form-row">
                   <ha-entity-picker
                     .hass="${this._hass}"
@@ -5672,6 +5814,29 @@ class AlertTickerCardEditor extends LitElement {
                   ></ha-entity-picker>
                   <div class="helper-text">${this._t("alert_camera_entity_help")}</div>
                 </div>
+                ${alert.camera_entity ? html`
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("alert_camera_live")}</span>
+                    <ha-switch
+                      .checked="${!!alert.camera_live}"
+                      @change="${(e) => this._updateAlert(index, { camera_live: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </div>
+                  <div class="helper-text">${this._t("alert_camera_live_help")}</div>
+                </div>
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("alert_camera_in_card")}</span>
+                    <ha-switch
+                      .checked="${!!alert.camera_in_card}"
+                      @change="${(e) => this._updateAlert(index, { camera_in_card: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </div>
+                  <div class="helper-text">${this._t("alert_camera_in_card_help")}</div>
+                </div>
+                ` : ""}
+                ` : ""}
 
                 <!-- User visibility filter -->
                 ${(() => {

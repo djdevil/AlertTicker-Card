@@ -6,6 +6,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] - 2026-04-28
+
+### Added
+
+- **`show_history_button` / `show_snooze_button` — hide action buttons** ([#118](https://github.com/djdevil/AlertTicker-Card/discussions/118)) — new global options (default `true`) that completely remove the history (📋) and snooze (💤) buttons from the card. Useful for minimal layouts or dashboards where these features are not needed.
+  ```yaml
+  show_history_button: false
+  show_snooze_button: false
+  ```
+
+- **`secondary_value_align: right` — move secondary value to the right column** ([#118](https://github.com/djdevil/AlertTicker-Card/discussions/118)) — new **per-alert** option that repositions the secondary value (from `secondary_text`, `secondary_entity`, or `{timer}`) to the right side of the card on the same row as the title, instead of below it. Each alert can independently use a different layout. The counter slot is hidden when this option is active.
+  ```yaml
+  alerts:
+    - entity: sensor.co2_ppm
+      message: "CO₂ level critical"
+      secondary_entity: sensor.co2_ppm
+      secondary_value_align: right
+  ```
+
+- **`history_message` — custom label for history entries** ([#114](https://github.com/djdevil/AlertTicker-Card/issues/114)) — new per-alert option that overrides what gets recorded in the history log. Useful when `message` is a complex Jinja2 template that produces verbose or meaningless log entries. Supports `{name}`, `{state}`, `{entity}` placeholders and `{{ }}` templates like any other message field. When not set, the history records the main `message` as before (non-breaking).
+  ```yaml
+  alerts:
+    - entity: sensor.power_meter
+      state: "> 3000"
+      message: "{{ state_attr('sensor.power_meter','current_power') | round(0) }} W · {{ now().strftime('%H:%M') }}"
+      history_message: "High power usage detected"
+  ```
+
+- **Live camera stream in overlay** — new per-alert toggle `camera_live: true` that shows a `<ha-camera-stream>` live feed inside the overlay banner instead of a static snapshot. Requires a camera with HLS/WebRTC stream support. Falls back gracefully to snapshot when disabled. Configurable in the visual editor (📷→📹 camera section, visible only when a camera entity is selected).
+
+- **Camera as alert card background** — new per-alert toggle `camera_in_card: true` that shows the configured camera (snapshot or live stream) as a blurred background layer inside the alert card slide itself, visible on every rotation — not just when the overlay fires. Works with all 41 themes. Configurable in the visual editor alongside the existing camera controls.
+
+### Fixed
+
+- **Music player: `badge_label` ignored, always shows "NOW PLAYING"** ([#110](https://github.com/djdevil/AlertTicker-Card/issues/110)) — when `show_player_controls: true`, the badge line in the player card was hardcoded to `"NOW PLAYING"`, ignoring any `badge_label` set in the config. Fixed by rendering `alert.badge_label` when present, falling back to `"NOW PLAYING"`.
+
+- **Music player: entity/room name not shown for `entity_filter` alerts** ([#110](https://github.com/djdevil/AlertTicker-Card/issues/110)) — when multiple media players were matched via `entity_filter` or `device_class`, the player card rendered no indication of which room/speaker was playing, because `_renderMusicPlayer` has its own template that bypasses `_renderSecondaryValue`. Fixed by rendering the matched entity's friendly name as a subtitle below the artist line for filter-mode alerts, respecting the existing `show_filter_name: false` opt-out.
+
+- **Timer secondary text invisible on HA light themes** ([#117](https://github.com/djdevil/AlertTicker-Card/issues/117)) — the secondary text (entity name, state, custom `secondary_text`) was white on white when the card was used with a light HA theme and `ha_theme` adaptation was disabled. Root cause: `.atc-secondary-value` has a hardcoded `rgba(255,255,255,0.85)` color — correct for all 40+ themes that use fixed dark gradient backgrounds, but wrong for the two timer themes (`at-timer-pulse`, `at-timer-ring`) which use `var(--card-background-color)` as background (white on light themes). Fixed by adding a scoped CSS override for the timer containers that uses `var(--primary-text-color)` instead, which adapts correctly to both light and dark HA themes.
+
+- **Card flickers when `message` contains a `{{ }}` template with `{name}` / `{entity}` / `{state}` placeholders** ([#113](https://github.com/djdevil/AlertTicker-Card/issues/113)) — when a message like `Garage door {{ '{name}'|replace('Garage Door State ','') }} is open` was used, the card continuously flickered between the raw template string and the resolved value on every HA state update. Root cause: `_resolveMessage` pre-substitutes `{name}` (and similar placeholders) into the template before sending it to HA's WebSocket renderer, producing a different cache key than the raw `alert.message` string. `_syncTemplates` (called on every `set hass()`) treated this pre-substituted subscription as stale and deleted it from `_tmplCache`, so the next render found no cache entry, showed the raw `{{ }}` expression, re-subscribed, and flickered when the WS response arrived — repeating on every update. Fixed by preserving any subscription that already has a cached WS result, so only genuinely unused subscriptions (no cache entry, not in current config) are cleaned up.
+
+- **`auto_dismiss_after` not dismissing the alert** ([#112](https://github.com/djdevil/AlertTicker-Card/issues/112)) — after the dismiss timer expired, the alert remained visible until HA happened to push another state update. Root cause: the timer callback called `this.requestUpdate()`, which triggers a LitElement re-render using the already-stale `this._activeAlerts` — `_computeActiveAlerts()` was never re-invoked, so the dismissed key was never actually removed from the rendered list. Fixed by replacing `this.requestUpdate()` with `this._computeActiveAlerts()` in the timer callback, which recomputes the active list (excluding the dismissed key) and then calls `requestUpdate()` internally. Same stale-render fix applied to the `trigger_delay` timer callback, which had the symmetric problem of the alert not appearing immediately when the delay elapsed.
+
+- **`trigger_delay` fires early when conditions involve multiple entities** ([#107](https://github.com/djdevil/AlertTicker-Card/issues/107)) — when an alert used both a primary entity and one or more `conditions`, the delay timer used only the primary entity's `last_changed` to compute elapsed time. If the primary entity had been in its trigger state for longer than `trigger_delay` (e.g. a smart plug ON for 1 hour), the alert fired immediately the moment the last condition became true (e.g. an occupancy sensor turning off after 10 min), instead of waiting the remaining delay. Root cause: `elapsed` was derived from `entityState.last_changed` alone, ignoring condition entities. Fixed by computing elapsed time from `Math.max(last_changed)` across the primary entity and all condition entities — i.e. from when the *last* entity changed in a way that made all conditions simultaneously true. Fix applied to both the card-side render gate (`_triggerDelayTimers`) and the overlay watcher (`_ovDelayTimers`).
+
+- **Music player cover art not displaying when HA returns a local URL** ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105), [#119](https://github.com/djdevil/AlertTicker-Card/issues/119)) — album art was blank when Home Assistant served the cover image via `entity_picture_local` (a server-relative path) instead of `entity_picture` (the full absolute URL). Root cause: `_renderMusicPlayer` only read `entity_picture`, so any setup where HA resolves the image locally — common with Spotify, local media sources, and the Companion App on iOS — received an empty string and rendered no artwork. Fixed by reading `entity_picture_local` first and falling back to `entity_picture`.
+
+---
+
 ## [1.3] - 2026-04-28
 
 ### Added

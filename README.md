@@ -3,7 +3,7 @@
 A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **mobile push notifications**, **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.3-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.3.1-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -11,6 +11,94 @@ A custom Lovelace card to display alerts and notifications based on entity state
 > ☕ If you enjoy this card and it saves you time, consider buying me a coffee — it keeps the updates coming!
 >
 > [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
+
+---
+
+## ✨ What's New in v1.3.1
+
+### 📹 Live Camera Stream in Overlay
+
+New per-alert toggle `camera_live: true` replaces the static snapshot in the overlay banner with a **live HLS/WebRTC stream** (`<ha-camera-stream>`). Falls back gracefully to a static snapshot when the streaming component is not loaded. Configurable in the visual editor under the 📷 Camera section (visible only when a camera entity is selected).
+
+```yaml
+alerts:
+  - entity: binary_sensor.front_door_motion
+    state: "on"
+    message: "Motion at front door"
+    camera_entity: camera.front_door
+    camera_live: true          # live stream in the overlay banner
+    overlay_mode: true
+```
+
+---
+
+### 🖼️ Camera as Alert Card Background
+
+New per-alert toggle `camera_in_card: true` shows the configured camera image as a **background layer inside the alert card slide** itself — visible on every rotation, not just when the overlay fires. Works with all 41 themes.
+
+```yaml
+alerts:
+  - entity: binary_sensor.front_door_motion
+    state: "on"
+    message: "Motion at front door"
+    theme: intruder
+    camera_entity: camera.front_door
+    camera_in_card: true
+```
+
+---
+
+### 🔘 `show_history_button` / `show_snooze_button` — hide action buttons
+
+New global options (both default `true`) that completely remove the history (📋) and snooze (💤) buttons from the card. Useful for minimal layouts or dashboards where these features are not needed. ([#118](https://github.com/djdevil/AlertTicker-Card/discussions/118))
+
+```yaml
+show_history_button: false
+show_snooze_button: false
+```
+
+---
+
+### ➡️ `secondary_value_align: right` — per-alert layout
+
+Move the secondary value (`secondary_text`, `secondary_entity`, or `{timer}`) to the **right column** on the same row as the title instead of below it. Configured per alert so each alert in the card can use a different layout independently. ([#118](https://github.com/djdevil/AlertTicker-Card/discussions/118))
+
+```yaml
+alerts:
+  - entity: sensor.co2_ppm
+    operator: ">"
+    state: "1000"
+    message: "CO₂ level critical"
+    secondary_entity: sensor.co2_ppm
+    secondary_value_align: right
+```
+
+---
+
+### 📝 `history_message` — custom history log entry
+
+Override what gets recorded in the history log, useful when `message` is a complex Jinja2 template that produces verbose or meaningless entries. Supports `{name}`, `{state}`, `{entity}` placeholders. ([#114](https://github.com/djdevil/AlertTicker-Card/issues/114))
+
+```yaml
+alerts:
+  - entity: sensor.power_meter
+    operator: ">"
+    state: "3000"
+    message: "{{ state_attr('sensor.power_meter','current_power') | round(0) }} W · {{ now().strftime('%H:%M') }}"
+    history_message: "High power usage detected"
+```
+
+---
+
+### 🗓️ Also fixed in 1.3.1
+
+- **Music player `badge_label` ignored** — `badge_label` now replaces "NOW PLAYING" when set ([#110](https://github.com/djdevil/AlertTicker-Card/issues/110))
+- **Music player: entity name missing for `entity_filter` alerts** — matched entity's friendly name now shown below the artist line ([#110](https://github.com/djdevil/AlertTicker-Card/issues/110))
+- **Timer secondary text invisible on HA light themes** — `timer_pulse` and `timer_ring` themes now use `var(--primary-text-color)` ([#117](https://github.com/djdevil/AlertTicker-Card/issues/117))
+- **Card flicker with mixed `{{ }}` + `{name}` templates** — subscriptions with a cached WebSocket result are no longer discarded on each state update ([#113](https://github.com/djdevil/AlertTicker-Card/issues/113))
+- **`auto_dismiss_after` not dismissing** — timer callback now recomputes the active alert list directly ([#112](https://github.com/djdevil/AlertTicker-Card/issues/112))
+- **`trigger_delay` fires early when conditions involve multiple entities** — elapsed time now computed from the last entity to change across all condition entities ([#107](https://github.com/djdevil/AlertTicker-Card/issues/107))
+- **Music player cover art blank with local HA image URLs** — reads `entity_picture_local` first, falls back to `entity_picture` ([#105](https://github.com/djdevil/AlertTicker-Card/issues/105), [#119](https://github.com/djdevil/AlertTicker-Card/issues/119))
 
 ---
 
@@ -309,6 +397,8 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **🔊 TTS announcements** | Read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (11 languages) |
 | **📱 Push notifications** | Send a push notification to any `notify.*` service when an alert fires. Full Jinja2 support for title and message. Global master toggle. |
 | **📷 Camera snapshot** | Attach a live camera frame to the overlay banner, scaled proportionally with overlay zoom |
+| **📹 Camera live stream** | **NEW** — `camera_live: true` shows a live HLS/WebRTC stream in the overlay banner instead of a static snapshot |
+| **🖼️ Camera card background** | **NEW** — `camera_in_card: true` uses the camera image as a full-bleed background layer behind any alert card slide |
 | **Overlay scale** | Enlarge the overlay banner up to 3× for wall-mounted displays |
 | **🎵 Music player mode** | **NEW** — `media_player` entity shown as a cinematic player card with album art, equalizer, and controls |
 | **🌤 7-day forecast widget** | **NEW** — full forecast grid or alternating weather+forecast display mode |
@@ -483,9 +573,9 @@ Switching back to a non-media-player entity reverts to `emergency`.
 
 ---
 
-## 📷 Camera Snapshot in Overlay Banner *(new in 1.2.2)*
+## 📷 Camera in Overlay Banner & Card Background *(snapshot: 1.2.2 · live stream + card bg: 1.3.1)*
 
-Attach a **live camera frame** to the overlay toast — the moment a motion sensor, door contact, or intruder alert fires, the banner shows who or what triggered it.
+Attach a **camera image** to an alert — either as a snapshot in the overlay banner, a live stream in the banner, or a background layer behind the alert card slide.
 
 ```yaml
 alerts:
@@ -493,11 +583,22 @@ alerts:
     state: "on"
     message: "Motion at front door"
     theme: intruder
-    camera_entity: camera.front_door     # live snapshot shown in the overlay
-    overlay_mode: true                   # enable at card level
+    camera_entity: camera.front_door     # required for all camera features
+    overlay_mode: true                   # show overlay banner at card level
+    camera_live: true                    # live stream in banner (default: false = snapshot)
+    camera_in_card: true                 # camera background in the card slide
 ```
 
-The camera image appears **below the alert header row** inside the toast. The snapshot height scales proportionally with the `overlay_scale` setting, so it is never cropped at any zoom level. If the camera snapshot fails to load, the image is silently removed and the banner stays intact.
+| Option | Description |
+|--------|-------------|
+| `camera_entity` | Camera entity whose image is used |
+| `camera_live` | `true` = live HLS/WebRTC stream in the overlay banner; `false` (default) = static snapshot |
+| `camera_in_card` | `true` = camera image shown as a background layer behind the alert card slide on every rotation |
+
+- The snapshot/stream appears **below the alert header row** inside the overlay toast. Its height scales proportionally with `overlay_scale`.
+- `camera_in_card` uses the entity's `entity_picture` attribute as a CSS background image, visible across the full card behind a semi-transparent overlay. Works with all 41 themes.
+- If a snapshot fails to load, the image is silently removed and the banner stays intact.
+- `camera_live` requires a camera entity with HLS or WebRTC stream support. Falls back to static snapshot when the `<ha-camera-stream>` component is not yet loaded.
 
 ---
 
@@ -1183,7 +1284,9 @@ For each alert:
 | **Snooze duration** | Per-alert override of global snooze setting |
 | **Sound** | Enable audio notification + optional custom URL |
 | **TTS** | Enable voice announcement — speaker, engine, notify service, custom message |
-| **Camera** | Camera entity for live snapshot in the overlay banner |
+| **Camera** | Camera entity; toggle `camera_live` for live stream in overlay; toggle `camera_in_card` for camera background in the card slide |
+| **Secondary value position** | `below` (default) or `right` — position the secondary value on the same row as the title |
+| **History message** | Custom text recorded in the history log (overrides `message` for history entries) |
 | **Extra conditions** | AND/OR additional entity conditions |
 | **Tap action** | Action executed on tap (native service control) |
 | **Hold action** | Action executed on hold (500 ms) |
@@ -1203,6 +1306,8 @@ You can **reorder** alerts with ↑ / ↓ buttons.
 | **Show snooze bar** | Toggle the amber snooze reactivation bar |
 | **History max events** | How many history entries to keep (25 / 50 / 100 / 200) |
 | **TTS enabled** | Master toggle to enable or disable all TTS announcements |
+| **Show history button** | Toggle to show or hide the 📋 history button |
+| **Show snooze button** | Toggle to show or hide the 💤 snooze button |
 
 ### 🖼️ Layout & Appearance tab
 
@@ -1286,6 +1391,8 @@ The tab shows an **ON** badge when overlay mode is active.
 | `tts_notify_service` | `string` | — | Default notify service for Alexa / push (e.g. `alexa_media_echo_dot`) |
 | `tts_language` | `string` | — | Language code passed to `tts.speak` (e.g. `it-IT`) |
 | `notify_push_enabled` | `boolean` | `true` | Master toggle — set `false` to disable all push notifications globally |
+| `show_history_button` | `boolean` | `true` | Set `false` to hide the 📋 history button completely |
+| `show_snooze_button` | `boolean` | `true` | Set `false` to hide the 💤 snooze button completely |
 | `test_mode` | `boolean` | `false` | Show all alerts as active (ignore conditions) — for editor preview only |
 | `alerts` | `list` | `[]` | List of alert objects |
 
@@ -1335,7 +1442,11 @@ The tab shows an **ON** badge when overlay mode is active.
 | `notify_push_message` | `string` | ❌ | Notification body — same placeholders; falls back to `message` if empty |
 | `show_player_controls` | `boolean` | ❌ | Enable graphical music player UI for `media_player.*` entities (requires `theme: music`) |
 | `music_player_color` | `string` | ❌ | Accent color for the music player UI — any CSS color (default `#e040fb`) |
-| `camera_entity` | `string` | ❌ | Camera entity whose live snapshot appears in the overlay banner |
+| `camera_entity` | `string` | ❌ | Camera entity for overlay banner and card background |
+| `camera_live` | `boolean` | `false` | Show a live HLS/WebRTC stream in the overlay banner instead of a static snapshot (requires `camera_entity`) |
+| `camera_in_card` | `boolean` | `false` | Show the camera image as a background layer behind the alert card slide (requires `camera_entity`) |
+| `history_message` | `string` | ❌ | Custom text recorded in the history log — overrides `message` for history entries; supports `{name}`, `{state}`, `{entity}` |
+| `secondary_value_align` | `string` | `below` | Position of the secondary value: `below` (default, shown under the message) or `right` (shown on the same row as the title) |
 | `conditions_logic` | `string` | ❌ | `and` or `or` for extra conditions |
 | `conditions` | `list` | ❌ | Extra entity conditions |
 | `tap_action` | `object` | ❌ | Action on tap |

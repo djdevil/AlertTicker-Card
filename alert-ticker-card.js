@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3
+ * AlertTicker Card v1.3.1
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 42 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3";
+const CARD_VERSION = "1.3.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -803,7 +803,7 @@ const _ATC_OVERLAY = (() => {
     _root.className = `atc-ov-${pos === "bottom" ? "bottom" : pos === "center" ? "center" : "top"}`;
   }
 
-  function _paint(icon, cat, badge, msg, cfg, theme, secondary, cameraUrl) {
+  function _paint(icon, cat, badge, msg, cfg, theme, secondary, cameraUrl, cameraLive, camHass, camState) {
     _ensureStyle();
     _ensureRoot(cfg.overlay_position);
     clearTimeout(_autoTimer);
@@ -827,8 +827,8 @@ const _ATC_OVERLAY = (() => {
       `<button class="atc-ov-close" title="Dismiss">✕</button>` +
       (duration > 0 ? `<div class="atc-ov-bar" style="animation-duration:${duration}s${themeColor ? ";background:" + themeColor : ""}"></div>` : "");
     toast.querySelector(".atc-ov-close").addEventListener("click", e => { e.stopPropagation(); _hide(); });
-    // Camera snapshot — restructure toast to column layout (image added after scale)
-    if (cameraUrl) {
+    // Camera snapshot or live stream — restructure toast to column layout (image added after scale)
+    if (cameraUrl || (cameraLive && camHass && camState)) {
       toast.style.flexDirection = "column";
       toast.style.alignItems    = "stretch";
       const header = document.createElement("div");
@@ -854,8 +854,28 @@ const _ATC_OVERLAY = (() => {
       const closeEl = toast.querySelector('.atc-ov-close');
       if (closeEl) closeEl.style.fontSize = (18 * scale) + 'px';
     }
-    // Add camera image AFTER scale so max-height is proportional
-    if (cameraUrl) {
+    // Add camera (snapshot or live stream) AFTER scale so dimensions are proportional
+    if (cameraLive && camHass && camState) {
+      const bar = toast.querySelector(".atc-ov-bar");
+      const streamCssText = `width:100%;max-height:${180 * scale}px;border-radius:${8 * scale}px;margin-top:${6 * scale}px;display:block;flex-shrink:0;overflow:hidden;`;
+      if (customElements.get("ha-camera-stream")) {
+        const stream = document.createElement("ha-camera-stream");
+        stream.hass = camHass;
+        stream.stateObj = camState;
+        stream.style.cssText = streamCssText;
+        toast.insertBefore(stream, bar || null);
+      } else {
+        // ha-camera-stream not yet loaded — fall back to snapshot img
+        const snapUrl = camState.attributes?.entity_picture;
+        if (snapUrl) {
+          const img = document.createElement("img");
+          img.src = snapUrl;
+          img.style.cssText = `width:100%;max-height:${180 * scale}px;object-fit:cover;border-radius:${8 * scale}px;margin-top:${6 * scale}px;display:block;flex-shrink:0;`;
+          img.onerror = () => img.remove();
+          toast.insertBefore(img, bar || null);
+        }
+      }
+    } else if (cameraUrl) {
       const bar = toast.querySelector(".atc-ov-bar");
       const img = document.createElement("img");
       img.src = cameraUrl;
@@ -1145,10 +1165,24 @@ const _ATC_OVERLAY = (() => {
               if (_ovDelayActive.has(dk)) {
                 curActive.add(i); // delay already elapsed
               } else if (!_ovDelayTimers.has(dk)) {
+                // Use max last_changed across primary + condition entities (#107)
+                const primEs = a.entity ? hass.states[a.entity] : null;
+                let latestLc = primEs?.last_changed ? new Date(primEs.last_changed).getTime() : 0;
+                if (Array.isArray(a.conditions)) {
+                  for (const cond of a.conditions) {
+                    const ces = cond.entity ? hass.states[cond.entity] : null;
+                    if (ces?.last_changed) {
+                      const t = new Date(ces.last_changed).getTime();
+                      if (t > latestLc) latestLc = t;
+                    }
+                  }
+                }
+                const elapsed = latestLc ? (Date.now() - latestLc) / 1000 : 0;
+                const remaining = Math.max(0, a.trigger_delay - elapsed);
                 _ovDelayTimers.set(dk, setTimeout(() => {
                   _ovDelayActive.add(dk);
                   _ovDelayTimers.delete(dk);
-                }, a.trigger_delay * 1000));
+                }, remaining * 1000));
               }
               // still waiting — don't add to curActive yet
             } else {
@@ -1257,13 +1291,15 @@ const _ATC_OVERLAY = (() => {
                 ? `<ha-icon icon="${rawIcon}"${a.icon_color ? ` style="color:${a.icon_color}"` : ""}></ha-icon>` : rawIcon;
               const tLang  = T[reg.lang] || T.en;
               const badge  = a.show_badge === false ? "" : (a.badge_label || ({ critical: tLang.critical, warning: tLang.warning_label, ok: tLang.success_label }[cat] ?? tLang.info_label));
-              const camUrl = a.camera_entity ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
+              const cameraLive = !!a.camera_live;
+              const camState   = (a.camera_entity && cameraLive) ? (hass.states[a.camera_entity] || null) : null;
+              const camUrl     = (a.camera_entity && !cameraLive) ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
               const paintCfg = reg.config, paintTheme = a.theme;
               notifiedEids.add(eid);
               firedFilter = true;
               filterMsgPromise.then(resolvedMsg => {
                 const parts = filterSecondary ? [filterSecondary] : [];
-                try { _paint(icon, cat, badge, resolvedMsg || fname, paintCfg, paintTheme, parts.join("\n"), camUrl); } catch (_) {}
+                try { _paint(icon, cat, badge, resolvedMsg || fname, paintCfg, paintTheme, parts.join("\n"), camUrl, cameraLive, hass, camState); } catch (_) {}
               });
             }
             cardFN.set(i, notifiedEids);
@@ -1305,14 +1341,16 @@ const _ATC_OVERLAY = (() => {
           } else {
             secondaryTextPromise = Promise.resolve("");
           }
-          const camUrl = a.camera_entity ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
+          const cameraLive = !!a.camera_live;
+          const camState   = (a.camera_entity && cameraLive) ? (hass.states[a.camera_entity] || null) : null;
+          const camUrl     = (a.camera_entity && !cameraLive) ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
           const paintCfg = reg.config, paintTheme = a.theme;
           newBases.add(i); // mark as notified synchronously — prevents re-firing on next tick
           Promise.all([msgPromise, secondaryTextPromise]).then(([resolvedMsg, resolvedSecondary]) => {
             const resolvedParts = [];
             if (resolvedSecondary) resolvedParts.push(resolvedSecondary);
             if (entityPart)        resolvedParts.push(entityPart);
-            try { _paint(icon, cat, badge, resolvedMsg, paintCfg, paintTheme, resolvedParts.join("\n"), camUrl); } catch (_) {}
+            try { _paint(icon, cat, badge, resolvedMsg, paintCfg, paintTheme, resolvedParts.join("\n"), camUrl, cameraLive, hass, camState); } catch (_) {}
           });
           break; // one overlay per tick
         }
@@ -1323,8 +1361,8 @@ const _ATC_OVERLAY = (() => {
   // ── Public API ─────────────────────────────────────────────────────────────
   return {
     // Called by the card when it detects a new alert itself (same-view, immediate)
-    showDirect(icon, cat, badge, msg, cfg, dedupeKey, theme, secondary, cameraUrl) {
-      try { if (!_isDupe(dedupeKey)) _paint(icon, cat, badge, msg, cfg, theme, secondary, cameraUrl); } catch (_) {}
+    showDirect(icon, cat, badge, msg, cfg, dedupeKey, theme, secondary, cameraUrl, cameraLive, camHass, camState) {
+      try { if (!_isDupe(dedupeKey)) _paint(icon, cat, badge, msg, cfg, theme, secondary, cameraUrl, cameraLive, camHass, camState); } catch (_) {}
     },
     // Card is visible — suppress watcher for this alert without showing the banner
     suppress(dedupeKey) {
@@ -1743,14 +1781,24 @@ class AlertTickerCard extends LitElement {
             return false;
           }
           // trigger_delay: condition must stay true for N seconds before alert becomes visible.
-          // Subtract time already elapsed since last_changed so the delay is respected
-          // even when the dashboard is opened mid-condition (not reset to zero on page load).
+          // Use max last_changed across primary + all condition entities so the delay counts
+          // from when ALL conditions first became simultaneously true, not just the primary
+          // entity (#107). Also subtracts elapsed time on page load.
           if (alert.trigger_delay) {
             if (!this._triggerDelayActive.has(key)) {
               if (!this._triggerDelayTimers[key]) {
-                const lc = entityState && entityState.last_changed
+                let latestLc = entityState?.last_changed
                   ? new Date(entityState.last_changed).getTime() : 0;
-                const elapsed = lc ? (Date.now() - lc) / 1000 : 0;
+                if (Array.isArray(alert.conditions)) {
+                  for (const cond of alert.conditions) {
+                    const ces = cond.entity ? this._hass.states[cond.entity] : null;
+                    if (ces?.last_changed) {
+                      const t = new Date(ces.last_changed).getTime();
+                      if (t > latestLc) latestLc = t;
+                    }
+                  }
+                }
+                const elapsed = latestLc ? (Date.now() - latestLc) / 1000 : 0;
                 const remaining = Math.max(0, alert.trigger_delay - elapsed);
                 if (remaining === 0) {
                   this._triggerDelayActive.add(key);
@@ -1758,7 +1806,7 @@ class AlertTickerCard extends LitElement {
                   this._triggerDelayTimers[key] = setTimeout(() => {
                     this._triggerDelayActive.add(key);
                     delete this._triggerDelayTimers[key];
-                    this.requestUpdate();
+                    this._computeActiveAlerts();
                   }, remaining * 1000);
                 }
               }
@@ -1772,7 +1820,7 @@ class AlertTickerCard extends LitElement {
               this._autoDismissTimers[key] = setTimeout(() => {
                 this._autoDismissedKeys.add(key);
                 delete this._autoDismissTimers[key];
-                this.requestUpdate();
+                this._computeActiveAlerts();
               }, alert.auto_dismiss_after * 1000);
             }
           }
@@ -2593,6 +2641,14 @@ class AlertTickerCard extends LitElement {
       if ((alert.group_expanded_message || "").includes("{{") || (alert.group_expanded_message || "").includes("{%")) needed.add(alert.group_expanded_message);
       if ((alert.group_secondary_text || "").includes("{{") || (alert.group_secondary_text || "").includes("{%")) needed.add(alert.group_secondary_text);
     }
+    // Preserve pre-substituted subscriptions created by _resolveMessage (#113):
+    // their cache keys differ from raw alert.message (e.g. {name} → friendly name),
+    // so they don't appear in `needed` and would be wrongly cancelled on every hass
+    // update, causing a flash-of-raw-template → resolved-value flicker cycle.
+    // Keep any subscription that has already returned a WS result (has a cache entry).
+    for (const tmpl of this._tmplUnsubs.keys()) {
+      if (this._tmplCache.has(tmpl)) needed.add(tmpl);
+    }
     // Unsubscribe stale
     for (const [tmpl, unsub] of this._tmplUnsubs) {
       if (!needed.has(tmpl)) {
@@ -2934,9 +2990,14 @@ class AlertTickerCard extends LitElement {
         secondaryState = this._formatStateValue(ses, alert.secondary_attribute || null);
       }
     }
+    // history_message: optional per-alert override for what gets recorded in history.
+    // Useful when the main message is a complex template that produces unhelpful log entries.
+    const historyAlert = alert.history_message
+      ? { ...alert, message: alert.history_message }
+      : alert;
     const entry = {
       ts: Date.now(),
-      message: this._resolveMessage(alert) || "",
+      message: this._resolveMessage(historyAlert) || "",
       theme: alert.theme || "emergency",
       icon: (THEME_META[alert.theme] || {}).icon || "🔔",
       entity: alert.entity || "",
@@ -2951,7 +3012,7 @@ class AlertTickerCard extends LitElement {
 
     // If message contains {{ }}, the WS result may not be cached yet.
     // Resolve async and patch the entry once HA responds.
-    const raw = alert.message || "";
+    const raw = historyAlert.message || "";
     if ((!raw.includes("{{") && !raw.includes("{%")) || !this._hass?.connection) return;
     const cached = this._tmplCache?.get(raw);
     if (cached !== undefined) { entry.message = cached || entry.message; this._saveHistory(); return; }
@@ -3233,6 +3294,7 @@ class AlertTickerCard extends LitElement {
 
   _renderSnoozeButton(alert) {
     if (!alert || (!alert.entity && !alert._isGroup)) return html``;
+    if (this._config?.show_snooze_button === false) return html``;
     // Persistent alarm: snooze becomes a permanent Dismiss button
     if (alert.persistent) {
       return html`
@@ -3327,9 +3389,10 @@ class AlertTickerCard extends LitElement {
     `;
   }
 
-  /** Render the history toggle button (📋) — hidden when history is open */
+  /** Render the history toggle button (📋) — hidden when history is open or show_history_button: false */
   _renderHistoryButton() {
     if (this._historyOpen) return html``;
+    if (this._config?.show_history_button === false) return html``;
     return html`
       <button
         class="atc-history-btn"
@@ -4793,7 +4856,7 @@ class AlertTickerCard extends LitElement {
 
   /** MUSIC PLAYER — album art background with playback controls */
   _renderMusicPlayer(alert, es) {
-    const art = es.attributes.entity_picture || "";
+    const art = es.attributes.entity_picture_local || es.attributes.entity_picture || "";
     const title = es.attributes.media_title || this._resolveMessage(alert);
     const artist = es.attributes.media_artist || "";
     const isPlaying = es.state === "playing";
@@ -4818,11 +4881,14 @@ class AlertTickerCard extends LitElement {
                 <span class="mu-eq-bar"></span>
                 <span class="mu-eq-bar"></span>
               </div>` : html`<span class="mu-pause-dot">◼</span>`}
-            <span class="mu-np-label">NOW PLAYING</span>
+            <span class="mu-np-label">${alert.badge_label || "NOW PLAYING"}</span>
           </div>
           <div class="mu-player-info">
             <div class="mu-player-title">${title}</div>
             ${artist ? html`<div class="mu-player-artist">${artist}</div>` : ""}
+            ${(alert.entity_filter || alert.device_class) && alert.show_filter_name !== false
+              ? html`<div class="mu-player-artist" style="opacity:0.6">${es.attributes.friendly_name || alert.entity}</div>`
+              : ""}
           </div>
           <div class="mu-player-controls">
             <button class="mu-ctrl-btn"
@@ -5038,11 +5104,12 @@ class AlertTickerCard extends LitElement {
   /** Class string for the snooze-host wrapper — shared by all render paths */
   get _hostClass() {
     return "atc-snooze-host"
-      + (this._config.large_buttons    ? " atc-large-buttons"    : "")
-      + (this._config.ha_theme         ? " atc-ha-theme"         : "")
-      + (this._config.vertical         ? " atc-vertical"         : "")
-      + (this._animPhase               ? " atc-animating"        : "")
-      + (this._touchButtonsActive      ? " atc-touch-active"     : "");
+      + (this._config.large_buttons          ? " atc-large-buttons"    : "")
+      + (this._config.ha_theme               ? " atc-ha-theme"         : "")
+      + (this._config.vertical               ? " atc-vertical"         : "")
+      + (this._animPhase                     ? " atc-animating"        : "")
+      + (this._touchButtonsActive            ? " atc-touch-active"     : "")
+      + ((this._activeAlerts[this._currentIndex]?.secondary_value_align || this._config.secondary_value_align) === "right" ? " atc-sv-right" : "");
   }
 
   render() {
@@ -5161,11 +5228,26 @@ class AlertTickerCard extends LitElement {
       `;
     }
 
-    const inner = isWidgetSlide
+    const rawInner = isWidgetSlide
       ? this._renderClearWidget()
       : (current && current._isGroup)
         ? this._renderGroupCard(current)
         : this._renderForTheme((current?.theme || "emergency"), current);
+
+    const inner = (!isWidgetSlide && current && current.camera_entity && current.camera_in_card)
+      ? (() => {
+          const camState = this._hass?.states[current.camera_entity] || null;
+          const camUrl   = camState?.attributes?.entity_picture || null;
+          const bgLayer  = camUrl
+            ? html`<div class="atc-cam-bg-img" style="background-image:url('${camUrl}')"></div>`
+            : "";
+          return html`
+            <div class="atc-cam-bg-wrap">
+              ${bgLayer}
+              <div class="atc-cam-bg-content">${rawInner}</div>
+            </div>`;
+        })()
+      : rawInner;
 
     // tap_action / double_tap_action / hold_action — backwards-compat: old "action" key maps to tap call-service
     // Group slides use internal _expand_group tap so the whole card is tappable
@@ -5306,6 +5388,35 @@ class AlertTickerCard extends LitElement {
         text-overflow: ellipsis;
         font-weight: 400;
         color: rgba(255, 255, 255, 0.85);
+      }
+
+      /* secondary_value_align: right — badge stays on its own row, title and
+       * secondary value share the row below it. */
+      .atc-sv-right [class$="-content"] {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px 8px;
+      }
+      .atc-sv-right [class$="-badge"] {
+        flex: 0 0 100%;
+      }
+      .atc-sv-right [class$="-title"] {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .atc-sv-right .atc-secondary-value {
+        flex-shrink: 0;
+        margin-top: 0;
+        font-size: 0.9rem;
+        opacity: 0.85;
+      }
+      .atc-sv-right [class$="-right"] {
+        display: none;
       }
       .atc-filter-label {
         font-size: 0.92rem;
@@ -7814,6 +7925,39 @@ class AlertTickerCard extends LitElement {
       }
 
       /* -----------------------------------------------------------------------
+       * CAMERA BACKGROUND — blurred camera snapshot or live stream behind
+       * the alert slide content when camera_in_card is enabled
+       * --------------------------------------------------------------------- */
+      .atc-cam-bg-wrap {
+        position: relative;
+        width: 100%; height: 100%;
+        overflow: hidden;
+        border-radius: inherit;
+      }
+      .atc-cam-bg-img {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background-size: cover; background-position: center;
+      }
+      .atc-cam-bg-stream {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        width: 100%; height: 100%;
+        will-change: transform;
+        overflow: hidden;
+      }
+      .atc-cam-bg-content {
+        position: relative;
+        z-index: 1;
+        width: 100%; height: 100%;
+      }
+      /* Theme card background semi-transparent so the camera shows through the full card */
+      .atc-cam-bg-content > * {
+        background: rgba(0, 0, 0, 0.55) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: var(--ha-card-border-radius, 12px) !important;
+      }
+
+      /* -----------------------------------------------------------------------
        * SNOOZED PILL — shown bottom-left when some alerts are snoozed but
        * others are still active (so the full snoozed bar is not shown)
        * --------------------------------------------------------------------- */
@@ -8253,6 +8397,15 @@ class AlertTickerCard extends LitElement {
         position: absolute; inset: 0;
         display: flex; align-items: center; justify-content: center;
         font-size: 0.65rem; font-weight: 800; font-variant-numeric: tabular-nums;
+      }
+
+      /* Timer themes use --card-background-color which adapts to HA light/dark themes.
+       * All other themes use fixed dark gradients so rgba(255,255,255,.85) is safe.
+       * Override secondary text to use --primary-text-color so it stays readable on
+       * light backgrounds (#117). */
+      .at-timer-pulse .atc-secondary-value,
+      .at-timer-ring .atc-secondary-value {
+        color: var(--primary-text-color, rgba(255, 255, 255, 0.85));
       }
 
       /* -----------------------------------------------------------------------
