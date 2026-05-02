@@ -657,10 +657,20 @@ const ET = {
     weather_forecast_interval: "Intervallo alternanza (secondi)",
     weather_forecast_interval_help: "Secondi tra meteo corrente e previsioni settimanali. Default: 5",
     clear_weather_entity_label: "Entità meteo (weather.*)",
+    clear_weather_sensors_title: "Sensori personalizzati (opzionale)",
+    clear_weather_temperature_entity: "Temperatura (sensore locale)",
+    clear_weather_humidity_entity: "Umidità (sensore locale)",
+    clear_weather_temp_high_entity: "Temperatura massima di oggi (sensore)",
+    clear_weather_temp_low_entity: "Temperatura minima di oggi (sensore)",
+    clear_weather_aqi_entity: "Qualità dell'aria / PM2.5 (sensore)",
     clear_clock_show_date: "Mostra data",
     clear_clock_12h: "Formato 12 ore (AM/PM)",
     clear_clock_date_label: "Posizione data",
     clear_clock_style_label: "Stile orologio",
+    clear_clock_colors_title: "Colori personalizzati (opzionale)",
+    clear_clock_color: "Colore cifre orologio",
+    clear_clock_date_color: "Colore data",
+    clear_clock_background: "Colore sfondo",
     clear_weather_style_label: "Stile badge meteo",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -955,10 +965,20 @@ const ET = {
     weather_forecast_interval: "Alternation interval (seconds)",
     weather_forecast_interval_help: "Seconds between current weather and weekly forecast. Default: 5",
     clear_weather_entity_label: "Weather entity (weather.*)",
+    clear_weather_sensors_title: "Custom sensors (optional)",
+    clear_weather_temperature_entity: "Temperature (local sensor)",
+    clear_weather_humidity_entity: "Humidity (local sensor)",
+    clear_weather_temp_high_entity: "Today's high temperature (sensor)",
+    clear_weather_temp_low_entity: "Today's low temperature (sensor)",
+    clear_weather_aqi_entity: "Air quality / PM2.5 (sensor)",
     clear_clock_show_date: "Show date",
     clear_clock_12h: "12-hour format (AM/PM)",
     clear_clock_date_label: "Date position",
     clear_clock_style_label: "Clock style",
+    clear_clock_colors_title: "Custom colors (optional)",
+    clear_clock_color: "Clock digits color",
+    clear_clock_date_color: "Date color",
+    clear_clock_background: "Background color",
     clear_weather_style_label: "Weather badge style",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -1253,10 +1273,20 @@ const ET = {
     weather_forecast_interval: "Intervalle d'alternance (secondes)",
     weather_forecast_interval_help: "Secondes entre la météo actuelle et les prévisions. Défaut: 5",
     clear_weather_entity_label: "Entité météo (weather.*)",
+    clear_weather_sensors_title: "Capteurs personnalisés (optionnel)",
+    clear_weather_temperature_entity: "Température (capteur local)",
+    clear_weather_humidity_entity: "Humidité (capteur local)",
+    clear_weather_temp_high_entity: "Température max du jour (capteur)",
+    clear_weather_temp_low_entity: "Température min du jour (capteur)",
+    clear_weather_aqi_entity: "Qualité de l'air / PM2.5 (capteur)",
     clear_clock_show_date: "Afficher la date",
     clear_clock_12h: "Format 12 heures (AM/PM)",
     clear_clock_date_label: "Position de la date",
     clear_clock_style_label: "Style horloge",
+    clear_clock_colors_title: "Couleurs personnalisées (optionnel)",
+    clear_clock_color: "Couleur des chiffres",
+    clear_clock_date_color: "Couleur de la date",
+    clear_clock_background: "Couleur de fond",
     clear_weather_style_label: "Style badges météo",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -1551,10 +1581,20 @@ const ET = {
     weather_forecast_interval: "Wechselintervall (Sekunden)",
     weather_forecast_interval_help: "Sekunden zwischen aktuellem Wetter und Vorhersage. Standard: 5",
     clear_weather_entity_label: "Wetter-Entität (weather.*)",
+    clear_weather_sensors_title: "Benutzerdefinierte Sensoren (optional)",
+    clear_weather_temperature_entity: "Temperatur (lokaler Sensor)",
+    clear_weather_humidity_entity: "Luftfeuchtigkeit (lokaler Sensor)",
+    clear_weather_temp_high_entity: "Heutige Höchsttemperatur (Sensor)",
+    clear_weather_temp_low_entity: "Heutige Tiefsttemperatur (Sensor)",
+    clear_weather_aqi_entity: "Luftqualität / PM2.5 (Sensor)",
     clear_clock_show_date: "Datum anzeigen",
     clear_clock_12h: "12-Stunden-Format (AM/PM)",
     clear_clock_date_label: "Datumsposition",
     clear_clock_style_label: "Uhr-Stil",
+    clear_clock_colors_title: "Benutzerdefinierte Farben (optional)",
+    clear_clock_color: "Farbe der Ziffern",
+    clear_clock_date_color: "Farbe des Datums",
+    clear_clock_background: "Hintergrundfarbe",
     clear_weather_style_label: "Wetter-Badge-Stil",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -1849,10 +1889,20 @@ const ET = {
     weather_forecast_interval: "Wisselinterval (seconden)",
     weather_forecast_interval_help: "Seconden tussen huidig weer en weekverwachting. Standaard: 5",
     clear_weather_entity_label: "Weerentiteit (weather.*)",
+    clear_weather_sensors_title: "Aangepaste sensoren (optioneel)",
+    clear_weather_temperature_entity: "Temperatuur (lokale sensor)",
+    clear_weather_humidity_entity: "Luchtvochtigheid (lokale sensor)",
+    clear_weather_temp_high_entity: "Hoogste temperatuur vandaag (sensor)",
+    clear_weather_temp_low_entity: "Laagste temperatuur vandaag (sensor)",
+    clear_weather_aqi_entity: "Luchtkwaliteit / PM2.5 (sensor)",
     clear_clock_show_date: "Datum weergeven",
     clear_clock_12h: "12-uursformaat (AM/PM)",
     clear_clock_date_label: "Datumpositie",
     clear_clock_style_label: "Klokstijl",
+    clear_clock_colors_title: "Aangepaste kleuren (optioneel)",
+    clear_clock_color: "Kleur van de cijfers",
+    clear_clock_date_color: "Kleur van de datum",
+    clear_clock_background: "Achtergrondkleur",
     clear_weather_style_label: "Weer badge stijl",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -2147,10 +2197,20 @@ const ET = {
     weather_forecast_interval: "Khoảng thời gian xen kẽ (giây)",
     weather_forecast_interval_help: "Giây giữa thời tiết hiện tại và dự báo tuần. Mặc định: 5",
     clear_weather_entity_label: "Thực thể thời tiết (weather.*)",
+    clear_weather_sensors_title: "Cảm biến tùy chỉnh (tùy chọn)",
+    clear_weather_temperature_entity: "Nhiệt độ (cảm biến cục bộ)",
+    clear_weather_humidity_entity: "Độ ẩm (cảm biến cục bộ)",
+    clear_weather_temp_high_entity: "Nhiệt độ cao nhất hôm nay (cảm biến)",
+    clear_weather_temp_low_entity: "Nhiệt độ thấp nhất hôm nay (cảm biến)",
+    clear_weather_aqi_entity: "Chất lượng không khí / PM2.5 (cảm biến)",
     clear_clock_show_date: "Hiển thị ngày",
     clear_clock_12h: "Định dạng 12 giờ (AM/PM)",
     clear_clock_date_label: "Vị trí ngày",
     clear_clock_style_label: "Kiểu đồng hồ",
+    clear_clock_colors_title: "Màu tùy chỉnh (tùy chọn)",
+    clear_clock_color: "Màu chữ số",
+    clear_clock_date_color: "Màu ngày tháng",
+    clear_clock_background: "Màu nền",
     clear_weather_style_label: "Kiểu badge thời tiết",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -2445,10 +2505,20 @@ const ET = {
     weather_forecast_interval: "Интервал чередования (секунды)",
     weather_forecast_interval_help: "Секунды между текущей погодой и прогнозом. По умолч.: 5",
     clear_weather_entity_label: "Объект погоды (weather.*)",
+    clear_weather_sensors_title: "Пользовательские датчики (необязательно)",
+    clear_weather_temperature_entity: "Температура (локальный датчик)",
+    clear_weather_humidity_entity: "Влажность (локальный датчик)",
+    clear_weather_temp_high_entity: "Макс. температура сегодня (датчик)",
+    clear_weather_temp_low_entity: "Мин. температура сегодня (датчик)",
+    clear_weather_aqi_entity: "Качество воздуха / PM2.5 (датчик)",
     clear_clock_show_date: "Показать дату",
     clear_clock_12h: "12-часовой формат (AM/PM)",
     clear_clock_date_label: "Позиция даты",
     clear_clock_style_label: "Стиль часов",
+    clear_clock_colors_title: "Пользовательские цвета (необязательно)",
+    clear_clock_color: "Цвет цифр",
+    clear_clock_date_color: "Цвет даты",
+    clear_clock_background: "Цвет фона",
     clear_weather_style_label: "Стиль значка погоды",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -2743,10 +2813,20 @@ const ET = {
     weather_forecast_interval: "Skifteinterval (sekunder)",
     weather_forecast_interval_help: "Sekunder mellem aktuelt vejr og ugeprognose. Standard: 5",
     clear_weather_entity_label: "Vejrentitet (weather.*)",
+    clear_weather_sensors_title: "Brugerdefinerede sensorer (valgfrit)",
+    clear_weather_temperature_entity: "Temperatur (lokal sensor)",
+    clear_weather_humidity_entity: "Luftfugtighed (lokal sensor)",
+    clear_weather_temp_high_entity: "Dagens højeste temperatur (sensor)",
+    clear_weather_temp_low_entity: "Dagens laveste temperatur (sensor)",
+    clear_weather_aqi_entity: "Luftkvalitet / PM2.5 (sensor)",
     clear_clock_show_date: "Vis dato",
     clear_clock_12h: "12-timers format (AM/PM)",
     clear_clock_date_label: "Datoposition",
     clear_clock_style_label: "Ur-stil",
+    clear_clock_colors_title: "Brugerdefinerede farver (valgfrit)",
+    clear_clock_color: "Farve på cifrene",
+    clear_clock_date_color: "Datofarve",
+    clear_clock_background: "Baggrundsfarve",
     clear_weather_style_label: "Vejr badge stil",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -3041,12 +3121,22 @@ const ET = {
     weather_forecast_interval: "Interval střídání (sekundy)",
     weather_forecast_interval_help: "Sekundy mezi zobrazením počasí a předpovědi",
     clear_weather_entity_label: "Entita počasí (weather.*)",
+    clear_weather_sensors_title: "Vlastní senzory (volitelné)",
+    clear_weather_temperature_entity: "Teplota (místní senzor)",
+    clear_weather_humidity_entity: "Vlhkost (místní senzor)",
+    clear_weather_temp_high_entity: "Dnešní maximální teplota (senzor)",
+    clear_weather_temp_low_entity: "Dnešní minimální teplota (senzor)",
+    clear_weather_aqi_entity: "Kvalita ovzduší / PM2.5 (senzor)",
     clear_clock_show_date: "Zobrazit datum",
     clear_clock_12h: "12hodinový formát (AM/PM)",
     clear_clock_date_label: "Pozice data",
     date_position_above: "⬆ Nad časem",
     date_position_below: "⬇ Pod časem",
     clear_clock_style_label: "Styl hodin",
+    clear_clock_colors_title: "Vlastní barvy (volitelné)",
+    clear_clock_color: "Barva číslic",
+    clear_clock_date_color: "Barva data",
+    clear_clock_background: "Barva pozadí",
     clear_weather_style_label: "Styl widgetu počasí",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
@@ -3341,10 +3431,20 @@ const ET = {
     weather_forecast_interval: "Intervalo de alternância (segundos)",
     weather_forecast_interval_help: "Segundos entre a exibição do clima e da previsão",
     clear_weather_entity_label: "Entidade de clima (weather.*)",
+    clear_weather_sensors_title: "Sensores personalizados (opcional)",
+    clear_weather_temperature_entity: "Temperatura (sensor local)",
+    clear_weather_humidity_entity: "Umidade (sensor local)",
+    clear_weather_temp_high_entity: "Temperatura máxima de hoje (sensor)",
+    clear_weather_temp_low_entity: "Temperatura mínima de hoje (sensor)",
+    clear_weather_aqi_entity: "Qualidade do ar / PM2.5 (sensor)",
     clear_clock_show_date: "Mostrar data",
     clear_clock_12h: "Formato 12 horas (AM/PM)",
     clear_clock_date_label: "Posição da data",
     clear_clock_style_label: "Estilo do relógio",
+    clear_clock_colors_title: "Cores personalizadas (opcional)",
+    clear_clock_color: "Cor dos dígitos",
+    clear_clock_date_color: "Cor da data",
+    clear_clock_background: "Cor de fundo",
     clear_weather_style_label: "Estilo do badge de clima",
     style_default: "Padrão",
     style_aurora: "🌌 Aurora",
@@ -3639,10 +3739,20 @@ const ET = {
     weather_forecast_interval: "Intervalo de alternancia (segundos)",
     weather_forecast_interval_help: "Segundos entre la vista del tiempo y la previsión",
     clear_weather_entity_label: "Entidad del tiempo (weather.*)",
+    clear_weather_sensors_title: "Sensores personalizados (opcional)",
+    clear_weather_temperature_entity: "Temperatura (sensor local)",
+    clear_weather_humidity_entity: "Humedad (sensor local)",
+    clear_weather_temp_high_entity: "Temperatura máxima de hoy (sensor)",
+    clear_weather_temp_low_entity: "Temperatura mínima de hoy (sensor)",
+    clear_weather_aqi_entity: "Calidad del aire / PM2.5 (sensor)",
     clear_clock_show_date: "Mostrar fecha",
     clear_clock_12h: "Formato 12 horas (AM/PM)",
     clear_clock_date_label: "Posición de la fecha",
     clear_clock_style_label: "Estilo del reloj",
+    clear_clock_colors_title: "Colores personalizados (opcional)",
+    clear_clock_color: "Color de los dígitos",
+    clear_clock_date_color: "Color de la fecha",
+    clear_clock_background: "Color de fondo",
     clear_weather_style_label: "Estilo del badge del tiempo",
     style_default: "Por defecto",
     style_aurora: "🌌 Aurora",
@@ -4639,6 +4749,35 @@ class AlertTickerCardEditor extends LitElement {
               @value-changed="${(e) => this._fireConfig({ ...this._config, clear_weather_entity: e.detail.value || undefined })}"
             ></ha-entity-picker>
           </div>
+          <!-- Custom sensor overrides (visible when weather entity is set) -->
+          ${cfg.clear_weather_entity ? html`
+          <div class="form-section-title" style="font-size:0.78rem;opacity:0.6;padding:4px 0 2px;letter-spacing:0.04em;text-transform:uppercase;">${this._t("clear_weather_sensors_title")}</div>
+          <div class="form-row">
+            <ha-entity-picker .hass="${this._hass}" .value="${cfg.clear_weather_temperature_entity || ''}" .label="${this._t('clear_weather_temperature_entity')}" allow-custom-entity
+              @value-changed="${(e) => this._fireConfig({ ...this._config, clear_weather_temperature_entity: e.detail.value || undefined })}"
+            ></ha-entity-picker>
+          </div>
+          <div class="form-row">
+            <ha-entity-picker .hass="${this._hass}" .value="${cfg.clear_weather_humidity_entity || ''}" .label="${this._t('clear_weather_humidity_entity')}" allow-custom-entity
+              @value-changed="${(e) => this._fireConfig({ ...this._config, clear_weather_humidity_entity: e.detail.value || undefined })}"
+            ></ha-entity-picker>
+          </div>
+          <div class="form-row">
+            <ha-entity-picker .hass="${this._hass}" .value="${cfg.clear_weather_temp_high_entity || ''}" .label="${this._t('clear_weather_temp_high_entity')}" allow-custom-entity
+              @value-changed="${(e) => this._fireConfig({ ...this._config, clear_weather_temp_high_entity: e.detail.value || undefined })}"
+            ></ha-entity-picker>
+          </div>
+          <div class="form-row">
+            <ha-entity-picker .hass="${this._hass}" .value="${cfg.clear_weather_temp_low_entity || ''}" .label="${this._t('clear_weather_temp_low_entity')}" allow-custom-entity
+              @value-changed="${(e) => this._fireConfig({ ...this._config, clear_weather_temp_low_entity: e.detail.value || undefined })}"
+            ></ha-entity-picker>
+          </div>
+          <div class="form-row">
+            <ha-entity-picker .hass="${this._hass}" .value="${cfg.clear_weather_aqi_entity || ''}" .label="${this._t('clear_weather_aqi_entity')}" allow-custom-entity
+              @value-changed="${(e) => this._fireConfig({ ...this._config, clear_weather_aqi_entity: e.detail.value || undefined })}"
+            ></ha-entity-picker>
+          </div>
+          ` : ''}
         ` : ''}
 
         <!-- Date toggle + position (only for clock/weather_clock/weather_forecast modes) -->
@@ -4690,6 +4829,40 @@ class AlertTickerCardEditor extends LitElement {
                 <option value="gold"    ?selected="${cfg.clear_clock_style === 'gold'}">${this._t("style_gold")}</option>
                 <option value="matrix"  ?selected="${cfg.clear_clock_style === 'matrix'}">${this._t("style_matrix")}</option>
               </select>
+            </div>
+          </div>
+          <!-- Clock color customization -->
+          <div class="form-section-title" style="font-size:0.78rem;opacity:0.6;padding:4px 0 2px;letter-spacing:0.04em;text-transform:uppercase;">${this._t("clear_clock_colors_title")}</div>
+          <div class="form-row" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px;">
+              <label style="font-size:0.78rem;opacity:0.7;">${this._t("clear_clock_color")}</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="color" .value="${cfg.clear_clock_color || '#dce8ff'}"
+                  @input="${(e) => this._fireConfig({ ...this._config, clear_clock_color: e.target.value })}"
+                  style="width:36px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:2px;">
+                ${cfg.clear_clock_color ? html`<button style="font-size:0.7rem;opacity:0.6;background:none;border:none;cursor:pointer;color:inherit;"
+                  @click="${() => this._fireConfig({ ...this._config, clear_clock_color: undefined })}">✕</button>` : ""}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px;">
+              <label style="font-size:0.78rem;opacity:0.7;">${this._t("clear_clock_date_color")}</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="color" .value="${cfg.clear_clock_date_color || '#94affe'}"
+                  @input="${(e) => this._fireConfig({ ...this._config, clear_clock_date_color: e.target.value })}"
+                  style="width:36px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:2px;">
+                ${cfg.clear_clock_date_color ? html`<button style="font-size:0.7rem;opacity:0.6;background:none;border:none;cursor:pointer;color:inherit;"
+                  @click="${() => this._fireConfig({ ...this._config, clear_clock_date_color: undefined })}">✕</button>` : ""}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px;">
+              <label style="font-size:0.78rem;opacity:0.7;">${this._t("clear_clock_background")}</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="color" .value="${cfg.clear_clock_background || '#060c1c'}"
+                  @input="${(e) => this._fireConfig({ ...this._config, clear_clock_background: e.target.value })}"
+                  style="width:36px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:2px;">
+                ${cfg.clear_clock_background ? html`<button style="font-size:0.7rem;opacity:0.6;background:none;border:none;cursor:pointer;color:inherit;"
+                  @click="${() => this._fireConfig({ ...this._config, clear_clock_background: undefined })}">✕</button>` : ""}
+              </div>
             </div>
           </div>
         ` : ''}
