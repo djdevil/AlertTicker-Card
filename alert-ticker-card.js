@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.2
+ * AlertTicker Card v1.3.2.1
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 42 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.2";
+const CARD_VERSION = "1.3.2.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -3381,8 +3381,25 @@ class AlertTickerCard extends LitElement {
         </div>
       `;
     }
-    // Group slide: snooze all members with duration picker
+    // Group slide: snooze all members
     if (alert._isGroup) {
+      const groupFixedDuration = this._config.snooze_default_duration != null
+        ? this._config.snooze_default_duration
+        : null;
+      if (groupFixedDuration != null) {
+        return html`
+          <div class="atc-snooze-wrap">
+            <button
+              class="atc-snooze-btn"
+              title="${this._t("snooze")}"
+              @click="${(e) => {
+                e.stopPropagation();
+                this._snoozeGroup(alert, groupFixedDuration);
+              }}"
+            >💤</button>
+          </div>
+        `;
+      }
       const menuOpen = this._snoozeMenuOpen === alert._groupKey;
       return html`
         <div class="atc-snooze-wrap">
@@ -8646,10 +8663,14 @@ class AlertTickerCard extends LitElement {
       /* ── Decorative elements reset ── */
       .atc-ha-theme [class$="-fill"],
       .atc-ha-theme [class$="-drain"],
-      .atc-ha-theme [class$="-bg"],
+      .atc-ha-theme [class$="-bg"]:not(.mu-art-bg),
       .atc-ha-theme [class$="-glow"],
       .atc-ha-theme [class$="-ring"]:not(.tr2-ring-wrap) {
         opacity: 0.25 !important;
+      }
+      /* Music player: art and base background are functional, not decorative */
+      .atc-ha-theme .at-music--player {
+        background: #0c0a14 !important;
       }
       /* Icon filters → remove neon/glow effects */
       .atc-ha-theme [class$="-icon"] {
@@ -8729,9 +8750,16 @@ class AlertTickerCard extends LitElement {
         height: 100% !important;
         min-height: unset !important;
       }
+      /* camera_in_card wrapper: propagate full height, no flex side-effects */
+      .atc-vertical .atc-cam-bg-wrap,
+      .atc-vertical .atc-cam-bg-content {
+        height: 100% !important;
+        width: 100% !important;
+      }
 
       /* Core: flip theme card to vertical stacking */
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player) {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-cam-bg-wrap),
+      .atc-vertical .atc-cam-bg-content > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player) {
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
@@ -8742,7 +8770,9 @@ class AlertTickerCard extends LitElement {
 
       /* Icon: was flex-shrink on left edge, now centered at top */
       .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-icon"],
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-icon-wrap"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-icon-wrap"],
+      .atc-vertical .atc-cam-bg-content > div:not(.at-ticker):not(.at-music--player) > [class$="-icon"],
+      .atc-vertical .atc-cam-bg-content > div:not(.at-ticker):not(.at-music--player) > [class$="-icon-wrap"] {
         flex-shrink: 0;
         font-size: 2.2rem !important;
         width: auto !important;
@@ -8751,7 +8781,8 @@ class AlertTickerCard extends LitElement {
       }
 
       /* Content area: full width, centered text */
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-content"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-content"],
+      .atc-vertical .atc-cam-bg-content > div:not(.at-ticker):not(.at-music--player) > [class$="-content"] {
         flex: unset !important;
         width: 100% !important;
         min-width: unset !important;
@@ -8759,7 +8790,8 @@ class AlertTickerCard extends LitElement {
       }
 
       /* Right column: reset horizontal flex, center counter below content */
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-right"] {
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.at-music--player) > [class$="-right"],
+      .atc-vertical .atc-cam-bg-content > div:not(.at-ticker):not(.at-music--player) > [class$="-right"] {
         flex-shrink: 0;
         align-self: center !important;
         flex-direction: row !important;

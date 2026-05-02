@@ -6,7 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.3.2] - 2026-05-01
+## [1.3.2.1] - 2026-05-03
+
+### Fixed
+
+- **Music player cover art invisible with `ha_theme: true`** ([#119](https://github.com/djdevil/AlertTicker-Card/issues/119)) — the v1.3.2 fix restored the art in HA's default theme but broke under the "Adapt to HA theme" option. Root cause: the `ha_theme` CSS block contains a blanket `[class$="-bg"] { opacity: 0.25 !important }` rule intended to dim decorative backgrounds; it also matched `.mu-art-bg` (the blurred album art layer), dropping it to 25% opacity. Additionally, the generic `.at-fold-wrapper > div { background: var(--card-background-color) !important }` rule overwrote the dark base color of the music player. Fixed by adding `:not(.mu-art-bg)` to the opacity rule and a specific `.atc-ha-theme .at-music--player { background: #0c0a14 !important }` override so the player retains its dark background regardless of the active HA theme.
+
+- **Grouped alert snooze ignores `snooze_default_duration`** — clicking 💤 on a group slide always opened the duration picker menu even when `snooze_default_duration` was configured. Root cause: `_renderSnoozeButton` had a separate code path for group slides (`alert._isGroup`) that always rendered the menu, bypassing the `fixedDuration` check used for individual alerts. Fixed by applying the same logic to the group path: if `snooze_default_duration` is set, the button directly calls `_snoozeGroup(alert, duration)` with a single tap; the menu is shown only when no default duration is configured.
+
+---
+
+## [1.3.2] - 2026-05-02
 
 ### Added
 
@@ -80,6 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Music player cover art disappears in HA light themes** ([#119](https://github.com/djdevil/AlertTicker-Card/issues/119)) — the album art background (`.mu-art-bg`) is `position: absolute` and must be contained within the player card. Without `position: relative` on the player container, the browser resolved the containing block from a higher DOM ancestor — which in HA's dark theme happened to be the card wrapper (coincidentally correct), but in HA's light theme resolved to a different ancestor, causing the art layer to be positioned outside the visible area or clipped away. Fixed by adding `position: relative; overflow: hidden` to `.at-music--player`. Also added an explicit dark base color (`background: #0c0a14`) so the card always renders correctly even when the art is still loading or fails to load.
 
 - **Test mode preview does not work when alerts use non-existent entities** — when a YAML config was pasted directly into the editor containing entities that do not exist in the current HA instance, all alerts were filtered out of the active list (entity state lookup returns `undefined` → filtered). This made the preview jump mechanism (`_preview_index`) unable to navigate to any alert, since it can only jump to alerts present in the active array. Fixed by allowing all alerts through the entity-existence check when `test_mode` is active, so any configured alert can be previewed regardless of whether its entity exists in HA.
+
+- **Grouped alert snooze ignores `snooze_default_duration`** — when multiple alerts were grouped into a single group slide and `snooze_default_duration` was configured, clicking the 💤 button on the group always opened the duration picker menu instead of immediately snoozing for the configured duration. Root cause: `_renderSnoozeButton` had a separate code path for group slides (`alert._isGroup`) that always rendered the menu, bypassing the `fixedDuration` check used for individual alerts. Fixed by applying the same logic to the group path: if `snooze_default_duration` is set, the button directly calls `_snoozeGroup(alert, duration)` with a single tap; the menu is only shown when no default duration is configured.
 
 ---
 

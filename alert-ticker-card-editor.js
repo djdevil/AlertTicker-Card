@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.1
+ * AlertTicker Card Editor v1.3.2.1
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.1";
+const CARD_VERSION = "1.3.2.1";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
