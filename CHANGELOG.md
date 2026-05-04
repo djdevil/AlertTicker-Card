@@ -6,13 +6,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.3.2.1] - 2026-05-03
+## [1.3.2.3] - 2026-05-04
+
+### Added
+
+- **8 new spectacular 3D themes** — one or two per alert category, designed for maximum visual impact with layered CSS animations and 3D transforms:
+
+  | Theme | Category | Effect |
+  |-------|----------|--------|
+  | `portal` | Critical | Counter-rotating crimson vortex using conic gradients — a dimensional portal tears open in the card |
+  | `void` | Critical | Black hole with a spinning purple accretion disk rendered in 3D perspective |
+  | `volt` | Warning | Electric discharge: horizontal scanlines + a lightning bolt flash every ~1.2 s |
+  | `nebula` | Warning | Three drifting gas clouds (purple, blue, teal) softly blurred and animated independently |
+  | `prism` | Info | A spectrum light sweep crosses the card with the icon cycling through rainbow drop-shadows |
+  | `arcade` | Info | Tron-style 3D perspective grid scrolling toward the viewer, monospace badge text |
+  | `diamond` | OK | Crystalline facet overlay + a specular shimmer that sweeps left-to-right, icon tumbles gently |
+  | `quantum` | OK | Two atomic orbital rings rotating in opposite directions in 3D perspective around a pulsing nucleus |
+
+  All themes are fully compatible with `ha_theme: true` — when the HA theme adaptation is active, decorative 3D layers fade to 15–20% opacity and badge colors follow HA semantic color variables.
+
+- **`icon_size` — per-alert icon size override** ([#128](https://github.com/djdevil/AlertTicker-Card/issues/128)) — new per-alert option that overrides the default icon size (`1.6em`) with any CSS value. Useful when different icon types (e.g. `mdi:battery` vs a thin state icon) have different visual weights at the same nominal size. Accepts any CSS length: `em`, `px`, `rem`. Configurable in the visual editor under the icon section.
+
+  ```yaml
+  alerts:
+    - device_class: battery
+      use_ha_icon: true
+      icon_size: "1.2em"    # shrink battery icon to match other alerts
+  ```
+
+- **HA theme card variables: `--ha-card-box-shadow` and `--ha-card-border-width`** ([#129](https://github.com/djdevil/AlertTicker-Card/issues/129)) — the card now fully respects all three standard Lovelace card CSS variables. `--ha-card-border-radius` was already supported; `--ha-card-box-shadow` is now applied to `:host` so any theme-defined shadow renders correctly; `--ha-card-border-width` and `--ha-card-border-color` are now used as the border source when `card_border` is not explicitly enabled, so theme-level border styling is applied automatically without requiring any per-card config.
+
+- **`card_background` — custom background / transparency** ([#130](https://github.com/djdevil/AlertTicker-Card/issues/130)) — new global toggle that overrides the alert theme's background with a custom color or the HA theme variable. When enabled without a value, uses `var(--ha-card-background)` automatically so the card blends with other dashboard cards. Accepts any CSS color for a fixed override (e.g. `rgba(0,0,0,0.5)`). Toggle and optional color field available in the visual editor under **Layout & Appearance**.
+
+  ```yaml
+  card_background: true                   # use --ha-card-background from HA theme
+  card_background: "rgba(20,20,30,0.7)"   # fixed semi-transparent color
+  ```
+
+- **Jinja2 templates in `navigation_path`** ([#126](https://github.com/djdevil/AlertTicker-Card/discussions/126)) — `tap_action.navigation_path` (and `hold_action`, `double_tap_action`) now resolves `{{ states('...') }}` and `{{ state_attr('...','...') }}` templates at tap time, enabling dynamic navigation targets based on entity state. The same mini-evaluator used for `message` fields is applied synchronously at the moment of the tap; if the template is too complex for the local evaluator, the raw string is used as fallback.
+
+  ```yaml
+  tap_action:
+    action: navigate
+    navigation_path: "{{ states('sensor.room_presence_dan_pop') }}"
+  ```
 
 ### Fixed
 
-- **Music player cover art invisible with `ha_theme: true`** ([#119](https://github.com/djdevil/AlertTicker-Card/issues/119)) — the v1.3.2 fix restored the art in HA's default theme but broke under the "Adapt to HA theme" option. Root cause: the `ha_theme` CSS block contains a blanket `[class$="-bg"] { opacity: 0.25 !important }` rule intended to dim decorative backgrounds; it also matched `.mu-art-bg` (the blurred album art layer), dropping it to 25% opacity. Additionally, the generic `.at-fold-wrapper > div { background: var(--card-background-color) !important }` rule overwrote the dark base color of the music player. Fixed by adding `:not(.mu-art-bg)` to the opacity rule and a specific `.atc-ha-theme .at-music--player { background: #0c0a14 !important }` override so the player retains its dark background regardless of the active HA theme.
+- **Music player cover art invisible with `ha_theme: true`** ([#119](https://github.com/djdevil/AlertTicker-Card/issues/119)) — the v1.3.2 fix restored the art in HA's default theme but broke under the "Adapt to HA theme" option. The `ha_theme` CSS block's blanket `[class$="-bg"] { opacity: 0.25 !important }` rule matched `.mu-art-bg`, dropping album art to 25% opacity. Fixed by adding `:not(.mu-art-bg)` and a specific `.atc-ha-theme .at-music--player { background: #0c0a14 !important }` override.
 
-- **Grouped alert snooze ignores `snooze_default_duration`** — clicking 💤 on a group slide always opened the duration picker menu even when `snooze_default_duration` was configured. Root cause: `_renderSnoozeButton` had a separate code path for group slides (`alert._isGroup`) that always rendered the menu, bypassing the `fixedDuration` check used for individual alerts. Fixed by applying the same logic to the group path: if `snooze_default_duration` is set, the button directly calls `_snoozeGroup(alert, duration)` with a single tap; the menu is shown only when no default duration is configured.
+- **Grouped alert snooze ignores `snooze_default_duration`** — clicking 💤 on a group slide always opened the duration picker menu even when `snooze_default_duration` was configured. Fixed by applying the same fixed-duration logic to the group code path so a single tap snoozes immediately.
 
 ---
 

@@ -1,9 +1,9 @@
 # AlertTicker Card for Home Assistant
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **41 visual themes** (including 4 dedicated timer themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **mobile push notifications**, **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
+A custom Lovelace card to display alerts and notifications based on entity states. Supports **50 visual themes** (including 4 dedicated timer themes and 8 new 3D spectacular themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **mobile push notifications**, **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.3.2-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.3.2.3-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -11,6 +11,75 @@ A custom Lovelace card to display alerts and notifications based on entity state
 > ☕ If you enjoy this card and it saves you time, consider buying me a coffee — it keeps the updates coming!
 >
 > [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
+
+---
+
+## ✨ What's New in v1.3.2.3
+
+### 🎨 8 New Spectacular 3D Themes
+
+Eight brand-new themes designed for maximum visual impact using layered CSS animations and 3D perspective transforms. Each one targets a specific alert category and brings a unique dynamic effect to every slide.
+
+| Theme | Category | Effect |
+|-------|----------|--------|
+| `portal` | Critical | Two counter-rotating conic-gradient discs form a dimensional crimson vortex; the icon spins and pulses with each cycle |
+| `void` | Critical | A 3D-perspective accretion disk spins around a deep purple core — a cosmic black hole in your dashboard |
+| `volt` | Warning | Horizontal CRT scanlines + an electric bolt that discharges every ~1.2 s; icon strobes on impact |
+| `nebula` | Warning | Three independently-drifting gas clouds (purple · blue · teal) softly blurred and animated with separate timing |
+| `prism` | Info | A skewed rainbow light sweep crosses the card; the icon cycles through full-spectrum drop-shadows |
+| `arcade` | Info | Tron-style 3D perspective grid scrolling toward the viewer with a monospace badge |
+| `diamond` | OK | Crystalline facet overlay + a specular shimmer that sweeps left-to-right; icon catches light with a gentle tumble |
+| `quantum` | OK | Two atomic orbital rings rotate in opposite directions in CSS 3D perspective around a pulsing nucleus |
+
+```yaml
+alerts:
+  - entity: binary_sensor.front_door
+    state: "on"
+    theme: portal      # or: void · volt · nebula · prism · arcade · diamond · quantum
+    message: "Intrusion detected"
+```
+
+All 8 themes are compatible with `ha_theme: true` — decorative 3D layers fade to ~15 % opacity and badge colors follow HA semantic variables (`--error-color`, `--warning-color`, etc.).
+
+---
+
+## ✨ What's New in v1.3.2.2
+
+### 📐 `icon_size` — per-alert icon size override ([#128](https://github.com/djdevil/AlertTicker-Card/issues/128))
+
+Override the default icon size for individual alerts. Useful when different icon types have different visual weights at the same nominal size.
+
+```yaml
+alerts:
+  - device_class: battery
+    use_ha_icon: true
+    icon_size: "1.2em"
+```
+
+### 🎨 HA theme card variables: `--ha-card-box-shadow` and `--ha-card-border-width` ([#129](https://github.com/djdevil/AlertTicker-Card/issues/129))
+
+The card now fully respects all three standard Lovelace card CSS variables — `--ha-card-border-radius` (already supported), `--ha-card-box-shadow`, and `--ha-card-border-width` / `--ha-card-border-color`.
+
+### 🖼️ `card_background` — custom background / transparency ([#130](https://github.com/djdevil/AlertTicker-Card/issues/130))
+
+New global toggle that overrides the alert theme's background with a custom color or the HA theme variable.
+
+```yaml
+card_background: true                   # use --ha-card-background from HA theme
+card_background: "rgba(20,20,30,0.7)"   # fixed semi-transparent color
+```
+
+Toggle and color picker available in the visual editor under **Layout & Appearance**.
+
+### 🔗 Jinja2 templates in `navigation_path` ([#126](https://github.com/djdevil/AlertTicker-Card/discussions/126))
+
+`tap_action.navigation_path` now resolves `{{ states('...') }}` and `{{ state_attr('...','...') }}` templates at tap time, enabling dynamic navigation targets based on entity state.
+
+```yaml
+tap_action:
+  action: navigate
+  navigation_path: "{{ states('sensor.room_presence') }}"
+```
 
 ---
 
@@ -102,7 +171,7 @@ alerts:
 
 ### 🖼️ Camera as Alert Card Background
 
-New per-alert toggle `camera_in_card: true` shows the configured camera image as a **background layer inside the alert card slide** itself — visible on every rotation, not just when the overlay fires. Works with all 41 themes.
+New per-alert toggle `camera_in_card: true` shows the configured camera image as a **background layer inside the alert card slide** itself — visible on every rotation, not just when the overlay fires. Works with all 50 themes.
 
 ```yaml
 alerts:
@@ -436,7 +505,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 
 | Feature | Details |
 |---------|---------|
-| **Themes** | **41** visual themes in 6 categories (including 4 timer themes) |
+| **Themes** | **50** visual themes in 6 categories (including 4 timer themes and 8 new 3D spectacular themes) |
 | **Animations** | **12** selectable transition animations between alerts |
 | **Per-alert theme** | Each alert has its own independent theme |
 | **Multiple entities** | Unlimited alerts per card |
@@ -475,7 +544,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Persistent alerts** | `persistent: true` — alert stays visible after sensor clears, requires manual ✕ dismiss |
 | **Swipe to snooze** | Swipe left on the card to snooze (or dismiss if `persistent: true`) — no conflict with `tap_action` |
 | **Invisible touch zone** | Right-side tap zone shows action buttons on mobile without interfering with `tap_action` |
-| **Vertical layout** | Stack icon on top, message below, centered — all 41 themes |
+| **Vertical layout** | Stack icon on top, message below, centered — all 50 themes |
 | **HA theme adaptation** | `ha_theme: true` adapts colors to any active HA global theme |
 | **Overlay notification** | Global floating banner — fires from any dashboard view, with top / center / bottom position and auto-dismiss |
 | **Clear widget** | Animated clock or weather display (condition + temp + wind + humidity) when no alerts are active |
@@ -664,7 +733,7 @@ alerts:
 | `camera_in_card` | `true` = camera image shown as a background layer behind the alert card slide on every rotation |
 
 - The snapshot/stream appears **below the alert header row** inside the overlay toast. Its height scales proportionally with `overlay_scale`.
-- `camera_in_card` uses the entity's `entity_picture` attribute as a CSS background image, visible across the full card behind a semi-transparent overlay. Works with all 41 themes.
+- `camera_in_card` uses the entity's `entity_picture` attribute as a CSS background image, visible across the full card behind a semi-transparent overlay. Works with all 50 themes.
 - If a snapshot fails to load, the image is silently removed and the banner stays intact.
 - `camera_live` requires a camera entity with HLS or WebRTC stream support. Falls back to static snapshot when the `<ha-camera-stream>` component is not yet loaded.
 
@@ -1255,7 +1324,7 @@ Stack the icon on top and the message below, centered — useful for narrow colu
 vertical: true
 ```
 
-Works with all 41 themes. The **Ticker** theme keeps its horizontal scrolling. Can be combined with `ha_theme: true` and `large_buttons: true`.
+Works with all 50 themes. The **Ticker** theme keeps its horizontal scrolling. Can be combined with `ha_theme: true` and `large_buttons: true`.
 
 ### HA theme adaptation
 
@@ -1273,7 +1342,7 @@ When enabled:
 - Info badges/borders → `--info-color`
 - OK badges/borders → `--success-color`
 
-All 41 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
+All 50 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
 
 ### Card border
 
