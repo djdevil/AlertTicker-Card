@@ -6,6 +6,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.2.4] - 2026-05-08
+
+### Added
+
+- **All-clear icon customization** — three new options to match the all-clear card's icon to alert cards: `clear_icon` (emoji or `mdi:` icon), `clear_icon_size` (CSS size), `clear_icon_color` (CSS color). Enable with `clear_use_ha_icon: true` to unlock the icon picker and all three fields in the visual editor under the **All Clear** tab.
+
+  ```yaml
+  show_when_clear: true
+  clear_use_ha_icon: true
+  clear_icon: "mdi:check-circle-outline"
+  clear_icon_size: "2em"
+  clear_icon_color: "#4caf50"
+  ```
+
+- **2 new weather forecast themes** — purpose-built for weather and forecast alert cards:
+
+  | Theme | Category | Effect |
+  |-------|----------|--------|
+  | `storm` | ⚠️ Warning | Diagonal rain streaks sliding across the card + a double lightning flash that fires every ~3.5 s, shaking the icon on impact |
+  | `frost` | ℹ️ Info | Three layers of falling snowflake dots (radial-gradient tiled pattern) with a slow icy shimmer sweeping left-to-right |
+
+  ```yaml
+  alerts:
+    - entity: sensor.weather_alert
+      state: "storm"
+      theme: storm
+      message: "Thunderstorm approaching"
+    - entity: sensor.weather_alert
+      state: "snow"
+      theme: frost
+      message: "Snowfall expected tonight"
+  ```
+
+### Fixed
+
+- **`fire-dom-event` action not firing** — `_handleAction` was missing the `fire-dom-event` case, so browser_mod popups and other custom DOM events were silently ignored. Fixed by dispatching an `ll-custom` event with the full action config. Applies to all action slots: `tap_action`, `hold_action`, `double_tap_action`, `clear_tap_action`, `clear_hold_action`, `clear_double_tap_action`.
+
+- **Snooze / history / counter buttons appear above Bubble Card popups** ([#127](https://github.com/djdevil/AlertTicker-Card/issues/127)) — the `:host` shadow root was missing `isolation: isolate`, so its absolutely-positioned child elements participated in the global stacking context and rendered above external popup layers. Fixed by adding `isolation: isolate` to `:host`, which contains all internal z-indexes within the card's own stacking context.
+
+- **Turkish (TR) language support** ([#134](https://github.com/djdevil/AlertTicker-Card/issues/134)) — full translation contributed by [@yunusuztr](https://github.com/yunusuztr), covering all card runtime labels, visual editor UI, theme default messages, TTS prefixes, operator names, category group names, and overlay strings.
+
+- **[CRITICAL] All visual editor text inputs disappear after HA 2026.5 upgrade** ([#133](https://github.com/djdevil/AlertTicker-Card/issues/133)) — Home Assistant 2026.5 removed the `ha-textfield` component (Material Web Components). All text input fields in the card's visual editor were silently dropped as a result. Fixed by replacing every `ha-textfield` instance with the new `ha-input` component across `alert-ticker-card-editor.js`.
+
+- **Overlay banner fires on the same view where the card is already visible** ([#135](https://github.com/djdevil/AlertTicker-Card/issues/135)) — two related bugs in the cross-view overlay watcher: (1) When the user is on a dashboard where the ticker card is visible, the overlay banner could still appear for that card's own alerts. Fixed by checking the native `el.isConnected` DOM property alongside `el._mounted` to reliably detect visibility, and by auto-dismissing any active watcher overlay the moment its card reconnects to the DOM. (2) The overlay banner did not auto-dismiss when the triggering alert condition resolved; it always waited for the full `overlay_duration` timer. Fixed by tracking the currently-displayed watcher alert and calling `_hide()` on the next 2-second tick as soon as the alert goes inactive.
+
+---
+
 ## [1.3.2.3] - 2026-05-04
 
 ### Added
@@ -52,6 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 
 ### Fixed
+
+
 
 - **Music player cover art invisible with `ha_theme: true`** ([#119](https://github.com/djdevil/AlertTicker-Card/issues/119)) — the v1.3.2 fix restored the art in HA's default theme but broke under the "Adapt to HA theme" option. The `ha_theme` CSS block's blanket `[class$="-bg"] { opacity: 0.25 !important }` rule matched `.mu-art-bg`, dropping album art to 25% opacity. Fixed by adding `:not(.mu-art-bg)` and a specific `.atc-ha-theme .at-music--player { background: #0c0a14 !important }` override.
 

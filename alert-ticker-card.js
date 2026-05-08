@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.2.3
+ * AlertTicker Card v1.3.2.4
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.2.3";
+const CARD_VERSION = "1.3.2.4";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -80,6 +80,9 @@ const THEME_META = {
   arcade:   { icon: "🕹️", category: "info",     color: "#00e5ff", bg: "linear-gradient(135deg,#00050d,#00101a)" },
   diamond:  { icon: "💠", category: "ok",       color: "#80deea", bg: "linear-gradient(135deg,#00141a,#001a24)" },
   quantum:  { icon: "⚛️", category: "ok",       color: "#69f0ae", bg: "linear-gradient(135deg,#001a0d,#001a19)" },
+  // --- Weather Forecast ---
+  storm:    { icon: "⛈️", category: "warning",  color: "#82b0ff", bg: "linear-gradient(160deg,#050810,#080f1a,#0c1628)" },
+  frost:    { icon: "❄️", category: "info",     color: "#90caf9", bg: "linear-gradient(160deg,#020610,#040d1c,#06142a)" },
   // --- Style ---
   ticker:       { icon: "📰", category: "style",    color: "#ea80fc", bg: "linear-gradient(135deg,#0d0019,#1a0033)" },
   neon:         { icon: "⚡", category: "style",    color: "#ea80fc", bg: "linear-gradient(135deg,#0d0019,#1a0033)" },
@@ -190,6 +193,14 @@ const TTS_PREFIXES = {
     ok:       (name) => `${name}: vuelto a la normalidad`,
     timer:    (name) => `Temporizador: ${name}`,
     _default: (name) => `Alerta: ${name}`,
+  },
+  tr: {
+    critical: (name) => `Kritik uyarı: ${name}`,
+    warning:  (name) => `Dikkat: ${name}`,
+    info:     (name) => `Bildirim: ${name}`,
+    ok:       (name) => `${name}: normale döndü`,
+    timer:    (name) => `Zamanlayıcı: ${name}`,
+    _default: (name) => `Uyarı: ${name}`,
   },
 };
 
@@ -604,6 +615,43 @@ const T = {
     clear_weather_entity_label: "Seleccionar entidad del tiempo",
     today: "Hoy",
   },
+  tr: {
+    alerts: "Uyarılar",
+    critical: "Kritik",
+    warning_label: "Uyarı",
+    info_label: "Bilgi",
+    success_label: "Çözüldü",
+    no_alerts: "Aktif uyarı yok",
+    all_clear: "Her şey yolunda",
+    priority_short: "Ö",
+    alert_system: "UYARI SİSTEMİ",
+    cmd_prefix: "root@ha:~$",
+    cmd_read: "uyari --oku",
+    snooze: "Ertele",
+    snoozed: "Ertelendi",
+    snooze_1h: "1 saat",
+    snooze_4h: "4 saat",
+    snooze_8h: "8 saat",
+    snooze_24h: "24 saat",
+    snooze_1w: "1 hafta",
+    snooze_1m: "1 ay",
+    snooze_reset: "Tümünü sürdür",
+    dismiss: "Kapat",
+    alerts_snoozed: "uyarı ertelendi",
+    history: "Geçmiş",
+    history_clear: "Temizle",
+    history_empty: "Henüz kaydedilmiş olay yok",
+    timer_active: "Çalışıyor",
+    timer_done: "Süresi doldu",
+    test_mode_active: "TEST MODU AKTİF — kaydetmeden önce devre dışı bırakın",
+    "weather.sunny": "Güneşli", "weather.clear-night": "Açık gece", "weather.partlycloudy": "Parçalı bulutlu",
+    "weather.cloudy": "Bulutlu", "weather.fog": "Sisli", "weather.windy": "Rüzgarlı", "weather.windy-variant": "Çok rüzgarlı",
+    "weather.rainy": "Yağmurlu", "weather.snowy-rainy": "Karla karışık yağmur", "weather.pouring": "Sağanak yağmur",
+    "weather.snowy": "Karlı", "weather.hail": "Dolu", "weather.lightning": "Yıldırımlı", "weather.lightning-rainy": "Gök gürültülü fırtına",
+    "weather.exceptional": "İstisnai",
+    clear_weather_entity_label: "Hava durumu varlığını seç",
+    today: "Bugün",
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -903,6 +951,7 @@ const _ATC_OVERLAY = (() => {
   }
 
   function _hide() {
+    _currentWatcherAlert = null;
     try {
       clearTimeout(_autoTimer);
       if (_root) {
@@ -917,6 +966,9 @@ const _ATC_OVERLAY = (() => {
   // ── Dedup — prevents card-path + watcher-path from both firing ─────────────
   let _lastKey = "";
   let _lastAt  = 0;
+  // Tracks the watcher-fired overlay currently on screen so it can be auto-dismissed
+  // when the triggering alert resolves or the card becomes visible (#135)
+  let _currentWatcherAlert = null; // { id, alertIdx } | null
   function _isDupe(key) {
     const now = Date.now();
     if (key === _lastKey && now - _lastAt < 10000) return true;
@@ -1213,6 +1265,12 @@ const _ATC_OVERLAY = (() => {
           } catch (_) {}
         });
 
+        // Bug #135 fix 2: if the overlay is showing an alert from THIS registration
+        // and that alert is now inactive, dismiss the banner immediately.
+        if (_currentWatcherAlert && _currentWatcherAlert.id === id && !curActive.has(_currentWatcherAlert.alertIdx)) {
+          _hide();
+        }
+
         const prevActive = _bases.get(id) || new Set();
         // newBases = (prevActive ∩ curActive): keeps already-notified active alerts,
         // drops deactivated ones so they can re-fire when they become active again.
@@ -1227,7 +1285,7 @@ const _ATC_OVERLAY = (() => {
         // when condition was already active and card is on screen).
         const el = reg.element;
         if (isFirst) {
-          if (el && el._mounted) {
+          if (el && (el._mounted || el.isConnected)) {
             const cfnFirst = _filterNotified.get(id) || new Map();
             for (const i of curActive) {
               newBases.add(i);
@@ -1247,7 +1305,7 @@ const _ATC_OVERLAY = (() => {
         // Card is visible on the current view — watcher must not fire.
         // Also stamp all currently-active alerts into bases so a brief unmount
         // (e.g. config save in editor) doesn't re-fire already-visible alerts.
-        if (el && el._mounted) {
+        if (el && (el._mounted || el.isConnected)) {
           const cardFN = _filterNotified.get(id) || new Map();
           for (const i of curActive) {
             newBases.add(i);
@@ -1318,6 +1376,7 @@ const _ATC_OVERLAY = (() => {
               const camUrl     = (a.camera_entity && !cameraLive) ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
               const paintCfg = reg.config, paintTheme = a.theme;
               notifiedEids.add(eid);
+              _currentWatcherAlert = { id, alertIdx: i };
               firedFilter = true;
               filterMsgPromise.then(resolvedMsg => {
                 const parts = filterSecondary ? [filterSecondary] : [];
@@ -1367,6 +1426,7 @@ const _ATC_OVERLAY = (() => {
           const camState   = (a.camera_entity && cameraLive) ? (hass.states[a.camera_entity] || null) : null;
           const camUrl     = (a.camera_entity && !cameraLive) ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
           const paintCfg = reg.config, paintTheme = a.theme;
+          _currentWatcherAlert = { id, alertIdx: i };
           newBases.add(i); // mark as notified synchronously — prevents re-firing on next tick
           Promise.all([msgPromise, secondaryTextPromise]).then(([resolvedMsg, resolvedSecondary]) => {
             const resolvedParts = [];
@@ -1391,6 +1451,10 @@ const _ATC_OVERLAY = (() => {
       try { _lastKey = dedupeKey; _lastAt = Date.now(); } catch (_) {}
     },
     hide: _hide,
+    // Bug #135 fix 1: dismiss overlay when the card that owns it becomes visible
+    hideIfFromCard(id) {
+      try { if (_currentWatcherAlert && _currentWatcherAlert.id === id) _hide(); } catch (_) {}
+    },
     // Register / update a card's config so the watcher can track it cross-view
     register(id, alerts, config, lang, element) {
       try {
@@ -3599,6 +3663,13 @@ class AlertTickerCard extends LitElement {
         window.open(cfg.url_path, "_blank", "noopener");
         break;
       }
+      case "fire-dom-event": {
+        this.dispatchEvent(new CustomEvent("ll-custom", {
+          bubbles: true, composed: true,
+          detail: { ...cfg },
+        }));
+        break;
+      }
     }
   }
 
@@ -3802,6 +3873,9 @@ class AlertTickerCard extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._mounted = true;
+    // Bug #135 fix 1: if a watcher-fired overlay is showing for this card's alerts,
+    // dismiss it now that the card is visible on screen.
+    _ATC_OVERLAY.hideIfFromCard(this._cardId);
     // Register here (not setConfig) so isConnected=true and _mounted=true at registration
     // time — prevents the cleanup logic from treating this card as an orphan.
     if (this._config) {
@@ -5311,6 +5385,44 @@ class AlertTickerCard extends LitElement {
     `;
   }
 
+  /** STORM — diagonal rain + periodic lightning flash, warning forecast */
+  _renderStorm(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <div class="at-storm">
+        <div class="sm-rain"></div>
+        <div class="sm-flash"></div>
+        <div class="sm-icon">${icon}</div>
+        <div class="sm-content">
+          <div class="sm-badge">${label}</div>
+          <div class="sm-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="sm-right">${this._renderCounter()}</div>
+      </div>
+    `;
+  }
+
+  /** FROST — falling snowflakes + icy shimmer, info forecast */
+  _renderFrost(alert) {
+    if (!alert) return html``;
+    const icon = this._getIcon(alert);
+    const label = this._getCategoryLabel(alert);
+    return html`
+      <div class="at-frost">
+        <div class="fw-snow"></div>
+        <div class="fw-shimmer"></div>
+        <div class="fw-icon">${icon}</div>
+        <div class="fw-content">
+          <div class="fw-badge">${label}</div>
+          <div class="fw-title">${this._resolveMessage(alert)}</div>${this._renderSecondaryValue(alert)}
+        </div>
+        <div class="fw-right">${this._renderCounter()}</div>
+      </div>
+    `;
+  }
+
   _renderForTheme(theme, alert) {
     switch ((theme || "emergency").toLowerCase()) {
       case "ticker":       return this._renderTicker(alert);
@@ -5373,6 +5485,8 @@ class AlertTickerCard extends LitElement {
       case "arcade":       return this._renderArcade(alert);
       case "diamond":      return this._renderDiamond(alert);
       case "quantum":      return this._renderQuantum(alert);
+      case "storm":        return this._renderStorm(alert);
+      case "frost":        return this._renderFrost(alert);
       default:             return this._renderEmergency(alert);
     }
   }
@@ -5428,12 +5542,14 @@ class AlertTickerCard extends LitElement {
         }
         // Build a virtual "all clear" alert and render it with the chosen clear theme
         const clearAlert = {
-          message: this._config.clear_message || this._t("all_clear"),
-          icon: "✅",
-          priority: 0,
-          entity: null,
-          theme: this._config.clear_theme || "success",
+          message:     this._config.clear_message     || this._t("all_clear"),
+          icon:        this._config.clear_icon        || "✅",
+          priority:    0,
+          entity:      null,
+          theme:       this._config.clear_theme       || "success",
           badge_label: this._config.clear_badge_label || undefined,
+          icon_size:   this._config.clear_icon_size   || undefined,
+          icon_color:  this._config.clear_icon_color  || undefined,
         };
         const clearTapCfg    = this._config.clear_tap_action       || null;
         const clearHoldCfg   = this._config.clear_hold_action      || null;
@@ -5594,6 +5710,7 @@ class AlertTickerCard extends LitElement {
         display: block;
         border-radius: var(--ha-card-border-radius, 12px);
         box-shadow: var(--ha-card-box-shadow, none);
+        isolation: isolate;
       }
       .at-card {
         padding: 0;
@@ -9074,6 +9191,104 @@ class AlertTickerCard extends LitElement {
       .qm-right   { flex-shrink: 0; position: relative; z-index: 1; }
       .qm-badge   { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #69f0ae; margin-bottom: 3px; }
       .qm-title   { font-weight: 600; color: #c8f7d8; }
+
+      /* ---------- STORM — diagonal rain + lightning flash, warning forecast --- */
+      .at-storm {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(160deg, #050810, #080f1a, #0c1628);
+        border: 1px solid rgba(100,150,255,0.3); border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: smThunder 3.5s steps(1) infinite;
+      }
+      @keyframes smThunder {
+        0%, 80%     { box-shadow: 0 0 18px rgba(80,130,255,0.12); }
+        81%         { box-shadow: 0 0 80px rgba(200,220,255,0.9), inset 0 0 40px rgba(255,255,255,0.06); }
+        82%         { box-shadow: 0 0 20px rgba(80,130,255,0.15); }
+        83%         { box-shadow: 0 0 70px rgba(200,220,255,0.65); }
+        84%, 100%   { box-shadow: 0 0 18px rgba(80,130,255,0.12); }
+      }
+      .sm-rain {
+        position: absolute; inset: -4px; pointer-events: none;
+        background: repeating-linear-gradient(
+          170deg, transparent 0, transparent 5px,
+          rgba(120,170,255,0.1) 5px, rgba(120,170,255,0.1) 6px
+        );
+        animation: smRain 0.45s linear infinite;
+      }
+      @keyframes smRain { to { transform: translate(-5px, 18px); } }
+      .sm-flash {
+        position: absolute; inset: 0; pointer-events: none;
+        background: rgba(220,235,255,0.08);
+        animation: smFlash 3.5s steps(1) infinite;
+      }
+      @keyframes smFlash {
+        0%, 79%, 83%, 100% { opacity: 0; }
+        80%, 82%            { opacity: 1; }
+        81%                 { opacity: 0.2; }
+      }
+      .sm-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 12px rgba(100,160,255,0.8));
+        animation: smShake 3.5s steps(1) infinite;
+      }
+      @keyframes smShake {
+        0%, 79%, 84%, 100% { transform: none; }
+        80%                 { transform: translate(-3px, 2px) rotate(-3deg); }
+        81%                 { transform: translate(3px, -2px) rotate(3deg); }
+        82%                 { transform: translate(-2px, 1px) rotate(-1deg); }
+        83%                 { transform: none; }
+      }
+      .sm-content { flex: 1; min-width: 0; position: relative; }
+      .sm-right   { flex-shrink: 0; position: relative; }
+      .sm-badge   { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #82b0ff; margin-bottom: 3px; }
+      .sm-title   { font-weight: 700; color: #dce8ff; }
+
+      /* ---------- FROST — falling snowflakes + icy shimmer, info forecast --- */
+      .at-frost {
+        display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+        background: linear-gradient(160deg, #020610, #040d1c, #06142a);
+        border: 1px solid rgba(160,210,255,0.25); border-radius: 12px;
+        position: relative; overflow: hidden;
+        animation: fwGlow 5s ease-in-out infinite;
+      }
+      @keyframes fwGlow {
+        0%,100% { box-shadow: 0 0 16px rgba(140,200,255,0.1); }
+        50%      { box-shadow: 0 0 34px rgba(140,200,255,0.25); }
+      }
+      .fw-snow {
+        position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+        background:
+          radial-gradient(circle, rgba(200,230,255,0.65) 1.5px, transparent 1.5px) 0 0 / 36px 36px,
+          radial-gradient(circle, rgba(180,215,255,0.45) 1px,   transparent 1px)   14px 10px / 58px 58px,
+          radial-gradient(circle, rgba(220,240,255,0.35) 2px,   transparent 2px)   28px 20px / 82px 82px;
+        animation: fwFall 4s linear infinite;
+      }
+      @keyframes fwFall {
+        from { transform: translateY(-36px); }
+        to   { transform: translateY(36px); }
+      }
+      .fw-shimmer {
+        position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(105deg, transparent 38%, rgba(200,235,255,0.07) 50%, transparent 62%);
+        animation: fwShimmer 5s ease-in-out infinite;
+      }
+      @keyframes fwShimmer {
+        0%,100% { transform: translateX(-150%); }
+        50%      { transform: translateX(150%); }
+      }
+      .fw-icon {
+        font-size: 2.2rem; flex-shrink: 0; position: relative;
+        filter: drop-shadow(0 0 10px rgba(160,220,255,0.85));
+        animation: fwSpin 6s ease-in-out infinite;
+      }
+      @keyframes fwSpin {
+        0%,100% { transform: translateY(0) rotate(0deg); }
+        50%      { transform: translateY(-4px) rotate(20deg); }
+      }
+      .fw-content { flex: 1; min-width: 0; position: relative; }
+      .fw-right   { flex-shrink: 0; position: relative; }
+      .fw-badge   { font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #90caf9; margin-bottom: 3px; }
+      .fw-title   { font-weight: 600; color: #e3f2fd; }
 
       /* -----------------------------------------------------------------------
        * HA THEME ADAPTATION — ha_theme: true

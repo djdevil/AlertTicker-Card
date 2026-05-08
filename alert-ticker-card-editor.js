@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.2.3
+ * AlertTicker Card Editor v1.3.2.4
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.2.3";
+const CARD_VERSION = "1.3.2.4";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -73,6 +73,9 @@ const THEME_META = {
   arcade:   { icon: "🕹️", category: "info"     },
   diamond:  { icon: "💠", category: "ok"       },
   quantum:  { icon: "⚛️", category: "ok"       },
+  // --- Weather Forecast ---
+  storm:    { icon: "⛈️", category: "warning"  },
+  frost:    { icon: "❄️", category: "info"     },
   // --- Timer (only shown when entity is timer.*) ---
   countdown:    { icon: "⏱️", category: "timer"    },
   hourglass:    { icon: "⏳", category: "timer"    },
@@ -141,6 +144,8 @@ const DEFAULT_MSG = {
     arcade:       "Sistema online",
     diamond:      "Stato cristallino",
     quantum:      "Stato quantistico stabile",
+    storm:        "Temporale in arrivo",
+    frost:        "Nevicate previste",
   },
   en: {
     emergency:    "Emergency active",
@@ -199,6 +204,8 @@ const DEFAULT_MSG = {
     arcade:       "System online",
     diamond:      "Crystalline status",
     quantum:      "Quantum state stable",
+    storm:        "Thunderstorm approaching",
+    frost:        "Snowfall expected",
   },
   fr: {
     emergency:    "Urgence active",
@@ -257,6 +264,8 @@ const DEFAULT_MSG = {
     arcade:       "Système en ligne",
     diamond:      "Statut cristallin",
     quantum:      "État quantique stable",
+    storm:        "Orage imminent",
+    frost:        "Chutes de neige prévues",
   },
   de: {
     emergency:    "Notfall aktiv",
@@ -315,6 +324,8 @@ const DEFAULT_MSG = {
     arcade:       "System online",
     diamond:      "Kristallzustand",
     quantum:      "Quantenzustand stabil",
+    storm:        "Gewitter im Anmarsch",
+    frost:        "Schneefall erwartet",
   },
   nl: {
     emergency:    "Noodgeval actief",
@@ -373,6 +384,8 @@ const DEFAULT_MSG = {
     arcade:       "Systeem online",
     diamond:      "Kristallijne status",
     quantum:      "Kwantumtoestand stabiel",
+    storm:        "Onweer op komst",
+    frost:        "Sneeuwval verwacht",
   },
   vi: {
     emergency:    "Khẩn cấp",
@@ -431,6 +444,8 @@ const DEFAULT_MSG = {
     arcade:       "Hệ thống trực tuyến",
     diamond:      "Trạng thái tinh thể",
     quantum:      "Trạng thái lượng tử ổn định",
+    storm:        "Bão đang đến gần",
+    frost:        "Dự báo có tuyết",
   },
   ru: {
     emergency:    "Чрезвычайная ситуация",
@@ -489,6 +504,8 @@ const DEFAULT_MSG = {
     arcade:       "Система в сети",
     diamond:      "Кристаллический статус",
     quantum:      "Квантовое состояние стабильно",
+    storm:        "Гроза приближается",
+    frost:        "Ожидается снегопад",
   },
   da: {
     emergency:    "Nødsituation aktiv",
@@ -547,6 +564,8 @@ const DEFAULT_MSG = {
     arcade:       "System online",
     diamond:      "Krystallinsk status",
     quantum:      "Kvantetilstand stabil",
+    storm:        "Tordenvejr nærmer sig",
+    frost:        "Snevejr forventet",
   },
   cs: {
     emergency:    "Poplach",
@@ -605,6 +624,8 @@ const DEFAULT_MSG = {
     arcade:       "Systém online",
     diamond:      "Krystalický stav",
     quantum:      "Kvantový stav stabilní",
+    storm:        "Bouřka se blíží",
+    frost:        "Očekává se sněžení",
   },
   pt: {
     emergency:    "Emergência ativa",
@@ -663,6 +684,8 @@ const DEFAULT_MSG = {
     arcade:       "Sistema online",
     diamond:      "Estado cristalino",
     quantum:      "Estado quântico estável",
+    storm:        "Tempestade se aproximando",
+    frost:        "Nevadas previstas",
   },
   es: {
     emergency:    "Emergencia activa",
@@ -721,6 +744,68 @@ const DEFAULT_MSG = {
     arcade:       "Sistema en línea",
     diamond:      "Estado cristalino",
     quantum:      "Estado cuántico estable",
+    storm:        "Tormenta eléctrica en camino",
+    frost:        "Nevadas previstas",
+  },
+  tr: {
+    emergency:    "Acil durum aktif",
+    fire:         "Yangın alarmı",
+    alarm:        "Alarm tetiklendi",
+    lightning:    "Elektrik kesintisi",
+    warning:      "Önemli uyarı",
+    caution:      "Dikkat gerekli",
+    info:         "Bilgi mevcut",
+    notification: "Yeni bildirim",
+    aurora:       "Sistem bildirimi",
+    success:      "Normal durum",
+    check:        "Kontrol geçildi",
+    confetti:     "İşlem başarılı",
+    ticker:       "Güncelleme devam ediyor",
+    neon:         "Neon uyarısı",
+    glass:        "Cam uyarısı",
+    matrix:       "Terminal mesajı",
+    minimal:      "Uyarı",
+    nuclear:      "Radyasyon alarmı",
+    flood:        "Su baskını tespit edildi",
+    motion:       "Hareket tespit edildi",
+    intruder:     "İzinsiz giriş devam ediyor",
+    toxic:        "Toksik madde",
+    radar:        "Tespit devam ediyor",
+    temperature:  "Kritik sıcaklık",
+    battery:      "Pil seviyesi düşük",
+    door:         "Kapı açık",
+    window:       "Pencere açık",
+    hologram:     "Sistem projeksiyonu",
+    presence:     "Varlık tespit edildi",
+    update:       "Güncelleme devam ediyor",
+    heartbeat:    "Sistem çalışıyor",
+    shield:       "Sistem korumalı",
+    power:        "Güç yeniden sağlandı",
+    retro:        "Retro uyarı",
+    cyberpunk:    "Sistem erişimi",
+    vapor:        "Vaporwave bildirimi",
+    lava:         "Lav uyarısı",
+    smoke:        "Duman tespit edildi",
+    wind:         "Kuvvetli rüzgar",
+    leak:         "Su kaçağı",
+    cloud:        "Hava koşulları",
+    satellite:    "Sinyal geliyor",
+    tips:         "İpucu mevcut",
+    light:        "Işık açık",
+    music:        "Müzik çalıyor",
+    sunrise:      "Her şey yolunda",
+    plant:        "Optimum durum",
+    lock:         "Sistem güvende",
+    portal:       "Boyutsal portal açıldı",
+    void:         "Boşluk anomalisi tespit edildi",
+    volt:         "Elektrik boşalması",
+    nebula:       "Nebula girişimi",
+    prism:        "Prizmatik sinyal",
+    arcade:       "Sistem çevrimiçi",
+    diamond:      "Kristal durum",
+    quantum:      "Kuantum durumu kararlı",
+    storm:        "Fırtına yaklaşıyor",
+    frost:        "Kar yağışı bekleniyor",
   },
 };
 
@@ -873,6 +958,9 @@ const ET = {
     history_empty: "Nessun evento registrato",
     clear_message: "Messaggio quando nessun avviso attivo",
     clear_badge_label: "Etichetta badge (es. 'Tutto ok', lascia vuoto per default)",
+    clear_icon_label: "Icona 'tutto ok' (emoji o mdi:)",
+    clear_icon_color_label: "Colore icona 'tutto ok'",
+    clear_icon_size_label: "Dimensione icona 'tutto ok'",
     clear_theme: "Tema per stato 'tutto ok'",
     alerts_list: "Lista avvisi configurati",
     add_alert: "Aggiungi avviso",
@@ -1185,6 +1273,9 @@ const ET = {
     history_empty: "No events recorded yet",
     clear_message: "Message when no alerts active",
     clear_badge_label: "Badge label (e.g. 'All Good', leave empty for default)",
+    clear_icon_label: "'All clear' icon (emoji or mdi:)",
+    clear_icon_color_label: "'All clear' icon color",
+    clear_icon_size_label: "'All clear' icon size",
     clear_theme: "Theme for 'all clear' state",
     alerts_list: "Configured alerts",
     add_alert: "Add alert",
@@ -1497,6 +1588,9 @@ const ET = {
     history_empty: "Aucun événement enregistré",
     clear_message: "Message quand aucune alerte active",
     clear_badge_label: "Étiquette badge (ex. 'Tout va bien', laisser vide par défaut)",
+    clear_icon_label: "Icône 'tout va bien' (emoji ou mdi:)",
+    clear_icon_color_label: "Couleur icône 'tout va bien'",
+    clear_icon_size_label: "Taille icône 'tout va bien'",
     clear_theme: "Thème pour l'état 'tout va bien'",
     alerts_list: "Liste des alertes configurées",
     add_alert: "Ajouter une alerte",
@@ -1809,6 +1903,9 @@ const ET = {
     history_empty: "Noch keine Ereignisse aufgezeichnet",
     clear_message: "Nachricht wenn keine Warnungen aktiv",
     clear_badge_label: "Badge-Beschriftung (z.B. 'Alles OK', leer für Standard)",
+    clear_icon_label: "'Alles OK'-Symbol (Emoji oder mdi:)",
+    clear_icon_color_label: "Symbolfarbe 'Alles OK'",
+    clear_icon_size_label: "Symbolgröße 'Alles OK'",
     clear_theme: "Thema für 'Alles in Ordnung'",
     alerts_list: "Konfigurierte Warnungen",
     add_alert: "Warnung hinzufügen",
@@ -2121,6 +2218,9 @@ const ET = {
     history_empty: "Nog geen gebeurtenissen opgeslagen",
     clear_message: "Bericht wanneer geen meldingen actief",
     clear_badge_label: "Badge-label (bijv. 'Alles OK', leeg voor standaard)",
+    clear_icon_label: "'Alles OK'-pictogram (emoji of mdi:)",
+    clear_icon_color_label: "Pictogramkleur 'Alles OK'",
+    clear_icon_size_label: "Pictogramgrootte 'Alles OK'",
     clear_theme: "Thema voor 'alles in orde'",
     alerts_list: "Geconfigureerde meldingen",
     add_alert: "Melding toevoegen",
@@ -2433,6 +2533,9 @@ const ET = {
     history_empty: "Chưa có sự kiện nào",
     clear_message: "Thông báo khi không có báo động",
     clear_badge_label: "Nhãn badge (ví dụ: 'Ổn rồi', để trống để dùng mặc định)",
+    clear_icon_label: "Biểu tượng 'mọi thứ ổn' (emoji hoặc mdi:)",
+    clear_icon_color_label: "Màu biểu tượng 'mọi thứ ổn'",
+    clear_icon_size_label: "Kích thước biểu tượng 'mọi thứ ổn'",
     clear_theme: "Giao diện trạng thái 'mọi thứ ổn'",
     alerts_list: "Danh sách báo động đã cài đặt",
     add_alert: "Thêm báo động",
@@ -2745,6 +2848,9 @@ const ET = {
     history_empty: "Событий пока нет",
     clear_message: "Сообщение при отсутствии оповещений",
     clear_badge_label: "Метка бейджа (например 'Всё OK', оставьте пустым для значения по умолчанию)",
+    clear_icon_label: "Иконка 'всё OK' (эмодзи или mdi:)",
+    clear_icon_color_label: "Цвет иконки 'всё OK'",
+    clear_icon_size_label: "Размер иконки 'всё OK'",
     clear_theme: "Тема состояния 'всё в порядке'",
     alerts_list: "Список настроенных оповещений",
     add_alert: "Добавить оповещение",
@@ -3053,6 +3159,9 @@ const ET = {
     history_empty: "Ingen hændelser registreret endnu",
     clear_message: "Besked når ingen advarsler er aktive",
     clear_badge_label: "Badge‑tekst (f.eks. 'Alt OK', lad stå tom for standard)",
+    clear_icon_label: "'Alt OK'-ikon (emoji eller mdi:)",
+    clear_icon_color_label: "Ikonfarve 'Alt OK'",
+    clear_icon_size_label: "Ikonstørrelse 'Alt OK'",
     clear_theme: "Tema for 'alt er i orden'‑tilstand",
     alerts_list: "Konfigurerede advarsler",
     add_alert: "Tilføj advarsel",
@@ -3369,6 +3478,9 @@ const ET = {
     history_empty: "Žádné události zatím nejsou uloženy",
     clear_message: "Zpráva pokud nejsou aktivní žádná varování",
     clear_badge_label: "Nadpis varování (např. 'Vše OK', ponechte prázdné pro výchozí text)",
+    clear_icon_label: "Ikona 'Vše OK' (emoji nebo mdi:)",
+    clear_icon_color_label: "Barva ikony 'Vše OK'",
+    clear_icon_size_label: "Velikost ikony 'Vše OK'",
     clear_theme: "Vzhled pro stav 'Vše OK'",
     alerts_list: "Nastavená varování",
     add_alert: "Nové varování",
@@ -3685,6 +3797,9 @@ const ET = {
     history_empty: "Nenhum evento registrado ainda",
     clear_message: "Mensagem quando não há alertas ativos",
     clear_badge_label: "Rótulo do badge (ex. 'Tudo bem', deixe vazio para o padrão)",
+    clear_icon_label: "Ícone 'tudo bem' (emoji ou mdi:)",
+    clear_icon_color_label: "Cor do ícone 'tudo bem'",
+    clear_icon_size_label: "Tamanho do ícone 'tudo bem'",
     clear_theme: "Tema para o estado 'tudo limpo'",
     alerts_list: "Alertas configurados",
     add_alert: "Adicionar alerta",
@@ -3997,6 +4112,9 @@ const ET = {
     history_empty: "No hay eventos registrados aún",
     clear_message: "Mensaje cuando no hay alertas activas",
     clear_badge_label: "Etiqueta del badge (ej. 'Todo bien', deja vacío para el valor predeterminado)",
+    clear_icon_label: "Icono 'todo bien' (emoji o mdi:)",
+    clear_icon_color_label: "Color del icono 'todo bien'",
+    clear_icon_size_label: "Tamaño del icono 'todo bien'",
     clear_theme: "Tema para el estado 'todo bien'",
     alerts_list: "Alertas configuradas",
     add_alert: "Añadir alerta",
@@ -4164,6 +4282,321 @@ const ET = {
     music_player_controls_help: "Muestra reproducir/pausar, anterior, siguiente y silenciar con portada del álbum como fondo. Solo funciona cuando la entidad es un media_player.",
     music_player_color: "Color de acento",
   },
+  tr: {
+    tab_general: "Genel",
+    tab_alerts: "Uyarılar",
+    tab_overlay: "Overlay",
+    tab_allclear: "Her Şey Yolunda",
+    back: "Geri",
+    all_clear_disabled_help: "Uyarısız mesajı yapılandırmak için 'Her Şey Yolunda'yı etkinleştirin.",
+    tab_layout: "Düzen",
+    hub_desc_general: "Döngü, erteleme ve geçmiş",
+    hub_desc_layout: "Tema, kart yüksekliği ve görsel görünüm",
+    hub_desc_overlay: "Tüm panolarda genel banner",
+    hub_desc_alerts: "Uyarı koşullarını yönet",
+    hub_desc_allclear: "Aktif uyarı yokken mesaj",
+    hub_star_github: "GitHub'da yıldızla",
+    hub_report_issue: "Sorun bildir",
+    hub_welcome: "Hoş geldiniz! Aşağıdan bir bölüm seçerek kartınızı yapılandırın.",
+    clear_display_mode_label: "Görüntüleme modu",
+    clear_mode_message: "💬 Özel mesaj",
+    clear_mode_clock: "🕐 Saat",
+    clear_mode_weather: "🌤 Hava durumu",
+    clear_mode_weather_clock: "🌤🕐 Hava + Saat",
+    clear_mode_forecast: "📅 Haftalık tahmin",
+    clear_mode_weather_forecast: "🌤📅 Hava + Tahmin (dönüşümlü)",
+    weather_forecast_interval: "Dönüşüm aralığı (saniye)",
+    weather_forecast_interval_help: "Mevcut hava ve haftalık tahmin arasındaki saniye. Varsayılan: 5",
+    clear_weather_entity_label: "Hava durumu varlığı (weather.*)",
+    clear_weather_sensors_title: "Özel sensörler (isteğe bağlı)",
+    clear_weather_temperature_entity: "Sıcaklık (yerel sensör)",
+    clear_weather_humidity_entity: "Nem (yerel sensör)",
+    clear_weather_temp_high_entity: "Bugünün en yüksek sıcaklığı (sensör)",
+    clear_weather_temp_low_entity: "Bugünün en düşük sıcaklığı (sensör)",
+    clear_weather_aqi_entity: "Hava kalitesi / PM2.5 (sensör)",
+    clear_clock_show_date: "Tarihi göster",
+    clear_clock_12h: "12 saat formatı (AM/PM)",
+    clear_clock_date_label: "Tarih konumu",
+    clear_clock_style_label: "Saat stili",
+    clear_clock_colors_title: "Özel renkler (isteğe bağlı)",
+    clear_clock_color: "Saat rakamları rengi",
+    clear_clock_date_color: "Tarih rengi",
+    clear_clock_background: "Arkaplan rengi",
+    clear_weather_style_label: "Hava durumu rozet stili",
+    style_default: "Varsayılan",
+    style_aurora: "🌌 Aurora",
+    style_gold: "✨ Gold",
+    style_matrix: "🟢 Matrix",
+    style_frosted: "🧊 Frosted",
+    style_solid: "⬛ Solid",
+    style_minimal: "◻ Minimal",
+    style_stage:     "🎭 Stage",
+    style_split:     "▌▐ Split",
+    style_cinematic: "🎬 Cinematic",
+    date_position_above: "⬆ Saatin üstünde",
+    date_position_below: "⬇ Saatin altında",
+    cycle_interval: "Döngü aralığı (saniye)",
+    cycle_interval_help: "Birden fazla uyarı aktifken aralarındaki saniye",
+    show_widget_in_cycle: "Döngüde hava/saat göster",
+    section_all_clear: "Her şey yolunda kartı",
+    section_layout: "Düzen & Görünüm",
+    section_cycling: "Döngü & Animasyon",
+    section_snooze: "Erteleme 💤",
+    section_history: "Geçmiş",
+    show_when_clear: "Aktif uyarı yokken göster",
+    large_buttons: "Her zaman görünür büyük düğmeler (💤 ve 📋)",
+    ha_theme: "HA temasına uyarla (Mushroom ve tüm global temalarla uyumlu)",
+    swipe_to_snooze: "Ertelemek için sola kaydır 💤 (mobil için ideal)",
+    vertical: "Dikey düzen (üstte ikon, altta metin, ortalanmış)",
+    text_align_center: "Metni ortala (geniş Panel düzeni için kullanışlı)",
+    card_height: "Sabit kart yüksekliği (px)",
+    card_height_help: "Uyarılar değiştiğinde düzen kaymalarını önlemek için yüksekliği sabitle. Otomatik yükseklik için boş bırak.",
+    card_border: "Kart kenarlığını ve adını göster",
+    card_border_help: "Kartın etrafına standart Home Assistant kenarlığı ekler. Aktif uyarı yokken, kartı tamamen gizlemek yerine kart adıyla bir yer tutucu gösterir.",
+    card_background: "Özel arkaplan / şeffaflık",
+    card_background_help: "HA tema değişkenini (--ha-card-background) kullanmak için etkinleştir. Sabit renk için özel CSS değeri gir, örn. rgba(0,0,0,0.5).",
+    show_snooze_bar: "Erteleme yeniden etkinleştirme çubuğunu göster 💤",
+    show_snooze_button: "Erteleme düğmesini göster 💤",
+    show_history_button: "Geçmiş düğmesini göster 📋",
+    secondary_value_align: "İkincil değer konumu",
+    secondary_value_align_below: "Başlığın altında (varsayılan)",
+    secondary_value_align_right: "Başlığın sağında",
+    snooze_default_duration: "Erteleme 💤 davranışı",
+    snooze_default_duration_help: "Süre menüsü: 💤 üzerine dokunmak ne kadar erteleneceğini seçmek için menü açar. Sabit süre: 💤 üzerine dokunmak menü olmadan hemen erteler.",
+    snooze_option_menu: "Süre menüsünü göster (önceki gibi)",
+    snooze_duration: "Bu uyarı için erteleme süresi 💤",
+    snooze_duration_help: "Global ayarı geçersiz kılar. Boş = global kullan.",
+    snooze_duration_menu: "Süre menüsü",
+    snooze_duration_global: "Global ayarı kullan",
+    sound_enabled: "Uyarı göründüğünde ses çal",
+    sound_enabled_help: "Bir uyarı aktif olduğunda otomatik oluşturulan ton çalar. Ton kategoriye göre değişir (Kritik = çift yüksek bip, Uyarı = orta bip, Bilgi = yumuşak bip, Tamam = yükselen melodi). Tarayıcı otomatik oynatma iznini gerektirir.",
+    sound_url: "Özel ses URL'si (global)",
+    sound_url_help: "Oluşturulan ses yerine kullanılacak .mp3 veya .wav dosyasının URL'si. Oluşturulan ton için boş bırak.",
+    alert_sound: "Bu uyarı için ses etkin",
+    alert_sound_url: "Bu uyarı için özel ses URL'si",
+    alert_sound_url_help: "Global URL'yi geçersiz kılar. Globalini kullanmak için boş bırak.",
+    tab_tts: "Metin-Konuşma",
+    hub_desc_tts: "Uyarıları sesli oku",
+    tts_how_works: "Nasıl çalışır",
+    tts_how_standard: "Standart (Google Home, Sonos, Piper…): bir medya oynatıcı ve TTS motoru seç. Motor ayarlanmazsa otomatik algılanır.",
+    tts_how_alexa: "Alexa / notify / mobil: ilgili notify servisini seç. Kart doğrudan notify.AD çağırır — TTS motoru gerekmez.",
+    tts_how_peralert: "Her uyarı, yapılandırma panelindeki 🗣️ geçişiyle TTS'i etkinleştirebilir ve hoparlör, motor veya notify servisini geçersiz kılabilir.",
+    tts_master_toggle: "Metin-Konuşmayı Etkinleştir (TTS)",
+    tts_master_toggle_help: "Ana anahtar. Kapalıyken, tekil uyarılarda TTS etkin olsa bile hiçbir uyarı mesajını sesli okumaz.",
+    section_tts: "🗣️ Metin-Konuşma (TTS)",
+    tts_entity_global: "Varsayılan TTS hoparlörü (medya oynatıcı)",
+    tts_entity_global_help: "TTS etkin tüm uyarılar için varsayılan hoparlör olarak kullanılan medya oynatıcı. Uyarı başına geçersiz kılınabilir.",
+    tts_engine_global: "TTS motoru (isteğe bağlı)",
+    tts_engine_global_help: "Kullanılacak TTS varlığı (örn. tts.piper, tts.home_assistant_cloud). Ayarlanmazsa otomatik algılanır.",
+    tts_notify_service: "Notify servisi (Alexa / mobil)",
+    tts_notify_service_help: "tts.speak yerine kullanılacak notify servis adı (örn. alexa_media_echo_mutfak). Ayarlandığında, hoparlör ve motor alanları göz ardı edilir.",
+    tts_notify_type: "Alexa bildirim türü",
+    tts_notify_type_tts: "tts (tek cihaz)",
+    tts_notify_type_announce: "announce (grup / çok odaklı)",
+    alert_tts: "TTS sesli duyuru",
+    alert_tts_help: "Uyarı aktif olduğunda, mesaj yapılandırılmış medya oynatıcı veya notify servisi aracılığıyla sesli okunur.",
+    alert_tts_entity: "TTS hoparlörü (globali geçersiz kılar)",
+    alert_tts_engine: "TTS motoru (globali geçersiz kılar)",
+    alert_tts_notify_service: "Notify servisi (globali geçersiz kılar)",
+    alert_tts_notify_type: "Bildirim türü (globali geçersiz kılar)",
+    alert_tts_message: "Özel TTS metni",
+    alert_tts_message_help: "Sesli okunacak alternatif metin. Boşsa, uyarı mesajını kullanır.",
+    section_push_notify: "📱 Anlık Bildirimler",
+    push_notify_master_toggle: "Mobil anlık bildirimleri etkinleştir",
+    push_notify_master_toggle_help: "Ana anahtar. Kapalıyken, uyarı başına etkin olsa bile hiçbir uyarı anlık bildirim göndermez.",
+    alert_push_notify: "Mobil anlık bildirim gönder",
+    alert_push_notify_help: "Bu uyarı etkinleştiğinde, seçilen notify servisi aracılığıyla anlık bildirim gönderir.",
+    alert_push_notify_title: "Bildirim başlığı (Jinja2)",
+    alert_push_notify_title_help: "Anlık bildirimde gönderilen başlık. Uyarı rozet etiketini kullanmak için boş bırak.",
+    alert_push_notify_message: "Bildirim mesajı (Jinja2)",
+    alert_push_notify_message_help: "Anlık bildirimde gönderilen mesaj. Uyarı mesajını kullanmak için boş bırak.",
+    alert_push_notify_service: "Notify servisi",
+    alert_camera_entity: "Overlay'de kamera",
+    alert_camera_entity_help: "Uyarı tetiklendiğinde, bu kamerayı overlay banner'da gösterir. Yalnızca overlay'de görünür, kart içinde değil.",
+    alert_camera_live: "📹 Canlı yayın (anlık görüntü yerine)",
+    alert_camera_live_help: "Statik anlık görüntü yerine canlı yayın gösterir. Akış destekleyen kamera gerektirir.",
+    alert_camera_in_card: "Uyarı arka planı olarak göster",
+    alert_camera_in_card_help: "Kamera, uyarı slaytının kendisinde bulanık bir arka plan olarak görünür — her rotasyonda görünür, yalnızca overlay'de değil.",
+    test_mode: "Test modu",
+    test_mode_desc: "Koşulları görmezden gelerek tüm uyarıları aktif gösterir. Döngü animasyonu duraklatılmıştır — kartı anında önizlemek için düzenleyicide bir uyarıyı genişletin.",
+    test_mode_warning: "Kaydetmeden önce test modunu devre dışı bırakmayı unutmayın!",
+    history_max_events: "Geçmiş — saklanacak maksimum olay",
+    history_max_events_help: "Aktif olan her uyarıyı otomatik olarak kaydeder. Tarih/saat içeren geçmişi görüntülemek için kartta 📋 üzerine dokunun. Veriler tarayıcıda saklanır.",
+    history: "Geçmiş",
+    history_clear: "Temizle",
+    history_empty: "Henüz kaydedilmiş olay yok",
+    clear_message: "Aktif uyarı yokken mesaj",
+    clear_badge_label: "Rozet etiketi (örn. 'Her Şey Yolunda', varsayılan için boş bırak)",
+    clear_icon_label: "'Her şey yolunda' ikonu (emoji veya mdi:)",
+    clear_icon_color_label: "'Her şey yolunda' ikon rengi",
+    clear_icon_size_label: "'Her şey yolunda' ikon boyutu",
+    clear_theme: "'Her şey yolunda' durumu için tema",
+    alerts_list: "Yapılandırılmış uyarılar",
+    add_alert: "Uyarı ekle",
+    alert_entity: "Varlık",
+    alert_operator: "Koşul",
+    alert_state: "Değer",
+    alert_state_help: "örn. 'on', '80' (> < >= <= ile sayısal). Şablonları destekler: {{ states('input_number.x') }}",
+    current_state: "Mevcut durum",
+    alert_message: "Görüntülenecek mesaj",
+    alert_name: "Ad / Etiket",
+    alert_name_placeholder: "örn. 1. kattaki hareket sensörleri",
+    alert_name_help: "Mesajın önüne önek olarak eklenen isteğe bağlı etiket (örn. 'Hareket sensörleri: koridor aktif'). entity_filter ile uyarı gruplarını ayırt etmek için kullanışlıdır.",
+    alert_message_help: "Canlı değer için {state}, isim için {name}, varlık kimliği için {entity}, cihaz adı için {device} kullanın. Tam HA şablonlarını da destekler: {{ states('sensor.x') }}, {{ state_attr('climate.y','current_temperature') }}, {% if ... %}...{% endif %}",
+    alert_priority: "Öncelik",
+    alert_theme: "Tema",
+    alert_icon: "İkon",
+    alert_icon_help: "Tema emojisini kullanmak için boş bırakın. Özel emoji girin. HA'dan varlığın MDI ikonunu otomatik göstermek için 'HA ikonu kullan'ı etkinleştirin (veya seçiciyle seçin).",
+    auto_icon_preview: "Varlıktan otomatik ikon",
+    use_ha_icon: "Home Assistant ikonu kullan (mdi:)",
+    icon_color: "İkon rengi",
+    icon_color_help: "CSS rengi: örn. #ff0000, red, var(--error-color). Tema varsayılanı için boş bırak.",
+    icon_size: "İkon boyutu",
+    icon_size_help: "CSS değeri: örn. 1.2em, 24px. Tema varsayılanı için boş bırak (1.6em).",
+    on_change: "HERHANGİ durum değişikliğinde tetikle",
+    on_change_help: "Varlık durumu değiştiğinde uyarı tetiklenir (herhangi bir değer). Ek VE/VEYA koşulları hâlâ değerlendirilir. Sayaçlar, zaman damgaları, sabit durumları olmayan sensörler gibi olaylar için en uygunudur.",
+    trigger_delay: "⏳ Tetikleme gecikmesi (saniye)",
+    trigger_delay_help: "Uyarı yalnızca koşul en az N saniye doğru kalırsa görünür (HA otomasyonunun 'for:' süresi gibi). Hemen tetiklemek için boş bırak.",
+    auto_dismiss_section: "Otomatik kapat",
+    auto_dismiss_after: "N saniye sonra otomatik gizle",
+    auto_dismiss_after_help: "Uyarı N saniye sonra otomatik gizlenir. Her zaman görünür tutmak için boş bırak.",
+    show_badge: "Rozet göster",
+    badge_label: "Özel rozet etiketi",
+    badge_label_help: "Tema varsayılan etiketini kullanmak için boş bırak",
+    delete: "Sil",
+    priority_1: "1 — Kritik (kırmızı)",
+    priority_2: "2 — Uyarı (turuncu)",
+    priority_3: "3 — Bilgi (mavi)",
+    priority_4: "4 — Düşük öncelik (gri)",
+    no_alerts: "Yapılandırılmış uyarı yok. Başlamak için 'Uyarı ekle'ye tıklayın.",
+    alert_num: "Uyarı",
+    collapse: "Kapat",
+    expand: "Düzenle",
+    move_up: "Yukarı",
+    move_down: "Aşağı",
+    version: "Sürüm",
+    op_eq: "= eşittir",
+    op_ne: "≠ eşit değil",
+    op_gt: "> büyüktür",
+    op_lt: "< küçüktür",
+    op_gte: "≥ büyük eşit",
+    op_lte: "≤ küçük eşit",
+    op_contains: "⊃ içerir",
+    op_not_contains: "⊅ içermez",
+    cycle_animation: "Geçiş animasyonu",
+    anim_fold:    "🃏 Fold — 3D sayfa dönüşü",
+    anim_slide:   "➡️ Slide — yatay itme",
+    anim_fade:    "🌫️ Fade — çapraz erime",
+    anim_flip:    "🔄 Flip — kart çevirme",
+    anim_zoom:    "🔍 Zoom — ölçek darbesi",
+    anim_glitch:  "⚡ Glitch — dijital gürültü",
+    anim_bounce:  "🏀 Bounce — elastik yay",
+    anim_swing:   "🎪 Swing — sarkaç",
+    anim_blur:    "💨 Blur — gaussian erime",
+    anim_split:   "✂️ Split — dikey bölme",
+    anim_roll:    "🎲 Roll — döndürY + kaydırma",
+    anim_curtain: "🎭 Curtain — tiyatro açılışı",
+    mode_entity: "🏷️ Tek varlık",
+    mode_filter: "🔎 Çok varlıklı filtre",
+    mode_entity_help: "Belirli bir varlığı izle.",
+    mode_filter_help: "Aktif filtreyle eşleşen her varlık için ayrı uyarı oluşturur.",
+    filter_section: "Varlık filtreleri",
+    entity_filter: "Varlık filtresi (metin)",
+    entity_filter_help: "Kimliği veya adı bu metni içeren tüm varlıklarla eşleşir. * joker karakterini destekler (örn. sensor.battery_*_level). Listeyi önizlemek için sayıya tıkla. Mesajda {name}, {entity}, {state}, {device} kullan.",
+    entity_filter_count: "varlık eşleşti",
+    entity_filter_excluded: "hariç tutuldu",
+    entity_filter_zero: "Hiç varlık eşleşmedi",
+    entity_filter_exclude_tip: "Hariç tutmak için varlığa tıkla — yeniden dahil etmek için tekrar tıkla",
+    entity_filter_invert: "Seçimi ters çevir",
+    entity_filter_exclude_label: "Şu varlıkları hariç tut",
+    device_class: "Cihaz sınıfı (isteğe bağlı)",
+    device_class_help: "örn. smoke, battery, motion — bu device_class'a sahip her varlık için bir uyarı oluşturur. Metin filtresine alternatif.",
+    label_filter: "HA Etiket filtresi (isteğe bağlı)",
+    label_filter_help: "Yalnızca bu HA etiketine sahip varlıklarla eşleş. Metin filtresi, device_class ve alan ile birleştirilebilir (VE mantığı).",
+    area_filter: "HA Alan filtresi (isteğe bağlı)",
+    area_filter_help: "Yalnızca seçili alandaki varlıklarla eşleş. Önce varlık alanını kontrol eder, ardından cihaz alanına geri döner.",
+    alert_attribute: "Nitelik (isteğe bağlı)",
+    alert_attribute_help: "örn. battery_level — varlık durumunu kullanmak için boş bırak. İç içe yolları destekler: örn. activity.0.forecast",
+    secondary_entity: "İkincil değer varlığı (isteğe bağlı)",
+    secondary_entity_help: "Bu varlığın canlı değerini mesajın altında ekstra satır olarak gösterir. Örn. açık bölgeleri veya aktif uyarıları listeleyen bir sensör.",
+    secondary_text: "Statik ikincil metin (isteğe bağlı)",
+    secondary_text_help: "Mesajın altında gösterilen sabit metin. {state}, {name}, {entity} destekler. Sensör varlığı gerekmez.",
+    show_filter_name: "Varlık adını göster (entity_filter'dan)",
+    show_filter_state: "Durumu göster",
+    secondary_attribute: "İkincil değer niteliği",
+    show_secondary_name: "Değerin yanında varlık adını göster",
+    conditions_section: "Ekstra koşullar",
+    conditions_logic: "Mantık",
+    logic_and: "VE — tümü eşleşmeli",
+    logic_or: "VEYA — en az biri eşleşmeli",
+    add_condition: "Koşul ekle",
+    condition_entity: "Koşul varlığı",
+    condition_attribute: "Koşul niteliği",
+    tap_action_section: "Dokunma eylemi",
+    double_tap_action_section: "Çift dokunma eylemi",
+    hold_action_section: "Basılı tutma eylemi (500ms)",
+    clear_tap_action_section: "'Her şey yolunda' kartına dokunma",
+    clear_double_tap_action_section: "'Her şey yolunda' kartına çift dokunma",
+    clear_hold_action_section: "'Her şey yolunda' kartında basılı tutma (500ms)",
+    snooze_action_section: "Erteleme eylemi 💤 — erteleme düğmesine basıldığında çalıştırılır",
+    persistent: "Kalıcı alarm 🔒",
+    persistent_help: "Sensör normale döndükten sonra bile görünür kalır. Kapatmak için ✕ düğmesine basın.",
+    group_section: "Uyarıları grupla 🗂️",
+    group: "Gruplamayı etkinleştir",
+    group_min: "Gruplamak için minimum",
+    group_min_help: "Grup özetini göstermeden önce gerekli minimum aktif varlık sayısı (varsayılan: 3).",
+    group_message: "Grup mesajı",
+    group_message_help: "Aktif uyarı sayısı için {count}, isim listesi için {names} kullanın. Örn. '{count} sensör aktif'. {{ states('sensor.x') }} şablonlarını destekler.",
+    group_secondary_text: "Grup ikincil metni",
+    group_secondary_text_help: "Grup mesajının altındaki ikincil satır. {count} ve {names} destekler. Ayarlanmazsa, varlık adı listesini gösterir.",
+    group_expanded_message: "Öğe mesajı (genişletilmiş)",
+    group_expanded_message_help: "Grup genişletildiğinde her varlık için mesaj. {state}, {name}, {entity}, {device} kullanın. {{ states('sensor.x') }} şablonlarını destekler.",
+    group_tap_action_section: "Grup dokunma eylemi",
+    group_hold_action_section: "Grup basılı tutma eylemi",
+    timer_theme_category: "Zamanlayıcı",
+    message_placeholder_hint: "Yer tutucular: {name} varlık adı, {state} durum, {entity} varlık kimliği, {device} cihaz adı",
+    timer_placeholder_hint: "Geri sayımı göstermek için mesajda {timer} kullanın (örn. 'Devre dışı {timer}')",
+    action_type: "Eylem türü",
+    action_none: "Hiçbiri",
+    action_call_service: "Servis çağır",
+    action_navigate: "Sayfaya git",
+    action_more_info: "Daha fazla bilgi",
+    action_url: "URL aç",
+    action_service: "HA servisi",
+    action_target: "Hedef varlık",
+    action_service_data: "Ekstra veri (isteğe bağlı JSON)",
+    action_navigate_path: "Yol (örn. /lovelace/home)",
+    action_url_path: "Açılacak URL",
+    delete_item: "Sil",
+    section_overlay: "Overlay Bildirimi 🔔",
+    overlay_mode: "Uyarı tetiklendiğinde overlay banner göster",
+    overlay_mode_help: "Yeni bir uyarı aktif olduğunda ekranın üstünde sabit banner gösterir — herhangi bir pano görünümünden görünür.",
+    overlay_position: "Konum",
+    overlay_pos_top: "Üst",
+    overlay_pos_bottom: "Alt",
+    overlay_pos_center: "Orta",
+    overlay_duration: "Süre (saniye, 0 = yalnızca manuel kapat)",
+    overlay_duration_help: "Banner otomatik kapanmadan önceki saniye. 0 = manuel kapatma gerektirir.",
+    overlay_scale: "Banner boyutu",
+    overlay_scale_help: "Uzaktan daha iyi görünürlük için metin ve ikonu ölçekle.",
+    overlay_how_works: "Banner yalnızca kart ekranda görünmediğinde gösterilir — farklı bir görünüm veya görüş alanı dışında. Uyarı zaten görünürken gereksiz banner gösterilmez.",
+    visible_to_section: "👤 Kullanıcı Görünürlüğü",
+    visible_to_label: "Kimler için görünür",
+    visible_to_all: "Herkes (varsayılan)",
+    visible_to_admin: "Yalnızca yöneticiler",
+    visible_to_non_admin: "Yalnızca yönetici olmayanlar",
+    visible_to_custom: "Belirli kullanıcılar...",
+    visible_to_help: "Bu uyarıyı HA kullanıcı türüne göre filtrele. 'Belirli kullanıcılar' ile bir ad veya virgülle ayrılmış ad listesi girin.",
+    visible_to_users_label: "Kullanıcı adları (virgülle ayrılmış)",
+    visible_to_loading: "Kullanıcılar yükleniyor...",
+    time_range_section: "🕐 Aktif zaman aralığı",
+    time_range_from: "Başlangıç (SS:DD)",
+    time_range_to: "Bitiş (SS:DD)",
+    time_range_help: "Bu uyarıyı yalnızca belirtilen zaman aralığında göster. Gece yarısı geçişini destekler (örn. 22:00–06:00). Kısıtlama olmadan için boş bırak.",
+    music_player_controls: "Müzik çalar kontrolleri",
+    music_player_controls_help: "Albüm kapağı arka planıyla oynat/duraklat, önceki, sonraki ve sessiz kontrollerini gösterir. Yalnızca varlık bir media_player olduğunda çalışır.",
+    music_player_color: "Vurgu rengi",
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -4171,75 +4604,77 @@ const ET = {
 // vi falls back to en for technical terms
 // ---------------------------------------------------------------------------
 const THEME_DESC_I18N = {
-  emergency:    { it: "Pulsante rosso",        en: "Red button",           fr: "Bouton rouge",          de: "Roter Knopf",           nl: "Rode knop"            },
-  fire:         { it: "Fiamma",                en: "Flame",                fr: "Flamme",                de: "Flamme",                nl: "Vlam"                 },
-  alarm:        { it: "Strobo",                en: "Strobe",               fr: "Stroboscope",           de: "Stroboskop",            nl: "Stroboscoop"          },
-  lightning:    { it: "Fulmine",               en: "Lightning bolt",       fr: "Éclair",                de: "Blitz",                 nl: "Bliksem"              },
-  nuclear:      { it: "Radiazione",            en: "Radiation",            fr: "Radiation",             de: "Strahlung",             nl: "Straling"             },
-  flood:        { it: "Onde animate",          en: "Animated waves",       fr: "Vagues animées",        de: "Wellen animiert",       nl: "Geanimeerde golven"   },
-  motion:       { it: "Night-vision scan",     en: "Night-vision scan",    fr: "Scan vision nocturne",  de: "Nachtsicht-Scan",       nl: "Nachtzicht scan"      },
-  intruder:     { it: "Sirena rossa",          en: "Red siren",            fr: "Sirène rouge",          de: "Rote Sirene",           nl: "Rode sirene"          },
-  toxic:        { it: "Bolle verdi",           en: "Green bubbles",        fr: "Bulles vertes",         de: "Grüne Blasen",          nl: "Groene bellen"        },
-  warning:      { it: "Bordo ambra",           en: "Amber border",         fr: "Bordure ambrée",        de: "Bernsteinrahmen",       nl: "Amber rand"           },
-  caution:      { it: "Nastro giallo",         en: "Yellow tape",          fr: "Ruban jaune",           de: "Gelbes Band",           nl: "Geel lint"            },
-  radar:        { it: "Sonar sweep",           en: "Sonar sweep",          fr: "Balayage sonar",        de: "Sonar-Scan",            nl: "Sonar sweep"          },
-  temperature:  { it: "Termometro",            en: "Thermometer",          fr: "Thermomètre",           de: "Thermometer",           nl: "Thermometer"          },
-  battery:      { it: "Scarica",               en: "Draining",             fr: "En décharge",           de: "Entladen",              nl: "Ontladen"             },
-  door:         { it: "Porta aperta",          en: "Open door",            fr: "Porte ouverte",         de: "Offene Tür",            nl: "Open deur"            },
-  window:       { it: "Finestra aperta",       en: "Open window",          fr: "Fenêtre ouverte",       de: "Offenes Fenster",       nl: "Open raam"            },
-  smoke:        { it: "Fumo grigio",           en: "Grey smoke",           fr: "Fumée grise",           de: "Grauer Rauch",          nl: "Grijze rook"          },
-  wind:         { it: "Raffiche",              en: "Gusts",                fr: "Rafales",               de: "Böen",                  nl: "Windvlagen"           },
-  leak:         { it: "Gocce",                 en: "Drops",                fr: "Gouttes",               de: "Tropfen",               nl: "Druppels"             },
-  info:         { it: "Bordo blu",             en: "Blue border",          fr: "Bordure bleue",         de: "Blauer Rand",           nl: "Blauwe rand"          },
-  notification: { it: "Bubble",                en: "Bubble",               fr: "Bulle",                 de: "Blase",                 nl: "Ballon"               },
-  aurora:       { it: "Animato",               en: "Animated",             fr: "Animé",                 de: "Animiert",              nl: "Geanimeerd"           },
-  hologram:     { it: "Olografico",            en: "Holographic",          fr: "Holographique",         de: "Holografisch",          nl: "Holografisch"         },
-  presence:     { it: "Ping radar",            en: "Radar ping",           fr: "Ping radar",            de: "Radar-Ping",            nl: "Radar ping"           },
-  update:       { it: "Anello rotante",        en: "Rotating ring",        fr: "Anneau rotatif",        de: "Rotierender Ring",      nl: "Roterende ring"       },
-  cloud:        { it: "Nuvola",                en: "Cloud puff",           fr: "Nuage",                 de: "Wolke",                 nl: "Wolk"                 },
-  satellite:    { it: "Segnale",               en: "Signal",               fr: "Signal",                de: "Signal",                nl: "Signaal"              },
-  tips:         { it: "Consiglio",             en: "Tip",                  fr: "Conseil",               de: "Tipp",                  nl: "Tip"                  },
-  light:        { it: "Bagliore caldo",        en: "Warm glow",            fr: "Lueur chaude",          de: "Warmes Leuchten",        nl: "Warm gloed"           },
-  music:        { it: "Note fluttuanti",      en: "Floating notes",       fr: "Notes flottantes",      de: "Schwebende Noten",       nl: "Zwevende noten"        },
-  success:      { it: "Verde",                 en: "Green",                fr: "Vert",                  de: "Grün",                  nl: "Groen"                },
-  check:        { it: "Anello pulsante",       en: "Pulsing ring",         fr: "Anneau pulsant",        de: "Pulsierender Ring",     nl: "Pulserende ring"      },
-  confetti:     { it: "Coriandoli",            en: "Confetti",             fr: "Confettis",             de: "Konfetti",              nl: "Confetti"             },
-  heartbeat:    { it: "ECG pulsante",          en: "Pulsing ECG",          fr: "ECG pulsant",           de: "Pulsierendes EKG",      nl: "Pulserend ECG"        },
-  shield:       { it: "Scudo + scan",          en: "Shield scan",          fr: "Bouclier + scan",       de: "Schild-Scan",           nl: "Schild scan"          },
-  power:        { it: "Fulmine verde",         en: "Green bolt",           fr: "Éclair vert",           de: "Grüner Blitz",          nl: "Groene bliksem"       },
-  sunrise:      { it: "Alba",                  en: "Sunrise glow",         fr: "Lueur de l'aube",       de: "Sonnenaufgang",         nl: "Ochtendgloren"        },
-  plant:        { it: "Crescita",              en: "Growing",              fr: "Croissance",            de: "Wachstum",              nl: "Groeiend"             },
-  lock:         { it: "Sicuro",                en: "Secure",               fr: "Sécurisé",              de: "Gesichert",             nl: "Beveiligd"            },
-  ticker:       { it: "Scorrevole",            en: "Scrolling",            fr: "Défilant",              de: "Laufschrift",           nl: "Scrollend"            },
-  neon:         { it: "Cyberpunk",             en: "Cyberpunk",            fr: "Cyberpunk",             de: "Cyberpunk",             nl: "Cyberpunk"            },
-  glass:        { it: "Glassmorphism",         en: "Glassmorphism",        fr: "Glassmorphism",         de: "Glassmorphism",         nl: "Glassmorphism"        },
-  matrix:       { it: "Terminale",             en: "Terminal",             fr: "Terminal",              de: "Terminal",              nl: "Terminal"             },
-  minimal:      { it: "Pulito",                en: "Clean",                fr: "Épuré",                 de: "Aufgeräumt",            nl: "Opgeruimd"            },
-  retro:        { it: "CRT fosforescente",     en: "Phosphor CRT",         fr: "CRT phosphore",         de: "Phosphor-CRT",          nl: "Fosfor CRT"           },
-  cyberpunk:    { it: "Neon viola/cyan",       en: "Purple/cyan neon",     fr: "Néon violet/cyan",      de: "Lila/Cyan Neon",        nl: "Paars/cyan neon"      },
-  vapor:        { it: "Vaporwave grid",        en: "Vaporwave grid",       fr: "Vaporwave grid",        de: "Vaporwave-Raster",      nl: "Vaporwave raster"     },
-  lava:         { it: "Blob arancio",          en: "Orange blob",          fr: "Blob orange",           de: "Orangefarbener Blob",   nl: "Oranje blob"          },
-  countdown:    { it: "Barra progressiva",     en: "Progress bar",         fr: "Barre de progression",  de: "Fortschrittsbalken",    nl: "Voortgangsbalk"       },
-  hourglass:    { it: "Riempimento verticale", en: "Vertical fill",        fr: "Remplissage vertical",  de: "Vertikale Füllung",     nl: "Verticale vulling"    },
-  timer_pulse:  { it: "Pulsante veloce",       en: "Fast pulse",           fr: "Pulsation rapide",      de: "Schneller Puls",        nl: "Snelle puls"          },
-  timer_ring:   { it: "Anello SVG",            en: "SVG ring",             fr: "Anneau SVG",            de: "SVG-Ring",              nl: "SVG ring"             },
-  portal:       { it: "Vortice 3D rotante",   en: "3D spinning vortex",   fr: "Vortex 3D rotatif",     de: "3D-Wirbel",             nl: "3D draaikolk"         },
-  void:         { it: "Buco nero 3D",         en: "3D black hole",        fr: "Trou noir 3D",          de: "3D Schwarzes Loch",     nl: "3D zwart gat"         },
-  volt:         { it: "Scarica elettrica",    en: "Electric discharge",   fr: "Décharge électrique",   de: "Elektrische Entladung", nl: "Elektrische ontlading"},
-  nebula:       { it: "Nuvole gas 3D",        en: "3D gas clouds",        fr: "Nuages de gaz 3D",      de: "3D Gaswolken",          nl: "3D gaswolken"         },
-  prism:        { it: "Spettro prismatico",   en: "Prismatic spectrum",   fr: "Spectre prismatique",   de: "Prismatisches Spektrum",nl: "Prismatisch spectrum"  },
-  arcade:       { it: "Griglia 3D Tron",      en: "3D Tron grid",         fr: "Grille 3D Tron",        de: "3D Tron-Raster",        nl: "3D Tron raster"       },
-  diamond:      { it: "Bagliore cristallo",   en: "Crystal shimmer",      fr: "Scintillement cristal", de: "Kristallschimmer",      nl: "Kristal glinstering"  },
-  quantum:      { it: "Orbite atomiche 3D",   en: "3D atomic orbitals",   fr: "Orbitales atomiques 3D",de: "3D Atomorbitale",       nl: "3D atoomorbits"       },
+  emergency:    { it: "Pulsante rosso",        en: "Red button",           fr: "Bouton rouge",          de: "Roter Knopf",           nl: "Rode knop",            vi: "Nút đỏ",               ru: "Красная кнопка",        da: "Rød knap",              cs: "Červené tlačítko",      pt: "Botão vermelho",        es: "Botón rojo",            tr: "Kırmızı düğme"         },
+  fire:         { it: "Fiamma",                en: "Flame",                fr: "Flamme",                de: "Flamme",                nl: "Vlam",                 vi: "Ngọn lửa",             ru: "Пламя",                 da: "Flamme",                cs: "Plamen",                pt: "Chama",                 es: "Llama",                 tr: "Alev"                  },
+  alarm:        { it: "Strobo",                en: "Strobe",               fr: "Stroboscope",           de: "Stroboskop",            nl: "Stroboscoop",          vi: "Đèn nhấp nháy",        ru: "Стробоскоп",            da: "Stroboskop",            cs: "Stroboskop",            pt: "Estroboscópio",         es: "Estroboscopio",         tr: "Stroboskop"            },
+  lightning:    { it: "Fulmine",               en: "Lightning bolt",       fr: "Éclair",                de: "Blitz",                 nl: "Bliksem",              vi: "Sét đánh",             ru: "Молния",                da: "Lynnedslag",            cs: "Blesk",                 pt: "Raio",                  es: "Rayo",                  tr: "Yıldırım"              },
+  nuclear:      { it: "Radiazione",            en: "Radiation",            fr: "Radiation",             de: "Strahlung",             nl: "Straling",             vi: "Bức xạ",               ru: "Радиация",              da: "Stråling",              cs: "Záření",                pt: "Radiação",              es: "Radiación",             tr: "Radyasyon"             },
+  flood:        { it: "Onde animate",          en: "Animated waves",       fr: "Vagues animées",        de: "Wellen animiert",       nl: "Geanimeerde golven",   vi: "Sóng động",            ru: "Анимированные волны",   da: "Animerede bølger",      cs: "Animované vlny",        pt: "Ondas animadas",        es: "Olas animadas",         tr: "Animasyonlu dalgalar"  },
+  motion:       { it: "Night-vision scan",     en: "Night-vision scan",    fr: "Scan vision nocturne",  de: "Nachtsicht-Scan",       nl: "Nachtzicht scan",      vi: "Quét tầm nhìn đêm",    ru: "Ночное видение",        da: "Nattesyn-scan",         cs: "Noční vidění",          pt: "Visão noturna",         es: "Visión nocturna",       tr: "Gece görüş taraması"  },
+  intruder:     { it: "Sirena rossa",          en: "Red siren",            fr: "Sirène rouge",          de: "Rote Sirene",           nl: "Rode sirene",          vi: "Còi hú đỏ",            ru: "Красная сирена",        da: "Rød sirene",            cs: "Červená siréna",        pt: "Sirene vermelha",       es: "Sirena roja",           tr: "Kırmızı siren"         },
+  toxic:        { it: "Bolle verdi",           en: "Green bubbles",        fr: "Bulles vertes",         de: "Grüne Blasen",          nl: "Groene bellen",        vi: "Bong bóng xanh",       ru: "Зелёные пузыри",        da: "Grønne bobler",         cs: "Zelené bubliny",        pt: "Bolhas verdes",         es: "Burbujas verdes",       tr: "Yeşil kabarcıklar"     },
+  warning:      { it: "Bordo ambra",           en: "Amber border",         fr: "Bordure ambrée",        de: "Bernsteinrahmen",       nl: "Amber rand",           vi: "Viền hổ phách",        ru: "Янтарная рамка",        da: "Ravgul kant",           cs: "Jantarový rámeček",     pt: "Borda âmbar",           es: "Borde ámbar",           tr: "Kehribar kenarlık"     },
+  caution:      { it: "Nastro giallo",         en: "Yellow tape",          fr: "Ruban jaune",           de: "Gelbes Band",           nl: "Geel lint",            vi: "Băng vàng",            ru: "Жёлтая лента",          da: "Gult bånd",             cs: "Žlutá páska",           pt: "Fita amarela",          es: "Cinta amarilla",        tr: "Sarı bant"             },
+  radar:        { it: "Sonar sweep",           en: "Sonar sweep",          fr: "Balayage sonar",        de: "Sonar-Scan",            nl: "Sonar sweep",          vi: "Quét sonar",           ru: "Сонар-развёртка",       da: "Sonar-sweep",           cs: "Sonar sweep",           pt: "Varredura sonar",       es: "Barrido sonar",         tr: "Sonar taraması"        },
+  temperature:  { it: "Termometro",            en: "Thermometer",          fr: "Thermomètre",           de: "Thermometer",           nl: "Thermometer",          vi: "Nhiệt kế",             ru: "Термометр",             da: "Termometer",            cs: "Teploměr",              pt: "Termômetro",            es: "Termómetro",            tr: "Termometre"            },
+  battery:      { it: "Scarica",               en: "Draining",             fr: "En décharge",           de: "Entladen",              nl: "Ontladen",             vi: "Đang cạn",             ru: "Разряжается",           da: "Aflader",               cs: "Vybíjení",              pt: "Descarregando",         es: "Descargando",           tr: "Tükeniyor"             },
+  door:         { it: "Porta aperta",          en: "Open door",            fr: "Porte ouverte",         de: "Offene Tür",            nl: "Open deur",            vi: "Cửa mở",               ru: "Открытая дверь",        da: "Åben dør",              cs: "Otevřené dveře",        pt: "Porta aberta",          es: "Puerta abierta",        tr: "Açık kapı"             },
+  window:       { it: "Finestra aperta",       en: "Open window",          fr: "Fenêtre ouverte",       de: "Offenes Fenster",       nl: "Open raam",            vi: "Cửa sổ mở",            ru: "Открытое окно",         da: "Åbent vindue",          cs: "Otevřené okno",         pt: "Janela aberta",         es: "Ventana abierta",       tr: "Açık pencere"          },
+  smoke:        { it: "Fumo grigio",           en: "Grey smoke",           fr: "Fumée grise",           de: "Grauer Rauch",          nl: "Grijze rook",          vi: "Khói xám",             ru: "Серый дым",             da: "Grå røg",               cs: "Šedý kouř",             pt: "Fumaça cinza",          es: "Humo gris",             tr: "Gri duman"             },
+  wind:         { it: "Raffiche",              en: "Gusts",                fr: "Rafales",               de: "Böen",                  nl: "Windvlagen",           vi: "Gió giật",             ru: "Порывы ветра",          da: "Vindstød",              cs: "Poryvy",                pt: "Rajadas",               es: "Ráfagas",               tr: "Rüzgar esintileri"     },
+  leak:         { it: "Gocce",                 en: "Drops",                fr: "Gouttes",               de: "Tropfen",               nl: "Druppels",             vi: "Giọt nước",            ru: "Капли",                 da: "Dråber",                cs: "Kapky",                 pt: "Gotas",                 es: "Gotas",                 tr: "Damlalar"              },
+  info:         { it: "Bordo blu",             en: "Blue border",          fr: "Bordure bleue",         de: "Blauer Rand",           nl: "Blauwe rand",          vi: "Viền xanh",            ru: "Синяя рамка",           da: "Blå kant",              cs: "Modrý rámeček",         pt: "Borda azul",            es: "Borde azul",            tr: "Mavi kenarlık"         },
+  notification: { it: "Bubble",                en: "Bubble",               fr: "Bulle",                 de: "Blase",                 nl: "Ballon",               vi: "Bong bóng",            ru: "Пузырь",                da: "Boble",                 cs: "Bublina",               pt: "Bolha",                 es: "Burbuja",               tr: "Balon"                 },
+  aurora:       { it: "Animato",               en: "Animated",             fr: "Animé",                 de: "Animiert",              nl: "Geanimeerd",           vi: "Hoạt động",            ru: "Анимированный",         da: "Animeret",              cs: "Animovaný",             pt: "Animado",               es: "Animado",               tr: "Animasyonlu"           },
+  hologram:     { it: "Olografico",            en: "Holographic",          fr: "Holographique",         de: "Holografisch",          nl: "Holografisch",         vi: "Hologram",             ru: "Голографический",       da: "Holografisk",           cs: "Holografický",          pt: "Holográfico",           es: "Holográfico",           tr: "Holografik"            },
+  presence:     { it: "Ping radar",            en: "Radar ping",           fr: "Ping radar",            de: "Radar-Ping",            nl: "Radar ping",           vi: "Radar ping",           ru: "Радар-пинг",            da: "Radar-ping",            cs: "Radar ping",            pt: "Ping radar",            es: "Ping radar",            tr: "Radar ping"            },
+  update:       { it: "Anello rotante",        en: "Rotating ring",        fr: "Anneau rotatif",        de: "Rotierender Ring",      nl: "Roterende ring",       vi: "Vòng quay",            ru: "Вращающееся кольцо",    da: "Roterende ring",        cs: "Rotující kruh",         pt: "Anel rotativo",         es: "Anillo rotatorio",      tr: "Dönen halka"           },
+  cloud:        { it: "Nuvola",                en: "Cloud puff",           fr: "Nuage",                 de: "Wolke",                 nl: "Wolk",                 vi: "Đám mây",              ru: "Облако",                da: "Sky",                   cs: "Mrak",                  pt: "Nuvem",                 es: "Nube",                  tr: "Bulut"                 },
+  satellite:    { it: "Segnale",               en: "Signal",               fr: "Signal",                de: "Signal",                nl: "Signaal",              vi: "Tín hiệu",             ru: "Сигнал",                da: "Signal",                cs: "Signál",                pt: "Sinal",                 es: "Señal",                 tr: "Sinyal"                },
+  tips:         { it: "Consiglio",             en: "Tip",                  fr: "Conseil",               de: "Tipp",                  nl: "Tip",                  vi: "Mẹo",                  ru: "Подсказка",             da: "Tip",                   cs: "Tip",                   pt: "Dica",                  es: "Consejo",               tr: "İpucu"                 },
+  light:        { it: "Bagliore caldo",        en: "Warm glow",            fr: "Lueur chaude",          de: "Warmes Leuchten",       nl: "Warm gloed",           vi: "Ánh sáng ấm",          ru: "Тёплое свечение",       da: "Varmt skær",            cs: "Teplá záře",            pt: "Brilho quente",         es: "Brillo cálido",         tr: "Sıcak ışıltı"          },
+  music:        { it: "Note fluttuanti",       en: "Floating notes",       fr: "Notes flottantes",      de: "Schwebende Noten",      nl: "Zwevende noten",       vi: "Nốt nhạc bay",         ru: "Плавающие ноты",        da: "Flydende noder",        cs: "Plovoucí noty",         pt: "Notas flutuantes",      es: "Notas flotantes",       tr: "Yüzen notalar"         },
+  success:      { it: "Verde",                 en: "Green",                fr: "Vert",                  de: "Grün",                  nl: "Groen",                vi: "Xanh lá",              ru: "Зелёный",               da: "Grøn",                  cs: "Zelený",                pt: "Verde",                 es: "Verde",                 tr: "Yeşil"                 },
+  check:        { it: "Anello pulsante",       en: "Pulsing ring",         fr: "Anneau pulsant",        de: "Pulsierender Ring",     nl: "Pulserende ring",      vi: "Vòng nhịp",            ru: "Пульсирующее кольцо",   da: "Pulserende ring",       cs: "Pulzující kruh",        pt: "Anel pulsante",         es: "Anillo pulsante",       tr: "Nabız halkası"         },
+  confetti:     { it: "Coriandoli",            en: "Confetti",             fr: "Confettis",             de: "Konfetti",              nl: "Confetti",             vi: "Giấy vụn",             ru: "Конфетти",              da: "Konfetti",              cs: "Konfety",               pt: "Confete",               es: "Confeti",               tr: "Konfeti"               },
+  heartbeat:    { it: "ECG pulsante",          en: "Pulsing ECG",          fr: "ECG pulsant",           de: "Pulsierendes EKG",      nl: "Pulserend ECG",        vi: "ECG nhịp",             ru: "Пульсирующая ЭКГ",      da: "Pulserende EKG",        cs: "Pulzující EKG",         pt: "ECG pulsante",          es: "ECG pulsante",          tr: "Nabız EKG"             },
+  shield:       { it: "Scudo + scan",          en: "Shield scan",          fr: "Bouclier + scan",       de: "Schild-Scan",           nl: "Schild scan",          vi: "Quét khiên",           ru: "Сканирование щита",     da: "Skjoldscanning",        cs: "Skenovací štít",        pt: "Varredura de escudo",   es: "Escáner de escudo",     tr: "Kalkan taraması"       },
+  power:        { it: "Fulmine verde",         en: "Green bolt",           fr: "Éclair vert",           de: "Grüner Blitz",          nl: "Groene bliksem",       vi: "Tia sét xanh",         ru: "Зелёная молния",        da: "Grønt lyn",             cs: "Zelený blesk",          pt: "Raio verde",            es: "Rayo verde",            tr: "Yeşil yıldırım"        },
+  sunrise:      { it: "Alba",                  en: "Sunrise glow",         fr: "Lueur de l'aube",       de: "Sonnenaufgang",         nl: "Ochtendgloren",        vi: "Ánh bình minh",        ru: "Рассвет",               da: "Solopgangsskær",        cs: "Záře úsvitu",           pt: "Brilho do amanhecer",   es: "Brillo del amanecer",   tr: "Gün doğumu ışıltısı"  },
+  plant:        { it: "Crescita",              en: "Growing",              fr: "Croissance",            de: "Wachstum",              nl: "Groeiend",             vi: "Đang mọc",             ru: "Рост",                  da: "Vækst",                 cs: "Rostoucí",              pt: "Crescendo",             es: "Creciendo",             tr: "Büyüyor"               },
+  lock:         { it: "Sicuro",                en: "Secure",               fr: "Sécurisé",              de: "Gesichert",             nl: "Beveiligd",            vi: "Bảo mật",              ru: "Защита",                da: "Sikker",                cs: "Zabezpečený",           pt: "Seguro",                es: "Seguro",                tr: "Güvende"               },
+  ticker:       { it: "Scorrevole",            en: "Scrolling",            fr: "Défilant",              de: "Laufschrift",           nl: "Scrollend",            vi: "Cuộn chữ",             ru: "Прокрутка",             da: "Rulletekst",            cs: "Rolující text",         pt: "Rolagem",               es: "Desplazamiento",        tr: "Kayan yazı"            },
+  neon:         { it: "Cyberpunk",             en: "Cyberpunk",            fr: "Cyberpunk",             de: "Cyberpunk",             nl: "Cyberpunk",            vi: "Cyberpunk",            ru: "Cyberpunk",             da: "Cyberpunk",             cs: "Cyberpunk",             pt: "Cyberpunk",             es: "Cyberpunk",             tr: "Cyberpunk"             },
+  glass:        { it: "Glassmorphism",         en: "Glassmorphism",        fr: "Glassmorphism",         de: "Glassmorphism",         nl: "Glassmorphism",        vi: "Glassmorphism",        ru: "Glassmorphism",         da: "Glassmorphism",         cs: "Glassmorphism",         pt: "Glassmorphism",         es: "Glassmorphism",         tr: "Glassmorphism"         },
+  matrix:       { it: "Terminale",             en: "Terminal",             fr: "Terminal",              de: "Terminal",              nl: "Terminal",             vi: "Terminal",             ru: "Терминал",              da: "Terminal",              cs: "Terminál",              pt: "Terminal",              es: "Terminal",              tr: "Terminal"              },
+  minimal:      { it: "Pulito",                en: "Clean",                fr: "Épuré",                 de: "Aufgeräumt",            nl: "Opgeruimd",            vi: "Sạch sẽ",              ru: "Чистый",                da: "Ren",                   cs: "Čistý",                 pt: "Limpo",                 es: "Limpio",                tr: "Temiz"                 },
+  retro:        { it: "CRT fosforescente",     en: "Phosphor CRT",         fr: "CRT phosphore",         de: "Phosphor-CRT",          nl: "Fosfor CRT",           vi: "Phosphor CRT",         ru: "Фосфорный ЭЛТ",         da: "Fosfor CRT",            cs: "Fosforový CRT",         pt: "CRT de fósforo",        es: "CRT de fósforo",        tr: "Fosfor CRT"            },
+  cyberpunk:    { it: "Neon viola/cyan",       en: "Purple/cyan neon",     fr: "Néon violet/cyan",      de: "Lila/Cyan Neon",        nl: "Paars/cyan neon",      vi: "Neon tím/lam",         ru: "Фиолетово/голубой неон",da: "Lilla/cyan neon",       cs: "Fialový/azurový neon",  pt: "Neon roxo/ciano",       es: "Neón morado/cian",      tr: "Mor/cyan neon"         },
+  vapor:        { it: "Vaporwave grid",        en: "Vaporwave grid",       fr: "Vaporwave grid",        de: "Vaporwave-Raster",      nl: "Vaporwave raster",     vi: "Lưới Vaporwave",       ru: "Vaporwave-сетка",       da: "Vaporwave-gitter",      cs: "Vaporwave mřížka",      pt: "Grade Vaporwave",       es: "Rejilla Vaporwave",     tr: "Vaporwave ızgarası"    },
+  lava:         { it: "Blob arancio",          en: "Orange blob",          fr: "Blob orange",           de: "Orangefarbener Blob",   nl: "Oranje blob",          vi: "Mảng cam",             ru: "Оранжевый блоб",        da: "Orange klat",           cs: "Oranžová skvrna",       pt: "Mancha laranja",        es: "Mancha naranja",        tr: "Turuncu damla"         },
+  countdown:    { it: "Barra progressiva",     en: "Progress bar",         fr: "Barre de progression",  de: "Fortschrittsbalken",    nl: "Voortgangsbalk",       vi: "Thanh tiến trình",     ru: "Прогресс-бар",          da: "Statuslinje",           cs: "Průběhový pruh",        pt: "Barra de progresso",    es: "Barra de progreso",     tr: "İlerleme çubuğu"       },
+  hourglass:    { it: "Riempimento verticale", en: "Vertical fill",        fr: "Remplissage vertical",  de: "Vertikale Füllung",     nl: "Verticale vulling",    vi: "Lấp đầy dọc",          ru: "Вертикальное заполнение",da: "Lodret fyldning",       cs: "Svislé plnění",         pt: "Preenchimento vertical",es: "Relleno vertical",      tr: "Dikey doldurma"        },
+  timer_pulse:  { it: "Pulsante veloce",       en: "Fast pulse",           fr: "Pulsation rapide",      de: "Schneller Puls",        nl: "Snelle puls",          vi: "Nhịp nhanh",           ru: "Быстрый пульс",         da: "Hurtigt puls",          cs: "Rychlý pulz",           pt: "Pulso rápido",          es: "Pulso rápido",          tr: "Hızlı nabız"           },
+  timer_ring:   { it: "Anello SVG",            en: "SVG ring",             fr: "Anneau SVG",            de: "SVG-Ring",              nl: "SVG ring",             vi: "Vòng SVG",             ru: "SVG-кольцо",            da: "SVG-ring",              cs: "SVG kruh",              pt: "Anel SVG",              es: "Anillo SVG",            tr: "SVG halkası"           },
+  portal:       { it: "Vortice 3D rotante",    en: "3D spinning vortex",   fr: "Vortex 3D rotatif",     de: "3D-Wirbel",             nl: "3D draaikolk",         vi: "Xoáy 3D quay",         ru: "3D вращающийся вихрь",  da: "3D roterende vortex",   cs: "3D rotující vír",       pt: "Vórtice 3D girando",    es: "Vórtice 3D giratorio",  tr: "3D dönen girdap"       },
+  void:         { it: "Buco nero 3D",          en: "3D black hole",        fr: "Trou noir 3D",          de: "3D Schwarzes Loch",     nl: "3D zwart gat",         vi: "Hố đen 3D",            ru: "3D чёрная дыра",        da: "3D sort hul",           cs: "3D černá díra",         pt: "Buraco negro 3D",       es: "Agujero negro 3D",      tr: "3D kara delik"         },
+  volt:         { it: "Scarica elettrica",     en: "Electric discharge",   fr: "Décharge électrique",   de: "Elektrische Entladung", nl: "Elektrische ontlading",vi: "Phóng điện",           ru: "Электрический разряд",  da: "Elektrisk udladning",   cs: "Elektrický výboj",      pt: "Descarga elétrica",     es: "Descarga eléctrica",    tr: "Elektrik boşalması"    },
+  nebula:       { it: "Nuvole gas 3D",         en: "3D gas clouds",        fr: "Nuages de gaz 3D",      de: "3D Gaswolken",          nl: "3D gaswolken",         vi: "Mây khí 3D",           ru: "3D газовые облака",     da: "3D gasskyer",           cs: "3D plynové mraky",      pt: "Nuvens de gás 3D",      es: "Nubes de gas 3D",       tr: "3D gaz bulutları"      },
+  prism:        { it: "Spettro prismatico",    en: "Prismatic spectrum",   fr: "Spectre prismatique",   de: "Prismatisches Spektrum",nl: "Prismatisch spectrum", vi: "Quang phổ lăng kính",  ru: "Призматический спектр", da: "Prismatisk spektrum",   cs: "Prizmatické spektrum",  pt: "Espectro prismático",   es: "Espectro prismático",   tr: "Prizmatik spektrum"    },
+  arcade:       { it: "Griglia 3D Tron",       en: "3D Tron grid",         fr: "Grille 3D Tron",        de: "3D Tron-Raster",        nl: "3D Tron raster",       vi: "Lưới 3D Tron",         ru: "3D сетка Tron",         da: "3D Tron-gitter",        cs: "3D Tron mřížka",        pt: "Grade 3D Tron",         es: "Rejilla 3D Tron",       tr: "3D Tron ızgarası"      },
+  diamond:      { it: "Bagliore cristallo",    en: "Crystal shimmer",      fr: "Scintillement cristal", de: "Kristallschimmer",      nl: "Kristal glinstering",  vi: "Lấp lánh pha lê",      ru: "Мерцание кристалла",    da: "Krystalglimmer",        cs: "Křišťálové třpytky",    pt: "Brilho de cristal",     es: "Brillo de cristal",     tr: "Kristal parıltı"       },
+  quantum:      { it: "Orbite atomiche 3D",    en: "3D atomic orbitals",   fr: "Orbitales atomiques 3D",de: "3D Atomorbitale",       nl: "3D atoomorbits",       vi: "Quỹ đạo nguyên tử 3D", ru: "3D атомные орбиты",     da: "3D atomorbiter",        cs: "3D atomové orbity",     pt: "Orbitais atômicos 3D",  es: "Órbitas atómicas 3D",   tr: "3D atom yörüngeleri"   },
+  storm:        { it: "Temporale con fulmini", en: "Lightning storm",      fr: "Orage avec éclairs",    de: "Gewitter mit Blitzen",  nl: "Onweer met bliksem",   vi: "Bão sét",              ru: "Гроза с молниями",      da: "Tordenstorm",           cs: "Bouře s blesky",        pt: "Tempestade elétrica",   es: "Tormenta eléctrica",    tr: "Yıldırımlı fırtına"    },
+  frost:        { it: "Nevischio e gelo",      en: "Snow & frost",         fr: "Neige et givre",        de: "Schnee & Frost",        nl: "Sneeuw & vorst",       vi: "Tuyết & sương giá",    ru: "Снег и мороз",          da: "Sne & frost",           cs: "Sníh & mráz",           pt: "Neve & gelo",           es: "Nieve y escarcha",      tr: "Kar ve don"            },
 };
 
 // Category group name translations
 const THEME_GROUP_I18N = {
-  critical: { it: "Critico",      en: "Critical",  fr: "Critique",     de: "Kritisch",   nl: "Kritiek",       vi: "Nghiêm trọng", ru: "Критично",   pt: "Crítico"      },
-  warning:  { it: "Attenzione",   en: "Warning",   fr: "Attention",    de: "Warnung",    nl: "Waarschuwing",  vi: "Cảnh báo",     ru: "Внимание",   pt: "Aviso"        },
-  info:     { it: "Informazione", en: "Info",      fr: "Information",  de: "Info",       nl: "Informatie",    vi: "Thông tin",    ru: "Информация", pt: "Informação"   },
-  ok:       { it: "Tutto OK",     en: "All Clear", fr: "Tout va bien", de: "Alles OK",   nl: "Alles OK",      vi: "Tất cả ổn",    ru: "Всё OK",     pt: "Tudo Limpo"   },
-  style:    { it: "Stile",        en: "Style",     fr: "Style",        de: "Stil",       nl: "Stijl",         vi: "Phong cách",   ru: "Стиль",      pt: "Estilo"       },
+  critical: { it: "Critico",      en: "Critical",  fr: "Critique",     de: "Kritisch",   nl: "Kritiek",       vi: "Nghiêm trọng", ru: "Критично",   da: "Kritisk",    cs: "Kritické",   pt: "Crítico",      es: "Crítico",    tr: "Kritik"             },
+  warning:  { it: "Attenzione",   en: "Warning",   fr: "Attention",    de: "Warnung",    nl: "Waarschuwing",  vi: "Cảnh báo",     ru: "Внимание",   da: "Advarsel",   cs: "Varování",   pt: "Aviso",        es: "Atención",   tr: "Uyarı"              },
+  info:     { it: "Informazione", en: "Info",      fr: "Information",  de: "Info",       nl: "Informatie",    vi: "Thông tin",    ru: "Информация", da: "Information",cs: "Informace",  pt: "Informação",   es: "Información",tr: "Bilgi"              },
+  ok:       { it: "Tutto OK",     en: "All Clear", fr: "Tout va bien", de: "Alles OK",   nl: "Alles OK",      vi: "Tất cả ổn",    ru: "Всё OK",     da: "Alt OK",     cs: "Vše OK",     pt: "Tudo Limpo",   es: "Todo bien",  tr: "Her Şey Yolunda"    },
+  style:    { it: "Stile",        en: "Style",     fr: "Style",        de: "Stil",       nl: "Stijl",         vi: "Phong cách",   ru: "Стиль",      da: "Stil",       cs: "Styl",       pt: "Estilo",       es: "Estilo",     tr: "Stil"               },
 };
 
 // ---------------------------------------------------------------------------
@@ -4294,6 +4729,8 @@ const THEME_OPTIONS = [
   { value: "arcade"       },
   { value: "diamond"      },
   { value: "quantum"      },
+  { value: "storm"        },
+  { value: "frost"        },
   { value: "ticker"       },
   { value: "neon"         },
   { value: "glass"        },
@@ -4437,7 +4874,7 @@ class AlertTickerCardEditor extends LitElement {
     this._config = merged;
     // If the alert edit panel is open and the alert content changed from outside
     // (e.g. YAML paste), force a full panel re-render by briefly closing and
-    // reopening — MWC components (ha-textfield, ha-service-control) ignore
+    // reopening — MWC components (ha-input, ha-service-control) ignore
     // property updates after first render without this.
     if (this._editingIndex >= 0 && prevAlert !== merged.alerts?.[this._editingIndex]) {
       const idx = this._editingIndex;
@@ -4507,6 +4944,7 @@ class AlertTickerCardEditor extends LitElement {
       countdown: "⏱️", hourglass: "⏳", timer_pulse: "💥", timer_ring: "🔵",
       portal: "🌀", void: "⚫", volt: "⚡", nebula: "🌌",
       prism: "💎", arcade: "🕹️", diamond: "💠", quantum: "⚛️",
+      storm: "⛈️", frost: "❄️",
     };
     const NAME = {
       timer_pulse: "Timer Pulse", timer_ring: "Timer Ring",
@@ -4711,7 +5149,7 @@ class AlertTickerCardEditor extends LitElement {
         </div>
       </div>
       <div class="form-row">
-        <ha-textfield
+        <ha-input
           type="number"
           .label="${this._t("card_height")}"
           .value="${cfg.card_height ? String(cfg.card_height) : ""}"
@@ -4722,7 +5160,7 @@ class AlertTickerCardEditor extends LitElement {
             const v = parseInt(e.target.value);
             this._fireConfig({ ...this._config, card_height: (v > 0 ? v : undefined) });
           }}"
-        ></ha-textfield>
+        ></ha-input>
         <div class="helper-text">${this._t("card_height_help")}</div>
       </div>
       <div class="form-row">
@@ -4764,7 +5202,7 @@ class AlertTickerCardEditor extends LitElement {
                 }}"
                 title="Base color"
               />
-              <ha-textfield
+              <ha-input
                 .label="${this._t("card_background")}"
                 .value="${typeof cfg.card_background === 'string' ? cfg.card_background : ''}"
                 placeholder="rgba(20, 20, 30, 0.7)"
@@ -4772,7 +5210,7 @@ class AlertTickerCardEditor extends LitElement {
                   const v = e.target.value.trim();
                   this._fireConfig({ ...this._config, card_background: v || true });
                 }}"
-              ></ha-textfield>
+              ></ha-input>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
               <span style="font-size:0.82rem;opacity:0.65;white-space:nowrap">Opacity</span>
@@ -4803,14 +5241,14 @@ class AlertTickerCardEditor extends LitElement {
       <!-- ── CYCLING & ANIMATION ───────────────────────────────────────── -->
       <div class="section-divider">🔄 ${this._t("section_cycling")}</div>
       <div class="form-row">
-        <ha-textfield
+        <ha-input
           .label="${this._t("cycle_interval")}"
           type="number"
           min="1"
           max="60"
           .value="${String(cfg.cycle_interval ?? 5)}"
           @change="${(e) => this._cycleIntervalChanged(e.target.value)}"
-        ></ha-textfield>
+        ></ha-input>
         <div class="helper-text">${this._t("cycle_interval_help")}</div>
       </div>
       <div class="form-row">
@@ -5107,7 +5545,7 @@ class AlertTickerCardEditor extends LitElement {
         <!-- Weather+Forecast alternation interval (only for weather_forecast mode) -->
         ${cfg.clear_display_mode === 'weather_forecast' ? html`
           <div class="form-row">
-            <ha-textfield
+            <ha-input
               type="number"
               min="1"
               max="60"
@@ -5117,7 +5555,7 @@ class AlertTickerCardEditor extends LitElement {
                 const v = parseInt(e.target.value, 10);
                 this._fireConfig({ ...this._config, weather_forecast_interval: (isNaN(v) || v < 1) ? undefined : v });
               }}"
-            ></ha-textfield>
+            ></ha-input>
           </div>
           <div class="helper-text">${this._t("weather_forecast_interval_help")}</div>
         ` : ''}
@@ -5135,18 +5573,62 @@ class AlertTickerCardEditor extends LitElement {
         <!-- Message fields (only for message mode) -->
         ${(!cfg.clear_display_mode || cfg.clear_display_mode === 'message') ? html`
         <div class="form-row">
-          <ha-textfield
+          <ha-input
             .label="${this._t("clear_message")}"
             .value="${cfg.clear_message || ""}"
             @change="${(e) => this._clearMessageChanged(e.target.value)}"
-          ></ha-textfield>
+          ></ha-input>
         </div>
         <div class="form-row">
-          <ha-textfield
+          <ha-input
             .label="${this._t("clear_badge_label")}"
             .value="${cfg.clear_badge_label || ""}"
             @change="${(e) => this._fireConfig({ ...this._config, clear_badge_label: e.target.value.trim() || undefined })}"
-          ></ha-textfield>
+          ></ha-input>
+        </div>
+        <div class="form-row">
+          <ha-formfield .label="${this._t("use_ha_icon")}">
+            <ha-switch
+              ?checked="${!!cfg.clear_use_ha_icon}"
+              @change="${(e) => this._clearUseHaIconToggled(e.target.checked)}"
+            ></ha-switch>
+          </ha-formfield>
+          ${cfg.clear_use_ha_icon ? html`
+            <ha-icon-picker
+              .label="${this._t("clear_icon_label")}"
+              .value="${cfg.clear_icon || ""}"
+              @value-changed="${(e) => this._fireConfig({ ...this._config, clear_icon: e.detail.value || undefined })}"
+            ></ha-icon-picker>
+            <div class="icon-color-row">
+              <input
+                type="color"
+                class="icon-color-swatch"
+                .value="${this._cssColorToHex(cfg.clear_icon_color)}"
+                @input="${(e) => this._fireConfig({ ...this._config, clear_icon_color: e.target.value || undefined })}"
+                title="${this._t("clear_icon_color_label")}"
+              />
+              <ha-input
+                .label="${this._t("clear_icon_color_label")}"
+                .value="${cfg.clear_icon_color || ""}"
+                placeholder="inherit"
+                @change="${(e) => {
+                  const v = e.target.value.trim() || undefined;
+                  this._fireConfig({ ...this._config, clear_icon_color: v });
+                }}"
+              ></ha-input>
+            </div>
+            <div class="helper-text">${this._t("icon_color_help")}</div>
+            <ha-input
+              .label="${this._t("clear_icon_size_label")}"
+              .value="${cfg.clear_icon_size || ""}"
+              placeholder="1.6em"
+              @change="${(e) => {
+                const v = e.target.value.trim() || undefined;
+                this._fireConfig({ ...this._config, clear_icon_size: v });
+              }}"
+            ></ha-input>
+            <div class="helper-text">${this._t("icon_size_help")}</div>
+          ` : ""}
         </div>
         <div class="form-row">
           ${this._renderThemeSelect("clear_theme", cfg.clear_theme || "success", (v) => this._clearThemeChanged(v), true)}
@@ -5207,7 +5689,7 @@ class AlertTickerCardEditor extends LitElement {
                 <option value="bottom" ?selected="${pos === "bottom"}">${this._t("overlay_pos_bottom")}</option>
               </select>
             </div>
-            <ha-textfield
+            <ha-input
               type="number"
               .label="${this._t("overlay_duration")}"
               .value="${cfg.overlay_duration != null ? String(cfg.overlay_duration) : "8"}"
@@ -5216,7 +5698,7 @@ class AlertTickerCardEditor extends LitElement {
                 const v = parseInt(e.target.value);
                 this._fireConfig({ ...this._config, overlay_duration: (isNaN(v) || v < 0) ? 8 : v });
               }}"
-            ></ha-textfield>
+            ></ha-input>
             <div class="helper-text">${this._t("overlay_duration_help")}</div>
             <div class="native-select-wrap" style="margin-top:8px">
               <label class="native-select-label">${this._t("overlay_scale")}</label>
@@ -5384,12 +5866,12 @@ class AlertTickerCardEditor extends LitElement {
                 ` : ""}
 
                 <!-- ── NOME / ETICHETTA (editor only) ───────────────────── -->
-                <ha-textfield
+                <ha-input
                   .label="${this._t("alert_name")}"
                   .value="${alert.name || ""}"
                   .placeholder="${this._t("alert_name_placeholder")}"
                   @change="${(e) => this._updateAlert(index, { name: e.target.value.trim() || undefined })}"
-                ></ha-textfield>
+                ></ha-input>
                 <div class="helper-text">${this._t("alert_name_help")}</div>
 
                 <!-- ── SELETTORE MODALITÀ ────────────────────────────────── -->
@@ -5424,11 +5906,11 @@ class AlertTickerCardEditor extends LitElement {
                       @value-changed="${(e) => this._alertEntityChanged(e.detail.value, index)}"
                     ></ha-entity-picker>
                     <div>
-                      <ha-textfield
+                      <ha-input
                         .label="${this._t("alert_attribute")}"
                         .value="${alert.attribute || ""}"
                         @change="${(e) => this._alertAttributeChanged(e.target.value, index)}"
-                      ></ha-textfield>
+                      ></ha-input>
                       <div class="helper-text">${this._t("alert_attribute_help")}</div>
                     </div>
                   ` : html`
@@ -5439,7 +5921,7 @@ class AlertTickerCardEditor extends LitElement {
 
                 <!-- Entity filter (text) — visible only in filter mode; hidden when device_class is set -->
                 ${this._getAlertMode(index, alert) === "filter" && !alert.device_class ? html`<div>
-                  <ha-textfield
+                  <ha-input
                     .label="${this._t("entity_filter")}"
                     .value="${alert.entity_filter || ""}"
                     @change="${(e) => {
@@ -5450,7 +5932,7 @@ class AlertTickerCardEditor extends LitElement {
                       }
                       this._alertFilterChanged(e.target.value, index);
                     }}"
-                  ></ha-textfield>
+                  ></ha-input>
                   <div class="helper-text">
                     ${alert.entity_filter && this._hass ? (() => {
                       const matchFn = this._buildFilterMatcher(alert.entity_filter);
@@ -5602,11 +6084,11 @@ class AlertTickerCardEditor extends LitElement {
 
                 <!-- Attribute in filter mode -->
                 <div>
-                  <ha-textfield
+                  <ha-input
                     .label="${this._t("alert_attribute")}"
                     .value="${alert.attribute || ""}"
                     @change="${(e) => this._alertAttributeChanged(e.target.value, index)}"
-                  ></ha-textfield>
+                  ></ha-input>
                   <div class="helper-text">${this._t("alert_attribute_help")}</div>
                 </div>
 
@@ -5648,7 +6130,7 @@ class AlertTickerCardEditor extends LitElement {
                         @input="${(e) => this._updateAlert(index, { music_player_color: e.target.value })}"
                         title="${this._t("music_player_color")}"
                       />
-                      <ha-textfield
+                      <ha-input
                         .label="${this._t("music_player_color")}"
                         .value="${alert.music_player_color || '#e040fb'}"
                         placeholder="#e040fb"
@@ -5656,15 +6138,15 @@ class AlertTickerCardEditor extends LitElement {
                           const v = e.target.value.trim() || undefined;
                           this._updateAlert(index, { music_player_color: v });
                         }}"
-                      ></ha-textfield>
+                      ></ha-input>
                     </div>
                   ` : ""}
-                  <ha-textfield
+                  <ha-input
                     .label="${this._t("badge_label")}"
                     .value="${alert.badge_label || ""}"
                     placeholder="NOW PLAYING"
                     @change="${(e) => this._updateAlert(index, { badge_label: e.target.value.trim() || undefined })}"
-                  ></ha-textfield>
+                  ></ha-input>
                 ` : ""}
 
                 <!-- Group settings — visible only for filter-mode alerts -->
@@ -5681,7 +6163,7 @@ class AlertTickerCardEditor extends LitElement {
                 </div>
                 ${alert.group ? html`
                   <div class="form-row">
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("group_min")}"
                       .value="${alert.group_min != null ? String(alert.group_min) : ""}"
                       placeholder="3"
@@ -5689,34 +6171,34 @@ class AlertTickerCardEditor extends LitElement {
                         const v = parseInt(e.target.value, 10);
                         this._updateAlert(index, { group_min: (v >= 2 && !isNaN(v)) ? v : undefined });
                       }}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("group_min_help")}</div>
                   </div>
                   <div class="form-row">
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("group_message")}"
                       .value="${alert.group_message || ""}"
                       placeholder="{count} alerts active"
                       @change="${(e) => this._updateAlert(index, { group_message: e.target.value || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("group_message_help")}</div>
                   </div>
                   <div class="form-row">
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("group_secondary_text")}"
                       .value="${alert.group_secondary_text || ""}"
                       placeholder="Tocca per gestire"
                       @change="${(e) => this._updateAlert(index, { group_secondary_text: e.target.value || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("group_secondary_text_help")}</div>
                   </div>
                   <div class="form-row">
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("group_expanded_message")}"
                       .value="${alert.group_expanded_message || ""}"
                       placeholder="{name}: {state}%"
                       @change="${(e) => this._updateAlert(index, { group_expanded_message: e.target.value || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("group_expanded_message_help")}</div>
                   </div>
                   ${this._renderActionConfig(alert, index, "group_tap_action",  this._t("group_tap_action_section"))}
@@ -5763,11 +6245,11 @@ class AlertTickerCardEditor extends LitElement {
                     </select>
                   </div>
                   <div>
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("alert_state")}"
                       .value="${Array.isArray(alert.state) ? alert.state.join(", ") : (alert.state || "on")}"
                       @change="${(e) => this._alertStateChanged(e.target.value, index)}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("alert_state_help")}</div>
                     ${alert.entity && this._hass && this._hass.states[alert.entity]
                       ? (() => {
@@ -5820,11 +6302,11 @@ class AlertTickerCardEditor extends LitElement {
                       allow-custom-entity
                       @value-changed="${(e) => this._updateCondition(index, ci, { entity: e.detail.value })}"
                     ></ha-entity-picker>
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("condition_attribute")}"
                       .value="${cond.attribute || ""}"
                       @change="${(e) => this._updateCondition(index, ci, { attribute: e.target.value || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="form-row-2col">
                       <div class="native-select-wrap">
                         <label class="native-select-label">${this._t("alert_operator")}</label>
@@ -5837,11 +6319,11 @@ class AlertTickerCardEditor extends LitElement {
                           `)}
                         </select>
                       </div>
-                      <ha-textfield
+                      <ha-input
                         .label="${this._t("alert_state")}"
                         .value="${cond.state || "on"}"
                         @change="${(e) => this._updateCondition(index, ci, { state: e.target.value.trim() })}"
-                      ></ha-textfield>
+                      ></ha-input>
                     </div>
                   </div>
                 `)}
@@ -5852,7 +6334,7 @@ class AlertTickerCardEditor extends LitElement {
                 <div class="section-divider">⏱ ${this._t("auto_dismiss_section")}</div>
 
                 <div>
-                  <ha-textfield
+                  <ha-input
                     type="number"
                     .label="${this._t("trigger_delay")}"
                     .value="${alert.trigger_delay != null ? String(alert.trigger_delay) : ""}"
@@ -5862,12 +6344,12 @@ class AlertTickerCardEditor extends LitElement {
                       const v = parseInt(e.target.value, 10);
                       this._updateAlert(index, { trigger_delay: v > 0 ? v : undefined });
                     }}"
-                  ></ha-textfield>
+                  ></ha-input>
                   <div class="helper-text">${this._t("trigger_delay_help")}</div>
                 </div>
 
                 <div>
-                  <ha-textfield
+                  <ha-input
                     type="number"
                     .label="${this._t("auto_dismiss_after")}"
                     .value="${alert.auto_dismiss_after != null ? String(alert.auto_dismiss_after) : ""}"
@@ -5877,7 +6359,7 @@ class AlertTickerCardEditor extends LitElement {
                       const v = parseInt(e.target.value, 10);
                       this._updateAlert(index, { auto_dismiss_after: v > 0 ? v : undefined });
                     }}"
-                  ></ha-textfield>
+                  ></ha-input>
                   <div class="helper-text">${this._t("auto_dismiss_after_help")}</div>
                 </div>
 
@@ -5886,11 +6368,11 @@ class AlertTickerCardEditor extends LitElement {
                 <!-- ── 4. MESSAGGIO ──────────────────────────────────────── -->
                 <div class="section-divider">💬 ${this._t("alert_message")}</div>
 
-                <ha-textfield
+                <ha-input
                   .label="${this._t("alert_message")}"
                   .value="${alert.message || ""}"
                   @change="${(e) => this._alertMessageChanged(e.target.value, index)}"
-                ></ha-textfield>
+                ></ha-input>
                 <div class="helper-text">${this._t("alert_message_help")}</div>
 
 
@@ -5925,7 +6407,7 @@ class AlertTickerCardEditor extends LitElement {
                           @input="${(e) => this._updateAlert(index, { icon_color: e.target.value || undefined })}"
                           title="${this._t("icon_color")}"
                         />
-                        <ha-textfield
+                        <ha-input
                           .label="${this._t("icon_color")}"
                           .value="${alert.icon_color || ""}"
                           placeholder="inherit"
@@ -5933,10 +6415,10 @@ class AlertTickerCardEditor extends LitElement {
                             const v = e.target.value.trim() || undefined;
                             this._updateAlert(index, { icon_color: v });
                           }}"
-                        ></ha-textfield>
+                        ></ha-input>
                       </div>
                       <div class="helper-text">${this._t("icon_color_help")}</div>
-                      <ha-textfield
+                      <ha-input
                         .label="${this._t("icon_size")}"
                         .value="${alert.icon_size || ""}"
                         placeholder="1.6em"
@@ -5944,7 +6426,7 @@ class AlertTickerCardEditor extends LitElement {
                           const v = e.target.value.trim() || undefined;
                           this._updateAlert(index, { icon_size: v });
                         }}"
-                      ></ha-textfield>
+                      ></ha-input>
                       <div class="helper-text">${this._t("icon_size_help")}</div>
                       <div class="helper-text">${this._t("alert_icon_help")}</div>
                   ` : ""}
@@ -5959,12 +6441,12 @@ class AlertTickerCardEditor extends LitElement {
                     ></ha-switch>
                   </ha-formfield>
                   ${alert.show_badge !== false ? html`
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("badge_label")}"
                       .value="${alert.badge_label || ""}"
                       .placeholder="${this._getDefaultBadgeLabel(alert)}"
                       @change="${(e) => this._updateAlert(index, { badge_label: e.target.value.trim() || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("badge_label_help")}</div>
                   ` : ""}
                 </div>
@@ -5984,11 +6466,11 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="helper-text">${this._t("secondary_entity_help")}</div>
                 </div>
                 ${alert.secondary_entity ? html`
-                  <ha-textfield
+                  <ha-input
                     .label="${this._t("secondary_attribute")}"
                     .value="${alert.secondary_attribute || ""}"
                     @change="${(e) => this._updateAlert(index, { secondary_attribute: e.target.value.trim() || undefined })}"
-                  ></ha-textfield>
+                  ></ha-input>
                   <ha-formfield .label="${this._t("show_secondary_name")}">
                     <ha-switch
                       ?checked="${!!alert.show_secondary_name}"
@@ -5999,11 +6481,11 @@ class AlertTickerCardEditor extends LitElement {
 
                 <!-- Secondary static text -->
                 <div>
-                  <ha-textfield
+                  <ha-input
                     .label="${this._t("secondary_text")}"
                     .value="${alert.secondary_text || ""}"
                     @change="${(e) => this._updateAlert(index, { secondary_text: e.target.value || undefined })}"
-                  ></ha-textfield>
+                  ></ha-input>
                   <div class="helper-text">${this._t("secondary_text_help")}</div>
                 </div>
                 <div class="form-row">
@@ -6077,12 +6559,12 @@ class AlertTickerCardEditor extends LitElement {
                 </div>
                 ${alert.sound ? html`
                   <div class="form-row">
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("alert_sound_url")}"
                       .value="${alert.sound_url || ""}"
                       placeholder="https://example.com/alert.mp3"
                       @change="${(e) => this._updateAlert(index, { sound_url: e.target.value || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("alert_sound_url_help")}</div>
                   </div>
                 ` : ""}
@@ -6147,11 +6629,11 @@ class AlertTickerCardEditor extends LitElement {
                   </div>
                   ` : ''}
                   <div class="form-row">
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t("alert_tts_message")}"
                       .value="${alert.tts_message || ''}"
                       @change="${(e) => this._updateAlert(index, { tts_message: e.target.value || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("alert_tts_message_help")}</div>
                   </div>
                 ` : ""}
@@ -6170,19 +6652,19 @@ class AlertTickerCardEditor extends LitElement {
                 </div>
                 ${alert.push_notify ? html`
                   <div class="form-row">
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t('alert_push_notify_title')}"
                       .value="${alert.push_notify_title || ''}"
                       @change="${(e) => this._updateAlert(index, { push_notify_title: e.target.value || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("alert_push_notify_title_help")}</div>
                   </div>
                   <div class="form-row">
-                    <ha-textfield
+                    <ha-input
                       .label="${this._t('alert_push_notify_message')}"
                       .value="${alert.push_notify_message || ''}"
                       @change="${(e) => this._updateAlert(index, { push_notify_message: e.target.value || undefined })}"
-                    ></ha-textfield>
+                    ></ha-input>
                     <div class="helper-text">${this._t("alert_push_notify_message_help")}</div>
                   </div>
                   <div class="form-row">
@@ -6276,14 +6758,14 @@ class AlertTickerCardEditor extends LitElement {
                         ${this._haUsers === null ? html`
                           <div class="helper-text">⏳ ${this._t("visible_to_loading")}</div>
                         ` : this._haUsers.length === 0 ? html`
-                          <ha-textfield
+                          <ha-input
                             .label="${this._t("visible_to_users_label")}"
                             .value="${selectedNames.join(", ")}"
                             @change="${(e) => {
                               const parts = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
                               this._updateAlert(index, { visible_to: parts.length === 1 ? parts[0] : parts.length > 1 ? parts : undefined });
                             }}"
-                          ></ha-textfield>
+                          ></ha-input>
                         ` : html`
                           <div class="visible-to-user-list">
                             ${this._haUsers.map(u => {
@@ -6312,7 +6794,7 @@ class AlertTickerCardEditor extends LitElement {
                 <!-- Time range -->
                 <div class="section-divider">${this._t("time_range_section")}</div>
                 <div class="form-row form-row--two-col">
-                  <ha-textfield
+                  <ha-input
                     .label="${this._t("time_range_from")}"
                     .value="${alert.time_range?.from || ""}"
                     placeholder="HH:MM"
@@ -6320,8 +6802,8 @@ class AlertTickerCardEditor extends LitElement {
                     inputmode="numeric"
                     @input="${(e) => this._onTimeInput(e)}"
                     @blur="${(e) => this._saveTimeField(e, alert, index, "from")}"
-                  ></ha-textfield>
-                  <ha-textfield
+                  ></ha-input>
+                  <ha-input
                     .label="${this._t("time_range_to")}"
                     .value="${alert.time_range?.to || ""}"
                     placeholder="HH:MM"
@@ -6329,7 +6811,7 @@ class AlertTickerCardEditor extends LitElement {
                     inputmode="numeric"
                     @input="${(e) => this._onTimeInput(e)}"
                     @blur="${(e) => this._saveTimeField(e, alert, index, "to")}"
-                  ></ha-textfield>
+                  ></ha-input>
                 </div>
                 <div class="helper-text">${this._t("time_range_help")}</div>
 
@@ -6602,6 +7084,14 @@ class AlertTickerCardEditor extends LitElement {
     }
   }
 
+  _clearUseHaIconToggled(checked) {
+    if (checked) {
+      this._fireConfig({ ...this._config, clear_use_ha_icon: true });
+    } else {
+      this._fireConfig({ ...this._config, clear_use_ha_icon: false, clear_icon: undefined, clear_icon_color: undefined, clear_icon_size: undefined });
+    }
+  }
+
   /** Converts a CSS color string to a hex value for <input type="color">.
    *  Returns #000000 for anything that cannot be parsed (CSS vars, named colors etc.). */
   _parseBgValue(val) {
@@ -6778,11 +7268,11 @@ class AlertTickerCardEditor extends LitElement {
         ></ha-service-control>
       ` : ""}
       ${type === "navigate" ? html`
-        <ha-textfield
+        <ha-input
           .label="${this._t("action_navigate_path")}"
           .value="${cfg.navigation_path || ""}"
           @change="${(e) => this._setActionConfig(index, key, "navigation_path", e.target.value)}"
-        ></ha-textfield>
+        ></ha-input>
       ` : ""}
       ${type === "more-info" ? html`
         <ha-entity-picker
@@ -6794,11 +7284,11 @@ class AlertTickerCardEditor extends LitElement {
         ></ha-entity-picker>
       ` : ""}
       ${type === "url" ? html`
-        <ha-textfield
+        <ha-input
           .label="${this._t("action_url_path")}"
           .value="${cfg.url_path || ""}"
           @change="${(e) => this._setActionConfig(index, key, "url_path", e.target.value)}"
-        ></ha-textfield>
+        ></ha-input>
       ` : ""}
     `;
   }
@@ -6830,11 +7320,11 @@ class AlertTickerCardEditor extends LitElement {
         ></ha-service-control>
       ` : ""}
       ${type === "navigate" ? html`
-        <ha-textfield
+        <ha-input
           .label="${this._t("action_navigate_path")}"
           .value="${cfg.navigation_path || ""}"
           @change="${(e) => this._setCardActionConfig(configKey, "navigation_path", e.target.value)}"
-        ></ha-textfield>
+        ></ha-input>
       ` : ""}
       ${type === "more-info" ? html`
         <ha-entity-picker
@@ -6846,11 +7336,11 @@ class AlertTickerCardEditor extends LitElement {
         ></ha-entity-picker>
       ` : ""}
       ${type === "url" ? html`
-        <ha-textfield
+        <ha-input
           .label="${this._t("action_url_path")}"
           .value="${cfg.url_path || ""}"
           @change="${(e) => this._setCardActionConfig(configKey, "url_path", e.target.value)}"
-        ></ha-textfield>
+        ></ha-input>
       ` : ""}
     `;
   }
@@ -7225,7 +7715,7 @@ class AlertTickerCardEditor extends LitElement {
         margin-bottom: 16px;
       }
       .form-row ha-select,
-      .form-row ha-textfield {
+      .form-row ha-input {
         width: 100%;
       }
 
@@ -7234,7 +7724,7 @@ class AlertTickerCardEditor extends LitElement {
         grid-template-columns: 1fr 1fr;
         gap: 12px;
       }
-      .form-row--two-col ha-textfield { width: 100%; }
+      .form-row--two-col ha-input { width: 100%; }
 
       .form-row-inline {
         display: flex;
@@ -7268,7 +7758,7 @@ class AlertTickerCardEditor extends LitElement {
         gap: 10px;
         margin-top: 8px;
       }
-      .icon-color-row ha-textfield {
+      .icon-color-row ha-input {
         flex: 1;
       }
       .icon-color-swatch {
@@ -7419,7 +7909,7 @@ class AlertTickerCardEditor extends LitElement {
         gap: 12px;
       }
       .alert-form ha-entity-picker,
-      .alert-form ha-textfield,
+      .alert-form ha-input,
       .alert-form ha-select {
         width: 100%;
       }
@@ -7781,7 +8271,7 @@ class AlertTickerCardEditor extends LitElement {
         gap: 12px;
         border-top: 1px solid rgba(3,169,244,0.15);
       }
-      .overlay-controls ha-textfield {
+      .overlay-controls ha-input {
         width: 100%;
       }
 
