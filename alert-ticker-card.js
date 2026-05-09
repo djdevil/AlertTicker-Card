@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.2.4
+ * AlertTicker Card v1.3.2.5
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -23,7 +23,7 @@ const css = LitElement.prototype.css;
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.2.4";
+const CARD_VERSION = "1.3.2.5";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1800,13 +1800,29 @@ class AlertTickerCard extends LitElement {
         if (!_evalTimeRange(alert)) return false;
         const key = `${alert._configIdx}:${alert.entity}`;
 
+        // Normalize conditions: accept both a single object and an array (#83)
+        const _normConds = (c) => Array.isArray(c) ? c : (c && typeof c === "object" && c.entity ? [c] : []);
+
         if (alert.on_change) {
           // on_change mode: active only while a recent change trigger is live
           if (!this._changeTriggers[key]) return false;
+          // Primary state guard: when state/operator are explicitly set they act
+          // as a current-state filter, not just a trigger match. This lets
+          // on_change fire on any change while only showing the alert while the
+          // entity is in the desired state — e.g. state:playing means the alert
+          // is visible only while the player is actually playing, suppressing
+          // idle/paused/buffering transitions. (#83)
+          if (alert.state != null && alert.state !== "" && entityState) {
+            const sv = (alert.attribute != null && alert.attribute !== "")
+              ? String(this._resolveAttrPath(entityState.attributes, alert.attribute) ?? "")
+              : entityState.state;
+            if (!this._matchesState(sv, alert)) return false;
+          }
           // Extra AND/OR conditions still apply for on_change alerts
-          if (Array.isArray(alert.conditions) && alert.conditions.length > 0) {
+          const onChangeConds = _normConds(alert.conditions);
+          if (onChangeConds.length > 0) {
             const logic = alert.conditions_logic || "and";
-            const results = alert.conditions.map((cond) => {
+            const results = onChangeConds.map((cond) => {
               if (!cond.entity) return false;
               const es = this._hass.states[cond.entity];
               if (!es) return false;
@@ -1823,9 +1839,10 @@ class AlertTickerCard extends LitElement {
             ? String(this._resolveAttrPath(entityState.attributes, alert.attribute) ?? "")
             : entityState.state;
           const primaryOk = this._matchesState(stateValue, alert);
-          if (Array.isArray(alert.conditions) && alert.conditions.length > 0) {
+          const normalConds = _normConds(alert.conditions);
+          if (normalConds.length > 0) {
             const logic = alert.conditions_logic || "and";
-            const results = alert.conditions.map((cond) => {
+            const results = normalConds.map((cond) => {
               if (!cond.entity) return false;
               const es = this._hass.states[cond.entity];
               if (!es) return false;
@@ -3936,6 +3953,9 @@ class AlertTickerCard extends LitElement {
     // Also set display:none as belt-and-suspenders for older HA versions.
     this.toggleAttribute("hidden", isHidden);
     this.style.display = isHidden ? "none" : "";
+    // Bug #142: toggle CSS class that lifts this element above adjacent cards
+    // while any popup is open (see :host(.atc-popup-open) in styles).
+    this.classList.toggle('atc-popup-open', !!(this._snoozeMenuOpen || this._historyOpen));
     this.style.height = this._config?.vertical ? "100%" : "";
     // Fixed card height — prevents layout shifts when cycling between alerts
     const cardHeight = this._config?.card_height;
@@ -4116,7 +4136,7 @@ class AlertTickerCard extends LitElement {
     // The gap creates empty space so the text scrolls out, disappears briefly, then re-enters.
     const items = list.map(
       (a) => html`
-        <span class="tk-item">${this._getIcon(a)}&nbsp;${a.message}</span>
+        <span class="tk-item">${this._getIcon(a)}&nbsp;${this._resolveMessage(a)}</span>
         <span class="tk-sep">●</span>
       `
     );
@@ -5666,12 +5686,15 @@ class AlertTickerCard extends LitElement {
 
     const counterOverlay = this._config.large_buttons ? this._renderCounterOverlay() : "";
 
+    const accentCls = current?.color ? ' atc-has-accent' : '';
+    const accentSty = current?.color ? `--atc-accent-color:${current.color}` : '';
+
     // Ticker has its own scroll animation — skip fold wrapper (unless it's the widget slide)
     if (!isWidgetSlide && (current.theme || "").toLowerCase() === "ticker") {
       return html`
         <div class="atc-card-root">
           <div class="${this._hostClass}">
-            <div class="atc-inner-clip">
+            <div class="atc-inner-clip${accentCls}" style="${accentSty}">
               <div class="${hasInteraction ? "atc-clickable" : ""}"
                 @pointerdown="${pdHandler}" @pointerup="${puHandler}"
                 @pointerleave="${plHandler}" @pointercancel="${plHandler}"
@@ -5685,7 +5708,7 @@ class AlertTickerCard extends LitElement {
     return html`
       <div class="atc-card-root">
         <div class="${this._hostClass}">
-          <div class="atc-inner-clip">
+          <div class="atc-inner-clip${accentCls}" style="${accentSty}">
             <div class="at-fold-wrapper ${this._animPhase}${hasInteraction ? " atc-clickable" : ""}"
               data-anim="${this._config.cycle_animation || "fold"}"
               @pointerdown="${pdHandler}" @pointerup="${puHandler}"
@@ -5711,6 +5734,16 @@ class AlertTickerCard extends LitElement {
         border-radius: var(--ha-card-border-radius, 12px);
         box-shadow: var(--ha-card-box-shadow, none);
         isolation: isolate;
+      }
+      /* While any popup is open: lift this element above adjacent cards.
+       * isolation:auto removes the isolated stacking context so position+z-index
+       * can take effect; position:relative + z-index:9999 makes this element a
+       * stacking context root at z-index 9999 in the masonry/grid layout,
+       * above all sibling cards at z-index:auto. (#142) */
+      :host(.atc-popup-open) {
+        isolation: auto;
+        position: relative;
+        z-index: 9999;
       }
       .at-card {
         padding: 0;
@@ -8579,6 +8612,7 @@ class AlertTickerCard extends LitElement {
         border-radius: var(--ha-card-border-radius, 12px);
         position: relative;
         z-index: 1;
+        transform: translateZ(0);
       }
       .atc-test-mode-banner {
         background: rgba(255, 165, 0, 0.92);
@@ -9578,6 +9612,72 @@ class AlertTickerCard extends LitElement {
         background: var(--secondary-background-color, rgba(0,0,0,0.08)) !important;
         border-color: var(--divider-color, rgba(0,0,0,0.15)) !important;
         color: var(--primary-text-color, inherit) !important;
+      }
+
+      /* ── Per-alert accent color (#143) ── */
+      .atc-has-accent .at-emergency,  .atc-has-accent .at-alarm,
+      .atc-has-accent .at-fire,       .atc-has-accent .at-lightning,
+      .atc-has-accent .at-nuclear,    .atc-has-accent .at-flood,
+      .atc-has-accent .at-motion,     .atc-has-accent .at-intruder,
+      .atc-has-accent .at-toxic,      .atc-has-accent .at-warning,
+      .atc-has-accent .at-caution,    .atc-has-accent .at-radar,
+      .atc-has-accent .at-temperature,.atc-has-accent .at-battery,
+      .atc-has-accent .at-door,       .atc-has-accent .at-window,
+      .atc-has-accent .at-smoke,      .atc-has-accent .at-wind,
+      .atc-has-accent .at-leak,       .atc-has-accent .at-info,
+      .atc-has-accent .at-notification,.atc-has-accent .at-aurora,
+      .atc-has-accent .at-neon,       .atc-has-accent .at-glass,
+      .atc-has-accent .at-matrix,     .atc-has-accent .at-minimal,
+      .atc-has-accent .at-retro,      .atc-has-accent .at-hologram,
+      .atc-has-accent .at-heartbeat,  .atc-has-accent .at-presence,
+      .atc-has-accent .at-update,     .atc-has-accent .at-cloud,
+      .atc-has-accent .at-satellite,  .atc-has-accent .at-tips,
+      .atc-has-accent .at-light,      .atc-has-accent .at-music,
+      .atc-has-accent .at-cyberpunk,  .atc-has-accent .at-vapor,
+      .atc-has-accent .at-lava,       .atc-has-accent .at-ticker,
+      .atc-has-accent .at-success,    .atc-has-accent .at-check,
+      .atc-has-accent .at-confetti,   .atc-has-accent .at-shield,
+      .atc-has-accent .at-power,      .atc-has-accent .at-sunrise,
+      .atc-has-accent .at-plant,      .atc-has-accent .at-lock,
+      .atc-has-accent .at-portal,     .atc-has-accent .at-void,
+      .atc-has-accent .at-volt,       .atc-has-accent .at-nebula,
+      .atc-has-accent .at-prism,      .atc-has-accent .at-arcade,
+      .atc-has-accent .at-diamond,    .atc-has-accent .at-quantum,
+      .atc-has-accent .at-countdown,  .atc-has-accent .at-hourglass,
+      .atc-has-accent .at-timer-pulse,.atc-has-accent .at-timer-ring,
+      .atc-has-accent .at-storm,      .atc-has-accent .at-frost {
+        border-color: var(--atc-accent-color) !important;
+      }
+      .atc-has-accent .at-emergency [class$="-badge"],  .atc-has-accent .at-alarm [class$="-badge"],
+      .atc-has-accent .at-fire [class$="-badge"],       .atc-has-accent .at-lightning [class$="-badge"],
+      .atc-has-accent .at-nuclear [class$="-badge"],    .atc-has-accent .at-flood [class$="-badge"],
+      .atc-has-accent .at-motion [class$="-badge"],     .atc-has-accent .at-intruder [class$="-badge"],
+      .atc-has-accent .at-toxic [class$="-badge"],      .atc-has-accent .at-warning [class$="-badge"],
+      .atc-has-accent .at-caution [class$="-badge"],    .atc-has-accent .at-radar [class$="-badge"],
+      .atc-has-accent .at-temperature [class$="-badge"],.atc-has-accent .at-battery [class$="-badge"],
+      .atc-has-accent .at-door [class$="-badge"],       .atc-has-accent .at-window [class$="-badge"],
+      .atc-has-accent .at-smoke [class$="-badge"],      .atc-has-accent .at-wind [class$="-badge"],
+      .atc-has-accent .at-leak [class$="-badge"],       .atc-has-accent .at-info [class$="-badge"],
+      .atc-has-accent .at-notification [class$="-badge"],.atc-has-accent .at-aurora [class$="-badge"],
+      .atc-has-accent .at-neon [class$="-badge"],       .atc-has-accent .at-glass [class$="-badge"],
+      .atc-has-accent .at-matrix [class$="-badge"],     .atc-has-accent .at-minimal [class$="-badge"],
+      .atc-has-accent .at-retro [class$="-badge"],      .atc-has-accent .at-hologram [class$="-badge"],
+      .atc-has-accent .at-heartbeat [class$="-badge"],  .atc-has-accent .at-presence [class$="-badge"],
+      .atc-has-accent .at-update [class$="-badge"],     .atc-has-accent .at-cloud [class$="-badge"],
+      .atc-has-accent .at-satellite [class$="-badge"],  .atc-has-accent .at-tips [class$="-badge"],
+      .atc-has-accent .at-light [class$="-badge"],      .atc-has-accent .at-music [class$="-badge"],
+      .atc-has-accent .at-cyberpunk [class$="-badge"],  .atc-has-accent .at-vapor [class$="-badge"],
+      .atc-has-accent .at-lava [class$="-badge"],       .atc-has-accent .at-success [class$="-badge"],
+      .atc-has-accent .at-check [class$="-badge"],      .atc-has-accent .at-confetti [class$="-badge"],
+      .atc-has-accent .at-shield [class$="-badge"],     .atc-has-accent .at-power [class$="-badge"],
+      .atc-has-accent .at-sunrise [class$="-badge"],    .atc-has-accent .at-plant [class$="-badge"],
+      .atc-has-accent .at-lock [class$="-badge"],       .atc-has-accent .at-portal [class$="-badge"],
+      .atc-has-accent .at-void [class$="-badge"],       .atc-has-accent .at-volt [class$="-badge"],
+      .atc-has-accent .at-nebula [class$="-badge"],     .atc-has-accent .at-prism [class$="-badge"],
+      .atc-has-accent .at-arcade [class$="-badge"],     .atc-has-accent .at-diamond [class$="-badge"],
+      .atc-has-accent .at-quantum [class$="-badge"],    .atc-has-accent .at-storm [class$="-badge"],
+      .atc-has-accent .at-frost [class$="-badge"] {
+        color: var(--atc-accent-color) !important;
       }
 
       /* -----------------------------------------------------------------------

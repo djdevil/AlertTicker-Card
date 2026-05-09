@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.2.4
+ * AlertTicker Card Editor v1.3.2.5
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.2.4";
+const CARD_VERSION = "1.3.2.5";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -982,6 +982,8 @@ const ET = {
     use_ha_icon: "Usa icona Home Assistant (mdi:)",
     icon_color: "Colore icona",
     icon_color_help: "Colore CSS: es. #ff0000, red, var(--error-color). Lascia vuoto per il colore del tema.",
+    accent_color: "Colore bordo personalizzato",
+    accent_color_help: "Sovrascrive il colore del bordo e del badge del tema. Colore CSS: es. #ff0000, red. Lascia vuoto per il colore del tema.",
     icon_size: "Dimensione icona",
     icon_size_help: "Valore CSS: es. 1.2em, 24px. Lascia vuoto per il default del tema (1.6em).",
     on_change: "Attiva ad OGNI cambio di stato",
@@ -1297,6 +1299,8 @@ const ET = {
     use_ha_icon: "Use Home Assistant icon (mdi:)",
     icon_color: "Icon color",
     icon_color_help: "CSS color: e.g. #ff0000, red, var(--error-color). Leave empty for theme default.",
+    accent_color: "Custom accent color",
+    accent_color_help: "Overrides the card border and badge color. CSS: e.g. #ff0000, red. Leave empty to use the theme color.",
     icon_size: "Icon size",
     icon_size_help: "CSS value: e.g. 1.2em, 24px. Leave empty for theme default (1.6em).",
     on_change: "Trigger on ANY state change",
@@ -1612,6 +1616,8 @@ const ET = {
     use_ha_icon: "Utiliser une icône Home Assistant (mdi:)",
     icon_color: "Couleur de l'icône",
     icon_color_help: "Couleur CSS: ex. #ff0000, red, var(--error-color). Laisser vide pour la couleur du thème.",
+    accent_color: "Couleur d'accentuation",
+    accent_color_help: "Remplace la couleur de bordure et de badge du thème. CSS: ex. #ff0000, red. Laisser vide pour la couleur du thème.",
     icon_size: "Taille de l'icône",
     icon_size_help: "Valeur CSS : ex. 1.2em, 24px. Laisser vide pour le défaut du thème (1.6em).",
     on_change: "Déclencher à TOUT changement d'état",
@@ -1927,6 +1933,8 @@ const ET = {
     use_ha_icon: "Home Assistant Symbol verwenden (mdi:)",
     icon_color: "Symbolfarbe",
     icon_color_help: "CSS-Farbe: z.B. #ff0000, red, var(--error-color). Leer lassen für Themafarbe.",
+    accent_color: "Akzentfarbe",
+    accent_color_help: "Überschreibt die Rahmen- und Badge-Farbe des Themas. CSS: z.B. #ff0000, red. Leer lassen für Themafarbe.",
     icon_size: "Symbolgröße",
     icon_size_help: "CSS-Wert: z.B. 1.2em, 24px. Leer lassen für Thema-Standard (1.6em).",
     on_change: "Bei JEDER Statusänderung auslösen",
@@ -2242,6 +2250,8 @@ const ET = {
     use_ha_icon: "Home Assistant pictogram gebruiken (mdi:)",
     icon_color: "Pictogramkleur",
     icon_color_help: "CSS-kleur: bijv. #ff0000, red, var(--error-color). Leeg laten voor themakleur.",
+    accent_color: "Accentkleur",
+    accent_color_help: "Overschrijft de rand- en badgekleur van het thema. CSS: bijv. #ff0000, red. Leeg laten voor themakleur.",
     icon_size: "Pictogramgrootte",
     icon_size_help: "CSS-waarde: bijv. 1.2em, 24px. Leeg laten voor thema-standaard (1.6em).",
     on_change: "Activeren bij ELKE statuswijziging",
@@ -2557,6 +2567,8 @@ const ET = {
     use_ha_icon: "Dùng biểu tượng Home Assistant (mdi:)",
     icon_color: "Màu biểu tượng",
     icon_color_help: "Màu CSS: ví dụ #ff0000, red, var(--error-color). Để trống để dùng màu theme.",
+    accent_color: "Màu nhấn tùy chỉnh",
+    accent_color_help: "Ghi đè màu viền và badge của theme. CSS: ví dụ #ff0000, red. Để trống để dùng màu theme.",
     icon_size: "Kích thước biểu tượng",
     icon_size_help: "Giá trị CSS: ví dụ 1.2em, 24px. Để trống để dùng mặc định (1.6em).",
     on_change: "Kích hoạt khi BẤT KỲ thay đổi trạng thái",
@@ -2872,6 +2884,8 @@ const ET = {
     use_ha_icon: "Использовать иконку Home Assistant (mdi:)",
     icon_color: "Цвет иконки",
     icon_color_help: "CSS цвет: например #ff0000, red, var(--error-color). Оставьте пустым для цвета темы.",
+    accent_color: "Цвет акцента",
+    accent_color_help: "Переопределяет цвет рамки и значка темы. CSS: например #ff0000, red. Оставьте пустым для цвета темы.",
     icon_size: "Размер иконки",
     icon_size_help: "CSS значение: например 1.2em, 24px. Оставьте пустым для стандарта темы (1.6em).",
     on_change: "Активировать при ЛЮБОМ изменении состояния",
@@ -3183,6 +3197,8 @@ const ET = {
     use_ha_icon: "Brug Home Assistant‑ikon (mdi:)",
     icon_color: "Ikonfarve",
     icon_color_help: "CSS‑farve: f.eks. #ff0000, red, var(--error-color). Lad stå tom for tema‑standard.",
+    accent_color: "Accentfarve",
+    accent_color_help: "Tilsidesætter temaets kant- og badge-farve. CSS: f.eks. #ff0000, red. Lad stå tom for temafarve.",
     icon_size: "Ikonstørrelse",
     icon_size_help: "CSS-værdi: f.eks. 1.2em, 24px. Lad stå tom for tema-standard (1.6em).",
     on_change: "Udløs ved enhver tilstandsændring",
@@ -3502,6 +3518,8 @@ const ET = {
     use_ha_icon: "Použij ikonu HA (mdi:)",
     icon_color: "Barva ikony",
     icon_color_help: "CSS barva: např. #ff0000, červena, var(--error-color). Ponechte prázdné pro výchozí vzhled.",
+    accent_color: "Barva přízvuku",
+    accent_color_help: "Přepíše barvu ohraničení a odznaku motivu. CSS: např. #ff0000, red. Ponechte prázdné pro výchozí.",
     icon_size: "Velikost ikony",
     icon_size_help: "CSS hodnota: např. 1.2em, 24px. Ponechte prázdné pro výchozí (1.6em).",
     on_change: "Aktivovat při JAKÉKOLIV změně stavu",
@@ -3821,6 +3839,8 @@ const ET = {
     use_ha_icon: "Usar ícone do Home Assistant (mdi:)",
     icon_color: "Cor do ícone",
     icon_color_help: "Cor CSS: ex. #ff0000, red, var(--error-color). Deixe vazio para o padrão do tema.",
+    accent_color: "Cor de destaque",
+    accent_color_help: "Substitui a cor da borda e do badge do tema. CSS: ex. #ff0000, red. Deixe vazio para o padrão do tema.",
     icon_size: "Tamanho do ícone",
     icon_size_help: "Valor CSS: ex. 1.2em, 24px. Deixe vazio para o padrão do tema (1.6em).",
     on_change: "Disparar em QUALQUER mudança de estado",
@@ -4136,6 +4156,8 @@ const ET = {
     use_ha_icon: "Usar icono de Home Assistant (mdi:)",
     icon_color: "Color del icono",
     icon_color_help: "Color CSS: ej. #ff0000, red, var(--error-color). Deja vacío para el color del tema.",
+    accent_color: "Color de acento",
+    accent_color_help: "Reemplaza el color del borde y del badge del tema. CSS: ej. #ff0000, red. Deja vacío para el color del tema.",
     icon_size: "Tamaño del icono",
     icon_size_help: "Valor CSS: ej. 1.2em, 24px. Dejar vacío para el valor por defecto del tema (1.6em).",
     on_change: "Disparar en CUALQUIER cambio de estado",
@@ -4451,6 +4473,8 @@ const ET = {
     use_ha_icon: "Home Assistant ikonu kullan (mdi:)",
     icon_color: "İkon rengi",
     icon_color_help: "CSS rengi: örn. #ff0000, red, var(--error-color). Tema varsayılanı için boş bırak.",
+    accent_color: "Vurgu rengi",
+    accent_color_help: "Tema kenarlık ve rozet rengini geçersiz kılar. CSS: örn. #ff0000, red. Tema varsayılanı için boş bırak.",
     icon_size: "İkon boyutu",
     icon_size_help: "CSS değeri: örn. 1.2em, 24px. Tema varsayılanı için boş bırak (1.6em).",
     on_change: "HERHANGİ durum değişikliğinde tetikle",
@@ -6430,6 +6454,25 @@ class AlertTickerCardEditor extends LitElement {
                       <div class="helper-text">${this._t("icon_size_help")}</div>
                       <div class="helper-text">${this._t("alert_icon_help")}</div>
                   ` : ""}
+                  <div class="icon-color-row">
+                    <input
+                      type="color"
+                      class="icon-color-swatch"
+                      .value="${this._cssColorToHex(alert.color)}"
+                      @input="${(e) => this._updateAlert(index, { color: e.target.value || undefined })}"
+                      title="${this._t("accent_color")}"
+                    />
+                    <ha-input
+                      .label="${this._t("accent_color")}"
+                      .value="${alert.color || ""}"
+                      placeholder="inherit"
+                      @change="${(e) => {
+                        const v = e.target.value.trim() || undefined;
+                        this._updateAlert(index, { color: v });
+                      }}"
+                    ></ha-input>
+                  </div>
+                  <div class="helper-text">${this._t("accent_color_help")}</div>
                 </div>
 
                 <!-- Badge -->

@@ -6,6 +6,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.2.5] - 2026-05-09
+
+### Added
+
+- **Per-alert custom accent color** ([#143](https://github.com/djdevil/AlertTicker-Card/issues/143))
+
+- **`on_change` + `conditions` now work together correctly** ([#83](https://github.com/djdevil/AlertTicker-Card/issues/83)) — two related fixes:
+
+  1. **Primary state guard in `on_change` mode**: when `state` and `operator` are explicitly set alongside `on_change: true`, they now act as a current-state filter. The alert fires on any state change but is only shown while the entity is actually in the declared state. This prevents showing the alert on idle/paused/buffering transitions when only `playing` transitions are intended.
+
+  2. **Single-object `conditions` accepted**: `conditions` can now be written as either a list or a single inline object — previously a single object was silently ignored because `Array.isArray()` returned false.
+
+  ```yaml
+  # Now works: fires on track change, shows only while playing
+  alerts:
+    - entity: media_player.living_room_speaker
+      operator: "="
+      state: playing
+      on_change: true
+      conditions:
+        entity: media_player.all_speakers
+        operator: "="
+        state: playing
+      auto_dismiss_after: 15
+  ``` — new `color` property on each alert overrides the card's border and badge color for that specific alert, independent of its theme. Set any CSS color value (`#ff4500`, `orange`, `var(--error-color)`). Available as a color picker + text field in the visual editor (under the icon section of each alert). Leave empty to use the theme's default color.
+
+  ```yaml
+  alerts:
+    - entity: sensor.front_door
+      theme: door
+      color: "#ff4500"
+      message: "Front door open"
+  ```
+
+### Fixed
+
+- **Bottom border clipped on some themes (`emergency`, `prism`, others)** ([#141](https://github.com/djdevil/AlertTicker-Card/issues/141)) — themes that use an outer `border` (CSS `box-sizing: content-box`) rendered the border just outside the layout box. Sub-pixel rounding caused the bottom border to occasionally fall fractionally outside `.atc-inner-clip`'s `overflow: hidden` boundary and get clipped. Fixed by adding `transform: translateZ(0)` to `.atc-inner-clip`, which promotes it to a compositor layer that works on integer pixel boundaries, eliminating the sub-pixel artifact without any layout change.
+
+- **`{state}` placeholder not replaced in the `ticker` scrolling theme** ([#140](https://github.com/djdevil/AlertTicker-Card/issues/140)) — `_renderTicker` was rendering `a.message` raw instead of passing it through `_resolveMessage()`. All other themes already use `_resolveMessage`, which handles `{state}`, `{name}`, `{entity}`, `{device}`, `{timer}` substitution and full Jinja2 template resolution. Fixed by replacing `a.message` with `this._resolveMessage(a)` in the ticker item renderer.
+
+- **Snooze menu and history panel appear behind adjacent cards** ([#142](https://github.com/djdevil/AlertTicker-Card/issues/142)) — `isolation: isolate` (added in v1.3.2.4 to fix #127) trapped the menu's z-index inside the card's own stacking context. Fixed via a CSS class `atc-popup-open` toggled on `:host` while any popup is open: it overrides `isolation` to `auto` and adds `position: relative; z-index: 9999`, making the card element a stacking context root at z-index 9999 in the masonry/grid layout — above all sibling cards at z-index: auto. `isolation: isolate` is restored the moment the popup closes.
+
+---
+
 ## [1.3.2.4] - 2026-05-08
 
 ### Added
