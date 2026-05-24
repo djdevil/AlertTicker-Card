@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.2.5
+ * AlertTicker Card v1.3.2.6
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -18,12 +18,16 @@ const LitElement = Object.getPrototypeOf(
   customElements.get("ha-card")
 );
 const html = LitElement.prototype.html;
-const css = LitElement.prototype.css;
+const css = LitElement.prototype.css ?? ((strings, ...values) => {
+  let cssText = strings[0];
+  values.forEach((v, i) => { cssText += (v?.cssText ?? v ?? '') + strings[i + 1]; });
+  return { cssText, _$cssResult$: true };
+});
 
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.2.5";
+const CARD_VERSION = "1.3.2.6";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1093,6 +1097,7 @@ const _ATC_OVERLAY = (() => {
 
   function _evalAlert(hass, a, prevMap) {
     if (!_evalVisibleTo(hass, a)) return false;
+    if (!_evalTimeRange(a)) return false;
     if ((a.entity_filter || a.device_class || a.label_filter || a.area_filter) && !a.entity) return _evalFilterAlert(hass, a);
     if (!a.entity) return false;
     if (a.on_change) {
@@ -3815,6 +3820,8 @@ class AlertTickerCard extends LitElement {
           this._dismissPersistent(alert);
           return;
         }
+        const snoozeAct = alert.snooze_action && alert.snooze_action.action !== "none" ? alert.snooze_action : null;
+        if (snoozeAct) this._handleAction(snoozeAct);
         const dur = alert.snooze_duration !== undefined
           ? alert.snooze_duration
           : (this._config.snooze_default_duration ?? 1);
@@ -3967,8 +3974,16 @@ class AlertTickerCard extends LitElement {
       : "var(--ha-card-border-width, 0px) solid var(--ha-card-border-color, transparent)");
     const bg = this._config?.card_background;
     if (bg && bg !== false) {
-      this.style.setProperty("--atc-card-bg-override",
-        bg === true ? "var(--ha-card-background, var(--card-background-color, rgba(0,0,0,0.55)))" : bg);
+      let bgValue;
+      if (bg === true) {
+        const cs = getComputedStyle(this);
+        bgValue = cs.getPropertyValue("--ha-card-background").trim()
+               || cs.getPropertyValue("--card-background-color").trim()
+               || "rgba(0,0,0,0.85)";
+      } else {
+        bgValue = bg;
+      }
+      this.style.setProperty("--atc-card-bg-override", bgValue);
       this.classList.add("atc-has-bg-override");
     } else {
       this.style.removeProperty("--atc-card-bg-override");

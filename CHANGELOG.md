@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.2.6] - 2026-05-10
+
+### Fixed
+
+- **`card_background: true` not picking up the HA theme background** ([#129](https://github.com/djdevil/AlertTicker-Card/issues/129)) — setting `--atc-card-bg-override` to the string `var(--ha-card-background, ...)` caused the reference to remain unresolved inside the shadow DOM, so the background always fell back to the default `rgba(0,0,0,0.55)` regardless of the active HA theme. Fixed by reading the resolved value with `getComputedStyle(this)` on the host element, which participates in the light DOM cascade and sees all HA theme variables. The actual color value is stored as the override, so shadow DOM children receive the correct theme background.
+
+- **`TypeError: css is not a function`** ([#155](https://github.com/djdevil/AlertTicker-Card/issues/155)) — `LitElement.prototype.css` is `undefined` in certain HA builds or loading contexts, causing the card to crash on mount before rendering anything. Fixed by adding a standards-compliant fallback: if `LitElement.prototype.css` is not available, a `css` tagged-template function is constructed inline that produces a `CSSResult`-compatible object (`{ cssText, _$cssResult$: true }`) — the exact shape Lit's `static get styles()` expects.
+
+- **Overlay fires outside configured `time_range`** ([#153](https://github.com/djdevil/AlertTicker-Card/issues/153)) — the overlay watcher's `_evalAlert()` helper called `_evalVisibleTo()` but never `_evalTimeRange()`. As a result, cross-view overlay banners ignored `time_range` and appeared at any hour regardless of the configured window. Fixed by adding a `_evalTimeRange(a)` guard at the top of `_evalAlert()`, mirroring the check already present in the card's own `_computeActiveAlerts()`.
+
+- **`snooze_action` not fired when swiping to snooze** ([#146](https://github.com/djdevil/AlertTicker-Card/issues/146)) — the swipe-left gesture called `_snoozeAlert()` directly, skipping the `snooze_action` execution that the snooze button tap always performs. Fixed by firing `snooze_action` in the swipe path before calling `_snoozeAlert()`, giving swipe full parity with the button.
+
+---
+
 ## [1.3.2.5] - 2026-05-09
 
 ### Added
