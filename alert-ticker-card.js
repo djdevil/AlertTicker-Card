@@ -1516,6 +1516,60 @@ const _ATC_OVERLAY = (() => {
 })();
 
 // ---------------------------------------------------------------------------
+// AtcCardProxy — renders an arbitrary HA card definition inside a slot.
+// Used by the card: override feature so alert-ticker-card can delegate visual
+// rendering to tile, entity, button, or any other HA card type while keeping
+// its own show/hide and cycling logic unchanged.
+// ---------------------------------------------------------------------------
+class AtcCardProxy extends HTMLElement {
+  constructor() {
+    super();
+    this.style.display = "block";
+    this.style.width   = "100%";
+    this._inner   = null;
+    this._cfg     = null;
+    this._hassRef = null;
+  }
+
+  set cardConfig(cfg) {
+    if (!cfg || !cfg.type) return;
+    if (this._cfg && JSON.stringify(this._cfg) === JSON.stringify(cfg)) {
+      return;
+    }
+    this._cfg = cfg;
+    this._rebuild();
+  }
+
+  set hass(h) {
+    this._hassRef = h;
+    if (this._inner) this._inner.hass = h;
+  }
+
+  _rebuild() {
+    this.innerHTML = "";
+    this._inner = null;
+    const type = this._cfg.type;
+    let el;
+    try {
+      el = type.startsWith("custom:")
+        ? document.createElement(type.substring(7))
+        : document.createElement(`hui-${type}-card`);
+    } catch (_) { return; }
+    try {
+      if (typeof el.setConfig === "function") el.setConfig(this._cfg);
+    } catch (_) { return; }
+    if (this._hassRef) el.hass = this._hassRef;
+    el.style.cssText = "display:block;width:100%;box-sizing:border-box;";
+    this._inner = el;
+    this.appendChild(el);
+  }
+}
+
+if (!customElements.get("atc-card-proxy")) {
+  customElements.define("atc-card-proxy", AtcCardProxy);
+}
+
+// ---------------------------------------------------------------------------
 // AlertTickerCard — main card class
 // ---------------------------------------------------------------------------
 class AlertTickerCard extends LitElement {
@@ -5458,6 +5512,19 @@ class AlertTickerCard extends LitElement {
     `;
   }
 
+  _resolveCardConfig(alert) {
+    const entityId = alert.entity || "";
+    function resolve(obj) {
+      if (typeof obj === "string") return obj === "this.entity_id" ? entityId : obj;
+      if (Array.isArray(obj)) return obj.map(resolve);
+      if (obj && typeof obj === "object") {
+        return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, resolve(v)]));
+      }
+      return obj;
+    }
+    return resolve(alert.card);
+  }
+
   _renderForTheme(theme, alert) {
     switch ((theme || "emergency").toLowerCase()) {
       case "ticker":       return this._renderTicker(alert);
@@ -5657,11 +5724,13 @@ class AlertTickerCard extends LitElement {
       `;
     }
 
-    const rawInner = isWidgetSlide
-      ? this._renderClearWidget()
-      : (current && current._isGroup)
-        ? this._renderGroupCard(current)
-        : this._renderForTheme((current?.theme || "emergency"), current);
+    const rawInner = (!isWidgetSlide && current?.card)
+      ? html`<atc-card-proxy .cardConfig="${this._resolveCardConfig(current)}" .hass="${this._hass}"></atc-card-proxy>`
+      : isWidgetSlide
+        ? this._renderClearWidget()
+        : (current && current._isGroup)
+          ? this._renderGroupCard(current)
+          : this._renderForTheme((current?.theme || "emergency"), current);
 
     const inner = (!isWidgetSlide && current && current.camera_entity && current.camera_in_card)
       ? (() => {
@@ -5703,7 +5772,6 @@ class AlertTickerCard extends LitElement {
 
     const accentCls = current?.color ? ' atc-has-accent' : '';
     const accentSty = current?.color ? `--atc-accent-color:${current.color}` : '';
-
     // Ticker has its own scroll animation — skip fold wrapper (unless it's the widget slide)
     if (!isWidgetSlide && (current.theme || "").toLowerCase() === "ticker") {
       return html`
@@ -10765,6 +10833,21 @@ class AlertTickerCard extends LitElement {
         white-space: nowrap;
       }
       .atc-group-back-btn:hover { opacity: 1; }
+
+      /* -----------------------------------------------------------------------
+       * CARD PROXY — atc-card-proxy fills the fold wrapper like a native card.
+       * The padding reset lets the inner card control its own spacing.
+       * --------------------------------------------------------------------- */
+      atc-card-proxy {
+        display: block;
+        width: 100%;
+      }
+      atc-card-proxy > * {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
     `;
   }
 }

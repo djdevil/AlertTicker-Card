@@ -906,6 +906,8 @@ const ET = {
     alert_sound: "Suono abilitato per questo avviso",
     alert_sound_url: "URL audio personalizzato per questo avviso",
     alert_sound_url_help: "Sovrascrive l'URL globale. Lascia vuoto per usare quello globale.",
+    alert_card_override: "Override card (tipo HA nativo)",
+    alert_card_override_help: "Quando impostato, esegue il rendering di questa card HA al posto del layout del tema. La logica di visibilità e ciclo rimane invariata. Usa 'this.entity_id' come segnaposto per l'entità abbinata.",
     tab_tts: "Sintesi vocale",
     hub_desc_tts: "Leggi gli avvisi ad alta voce",
     tts_how_works: "Come funziona",
@@ -1223,6 +1225,8 @@ const ET = {
     alert_sound: "Sound enabled for this alert",
     alert_sound_url: "Custom audio URL for this alert",
     alert_sound_url_help: "Overrides the global URL. Leave empty to use the global one.",
+    alert_card_override: "Card override (native HA card type)",
+    alert_card_override_help: "When set, renders this HA card definition instead of the themed layout. Visibility and cycling logic remain unchanged. Use 'this.entity_id' as a placeholder for the matched entity.",
     tab_tts: "Text-to-Speech",
     hub_desc_tts: "Read alerts aloud",
     tts_how_works: "How it works",
@@ -1540,6 +1544,8 @@ const ET = {
     alert_sound: "Son activé pour cette alerte",
     alert_sound_url: "URL audio personnalisée pour cette alerte",
     alert_sound_url_help: "Remplace l'URL globale. Laisser vide pour utiliser celle globale.",
+    alert_card_override: "Remplacement de card (type de card HA natif)",
+    alert_card_override_help: "Quand défini, affiche cette définition de card HA au lieu du layout du thème. La logique de visibilité et de cycle reste inchangée. Utilisez 'this.entity_id' comme espace réservé pour l'entité correspondante.",
     tab_tts: "Synthèse vocale",
     hub_desc_tts: "Lire les alertes à voix haute",
     tts_how_works: "Comment ça fonctionne",
@@ -1857,6 +1863,8 @@ const ET = {
     alert_sound: "Ton für diese Warnung aktiviert",
     alert_sound_url: "Benutzerdefinierte Audio-URL für diese Warnung",
     alert_sound_url_help: "Überschreibt die globale URL. Leer lassen, um die globale zu verwenden.",
+    alert_card_override: "Card-Überschreibung (nativer HA-Kartentyp)",
+    alert_card_override_help: "Wenn gesetzt, wird diese HA-Kartendefinition anstelle des Theme-Layouts gerendert. Die Sichtbarkeits- und Zykluslogik bleibt unverändert. Verwende 'this.entity_id' als Platzhalter für die zugeordnete Entität.",
     tab_tts: "Text-to-Speech",
     hub_desc_tts: "Warnungen laut vorlesen",
     tts_how_works: "So funktioniert es",
@@ -2174,6 +2182,8 @@ const ET = {
     alert_sound: "Geluid ingeschakeld voor deze melding",
     alert_sound_url: "Aangepaste audio-URL voor deze melding",
     alert_sound_url_help: "Overschrijft de globale URL. Leeg laten om de globale te gebruiken.",
+    alert_card_override: "Card-overschrijving (native HA-kaarttype)",
+    alert_card_override_help: "Wanneer ingesteld, rendert deze HA-kaartdefinitie in plaats van de thema-indeling. Zichtbaarheids- en cycluslogica blijft ongewijzigd. Gebruik 'this.entity_id' als plaatshouder voor de overeenkomende entiteit.",
     tab_tts: "Tekst-naar-spraak",
     hub_desc_tts: "Meldingen hardop voorlezen",
     tts_how_works: "Hoe het werkt",
@@ -2491,6 +2501,8 @@ const ET = {
     alert_sound: "Âm thanh bật cho báo động này",
     alert_sound_url: "URL âm thanh tùy chỉnh cho báo động này",
     alert_sound_url_help: "Ghi đè URL toàn cục. Để trống để dùng URL toàn cục.",
+    alert_card_override: "Ghi đè card (loại card HA gốc)",
+    alert_card_override_help: "Khi được đặt, hiển thị định nghĩa card HA này thay vì bố cục chủ đề. Logic hiển thị và chu kỳ không thay đổi. Dùng 'this.entity_id' làm giữ chỗ cho thực thể được khớp.",
     tab_tts: "Văn bản thành giọng nói",
     hub_desc_tts: "Đọc to các báo động",
     tts_how_works: "Cách hoạt động",
@@ -2808,6 +2820,8 @@ const ET = {
     alert_sound: "Звук включён для этого оповещения",
     alert_sound_url: "Пользовательский URL аудио для этого оповещения",
     alert_sound_url_help: "Переопределяет глобальный URL. Оставьте пустым для использования глобального.",
+    alert_card_override: "Переопределение карточки (нативный тип карточки HA)",
+    alert_card_override_help: "Если задано, отображает это определение карточки HA вместо тематического макета. Логика видимости и циклирования остаётся неизменной. Используйте 'this.entity_id' как заполнитель для совпавшей сущности.",
     tab_tts: "Синтез речи",
     hub_desc_tts: "Читать оповещения вслух",
     tts_how_works: "Как это работает",
@@ -3121,6 +3135,8 @@ const ET = {
     alert_sound: "Lyd aktiveret for denne advarsel",
     alert_sound_url: "Brugerdefineret lyd‑URL for denne advarsel",
     alert_sound_url_help: "Overstyrer den globale URL. Lad stå tom for at bruge den globale.",
+    alert_card_override: "Card-tilsidesættelse (native HA-korttype)",
+    alert_card_override_help: "Når indstillet, gengives denne HA-kortdefinition i stedet for temaets layout. Synligheds- og cykluslogik forbliver uændret. Brug 'this.entity_id' som pladsholder for den matchede entitet.",
     tab_tts: "Tekst-til-tale",
     hub_desc_tts: "Læs advarsler højt",
     tts_how_works: "Sådan fungerer det",
@@ -3442,6 +3458,8 @@ const ET = {
     alert_sound: "Zvuk povolen pro toto varování",
     alert_sound_url: "Vlastní URL zvuku pro toto varování",
     alert_sound_url_help: "Přepíše globální nastavení URL. Ponechte prázdné pro použití globálního URL.",
+    alert_card_override: "Přepsání karty (nativní typ karty HA)",
+    alert_card_override_help: "Pokud je nastaveno, zobrazí tuto definici karty HA místo rozvržení motivu. Logika viditelnosti a cyklování zůstává nezměněna. Použijte 'this.entity_id' jako zástupný symbol pro odpovídající entitu.",
     tab_tts: "Převod textu na řeč",
     hub_desc_tts: "Číst varování nahlas",
     tts_how_works: "Jak to funguje",
@@ -3763,6 +3781,8 @@ const ET = {
     alert_sound: "Som habilitado para este alerta",
     alert_sound_url: "URL de áudio personalizado para este alerta",
     alert_sound_url_help: "Substitui a URL global. Deixe vazio para usar a global.",
+    alert_card_override: "Substituição de card (tipo de card HA nativo)",
+    alert_card_override_help: "Quando definido, renderiza esta definição de card HA em vez do layout do tema. A lógica de visibilidade e ciclo permanece inalterada. Use 'this.entity_id' como marcador para a entidade correspondida.",
     tab_tts: "Texto para Fala",
     hub_desc_tts: "Ler alertas em voz alta",
     tts_how_works: "Como funciona",
@@ -4080,6 +4100,8 @@ const ET = {
     alert_sound: "Sonido habilitado para esta alerta",
     alert_sound_url: "URL de audio personalizado para esta alerta",
     alert_sound_url_help: "Reemplaza la URL global. Deja vacío para usar la global.",
+    alert_card_override: "Reemplazo de tarjeta (tipo de tarjeta HA nativo)",
+    alert_card_override_help: "Cuando se define, renderiza esta definición de tarjeta HA en lugar del diseño del tema. La lógica de visibilidad y ciclo permanece sin cambios. Usa 'this.entity_id' como marcador para la entidad coincidente.",
     tab_tts: "Texto a voz",
     hub_desc_tts: "Leer alertas en voz alta",
     tts_how_works: "Cómo funciona",
@@ -4397,6 +4419,8 @@ const ET = {
     alert_sound: "Bu uyarı için ses etkin",
     alert_sound_url: "Bu uyarı için özel ses URL'si",
     alert_sound_url_help: "Global URL'yi geçersiz kılar. Globalini kullanmak için boş bırak.",
+    alert_card_override: "Kart geçersiz kılma (yerel HA kart türü)",
+    alert_card_override_help: "Ayarlandığında, bu HA kart tanımını tema düzeni yerine oluşturur. Görünürlük ve döngü mantığı değişmeden kalır. Eşleşen varlık için yer tutucu olarak 'this.entity_id' kullanın.",
     tab_tts: "Metin-Konuşma",
     hub_desc_tts: "Uyarıları sesli oku",
     tts_how_works: "Nasıl çalışır",
@@ -4938,6 +4962,29 @@ class AlertTickerCardEditor extends LitElement {
             const Card = customElements.get("hui-glance-card");
             if (Card) await Card.getConfigElement();
           }),
+          new Promise((resolve) => setTimeout(resolve, 3000)),
+        ]);
+      }
+      this.requestUpdate();
+    }
+    // Force ha-yaml-editor to load — used by the card override editor.
+    // hui-tile-card's config element depends on it; await its definition as fallback.
+    if (!customElements.get("ha-yaml-editor")) {
+      const TileCard = customElements.get("hui-tile-card");
+      if (TileCard) {
+        await TileCard.getConfigElement?.().catch?.(() => {});
+      } else {
+        await Promise.race([
+          customElements.whenDefined("hui-tile-card").then(async () => {
+            const Card = customElements.get("hui-tile-card");
+            if (Card) await Card.getConfigElement?.().catch?.(() => {});
+          }),
+          new Promise((resolve) => setTimeout(resolve, 3000)),
+        ]);
+      }
+      if (!customElements.get("ha-yaml-editor")) {
+        await Promise.race([
+          customElements.whenDefined("ha-yaml-editor"),
           new Promise((resolve) => setTimeout(resolve, 3000)),
         ]);
       }
@@ -6588,7 +6635,19 @@ class AlertTickerCardEditor extends LitElement {
                 <div class="helper-text">${this._t("snooze_duration_help")}</div>
                 `}
 
-                <!-- Sound per alert -->
+                <!-- Card override per alert -->
+                <div class="section-divider">🃏 ${this._t("alert_card_override")}</div>
+                <div class="form-row">
+                  <div class="helper-text" style="margin-bottom:6px">${this._t("alert_card_override_help")}</div>
+                  <ha-yaml-editor
+                    .value="${alert.card || {}}"
+                    @value-changed="${(e) => {
+                      const v = e.detail.value;
+                      this._updateAlert(index, { card: (v && typeof v === 'object' && Object.keys(v).length) ? v : undefined });
+                    }}"
+                  ></ha-yaml-editor>
+                </div>
+
                 <div class="section-divider">🔊 ${this._t("alert_sound")}</div>
                 <div class="form-row">
                   <div class="form-row-inline">
