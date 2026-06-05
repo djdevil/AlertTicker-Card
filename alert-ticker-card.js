@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.2.6
+ * AlertTicker Card v1.3.3
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.2.6";
+const CARD_VERSION = "1.3.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1108,9 +1108,13 @@ const _ATC_OVERLAY = (() => {
     }
     const actual = _getVal(hass, a.entity, a.attribute);
     const primaryOk = _matchOp(actual, a.operator || "=", a.state ?? "on");
-    if (a.conditions?.length) {
+    const normConds = Array.isArray(a.conditions) ? a.conditions : (a.conditions && typeof a.conditions === "object" && a.conditions.entity ? [a.conditions] : []);
+    if (normConds.length) {
       const logic = a.conditions_logic || "and";
-      const res = a.conditions.map(c => _matchOp(_getVal(hass, c.entity, c.attribute), c.operator || "=", c.state ?? "on"));
+      const res = normConds.map(c => {
+        const eid = (c.entity === "{entity}" || c.entity === "this.entity_id") ? a.entity : c.entity;
+        return _matchOp(_getVal(hass, eid, c.attribute), c.operator || "=", c.state ?? "on");
+      });
       if (logic === "or" ? !(primaryOk || res.some(Boolean)) : !(primaryOk && res.every(Boolean))) return false;
     } else if (!primaryOk) return false;
     return true;
@@ -1239,6 +1243,10 @@ const _ATC_OVERLAY = (() => {
               _ovDelayActive.delete(dk);
               return;
             }
+            // Per-alert overlay exclusion (#160)
+            if (a.overlay === false) return;
+            // Global priority gate (#160)
+            if (reg.config?.overlay_min_priority != null && (a.priority ?? 3) > reg.config.overlay_min_priority) return;
             if (a.trigger_delay) {
               const dk = id + ":" + i;
               if (_ovDelayActive.has(dk)) {
@@ -1516,26 +1524,24 @@ const _ATC_OVERLAY = (() => {
 })();
 
 // ---------------------------------------------------------------------------
-// AtcCardProxy — renders an arbitrary HA card definition inside a slot.
-// Used by the card: override feature so alert-ticker-card can delegate visual
-// rendering to tile, entity, button, or any other HA card type while keeping
-// its own show/hide and cycling logic unchanged.
+// AtcCardProxy — renders any native HA card config inside an alert slide.
+// Wraps the inner element, propagates hass, and rebuilds only on cfg change.
 // ---------------------------------------------------------------------------
 class AtcCardProxy extends HTMLElement {
   constructor() {
     super();
-    this.style.display = "block";
-    this.style.width   = "100%";
-    this._inner   = null;
-    this._cfg     = null;
+    this._inner  = null;
+    this._cfg    = null;
+    this._cfgSig = null;
     this._hassRef = null;
+    this.style.cssText = 'display:block;width:100%;';
   }
 
   set cardConfig(cfg) {
     if (!cfg || !cfg.type) return;
-    if (this._cfg && JSON.stringify(this._cfg) === JSON.stringify(cfg)) {
-      return;
-    }
+    const sig = JSON.stringify(cfg);
+    if (this._cfgSig === sig) return;
+    this._cfgSig = sig;
     this._cfg = cfg;
     this._rebuild();
   }
@@ -1545,29 +1551,34 @@ class AtcCardProxy extends HTMLElement {
     if (this._inner) this._inner.hass = h;
   }
 
-  _rebuild() {
-    this.innerHTML = "";
+  disconnectedCallback() {
+    if (this._inner && typeof this._inner.disconnectedCallback === 'function') {
+      try { this._inner.disconnectedCallback(); } catch (_) {}
+    }
     this._inner = null;
-    const type = this._cfg.type;
+  }
+
+  _rebuild() {
+    if (this._inner && typeof this._inner.disconnectedCallback === 'function') {
+      try { this._inner.disconnectedCallback(); } catch (_) {}
+    }
+    this.innerHTML = '';
+    this._inner = null;
+    const { type } = this._cfg;
     let el;
     try {
-      el = type.startsWith("custom:")
-        ? document.createElement(type.substring(7))
+      el = type.startsWith('custom:')
+        ? document.createElement(type.slice(7))
         : document.createElement(`hui-${type}-card`);
     } catch (_) { return; }
-    try {
-      if (typeof el.setConfig === "function") el.setConfig(this._cfg);
-    } catch (_) { return; }
+    try { if (typeof el.setConfig === 'function') el.setConfig(this._cfg); } catch (_) { return; }
     if (this._hassRef) el.hass = this._hassRef;
-    el.style.cssText = "display:block;width:100%;box-sizing:border-box;";
+    el.style.cssText = 'display:block;width:100%;box-sizing:border-box;';
     this._inner = el;
     this.appendChild(el);
   }
 }
-
-if (!customElements.get("atc-card-proxy")) {
-  customElements.define("atc-card-proxy", AtcCardProxy);
-}
+if (!customElements.get('atc-card-proxy')) customElements.define('atc-card-proxy', AtcCardProxy);
 
 // ---------------------------------------------------------------------------
 // AlertTickerCard — main card class
@@ -1882,8 +1893,9 @@ class AlertTickerCard extends LitElement {
           if (onChangeConds.length > 0) {
             const logic = alert.conditions_logic || "and";
             const results = onChangeConds.map((cond) => {
-              if (!cond.entity) return false;
-              const es = this._hass.states[cond.entity];
+              const eid = (cond.entity === "{entity}" || cond.entity === "this.entity_id") ? alert.entity : cond.entity;
+              if (!eid) return false;
+              const es = this._hass.states[eid];
               if (!es) return false;
               const val = (cond.attribute != null && cond.attribute !== "")
                 ? String(this._resolveAttrPath(es.attributes, cond.attribute) ?? "")
@@ -1902,8 +1914,9 @@ class AlertTickerCard extends LitElement {
           if (normalConds.length > 0) {
             const logic = alert.conditions_logic || "and";
             const results = normalConds.map((cond) => {
-              if (!cond.entity) return false;
-              const es = this._hass.states[cond.entity];
+              const eid = (cond.entity === "{entity}" || cond.entity === "this.entity_id") ? alert.entity : cond.entity;
+              if (!eid) return false;
+              const es = this._hass.states[eid];
               if (!es) return false;
               const val = (cond.attribute != null && cond.attribute !== "")
                 ? String(this._resolveAttrPath(es.attributes, cond.attribute) ?? "")
@@ -5513,12 +5526,14 @@ class AlertTickerCard extends LitElement {
   }
 
   _resolveCardConfig(alert) {
-    const entityId = alert.entity || "";
+    const entityId = alert.entity || '';
     function resolve(obj) {
-      if (typeof obj === "string") return obj === "this.entity_id" ? entityId : obj;
+      if (typeof obj === 'string') return obj === 'this.entity_id' ? entityId : obj;
       if (Array.isArray(obj)) return obj.map(resolve);
-      if (obj && typeof obj === "object") {
-        return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, resolve(v)]));
+      if (obj && typeof obj === 'object') {
+        const out = {};
+        for (const [k, v] of Object.entries(obj)) out[k] = resolve(v);
+        return out;
       }
       return obj;
     }
@@ -5665,10 +5680,12 @@ class AlertTickerCard extends LitElement {
         return html`
           <div class="atc-card-root">
             <div class="${this._hostClass}">
-              <div class="at-fold-wrapper${clearHasAction ? " atc-clickable" : ""}"
-                @pointerdown="${clearPd}" @pointerup="${clearPu}"
-                @pointerleave="${clearPl}" @pointercancel="${clearPl}">
-                ${this._renderForTheme(clearAlert.theme, clearAlert)}
+              <div class="atc-inner-clip">
+                <div class="at-fold-wrapper${clearHasAction ? " atc-clickable" : ""}${this._config?.disable_animation ? " atc-no-anim" : ""}"
+                  @pointerdown="${clearPd}" @pointerup="${clearPu}"
+                  @pointerleave="${clearPl}" @pointercancel="${clearPl}">
+                  ${this._renderForTheme(clearAlert.theme, clearAlert)}
+                </div>
               </div>
               ${clearSnoozedPill}
             </div>
@@ -5772,6 +5789,7 @@ class AlertTickerCard extends LitElement {
 
     const accentCls = current?.color ? ' atc-has-accent' : '';
     const accentSty = current?.color ? `--atc-accent-color:${current.color}` : '';
+
     // Ticker has its own scroll animation — skip fold wrapper (unless it's the widget slide)
     if (!isWidgetSlide && (current.theme || "").toLowerCase() === "ticker") {
       return html`
@@ -5792,7 +5810,7 @@ class AlertTickerCard extends LitElement {
       <div class="atc-card-root">
         <div class="${this._hostClass}">
           <div class="atc-inner-clip${accentCls}" style="${accentSty}">
-            <div class="at-fold-wrapper ${this._animPhase}${hasInteraction ? " atc-clickable" : ""}"
+            <div class="at-fold-wrapper ${this._animPhase}${hasInteraction ? " atc-clickable" : ""}${(current?.disable_animation || this._config?.disable_animation) ? " atc-no-anim" : ""}"
               data-anim="${this._config.cycle_animation || "fold"}"
               @pointerdown="${pdHandler}" @pointerup="${puHandler}"
               @pointerleave="${plHandler}" @pointercancel="${plHandler}"
@@ -6784,6 +6802,24 @@ class AlertTickerCard extends LitElement {
         80%  { opacity: 0.9; transform: translateX(2px);  clip-path: inset(0 0 0 0); }
         100% { opacity: 1; transform: translateX(0);   clip-path: inset(0 0 0 0); }
       }
+
+      /* ── DISABLE-ANIMATION override ── */
+      .at-fold-wrapper.atc-no-anim .at-emergency            { animation: none !important; }
+      .at-fold-wrapper.atc-no-anim .em-icon                 { animation: none !important; opacity: 1 !important; }
+      .at-fold-wrapper.atc-no-anim .wn-dot                  { animation: none !important; opacity: 1 !important; transform: scale(1) !important; }
+      .at-fold-wrapper.atc-no-anim .ca-dot                  { animation: none !important; opacity: 1 !important; transform: scale(1) !important; }
+      .at-fold-wrapper.atc-no-anim .ne-scan                 { animation: none !important; }
+      .at-fold-wrapper.atc-no-anim .mx-cursor               { animation: none !important; opacity: 1 !important; }
+      .at-fold-wrapper.atc-no-anim .atc-icon-swing          { animation: none !important; transform: none !important; }
+      .at-fold-wrapper.atc-no-anim .atc-icon-swing-v        { animation: none !important; transform: none !important; }
+      .at-fold-wrapper.atc-no-anim .aurora-ribbon,
+      .at-fold-wrapper.atc-no-anim .w-fog-band,
+      .at-fold-wrapper.atc-no-anim .w-wind-line,
+      .at-fold-wrapper.atc-no-anim .w-rain-drop,
+      .at-fold-wrapper.atc-no-anim .w-splash,
+      .at-fold-wrapper.atc-no-anim .w-hail-drop,
+      .at-fold-wrapper.atc-no-anim .w-lightning-bolt,
+      .at-fold-wrapper.atc-no-anim .w-exceptional-particle  { animation-play-state: paused !important; }
 
       /* -----------------------------------------------------------------------
        * TICKER — bigger font
@@ -8696,6 +8732,15 @@ class AlertTickerCard extends LitElement {
         position: relative;
         z-index: 1;
         transform: translateZ(0);
+        display: flex;
+        flex-direction: column;
+      }
+      .atc-inner-clip > .at-fold-wrapper {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       .atc-test-mode-banner {
         background: rgba(255, 165, 0, 0.92);
@@ -10833,21 +10878,6 @@ class AlertTickerCard extends LitElement {
         white-space: nowrap;
       }
       .atc-group-back-btn:hover { opacity: 1; }
-
-      /* -----------------------------------------------------------------------
-       * CARD PROXY — atc-card-proxy fills the fold wrapper like a native card.
-       * The padding reset lets the inner card control its own spacing.
-       * --------------------------------------------------------------------- */
-      atc-card-proxy {
-        display: block;
-        width: 100%;
-      }
-      atc-card-proxy > * {
-        display: block;
-        width: 100%;
-        box-sizing: border-box;
-      }
-
     `;
   }
 }

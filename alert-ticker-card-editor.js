@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.2.6
+ * AlertTicker Card Editor v1.3.3
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.2.6";
+const CARD_VERSION = "1.3.3";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -906,8 +906,6 @@ const ET = {
     alert_sound: "Suono abilitato per questo avviso",
     alert_sound_url: "URL audio personalizzato per questo avviso",
     alert_sound_url_help: "Sovrascrive l'URL globale. Lascia vuoto per usare quello globale.",
-    alert_card_override: "Override card (tipo HA nativo)",
-    alert_card_override_help: "Quando impostato, esegue il rendering di questa card HA al posto del layout del tema. La logica di visibilità e ciclo rimane invariata. Usa 'this.entity_id' come segnaposto per l'entità abbinata.",
     tab_tts: "Sintesi vocale",
     hub_desc_tts: "Leggi gli avvisi ad alta voce",
     tts_how_works: "Come funziona",
@@ -1074,6 +1072,8 @@ const ET = {
     clear_double_tap_action_section: "Doppio tap sulla card 'tutto ok'",
     clear_hold_action_section: "Hold sulla card 'tutto ok' — azione lunga (500ms)",
     snooze_action_section: "Azione snooze 💤 — eseguita al tap sul tasto snooze",
+    card_override_section: "Card personalizzata 🃏",
+    card_override_help: "Sostituisce il tema con qualsiasi card HA nativa (tile, entity, button…). Usa 'this.entity_id' come placeholder per l'entità dell'alert. Lascia vuoto per usare il tema normale.",
     persistent: "Allarme persistente 🔒",
     persistent_help: "Rimane visibile anche quando il sensore torna alla normalità. Premi ✕ per rimuoverlo.",
     group_section: "Raggruppa alert 🗂️",
@@ -1115,6 +1115,13 @@ const ET = {
     overlay_scale: "Dimensione banner",
     overlay_scale_help: "Scala testo e icona per una migliore visibilità a distanza.",
     overlay_how_works: "Il banner appare solo quando la card non è visibile a schermo — su un'altra vista o fuori dalla finestra. Nessun banner ridondante quando l'avviso è già visibile.",
+    overlay_min_priority: "Priorità minima per l'overlay",
+    overlay_min_priority_help: "Mostra il banner overlay solo per avvisi con priorità ≤ a questo valore (1=Critico, 2=Attenzione, 3=Info, 4=Bassa). Lascia vuoto per mostrare tutti gli avvisi.",
+    alert_overlay: "Mostra nell'overlay",
+    alert_overlay_help: "Disattiva per escludere questo avviso dal banner overlay. Rimane visibile nella card normale.",
+    disable_animation: "Disabilita animazioni 🎬",
+    disable_animation_help: "Disattiva tutte le animazioni ambientali (pulsazione, lampeggio, oscillazione icone, effetti meteo) su tutti gli avvisi. Le transizioni del ciclo e lo scrolling del ticker non sono influenzati.",
+    disable_animation_alert_help: "Disattiva le animazioni ambientali per questo singolo avviso (pulsazione, lampeggio, oscillazione icone). Sovrascrive l'impostazione globale.",
     visible_to_section: "👤 Visibilità utente",
     visible_to_label: "Visibile a",
     visible_to_all: "Tutti (default)",
@@ -1225,8 +1232,6 @@ const ET = {
     alert_sound: "Sound enabled for this alert",
     alert_sound_url: "Custom audio URL for this alert",
     alert_sound_url_help: "Overrides the global URL. Leave empty to use the global one.",
-    alert_card_override: "Card override (native HA card type)",
-    alert_card_override_help: "When set, renders this HA card definition instead of the themed layout. Visibility and cycling logic remain unchanged. Use 'this.entity_id' as a placeholder for the matched entity.",
     tab_tts: "Text-to-Speech",
     hub_desc_tts: "Read alerts aloud",
     tts_how_works: "How it works",
@@ -1393,6 +1398,8 @@ const ET = {
     clear_double_tap_action_section: "Double tap on 'all clear' card",
     clear_hold_action_section: "Hold on 'all clear' card (500ms)",
     snooze_action_section: "Snooze action 💤 — executed when the snooze button is tapped",
+    card_override_section: "Custom card 🃏",
+    card_override_help: "Replaces the theme with any native HA card (tile, entity, button…). Use 'this.entity_id' as a placeholder for the alert entity. Leave empty to use the normal theme.",
     persistent: "Persistent alarm 🔒",
     persistent_help: "Stays visible even after the sensor returns to normal. Press ✕ to dismiss.",
     group_section: "Group alerts 🗂️",
@@ -1434,6 +1441,13 @@ const ET = {
     overlay_scale: "Banner size",
     overlay_scale_help: "Scale text and icon for better visibility from a distance.",
     overlay_how_works: "The banner appears only when the card is not visible on screen — on a different view or scrolled out of sight. No redundant banner when the alert is already visible.",
+    overlay_min_priority: "Minimum priority for overlay",
+    overlay_min_priority_help: "Only show the overlay banner for alerts with priority ≤ this value (1=Critical, 2=Warning, 3=Info, 4=Low). Leave empty to show all alerts.",
+    alert_overlay: "Show in overlay",
+    alert_overlay_help: "Disable to exclude this alert from the overlay banner. It still appears in the normal card.",
+    disable_animation: "Disable animations 🎬",
+    disable_animation_help: "Disables all ambient looping animations (pulsing, flashing, icon swings, weather effects) for all alerts. Cycle transitions and ticker scrolling are not affected.",
+    disable_animation_alert_help: "Disables ambient animations for this individual alert (pulsing, flashing, icon swings). Overrides the global setting.",
     visible_to_section: "👤 User Visibility",
     visible_to_label: "Visible to",
     visible_to_all: "Everyone (default)",
@@ -1544,8 +1558,6 @@ const ET = {
     alert_sound: "Son activé pour cette alerte",
     alert_sound_url: "URL audio personnalisée pour cette alerte",
     alert_sound_url_help: "Remplace l'URL globale. Laisser vide pour utiliser celle globale.",
-    alert_card_override: "Remplacement de card (type de card HA natif)",
-    alert_card_override_help: "Quand défini, affiche cette définition de card HA au lieu du layout du thème. La logique de visibilité et de cycle reste inchangée. Utilisez 'this.entity_id' comme espace réservé pour l'entité correspondante.",
     tab_tts: "Synthèse vocale",
     hub_desc_tts: "Lire les alertes à voix haute",
     tts_how_works: "Comment ça fonctionne",
@@ -1712,6 +1724,8 @@ const ET = {
     clear_double_tap_action_section: "Double tap sur la carte 'tout va bien'",
     clear_hold_action_section: "Maintien sur la carte 'tout va bien' (500ms)",
     snooze_action_section: "Action snooze 💤 — exécutée au tap sur le bouton snooze",
+    card_override_section: "Carte personnalisée 🃏",
+    card_override_help: "Remplace le thème par n'importe quelle carte HA native (tile, entity, button…). Utilisez 'this.entity_id' comme placeholder pour l'entité de l'alerte. Laisser vide pour utiliser le thème normal.",
     persistent: "Alarme persistante 🔒",
     persistent_help: "Reste visible même après le retour à la normale du capteur. Appuyer sur ✕ pour fermer.",
     group_section: "Grouper les alertes 🗂️",
@@ -1753,6 +1767,13 @@ const ET = {
     overlay_scale: "Taille du banner",
     overlay_scale_help: "Mise à l'échelle du texte et de l'icône pour une meilleure visibilité à distance.",
     overlay_how_works: "Le banner apparaît uniquement quand la carte n'est pas visible à l'écran — sur une autre vue ou hors de la fenêtre. Pas de banner redondant quand l'alerte est déjà visible.",
+    overlay_min_priority: "Priorité minimale pour l'overlay",
+    overlay_min_priority_help: "Affiche le banner overlay uniquement pour les alertes avec une priorité ≤ à cette valeur (1=Critique, 2=Avertissement, 3=Info, 4=Faible). Laisser vide pour afficher toutes les alertes.",
+    alert_overlay: "Afficher dans l'overlay",
+    alert_overlay_help: "Désactiver pour exclure cette alerte du banner overlay. Elle reste visible dans la carte normale.",
+    disable_animation: "Désactiver les animations 🎬",
+    disable_animation_help: "Désactive toutes les animations ambiantes en boucle (pulsation, clignotement, oscillation des icônes, effets météo) pour toutes les alertes. Les transitions de cycle et le défilement du ticker ne sont pas affectés.",
+    disable_animation_alert_help: "Désactive les animations ambiantes pour cette alerte individuelle (pulsation, clignotement, oscillation des icônes). Remplace le paramètre global.",
     visible_to_section: "👤 Visibilité utilisateur",
     visible_to_label: "Visible pour",
     visible_to_all: "Tout le monde (défaut)",
@@ -1863,8 +1884,6 @@ const ET = {
     alert_sound: "Ton für diese Warnung aktiviert",
     alert_sound_url: "Benutzerdefinierte Audio-URL für diese Warnung",
     alert_sound_url_help: "Überschreibt die globale URL. Leer lassen, um die globale zu verwenden.",
-    alert_card_override: "Card-Überschreibung (nativer HA-Kartentyp)",
-    alert_card_override_help: "Wenn gesetzt, wird diese HA-Kartendefinition anstelle des Theme-Layouts gerendert. Die Sichtbarkeits- und Zykluslogik bleibt unverändert. Verwende 'this.entity_id' als Platzhalter für die zugeordnete Entität.",
     tab_tts: "Text-to-Speech",
     hub_desc_tts: "Warnungen laut vorlesen",
     tts_how_works: "So funktioniert es",
@@ -2031,6 +2050,8 @@ const ET = {
     clear_double_tap_action_section: "Doppeltipp auf 'Alles in Ordnung'-Karte",
     clear_hold_action_section: "Halten auf 'Alles in Ordnung'-Karte (500ms)",
     snooze_action_section: "Schlummern-Aktion 💤 — wird beim Tap auf den Schlummern-Button ausgeführt",
+    card_override_section: "Benutzerdefinierte Karte 🃏",
+    card_override_help: "Ersetzt das Thema durch eine beliebige native HA-Karte (tile, entity, button…). Verwende 'this.entity_id' als Platzhalter für die Alert-Entität. Leer lassen für das normale Thema.",
     persistent: "Dauerhafter Alarm 🔒",
     persistent_help: "Bleibt sichtbar, auch wenn der Sensor wieder normal ist. ✕ drücken zum Schließen.",
     group_section: "Alarme gruppieren 🗂️",
@@ -2072,6 +2093,13 @@ const ET = {
     overlay_scale: "Bannergröße",
     overlay_scale_help: "Text und Symbol skalieren für bessere Sichtbarkeit aus der Ferne.",
     overlay_how_works: "Das Banner erscheint nur, wenn die Karte nicht auf dem Bildschirm sichtbar ist — in einer anderen Ansicht oder außerhalb des Sichtbereichs. Kein redundantes Banner, wenn der Alert bereits sichtbar ist.",
+    overlay_min_priority: "Mindestpriorität für Overlay",
+    overlay_min_priority_help: "Zeige den Overlay-Banner nur für Alarme mit Priorität ≤ diesem Wert (1=Kritisch, 2=Warnung, 3=Info, 4=Niedrig). Leer lassen für alle Alarme.",
+    alert_overlay: "Im Overlay anzeigen",
+    alert_overlay_help: "Deaktivieren, um diesen Alarm vom Overlay-Banner auszuschließen. Er bleibt in der normalen Karte sichtbar.",
+    disable_animation: "Animationen deaktivieren 🎬",
+    disable_animation_help: "Deaktiviert alle Umgebungsanimationen (Pulsieren, Blinken, Icon-Schwingen, Wettereffekte) für alle Alarme. Zyklusübergänge und Ticker-Scrolling werden nicht beeinflusst.",
+    disable_animation_alert_help: "Deaktiviert Umgebungsanimationen für diesen einzelnen Alarm (Pulsieren, Blinken, Icon-Schwingen). Überschreibt die globale Einstellung.",
     visible_to_section: "👤 Benutzersichtbarkeit",
     visible_to_label: "Sichtbar für",
     visible_to_all: "Alle (Standard)",
@@ -2182,8 +2210,6 @@ const ET = {
     alert_sound: "Geluid ingeschakeld voor deze melding",
     alert_sound_url: "Aangepaste audio-URL voor deze melding",
     alert_sound_url_help: "Overschrijft de globale URL. Leeg laten om de globale te gebruiken.",
-    alert_card_override: "Card-overschrijving (native HA-kaarttype)",
-    alert_card_override_help: "Wanneer ingesteld, rendert deze HA-kaartdefinitie in plaats van de thema-indeling. Zichtbaarheids- en cycluslogica blijft ongewijzigd. Gebruik 'this.entity_id' als plaatshouder voor de overeenkomende entiteit.",
     tab_tts: "Tekst-naar-spraak",
     hub_desc_tts: "Meldingen hardop voorlezen",
     tts_how_works: "Hoe het werkt",
@@ -2350,6 +2376,8 @@ const ET = {
     clear_double_tap_action_section: "Dubbel tikken op 'alles in orde'-kaart",
     clear_hold_action_section: "Vasthouden op 'alles in orde'-kaart (500ms)",
     snooze_action_section: "Sluimer-actie 💤 — uitgevoerd bij tik op de sluimer-knop",
+    card_override_section: "Aangepaste kaart 🃏",
+    card_override_help: "Vervangt het thema door een willekeurige native HA-kaart (tile, entity, button…). Gebruik 'this.entity_id' als plaatshouder voor de alert-entiteit. Leeg laten voor het normale thema.",
     persistent: "Aanhoudend alarm 🔒",
     persistent_help: "Blijft zichtbaar zelfs na herstel van de sensor. Druk op ✕ om te verwijderen.",
     group_section: "Meldingen groeperen 🗂️",
@@ -2391,6 +2419,13 @@ const ET = {
     overlay_scale: "Bannergrootte",
     overlay_scale_help: "Tekst en icoon schalen voor betere zichtbaarheid op afstand.",
     overlay_how_works: "Het banner verschijnt alleen wanneer de kaart niet zichtbaar is op het scherm — op een andere weergave of buiten het zichtbare gebied. Geen redundant banner als de melding al zichtbaar is.",
+    overlay_min_priority: "Minimale prioriteit voor overlay",
+    overlay_min_priority_help: "Toon de overlay-banner alleen voor meldingen met prioriteit ≤ deze waarde (1=Kritiek, 2=Waarschuwing, 3=Info, 4=Laag). Leeg laten voor alle meldingen.",
+    alert_overlay: "Tonen in overlay",
+    alert_overlay_help: "Schakel uit om deze melding uit te sluiten van de overlay-banner. Ze blijft zichtbaar in de normale kaart.",
+    disable_animation: "Animaties uitschakelen 🎬",
+    disable_animation_help: "Schakelt alle omgevingsanimaties uit (pulseren, knipperen, pictogramzwaaien, weereffecten) voor alle meldingen. Cyclustransities en ticker-scrollen worden niet beïnvloed.",
+    disable_animation_alert_help: "Schakelt omgevingsanimaties uit voor deze individuele melding (pulseren, knipperen, pictogramzwaaien). Overschrijft de globale instelling.",
     visible_to_section: "👤 Gebruikerszichtbaarheid",
     visible_to_label: "Zichtbaar voor",
     visible_to_all: "Iedereen (standaard)",
@@ -2501,8 +2536,6 @@ const ET = {
     alert_sound: "Âm thanh bật cho báo động này",
     alert_sound_url: "URL âm thanh tùy chỉnh cho báo động này",
     alert_sound_url_help: "Ghi đè URL toàn cục. Để trống để dùng URL toàn cục.",
-    alert_card_override: "Ghi đè card (loại card HA gốc)",
-    alert_card_override_help: "Khi được đặt, hiển thị định nghĩa card HA này thay vì bố cục chủ đề. Logic hiển thị và chu kỳ không thay đổi. Dùng 'this.entity_id' làm giữ chỗ cho thực thể được khớp.",
     tab_tts: "Văn bản thành giọng nói",
     hub_desc_tts: "Đọc to các báo động",
     tts_how_works: "Cách hoạt động",
@@ -2669,6 +2702,8 @@ const ET = {
     clear_double_tap_action_section: "Nhấn đôi vào thẻ 'mọi thứ ổn'",
     clear_hold_action_section: "Giữ thẻ 'mọi thứ ổn' (500ms)",
     snooze_action_section: "Hành động tạm hoãn 💤 — thực hiện khi nhấn nút tạm hoãn",
+    card_override_section: "Thẻ tùy chỉnh 🃏",
+    card_override_help: "Thay thế giao diện bằng bất kỳ thẻ HA gốc nào (tile, entity, button…). Dùng 'this.entity_id' làm giá trị thay thế cho thực thể cảnh báo. Để trống để dùng giao diện thông thường.",
     persistent: "Báo động liên tục 🔒",
     persistent_help: "Vẫn hiển thị dù cảm biến trở về bình thường. Nhấn ✕ để xóa bỏ.",
     group_section: "Nhóm cảnh báo 🗂️",
@@ -2710,6 +2745,13 @@ const ET = {
     overlay_scale: "Kích thước banner",
     overlay_scale_help: "Phóng to văn bản và biểu tượng để dễ nhìn hơn từ xa.",
     overlay_how_works: "Banner chỉ xuất hiện khi thẻ không hiển thị trên màn hình — trên chế độ xem khác hoặc ngoài vùng hiển thị. Không hiển thị banner dư thừa khi cảnh báo đã hiển thị.",
+    overlay_min_priority: "Độ ưu tiên tối thiểu cho overlay",
+    overlay_min_priority_help: "Chỉ hiển thị banner overlay cho các cảnh báo có độ ưu tiên ≤ giá trị này (1=Nghiêm trọng, 2=Cảnh báo, 3=Thông tin, 4=Thấp). Để trống để hiển thị tất cả.",
+    alert_overlay: "Hiển thị trong overlay",
+    alert_overlay_help: "Tắt để loại trừ cảnh báo này khỏi banner overlay. Nó vẫn hiển thị trong thẻ thông thường.",
+    disable_animation: "Tắt hoạt ảnh 🎬",
+    disable_animation_help: "Tắt tất cả hoạt ảnh vòng lặp (nhấp nháy, nhấp nháy biểu tượng, hiệu ứng thời tiết) cho tất cả cảnh báo. Chuyển đổi chu kỳ và cuộn ticker không bị ảnh hưởng.",
+    disable_animation_alert_help: "Tắt hoạt ảnh môi trường cho cảnh báo riêng lẻ này (nhấp nháy, nhấp nháy biểu tượng). Ghi đè cài đặt toàn cục.",
     visible_to_section: "👤 Hiển thị theo người dùng",
     visible_to_label: "Hiển thị cho",
     visible_to_all: "Tất cả (mặc định)",
@@ -2820,8 +2862,6 @@ const ET = {
     alert_sound: "Звук включён для этого оповещения",
     alert_sound_url: "Пользовательский URL аудио для этого оповещения",
     alert_sound_url_help: "Переопределяет глобальный URL. Оставьте пустым для использования глобального.",
-    alert_card_override: "Переопределение карточки (нативный тип карточки HA)",
-    alert_card_override_help: "Если задано, отображает это определение карточки HA вместо тематического макета. Логика видимости и циклирования остаётся неизменной. Используйте 'this.entity_id' как заполнитель для совпавшей сущности.",
     tab_tts: "Синтез речи",
     hub_desc_tts: "Читать оповещения вслух",
     tts_how_works: "Как это работает",
@@ -2988,6 +3028,8 @@ const ET = {
     clear_double_tap_action_section: "Двойное нажатие на карточку 'всё в порядке'",
     clear_hold_action_section: "Удержание карточки 'всё в порядке' (500мс)",
     snooze_action_section: "Действие откладывания 💤 — выполняется при нажатии кнопки откладывания",
+    card_override_section: "Пользовательская карточка 🃏",
+    card_override_help: "Заменяет тему любой нативной карточкой HA (tile, entity, button…). Используйте 'this.entity_id' как заполнитель для сущности оповещения. Оставьте пустым для использования обычной темы.",
     persistent: "Постоянная тревога 🔒",
     persistent_help: "Остаётся видимым даже после нормализации датчика. Нажмите ✕ для сброса.",
     group_section: "Группировка оповещений 🗂️",
@@ -3029,6 +3071,13 @@ const ET = {
     overlay_scale: "Размер баннера",
     overlay_scale_help: "Масштаб текста и иконки для лучшей видимости на расстоянии.",
     overlay_how_works: "Баннер появляется только когда карточка не видна на экране — на другом виде или за пределами окна. Баннер не показывается, если оповещение уже видно.",
+    overlay_min_priority: "Минимальный приоритет для оверлея",
+    overlay_min_priority_help: "Показывать баннер оверлея только для оповещений с приоритетом ≤ этому значению (1=Критический, 2=Предупреждение, 3=Информация, 4=Низкий). Оставьте пустым для всех оповещений.",
+    alert_overlay: "Показывать в оверлее",
+    alert_overlay_help: "Отключите, чтобы исключить это оповещение из баннера оверлея. Оно останется видимым в обычной карточке.",
+    disable_animation: "Отключить анимации 🎬",
+    disable_animation_help: "Отключает все циклические анимации (пульсацию, мигание, раскачивание иконок, погодные эффекты) для всех оповещений. Переходы цикла и прокрутка тикера не затрагиваются.",
+    disable_animation_alert_help: "Отключает анимации для этого конкретного оповещения (пульсацию, мигание, раскачивание иконок). Переопределяет глобальную настройку.",
     visible_to_section: "👤 Видимость по пользователю",
     visible_to_label: "Видно для",
     visible_to_all: "Все (по умолчанию)",
@@ -3135,8 +3184,6 @@ const ET = {
     alert_sound: "Lyd aktiveret for denne advarsel",
     alert_sound_url: "Brugerdefineret lyd‑URL for denne advarsel",
     alert_sound_url_help: "Overstyrer den globale URL. Lad stå tom for at bruge den globale.",
-    alert_card_override: "Card-tilsidesættelse (native HA-korttype)",
-    alert_card_override_help: "Når indstillet, gengives denne HA-kortdefinition i stedet for temaets layout. Synligheds- og cykluslogik forbliver uændret. Brug 'this.entity_id' som pladsholder for den matchede entitet.",
     tab_tts: "Tekst-til-tale",
     hub_desc_tts: "Læs advarsler højt",
     tts_how_works: "Sådan fungerer det",
@@ -3303,6 +3350,8 @@ const ET = {
     clear_double_tap_action_section: "Dobbelt‑klik på 'alt er i orden'‑kort",
     clear_hold_action_section: "Hold på 'alt er i orden'‑kort (500 ms)",
     snooze_action_section: "Slumre‑handling 💤 — udføres når slumre‑knappen trykkes",
+    card_override_section: "Brugerdefineret kort 🃏",
+    card_override_help: "Erstatter temaet med et vilkårligt native HA-kort (tile, entity, button…). Brug 'this.entity_id' som pladsholder for alert-enheden. Lad feltet stå tomt for at bruge det normale tema.",
     persistent: "Vedvarende alarm 🔒",
     persistent_help: "Forbliver synlig selvom sensoren returnerer til normal. Tryk ✕ for at afvise.",
     group_section: "Grupper advarsler 🗂️",
@@ -3344,6 +3393,13 @@ const ET = {
     overlay_scale: "Bannerstørrelse",
     overlay_scale_help: "Skalér tekst og ikon for bedre synlighed på afstand.",
     overlay_how_works: "Banneret vises kun, når kortet ikke er synligt — på en anden visning. Vises ikke, hvis advarslen allerede er synlig på kortet.",
+    overlay_min_priority: "Minimumprioritet for overlay",
+    overlay_min_priority_help: "Vis kun overlay-banneret for advarsler med prioritet ≤ denne værdi (1=Kritisk, 2=Advarsel, 3=Info, 4=Lav). Lad feltet stå tomt for alle advarsler.",
+    alert_overlay: "Vis i overlay",
+    alert_overlay_help: "Deaktiver for at udelukke denne advarsel fra overlay-banneret. Den forbliver synlig i det normale kort.",
+    disable_animation: "Deaktiver animationer 🎬",
+    disable_animation_help: "Deaktiverer alle omgivende looping-animationer (pulsering, blinkning, ikonsvingning, vejreffekter) for alle advarsler. Cyklusovergange og ticker-rulning påvirkes ikke.",
+    disable_animation_alert_help: "Deaktiverer omgivende animationer for denne individuelle advarsel (pulsering, blinkning, ikonsvingning). Tilsidesætter den globale indstilling.",
     visible_to_section: "👤 Brugersynlighed",
     visible_to_label: "Synlig for",
     visible_to_all: "Alle (standard)",
@@ -3458,8 +3514,6 @@ const ET = {
     alert_sound: "Zvuk povolen pro toto varování",
     alert_sound_url: "Vlastní URL zvuku pro toto varování",
     alert_sound_url_help: "Přepíše globální nastavení URL. Ponechte prázdné pro použití globálního URL.",
-    alert_card_override: "Přepsání karty (nativní typ karty HA)",
-    alert_card_override_help: "Pokud je nastaveno, zobrazí tuto definici karty HA místo rozvržení motivu. Logika viditelnosti a cyklování zůstává nezměněna. Použijte 'this.entity_id' jako zástupný symbol pro odpovídající entitu.",
     tab_tts: "Převod textu na řeč",
     hub_desc_tts: "Číst varování nahlas",
     tts_how_works: "Jak to funguje",
@@ -3626,6 +3680,8 @@ const ET = {
     clear_double_tap_action_section: "Dvojdotek na kartě 'Vše OK'",
     clear_hold_action_section: "Podržení na kartě 'Vše OK' (500ms)",
     snooze_action_section: "Akce odložení - spuštěno po kliknutí na tlačítko 💤",
+    card_override_section: "Vlastní karta 🃏",
+    card_override_help: "Nahradí téma libovolnou nativní kartou HA (tile, entity, button…). Použijte 'this.entity_id' jako zástupný symbol pro entitu upozornění. Nechte prázdné pro použití normálního tématu.",
     persistent: "Trvalý alarm 🔒",
     persistent_help: "Zůstává viditelný i po návratu senzoru do normálu. Stiskněte ✕ pro zavření.",
     group_section: "Seskupit upozornění 🗂️",
@@ -3667,6 +3723,13 @@ const ET = {
     overlay_scale: "Velikost baneru",
     overlay_scale_help: "Zvětšení textu a ikony pro lepší viditelnost na dálku.",
     overlay_how_works: "Baner se zobrazí pouze pokud karta s varováními není na obrazovce viditelná - uživatel je na jiném ovládícím panelu nebo je karta mimo obrazovku. Nezobrazuje se redundantně.",
+    overlay_min_priority: "Minimální priorita pro overlay",
+    overlay_min_priority_help: "Zobrazit banner overlay pouze pro upozornění s prioritou ≤ této hodnotě (1=Kritické, 2=Varování, 3=Info, 4=Nízká). Nechte prázdné pro všechna upozornění.",
+    alert_overlay: "Zobrazit v overlay",
+    alert_overlay_help: "Deaktivujte pro vyloučení tohoto upozornění z banneru overlay. Zůstane viditelné v normální kartě.",
+    disable_animation: "Zakázat animace 🎬",
+    disable_animation_help: "Zakáže všechny okolní animace ve smyčce (pulsování, blikání, houpání ikon, efekty počasí) pro všechna upozornění. Přechody cyklu a posouvání tickeru nejsou ovlivněny.",
+    disable_animation_alert_help: "Zakáže okolní animace pro toto jednotlivé upozornění (pulsování, blikání, houpání ikon). Přepisuje globální nastavení.",
     visible_to_section: "👤 Zobrazit pro uživatele",
     visible_to_label: "Viditelné pro",
     visible_to_all: "Všichni (výchozí)",
@@ -3781,8 +3844,6 @@ const ET = {
     alert_sound: "Som habilitado para este alerta",
     alert_sound_url: "URL de áudio personalizado para este alerta",
     alert_sound_url_help: "Substitui a URL global. Deixe vazio para usar a global.",
-    alert_card_override: "Substituição de card (tipo de card HA nativo)",
-    alert_card_override_help: "Quando definido, renderiza esta definição de card HA em vez do layout do tema. A lógica de visibilidade e ciclo permanece inalterada. Use 'this.entity_id' como marcador para a entidade correspondida.",
     tab_tts: "Texto para Fala",
     hub_desc_tts: "Ler alertas em voz alta",
     tts_how_works: "Como funciona",
@@ -3949,6 +4010,8 @@ const ET = {
     clear_double_tap_action_section: "Toque duplo no card 'tudo limpo'",
     clear_hold_action_section: "Pressão longa no card 'tudo limpo' (500ms)",
     snooze_action_section: "Ação de silenciar 💤 — executada ao tocar no botão de silenciar",
+    card_override_section: "Cartão personalizado 🃏",
+    card_override_help: "Substitui o tema por qualquer cartão nativo HA (tile, entity, button…). Use 'this.entity_id' como marcador para a entidade do alerta. Deixe vazio para usar o tema normal.",
     persistent: "Alarme persistente 🔒",
     persistent_help: "Permanece visível mesmo após o sensor retornar ao normal. Pressione ✕ para descartar.",
     group_section: "Agrupar alertas 🗂️",
@@ -3990,6 +4053,13 @@ const ET = {
     overlay_scale: "Tamanho do banner",
     overlay_scale_help: "Escala o texto e o ícone para melhor visibilidade à distância.",
     overlay_how_works: "O banner aparece apenas quando o card não está visível na tela — em uma visualização diferente ou rolado para fora da vista. Nenhum banner redundante quando o alerta já está visível.",
+    overlay_min_priority: "Prioridade mínima para overlay",
+    overlay_min_priority_help: "Mostrar o banner overlay apenas para alertas com prioridade ≤ este valor (1=Crítico, 2=Aviso, 3=Info, 4=Baixo). Deixar vazio para mostrar todos.",
+    alert_overlay: "Mostrar no overlay",
+    alert_overlay_help: "Desative para excluir este alerta do banner overlay. Ele permanece visível no cartão normal.",
+    disable_animation: "Desativar animações 🎬",
+    disable_animation_help: "Desativa todas as animações de fundo em loop (pulsação, piscar, oscilação de ícones, efeitos climáticos) para todos os alertas. As transições de ciclo e a rolagem do ticker não são afetadas.",
+    disable_animation_alert_help: "Desativa animações de fundo para este alerta individual (pulsação, piscar, oscilação de ícones). Substitui a configuração global.",
     visible_to_section: "👤 Visibilidade do usuário",
     visible_to_label: "Visível para",
     visible_to_all: "Todos (padrão)",
@@ -4100,8 +4170,6 @@ const ET = {
     alert_sound: "Sonido habilitado para esta alerta",
     alert_sound_url: "URL de audio personalizado para esta alerta",
     alert_sound_url_help: "Reemplaza la URL global. Deja vacío para usar la global.",
-    alert_card_override: "Reemplazo de tarjeta (tipo de tarjeta HA nativo)",
-    alert_card_override_help: "Cuando se define, renderiza esta definición de tarjeta HA en lugar del diseño del tema. La lógica de visibilidad y ciclo permanece sin cambios. Usa 'this.entity_id' como marcador para la entidad coincidente.",
     tab_tts: "Texto a voz",
     hub_desc_tts: "Leer alertas en voz alta",
     tts_how_works: "Cómo funciona",
@@ -4268,6 +4336,8 @@ const ET = {
     clear_double_tap_action_section: "Doble toque en la tarjeta 'todo bien'",
     clear_hold_action_section: "Mantener en la tarjeta 'todo bien' (500ms)",
     snooze_action_section: "Acción de posponer 💤 — ejecutada al tocar el botón de posponer",
+    card_override_section: "Tarjeta personalizada 🃏",
+    card_override_help: "Reemplaza el tema con cualquier tarjeta HA nativa (tile, entity, button…). Usa 'this.entity_id' como marcador para la entidad de la alerta. Déjalo vacío para usar el tema normal.",
     persistent: "Alarma persistente 🔒",
     persistent_help: "Permanece visible incluso después de que el sensor vuelva a la normalidad. Pulse ✕ para descartar.",
     group_section: "Agrupar alertas 🗂️",
@@ -4309,6 +4379,13 @@ const ET = {
     overlay_scale: "Tamaño del banner",
     overlay_scale_help: "Escala el texto y el icono para mejor visibilidad a distancia.",
     overlay_how_works: "El banner aparece solo cuando la tarjeta no está visible en pantalla — en otra vista o fuera del campo de visión. No aparece cuando la alerta ya es visible.",
+    overlay_min_priority: "Prioridad mínima para overlay",
+    overlay_min_priority_help: "Mostrar el banner overlay solo para alertas con prioridad ≤ este valor (1=Crítico, 2=Aviso, 3=Info, 4=Baja). Dejar vacío para mostrar todas.",
+    alert_overlay: "Mostrar en overlay",
+    alert_overlay_help: "Desactiva para excluir esta alerta del banner overlay. Sigue siendo visible en la tarjeta normal.",
+    disable_animation: "Deshabilitar animaciones 🎬",
+    disable_animation_help: "Desactiva todas las animaciones ambientales en bucle (pulsación, parpadeo, oscilación de iconos, efectos meteorológicos) para todas las alertas. Las transiciones de ciclo y el desplazamiento del ticker no se ven afectados.",
+    disable_animation_alert_help: "Desactiva las animaciones ambientales para esta alerta individual (pulsación, parpadeo, oscilación de iconos). Anula la configuración global.",
     visible_to_section: "👤 Visibilidad de usuario",
     visible_to_label: "Visible para",
     visible_to_all: "Todos (predeterminado)",
@@ -4419,8 +4496,6 @@ const ET = {
     alert_sound: "Bu uyarı için ses etkin",
     alert_sound_url: "Bu uyarı için özel ses URL'si",
     alert_sound_url_help: "Global URL'yi geçersiz kılar. Globalini kullanmak için boş bırak.",
-    alert_card_override: "Kart geçersiz kılma (yerel HA kart türü)",
-    alert_card_override_help: "Ayarlandığında, bu HA kart tanımını tema düzeni yerine oluşturur. Görünürlük ve döngü mantığı değişmeden kalır. Eşleşen varlık için yer tutucu olarak 'this.entity_id' kullanın.",
     tab_tts: "Metin-Konuşma",
     hub_desc_tts: "Uyarıları sesli oku",
     tts_how_works: "Nasıl çalışır",
@@ -4587,6 +4662,8 @@ const ET = {
     clear_double_tap_action_section: "'Her şey yolunda' kartına çift dokunma",
     clear_hold_action_section: "'Her şey yolunda' kartında basılı tutma (500ms)",
     snooze_action_section: "Erteleme eylemi 💤 — erteleme düğmesine basıldığında çalıştırılır",
+    card_override_section: "Özel kart 🃏",
+    card_override_help: "Temayı herhangi bir yerel HA kartıyla (tile, entity, button…) değiştirir. Uyarı varlığı için yer tutucu olarak 'this.entity_id' kullanın. Normal temayı kullanmak için boş bırakın.",
     persistent: "Kalıcı alarm 🔒",
     persistent_help: "Sensör normale döndükten sonra bile görünür kalır. Kapatmak için ✕ düğmesine basın.",
     group_section: "Uyarıları grupla 🗂️",
@@ -4628,6 +4705,13 @@ const ET = {
     overlay_scale: "Banner boyutu",
     overlay_scale_help: "Uzaktan daha iyi görünürlük için metin ve ikonu ölçekle.",
     overlay_how_works: "Banner yalnızca kart ekranda görünmediğinde gösterilir — farklı bir görünüm veya görüş alanı dışında. Uyarı zaten görünürken gereksiz banner gösterilmez.",
+    overlay_min_priority: "Overlay için minimum öncelik",
+    overlay_min_priority_help: "Overlay banner'ı yalnızca bu değere ≤ önceliğe sahip uyarılar için göster (1=Kritik, 2=Uyarı, 3=Bilgi, 4=Düşük). Tüm uyarılar için boş bırakın.",
+    alert_overlay: "Overlay'de göster",
+    alert_overlay_help: "Bu uyarıyı overlay banner'ından hariç tutmak için devre dışı bırakın. Normal kartta görünür kalmaya devam eder.",
+    disable_animation: "Animasyonları devre dışı bırak 🎬",
+    disable_animation_help: "Tüm ortam döngü animasyonlarını (nabız, yanıp sönme, simge sallanması, hava efektleri) tüm uyarılar için devre dışı bırakır. Döngü geçişleri ve ticker kaydırma etkilenmez.",
+    disable_animation_alert_help: "Bu bireysel uyarı için ortam animasyonlarını devre dışı bırakır (nabız, yanıp sönme, simge sallanması). Global ayarı geçersiz kılar.",
     visible_to_section: "👤 Kullanıcı Görünürlüğü",
     visible_to_label: "Kimler için görünür",
     visible_to_all: "Herkes (varsayılan)",
@@ -4962,29 +5046,6 @@ class AlertTickerCardEditor extends LitElement {
             const Card = customElements.get("hui-glance-card");
             if (Card) await Card.getConfigElement();
           }),
-          new Promise((resolve) => setTimeout(resolve, 3000)),
-        ]);
-      }
-      this.requestUpdate();
-    }
-    // Force ha-yaml-editor to load — used by the card override editor.
-    // hui-tile-card's config element depends on it; await its definition as fallback.
-    if (!customElements.get("ha-yaml-editor")) {
-      const TileCard = customElements.get("hui-tile-card");
-      if (TileCard) {
-        await TileCard.getConfigElement?.().catch?.(() => {});
-      } else {
-        await Promise.race([
-          customElements.whenDefined("hui-tile-card").then(async () => {
-            const Card = customElements.get("hui-tile-card");
-            if (Card) await Card.getConfigElement?.().catch?.(() => {});
-          }),
-          new Promise((resolve) => setTimeout(resolve, 3000)),
-        ]);
-      }
-      if (!customElements.get("ha-yaml-editor")) {
-        await Promise.race([
-          customElements.whenDefined("ha-yaml-editor"),
           new Promise((resolve) => setTimeout(resolve, 3000)),
         ]);
       }
@@ -5333,6 +5394,16 @@ class AlertTickerCardEditor extends LitElement {
             `)}
           </select>
         </div>
+      </div>
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("disable_animation")}</span>
+          <ha-switch
+            .checked="${!!cfg.disable_animation}"
+            @change="${(e) => this._fireConfig({ ...this._config, disable_animation: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+        <div class="helper-text">${this._t("disable_animation_help")}</div>
       </div>
 
       <!-- ── SNOOZE ────────────────────────────────────────────────────── -->
@@ -5782,6 +5853,17 @@ class AlertTickerCardEditor extends LitElement {
               </select>
             </div>
             <div class="helper-text">${this._t("overlay_scale_help")}</div>
+            <ha-input
+              type="number"
+              .label="${this._t("overlay_min_priority")}"
+              .value="${cfg.overlay_min_priority != null ? String(cfg.overlay_min_priority) : ""}"
+              min="1" max="4" placeholder="—"
+              @change="${(e) => {
+                const v = parseInt(e.target.value);
+                this._fireConfig({ ...this._config, overlay_min_priority: (v >= 1 && v <= 4) ? v : undefined });
+              }}"
+            ></ha-input>
+            <div class="helper-text">${this._t("overlay_min_priority_help")}</div>
           </div>
           ` : ""}
         </div>
@@ -6611,6 +6693,31 @@ class AlertTickerCardEditor extends LitElement {
                     ></ha-switch>
                   </div>
                 </div>
+
+                <!-- Overlay toggle — visible only when overlay_mode is enabled globally -->
+                ${this._config?.overlay_mode ? html`
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("alert_overlay")}</span>
+                    <ha-switch
+                      .checked="${alert.overlay !== false}"
+                      @change="${(e) => this._updateAlert(index, { overlay: e.target.checked ? undefined : false })}"
+                    ></ha-switch>
+                  </div>
+                  <div class="helper-text">${this._t("alert_overlay_help")}</div>
+                </div>
+                ` : ""}
+                <!-- Per-alert disable_animation toggle -->
+                <div class="form-row">
+                  <div class="form-row-inline">
+                    <span>${this._t("disable_animation")}</span>
+                    <ha-switch
+                      .checked="${!!alert.disable_animation}"
+                      @change="${(e) => this._updateAlert(index, { disable_animation: e.target.checked || undefined })}"
+                    ></ha-switch>
+                  </div>
+                  <div class="helper-text">${this._t("disable_animation_alert_help")}</div>
+                </div>
                 <div class="helper-text">${this._t("persistent_help")}</div>
 
                 <!-- Per-alert snooze duration override (hidden when persistent) -->
@@ -6635,19 +6742,7 @@ class AlertTickerCardEditor extends LitElement {
                 <div class="helper-text">${this._t("snooze_duration_help")}</div>
                 `}
 
-                <!-- Card override per alert -->
-                <div class="section-divider">🃏 ${this._t("alert_card_override")}</div>
-                <div class="form-row">
-                  <div class="helper-text" style="margin-bottom:6px">${this._t("alert_card_override_help")}</div>
-                  <ha-yaml-editor
-                    .value="${alert.card || {}}"
-                    @value-changed="${(e) => {
-                      const v = e.detail.value;
-                      this._updateAlert(index, { card: (v && typeof v === 'object' && Object.keys(v).length) ? v : undefined });
-                    }}"
-                  ></ha-yaml-editor>
-                </div>
-
+                <!-- Sound per alert -->
                 <div class="section-divider">🔊 ${this._t("alert_sound")}</div>
                 <div class="form-row">
                   <div class="form-row-inline">
@@ -6923,6 +7018,19 @@ class AlertTickerCardEditor extends LitElement {
                 ${this._renderActionConfig(alert, index, "hold_action",       this._t("hold_action_section"))}
                 ${this._renderActionConfig(alert, index, "snooze_action", this._t("snooze_action_section"))}
 
+                <!-- ── CARD OVERRIDE ────────────────────────────────────── -->
+                <div class="section-divider">🃏 ${this._t("card_override_section")}</div>
+                <div class="helper-text">${this._t("card_override_help")}</div>
+                <ha-yaml-editor
+                  .label="${this._t("card_override_section")}"
+                  .value="${alert.card || {}}"
+                  @value-changed="${(e) => {
+                    const v = e.detail.value;
+                    this._updateAlert(index, {
+                      card: (v && typeof v === 'object' && Object.keys(v).length) ? v : undefined
+                    });
+                  }}"
+                ></ha-yaml-editor>
 
         </div>
       </div>

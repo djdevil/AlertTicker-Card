@@ -6,6 +6,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.3] - 2026-05-10
+
+### Added
+
+- **`{entity}` placeholder in conditions** ([#163](https://github.com/djdevil/AlertTicker-Card/issues/163)) — condition blocks can now reference the matched entity dynamically using `entity: "{entity}"` (or `entity: "this.entity_id"`). This enables compound AND/OR logic on `entity_filter` alerts where the matched entity is not known at config time — e.g. test both `state == on` AND `attributes.notification_control == enabled` on every entity matched by a wildcard filter. The placeholder resolves to the expanded entity ID in both the card's rendering path and the overlay watcher.
+
+  ```yaml
+  alerts:
+    - entity_filter: "alert2.zigbee*"
+      state: "on"
+      conditions:
+        entity: "{entity}"
+        attribute: notification_control
+        operator: "="
+        state: enabled
+  ```
+
+- **Per-alert native HA card override** ([#159](https://github.com/djdevil/AlertTicker-Card/pull/159)) — new `card` property on each alert that replaces the themed rendering with any native HA card type (`tile`, `entity`, `button`, custom cards, etc.). The card's visibility evaluation, cycling logic, snooze, and history remain fully intact — only the visual content is swapped. Use `'this.entity_id'` as a placeholder to reference the matched entity in the card config, useful for `entity_filter` alerts that expand into multiple entities. Configured via a YAML editor in the visual editor under each alert's settings (available in all 12 languages). Implemented via an `AtcCardProxy` custom element that propagates `hass` updates and rebuilds only when the config changes.
+
+  ```yaml
+  alerts:
+    - entity: sensor.front_door
+      state: "on"
+      card:
+        type: tile
+        entity: this.entity_id
+        name: Front door
+  ```
+
+- **Per-alert and card-level animation disable** ([#157](https://github.com/djdevil/AlertTicker-Card/issues/157)) — new `disable_animation` flag available at both card level (silences all alerts) and per-alert level (silences a single alert). Suppresses all ambient looping animations: emergency pulsing glow, flashing icon, warning/calendar blink dot, neon scan line, matrix cursor blink, door/window icon swings, and all weather widget effects. Cycle transitions and ticker scrolling are unaffected. The per-alert flag overrides the global one. Configurable in the visual editor (all 12 languages) — card-level in the Cycling & Animation section, per-alert in each alert's settings.
+
+  ```yaml
+  # Card-level — disable all ambient animations
+  disable_animation: true
+
+  alerts:
+    # Per-alert — silence one noisy alert while others still animate
+    - entity: binary_sensor.front_door
+      theme: door
+      state: "on"
+      disable_animation: true
+  ```
+
+- **Per-alert overlay exclusion + global priority gate** ([#160](https://github.com/djdevil/AlertTicker-Card/issues/160)) — two new controls for the cross-view overlay system:
+  - `overlay: false` on any alert prevents that alert from ever appearing as a cross-view overlay banner, while still showing it normally in the ticker card.
+  - `overlay_min_priority` (global, `1`–`4`) sets a threshold: only alerts with a `priority` ≤ this value will trigger overlay banners. Defaults to no gate (all priorities pass). Both controls work together — `overlay: false` always wins. Configurable in the visual editor (all 12 languages).
+
+  ```yaml
+  # Global — only priority 1 and 2 alerts trigger overlay
+  overlay_min_priority: 2
+
+  alerts:
+    - entity: sensor.routine_info
+      state: "on"
+      overlay: false   # never overlay this alert
+    - entity: sensor.smoke
+      priority: 1
+      state: "on"      # this will overlay (priority 1 ≤ 2)
+  ```
+
+---
+
+### Fixed
+
+- **`card_height` not applying to the all-clear state** ([#145](https://github.com/djdevil/AlertTicker-Card/issues/145)) — `card_height` only applied to the active-alert render path, not to the "all clear" card. Fixed by wrapping the clear card in the same `atc-inner-clip` container. Content is now also vertically centered when `card_height` exceeds the natural content size.
+
+---
+
 ## [1.3.2.6] - 2026-05-10
 
 ### Fixed
