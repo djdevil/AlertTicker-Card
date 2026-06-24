@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.3";
+const CARD_VERSION = "1.3.4";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -6090,9 +6090,22 @@ class AlertTickerCardEditor extends LitElement {
                     ${alert.entity_filter && this._hass ? (() => {
                       const matchFn = this._buildFilterMatcher(alert.entity_filter);
                       const excluded = new Set(alert.entity_filter_exclude || []);
-                      const allMatched = Object.entries(this._hass.states).filter(([id, s]) =>
-                        matchFn(id) || matchFn(s.attributes.friendly_name || "")
-                      );
+                      const labelFilter = alert.label_filter ? (Array.isArray(alert.label_filter) ? alert.label_filter : [alert.label_filter]) : null;
+                      const areaFilter  = alert.area_filter  ? (Array.isArray(alert.area_filter)  ? alert.area_filter  : [alert.area_filter])  : null;
+                      const allMatched = Object.entries(this._hass.states).filter(([id, s]) => {
+                        if (!matchFn(id) && !matchFn(s.attributes.friendly_name || "")) return false;
+                        if (labelFilter) {
+                          const entityLabels = this._hass.entities?.[id]?.labels || [];
+                          if (!labelFilter.some(l => entityLabels.includes(l))) return false;
+                        }
+                        if (areaFilter) {
+                          const meta = this._hass.entities?.[id];
+                          const entityArea = meta?.area_id;
+                          const deviceArea = meta?.device_id ? this._hass.devices?.[meta.device_id]?.area_id : null;
+                          if (!areaFilter.some(a => a === entityArea || a === deviceArea)) return false;
+                        }
+                        return true;
+                      });
                       const activeCount = allMatched.filter(([id]) => !excluded.has(id)).length;
                       const excludedCount = excluded.size;
                       const previewOpen = this._filterPreviewOpen.has(index);
@@ -6158,9 +6171,22 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="helper-text">
                     ${alert.device_class && this._hass ? (() => {
                       const excluded = new Set(alert.entity_filter_exclude || []);
-                      const allMatched = Object.entries(this._hass.states).filter(([id, s]) =>
-                        s.attributes.device_class === alert.device_class
-                      );
+                      const labelFilter = alert.label_filter ? (Array.isArray(alert.label_filter) ? alert.label_filter : [alert.label_filter]) : null;
+                      const areaFilter  = alert.area_filter  ? (Array.isArray(alert.area_filter)  ? alert.area_filter  : [alert.area_filter])  : null;
+                      const allMatched = Object.entries(this._hass.states).filter(([id, s]) => {
+                        if (s.attributes.device_class !== alert.device_class) return false;
+                        if (labelFilter) {
+                          const entityLabels = this._hass.entities?.[id]?.labels || [];
+                          if (!labelFilter.some(l => entityLabels.includes(l))) return false;
+                        }
+                        if (areaFilter) {
+                          const meta = this._hass.entities?.[id];
+                          const entityArea = meta?.area_id;
+                          const deviceArea = meta?.device_id ? this._hass.devices?.[meta.device_id]?.area_id : null;
+                          if (!areaFilter.some(a => a === entityArea || a === deviceArea)) return false;
+                        }
+                        return true;
+                      });
                       const activeCount = allMatched.filter(([id]) => !excluded.has(id)).length;
                       const excludedCount = excluded.size;
                       const previewKey = `dc_${index}`;

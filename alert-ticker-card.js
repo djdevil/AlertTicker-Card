@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.3
+ * AlertTicker Card v1.3.4
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,39 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.3";
+const CARD_VERSION = "1.3.4";
+
+// ---------------------------------------------------------------------------
+// Google Cast compatibility (#171)
+// Cast exposes adoptedStyleSheets on ShadowRoot but the setter throws
+// "Failed to convert value to 'CSSStyleSheet'" — patch it with a fallback
+// that injects <style> elements instead.
+// ---------------------------------------------------------------------------
+(function () {
+  try {
+    const desc = Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "adoptedStyleSheets");
+    if (!desc?.set) return;
+    const origSet = desc.set;
+    Object.defineProperty(ShadowRoot.prototype, "adoptedStyleSheets", {
+      ...desc,
+      set(sheets) {
+        try {
+          origSet.call(this, sheets);
+        } catch (_) {
+          for (const sheet of (sheets || [])) {
+            if (!sheet) continue;
+            try {
+              const el = document.createElement("style");
+              el.setAttribute("data-atc-cast", "");
+              el.textContent = Array.from(sheet.cssRules || [], (r) => r.cssText).join("\n");
+              if (el.textContent) this.appendChild(el);
+            } catch (_) {}
+          }
+        }
+      },
+    });
+  } catch (_) {}
+})();
 
 // ---------------------------------------------------------------------------
 // Theme metadata — drives default icons and category labels
@@ -1115,7 +1147,7 @@ const _ATC_OVERLAY = (() => {
         const eid = (c.entity === "{entity}" || c.entity === "this.entity_id") ? a.entity : c.entity;
         return _matchOp(_getVal(hass, eid, c.attribute), c.operator || "=", c.state ?? "on");
       });
-      if (logic === "or" ? !(primaryOk || res.some(Boolean)) : !(primaryOk && res.every(Boolean))) return false;
+      if (logic === "or" ? !(primaryOk && res.some(Boolean)) : !(primaryOk && res.every(Boolean))) return false;
     } else if (!primaryOk) return false;
     return true;
   }
@@ -1924,7 +1956,7 @@ class AlertTickerCard extends LitElement {
               return this._matchesState(val, cond);
             });
             const passes = logic === "or"
-              ? primaryOk || results.some(Boolean)
+              ? primaryOk && results.some(Boolean)
               : primaryOk && results.every(Boolean);
             if (!passes) {
               // persistent: keep showing even though condition cleared
@@ -10441,6 +10473,12 @@ class AlertTickerCard extends LitElement {
       }
       /* Row 1: icon + temperature */
       .atc-cw-badge-row1 {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      /* Row minmax: high / low / AQI / humidity */
+      .atc-cw-badge-row-minmax {
         display: flex;
         align-items: center;
         gap: 4px;
