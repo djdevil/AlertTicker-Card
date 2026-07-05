@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.5] - 2026-07-02
+
+### Fixed
+
+- **Vertical layout double height** ([#174](https://github.com/djdevil/AlertTicker-Card/issues/174)) — in `vertical: true` mode the card rendered at roughly twice its correct height, with an equal empty space below the content. Root cause: the `card_height` centering fix (#145) made `.atc-inner-clip` a flex column and gave `.at-fold-wrapper` `flex: 1`. In vertical mode the existing `height: 100%` chain on `.at-fold-wrapper` combined with `flex: 1` in the flex container creates a circular size dependency that the browser resolves by doubling the height. Fixed by resetting `.atc-inner-clip` to `display: block` inside `.atc-vertical`, reverting it to its pre-#145 block layout while leaving the flex centering active for all non-vertical cases.
+
+- **`state` array not respected in overlay watcher** ([#176](https://github.com/djdevil/AlertTicker-Card/issues/176)) — the overlay watcher's `_matchOp` helper did not handle `state` as an array, so `state: ["playing", "paused"]` (match any of multiple states) worked in the card render path but not in the cross-view overlay or filter-alert paths. Fixed by adding array support to `_matchOp`, consistent with the existing `_matchesState` method.
+
+- **Card blank when casting to Google Home** ([#171](https://github.com/djdevil/AlertTicker-Card/issues/171)) — the Google Cast runtime exposes `adoptedStyleSheets` on `ShadowRoot` (so Lit's feature-detection check passes), but the setter throws `"Failed to convert value to 'CSSStyleSheet'"` — a Cast runtime bug that prevents Lit from injecting its styles, leaving the card blank. Fixed by patching `ShadowRoot.prototype.adoptedStyleSheets` at load time with a try-catch fallback that injects equivalent `<style>` elements when the native setter fails.
+
+---
+
 ## [1.3.4] - 2026-06-24
 
 ### Fixed
@@ -15,8 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Editor "entities match" counter ignoring `label_filter` and `area_filter`** ([#170](https://github.com/djdevil/AlertTicker-Card/issues/170)) — the entity count shown in the editor preview for `device_class` and `entity_filter` (text) modes only applied its own filter, ignoring any active `label_filter` or `area_filter`. This caused inflated counts (e.g. "120 entities match" instead of the correct 5). The runtime was always correct; fixed by replicating the same combined filter logic in both editor counter paths.
 
 - **`conditions_logic: or` incorrectly including primary state check in the OR group** ([#168](https://github.com/djdevil/AlertTicker-Card/issues/168)) — when `conditions_logic: or` was set, the primary entity state match (`primaryOk`) was included in the OR group alongside the conditions, meaning the alert triggered if the entity matched its state OR any condition was true. The correct semantics are: the primary state match must always pass (AND), then the conditions among themselves use OR. Fixed in both the card render path and the overlay watcher path.
-
-- **Card blank when casting to Google Home** ([#171](https://github.com/djdevil/AlertTicker-Card/issues/171)) — the Google Cast runtime exposes `adoptedStyleSheets` on `ShadowRoot` (so Lit's feature-detection check passes), but the setter throws `"Failed to convert value to 'CSSStyleSheet'"` — a Cast runtime bug that prevents Lit from injecting its styles, leaving the card blank. Fixed by patching `ShadowRoot.prototype.adoptedStyleSheets` at load time with a try-catch fallback that injects equivalent `<style>` elements when the native setter fails.
 
 ---
 

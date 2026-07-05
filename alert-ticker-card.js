@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.4
+ * AlertTicker Card v1.3.5
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.4";
+const CARD_VERSION = "1.3.5";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1044,6 +1044,8 @@ const _ATC_OVERLAY = (() => {
 
   function _matchOp(actual, op, trigger) {
     if (actual == null) return false;
+    // Array state: "is one of" — matches _matchesState array logic (#176)
+    if (Array.isArray(trigger)) return trigger.map(String).includes(String(actual));
     const n = parseFloat(actual), t = parseFloat(trigger);
     switch (op) {
       case "=": case "==": return String(actual) === String(trigger);
@@ -9853,6 +9855,13 @@ class AlertTickerCard extends LitElement {
       }
       .atc-vertical .at-fold-wrapper {
         height: 100%;
+      }
+      /* Reset the flex-column added to atc-inner-clip by the card_height fix (#145).
+         In vertical mode the height-100% chain from the host drives sizing; combining
+         it with flex: 1 on at-fold-wrapper creates a circular dependency that doubles
+         the card height (#174). */
+      .atc-vertical .atc-inner-clip {
+        display: block;
       }
       .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player) {
         height: 100% !important;
