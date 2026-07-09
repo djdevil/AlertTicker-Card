@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.6] - 2026-07-09
+
+### Added
+
+- **`clear_disable_animation` option for weather widget** ([#172](https://github.com/djdevil/AlertTicker-Card/issues/172)) — new card-level flag `clear_disable_animation: true` suppresses all animations in the All Clear weather widget (sun rotation, cloud drift, stars, moon glow, and all weather condition effects) without touching alert animations. Available as a toggle in the visual editor under the weather badge style section (all 12 languages). The existing `disable_animation: true` flag also covers the widget, but this new option lets users silence only the weather animations while keeping alert effects active.
+
+### Fixed
+
+- **History close button invisible on mobile / HA app** ([#179](https://github.com/djdevil/AlertTicker-Card/issues/179)) — the `✕` close button existed but was rendered at 0.80 rem with 50 % opacity, no background and 2 px padding — effectively invisible and too small to tap on touch devices. With `ha_theme: true` and a light card the white text disappeared entirely. Restyled as a proper pill button with visible background, border, full-opacity text, `min-height: 30 px`, and `touch-action: manipulation`. The `ha_theme` override now also gives it a visible bordered style.
+
+- **Test mode showing wrong card when priority ≠ 1** ([#173](https://github.com/djdevil/AlertTicker-Card/issues/173)) — test mode preview resolved the correct alert once when `_preview_index` was first set, then cached the sorted-array position in `this._currentIndex`. When the alert's priority was changed in the editor the `active` array was re-sorted, but `this._currentIndex` still pointed to the old sorted position — showing a different alert. Fixed by removing the `lastAppliedPreviewIndex` guard so the preview always re-resolves the target alert's position in the current sorted array on every update. A position-unchanged guard (`pi !== this._currentIndex`) prevents redundant re-renders.
+
+- **`disable_animation` not suppressing weather clear-widget animations** ([#172](https://github.com/djdevil/AlertTicker-Card/issues/172)) — `disable_animation: true` paused weather condition elements (fog, rain, wind, etc.) but missed the main atmospheric elements rendered by `_renderWeatherBg`: rotating sun rays (`.sun-rays-wrap`), drifting clouds (`.w-cloud`), twinkling stars (`.w-star`), and glowing moon (`.w-moon`). These four selectors are now included in the `animation-play-state: paused !important` rule block.
+
+---
+
 ## [1.3.5] - 2026-07-02
 
 ### Fixed

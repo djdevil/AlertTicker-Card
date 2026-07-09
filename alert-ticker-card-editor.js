@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.5
+ * AlertTicker Card Editor v1.3.6
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.5";
+const CARD_VERSION = "1.3.6";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -854,6 +854,8 @@ const ET = {
     clear_clock_date_color: "Colore data",
     clear_clock_background: "Colore sfondo",
     clear_weather_style_label: "Stile badge meteo",
+    clear_disable_animation: "Disabilita animazioni meteo",
+    clear_disable_animation_help: "Blocca sole, nuvole, stelle ed effetti atmosferici nel widget Tutto Ok.",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -1180,6 +1182,8 @@ const ET = {
     clear_clock_date_color: "Date color",
     clear_clock_background: "Background color",
     clear_weather_style_label: "Weather badge style",
+    clear_disable_animation: "Disable weather animations",
+    clear_disable_animation_help: "Freeze sun, clouds, stars and weather effects in the All Clear widget.",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -1506,6 +1510,8 @@ const ET = {
     clear_clock_date_color: "Couleur de la date",
     clear_clock_background: "Couleur de fond",
     clear_weather_style_label: "Style badges météo",
+    clear_disable_animation: "Désactiver les animations météo",
+    clear_disable_animation_help: "Fige le soleil, les nuages, les étoiles et les effets atmosphériques dans le widget Tout est OK.",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -1832,6 +1838,8 @@ const ET = {
     clear_clock_date_color: "Farbe des Datums",
     clear_clock_background: "Hintergrundfarbe",
     clear_weather_style_label: "Wetter-Badge-Stil",
+    clear_disable_animation: "Wetteranimationen deaktivieren",
+    clear_disable_animation_help: "Sonne, Wolken, Sterne und Wettereffekte im Alles-OK-Widget einfrieren.",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -2158,6 +2166,8 @@ const ET = {
     clear_clock_date_color: "Kleur van de datum",
     clear_clock_background: "Achtergrondkleur",
     clear_weather_style_label: "Weer badge stijl",
+    clear_disable_animation: "Weeranimaties uitschakelen",
+    clear_disable_animation_help: "Bevriest zon, wolken, sterren en weereffecten in de Alles OK-widget.",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -2484,6 +2494,8 @@ const ET = {
     clear_clock_date_color: "Màu ngày tháng",
     clear_clock_background: "Màu nền",
     clear_weather_style_label: "Kiểu badge thời tiết",
+    clear_disable_animation: "Tắt hiệu ứng thời tiết",
+    clear_disable_animation_help: "Dừng mặt trời, mây, sao và các hiệu ứng khí quyển trong widget Tất cả Ổn.",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -2810,6 +2822,8 @@ const ET = {
     clear_clock_date_color: "Цвет даты",
     clear_clock_background: "Цвет фона",
     clear_weather_style_label: "Стиль значка погоды",
+    clear_disable_animation: "Отключить анимацию погоды",
+    clear_disable_animation_help: "Остановить вращение солнца, облака, звёзды и погодные эффекты в виджете «Всё в порядке».",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -3136,6 +3150,8 @@ const ET = {
     clear_clock_date_color: "Datofarve",
     clear_clock_background: "Baggrundsfarve",
     clear_weather_style_label: "Vejr badge stil",
+    clear_disable_animation: "Deaktiver vejranimationer",
+    clear_disable_animation_help: "Frys sol, skyer, stjerner og vejreffekter i Alt OK-widgetten.",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -3464,6 +3480,8 @@ const ET = {
     clear_clock_date_color: "Barva data",
     clear_clock_background: "Barva pozadí",
     clear_weather_style_label: "Styl widgetu počasí",
+    clear_disable_animation: "Zakázat animace počasí",
+    clear_disable_animation_help: "Zastavit otáčení slunce, pohyb mraků, hvězd a efektů počasí ve widgetu Vše v pořádku.",
     style_default: "Default",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -3792,6 +3810,8 @@ const ET = {
     clear_clock_date_color: "Cor da data",
     clear_clock_background: "Cor de fundo",
     clear_weather_style_label: "Estilo do badge de clima",
+    clear_disable_animation: "Desativar animações do clima",
+    clear_disable_animation_help: "Congela sol, nuvens, estrelas e efeitos atmosféricos no widget Tudo Certo.",
     style_default: "Padrão",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -4118,6 +4138,8 @@ const ET = {
     clear_clock_date_color: "Color de la fecha",
     clear_clock_background: "Color de fondo",
     clear_weather_style_label: "Estilo del badge del tiempo",
+    clear_disable_animation: "Desactivar animaciones del tiempo",
+    clear_disable_animation_help: "Congela el sol, las nubes, las estrellas y los efectos atmosféricos en el widget Todo OK.",
     style_default: "Por defecto",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -4444,6 +4466,8 @@ const ET = {
     clear_clock_date_color: "Tarih rengi",
     clear_clock_background: "Arkaplan rengi",
     clear_weather_style_label: "Hava durumu rozet stili",
+    clear_disable_animation: "Hava animasyonlarını devre dışı bırak",
+    clear_disable_animation_help: "Tümü Tamam widget'ında güneş, bulut, yıldız ve hava efektlerini durdurur.",
     style_default: "Varsayılan",
     style_aurora: "🌌 Aurora",
     style_gold: "✨ Gold",
@@ -5681,6 +5705,16 @@ class AlertTickerCardEditor extends LitElement {
                 <option value="cinematic" ?selected="${cfg.clear_weather_style === 'cinematic'}">${this._t("style_cinematic")}</option>
               </select>
             </div>
+          </div>
+          <div class="form-row">
+            <div class="form-row-inline">
+              <span>${this._t("clear_disable_animation")}</span>
+              <ha-switch
+                .checked="${!!cfg.clear_disable_animation}"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_disable_animation: e.target.checked || undefined })}"
+              ></ha-switch>
+            </div>
+            <div class="helper-text">${this._t("clear_disable_animation_help")}</div>
           </div>
         ` : ''}
 

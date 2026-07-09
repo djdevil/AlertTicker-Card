@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.5
+ * AlertTicker Card v1.3.6
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.5";
+const CARD_VERSION = "1.3.6";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -2056,21 +2056,21 @@ class AlertTickerCard extends LitElement {
     // _preview_index is the index in this._config.alerts (config order), NOT in the
     // sorted active array. For regular alerts match by object reference; for entity_filter
     // alerts match via the _sourceAlert reference preserved during expansion.
+    // Re-resolve on every update — if priority changes the sort order shifts and
+    // this._currentIndex would point to the wrong alert (#173).
     if (testMode && this._config._preview_index != null) {
       const configIdx = this._config._preview_index;
-      if (configIdx !== this._lastAppliedPreviewIndex) {
-        this._lastAppliedPreviewIndex = configIdx;
-        const target = (this._config.alerts || [])[configIdx];
-        const pi = target
-          ? active.findIndex(a => a._configIdx === configIdx || a._sourceAlert === target)
-          : -1;
-        if (pi >= 0 && pi !== this._currentIndex) {
-          this._currentIndex = pi;
-          this._animPhase = "";
-          this._activeAlerts = active;
-          this.requestUpdate();
-          return;
-        }
+      this._lastAppliedPreviewIndex = configIdx;
+      const target = (this._config.alerts || [])[configIdx];
+      const pi = target
+        ? active.findIndex(a => a._configIdx === configIdx || a._sourceAlert === target)
+        : -1;
+      if (pi >= 0 && pi !== this._currentIndex) {
+        this._currentIndex = pi;
+        this._animPhase = "";
+        this._activeAlerts = active;
+        this.requestUpdate();
+        return;
       }
     }
 
@@ -5715,7 +5715,7 @@ class AlertTickerCard extends LitElement {
           <div class="atc-card-root">
             <div class="${this._hostClass}">
               <div class="atc-inner-clip">
-                <div class="at-fold-wrapper${clearHasAction ? " atc-clickable" : ""}${this._config?.disable_animation ? " atc-no-anim" : ""}"
+                <div class="at-fold-wrapper${clearHasAction ? " atc-clickable" : ""}${(this._config?.disable_animation || this._config?.clear_disable_animation) ? " atc-no-anim" : ""}"
                   @pointerdown="${clearPd}" @pointerup="${clearPu}"
                   @pointerleave="${clearPl}" @pointercancel="${clearPl}">
                   ${this._renderForTheme(clearAlert.theme, clearAlert)}
@@ -6853,7 +6853,11 @@ class AlertTickerCard extends LitElement {
       .at-fold-wrapper.atc-no-anim .w-splash,
       .at-fold-wrapper.atc-no-anim .w-hail-drop,
       .at-fold-wrapper.atc-no-anim .w-lightning-bolt,
-      .at-fold-wrapper.atc-no-anim .w-exceptional-particle  { animation-play-state: paused !important; }
+      .at-fold-wrapper.atc-no-anim .w-exceptional-particle,
+      .at-fold-wrapper.atc-no-anim .sun-rays-wrap,
+      .at-fold-wrapper.atc-no-anim .w-moon,
+      .at-fold-wrapper.atc-no-anim .w-star,
+      .at-fold-wrapper.atc-no-anim .w-cloud          { animation-play-state: paused !important; }
 
       /* -----------------------------------------------------------------------
        * TICKER — bigger font
@@ -8829,14 +8833,21 @@ class AlertTickerCard extends LitElement {
       }
       .atc-history-clear:hover { color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.4); }
       .atc-history-close {
-        font-size: 0.80rem;
-        background: transparent;
-        border: none;
-        color: rgba(255,255,255,0.5);
+        font-size: 0.82rem;
+        font-weight: 600;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 6px;
+        color: rgba(255,255,255,0.85);
         cursor: pointer;
-        padding: 2px 4px;
+        padding: 4px 10px;
+        min-width: 36px;
+        min-height: 30px;
+        touch-action: manipulation;
+        line-height: 1.4;
       }
-      .atc-history-close:hover { color: rgba(255,255,255,0.9); }
+      .atc-history-close:hover,
+      .atc-history-close:active { background: rgba(255,255,255,0.18); color: #fff; }
       .atc-history-list {
         max-height: 220px;
         overflow-y: auto;
@@ -9738,7 +9749,14 @@ class AlertTickerCard extends LitElement {
         color: var(--primary-text-color, rgba(0,0,0,0.85)) !important;
       }
       .atc-ha-theme .atc-history-close {
-        color: var(--secondary-text-color, rgba(0,0,0,0.55)) !important;
+        background: rgba(0,0,0,0.05) !important;
+        border-color: var(--divider-color, rgba(0,0,0,0.18)) !important;
+        color: var(--secondary-text-color, rgba(0,0,0,0.7)) !important;
+      }
+      .atc-ha-theme .atc-history-close:hover,
+      .atc-ha-theme .atc-history-close:active {
+        background: rgba(0,0,0,0.1) !important;
+        color: var(--primary-text-color, rgba(0,0,0,0.9)) !important;
       }
       /* Snooze dropdown menu */
       .atc-ha-theme .atc-snooze-menu {
