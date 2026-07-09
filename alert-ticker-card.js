@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.6.4
+ * AlertTicker Card v1.3.7
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.6.4";
+const CARD_VERSION = "1.3.7";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1157,15 +1157,19 @@ const _ATC_OVERLAY = (() => {
   function _resolveMsg(hass, a) {
     let msg = a.message || "";
     const es = a.entity ? hass.states[a.entity] : null;
-    const deviceId   = a.entity ? hass.entities?.[a.entity]?.device_id : null;
+    const entityEntry = a.entity ? hass.entities?.[a.entity] : null;
+    const deviceId   = entityEntry?.device_id ?? null;
     const dev        = deviceId ? hass.devices?.[deviceId] : null;
     const deviceName = dev ? (dev.name_by_user || dev.name || "") : "";
+    const areaId     = entityEntry?.area_id || dev?.area_id || null;
+    const areaName   = areaId ? (hass.areas?.[areaId]?.name || "") : "";
     // Resolve {placeholders} first so _evalTemplate sees real entity IDs
     msg = msg
       .replace(/\{state\}/g,  es ? _ovFmtState(hass, es, null) : "")
       .replace(/\{name\}/g,   es?.attributes?.friendly_name || a.entity || "")
       .replace(/\{entity\}/g, a.entity || "")
       .replace(/\{device\}/g, deviceName)
+      .replace(/\{area\}/g,   areaName)
       .replace(/\{timer\}/g,  "");
     // Try to evaluate supported {{ }} template patterns directly from hass.states
     const evaluated = _evalTemplate(hass, msg);
@@ -1208,14 +1212,18 @@ const _ATC_OVERLAY = (() => {
   // Resolves {placeholders} only — used to pre-substitute before sending to HA engine.
   function _resolvePlaceholders(hass, a, raw) {
     const es = a.entity ? hass.states[a.entity] : null;
-    const deviceId   = a.entity ? hass.entities?.[a.entity]?.device_id : null;
+    const entityEntry = a.entity ? hass.entities?.[a.entity] : null;
+    const deviceId   = entityEntry?.device_id ?? null;
     const dev        = deviceId ? hass.devices?.[deviceId] : null;
     const deviceName = dev ? (dev.name_by_user || dev.name || "") : "";
+    const areaId     = entityEntry?.area_id || dev?.area_id || null;
+    const areaName   = areaId ? (hass.areas?.[areaId]?.name || "") : "";
     return raw
       .replace(/\{state\}/g,  es ? _ovFmtState(hass, es, null) : "")
       .replace(/\{name\}/g,   es?.attributes?.friendly_name || a.entity || "")
       .replace(/\{entity\}/g, a.entity || "")
       .replace(/\{device\}/g, deviceName)
+      .replace(/\{area\}/g,   areaName)
       .replace(/\{timer\}/g,  "");
   }
 
@@ -2070,31 +2078,13 @@ class AlertTickerCard extends LitElement {
     // Sort by priority (lower number = first; undefined priority goes last)
     active.sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
 
-    // In test mode: jump immediately to the previewed alert before the early-return check.
-    // _preview_index is the index in this._config.alerts (config order), NOT in the
-    // sorted active array. For regular alerts match by object reference; for entity_filter
-    // alerts match via the _sourceAlert reference preserved during expansion.
-    // Re-resolve on every update — if priority changes the sort order shifts and
-    // this._currentIndex would point to the wrong alert (#173).
-    if (testMode && this._config._preview_index != null) {
-      const configIdx = this._config._preview_index;
-      this._lastAppliedPreviewIndex = configIdx;
-      const target = (this._config.alerts || [])[configIdx];
-      const pi = target
-        ? active.findIndex(a => a._configIdx === configIdx || a._sourceAlert === target)
-        : -1;
-      if (pi >= 0 && pi !== this._currentIndex) {
-        this._currentIndex = pi;
-        this._animPhase = "";
-        this._activeAlerts = active;
-        this.requestUpdate();
-        return;
-      }
-    }
-
-    // Build a lightweight signature to detect changes
+    // Build a lightweight signature to detect changes.
+    // Also bypass the early-return when _preview_index changes in test mode so the
+    // card responds to a different alert being selected even if active content is unchanged.
     const signature = active.map((a) => `${a.entity}:${a.message}:${a.priority}`).join("|");
-    if (signature === this._lastSignature && snoozedCount === this._snoozedCount) return;
+    const _previewChanged = testMode && this._config._preview_index != null
+      && this._config._preview_index !== this._lastAppliedPreviewIndex;
+    if (!_previewChanged && signature === this._lastSignature && snoozedCount === this._snoozedCount) return;
 
     // Record newly triggered alerts into history and play sound.
     // On first load: record history (so alerts already active on load appear in cronologia)
@@ -2228,6 +2218,23 @@ class AlertTickerCard extends LitElement {
       active = _ungrouped;
     }
     // --- end grouping pass ---
+
+    // In test mode: resolve _currentIndex from the FINAL post-grouping array.
+    // Running after the grouping pass ensures group:true alerts (which collapse
+    // N entities into 1 slide) don't shift positions and cause the wrong alert
+    // to display (#173).
+    if (testMode && this._config._preview_index != null) {
+      const configIdx = this._config._preview_index;
+      this._lastAppliedPreviewIndex = configIdx;
+      const target = (this._config.alerts || [])[configIdx];
+      const pi = target
+        ? active.findIndex(a => a._configIdx === configIdx || a._sourceAlert === target)
+        : -1;
+      if (pi >= 0 && pi !== this._currentIndex) {
+        this._animPhase = "";
+        this._currentIndex = pi;
+      }
+    }
 
     this._lastSignature = signature;
     this._activeAlerts = active;
@@ -3010,7 +3017,7 @@ class AlertTickerCard extends LitElement {
     let msg = alert.message || "";
     if (!msg.includes("{")) return msg;
 
-    // Pre-substitute {entity}/{state}/{name}/{device} BEFORE passing to HA's template engine,
+    // Pre-substitute {entity}/{state}/{name}/{device}/{area} BEFORE passing to HA's template engine,
     // so that patterns like {{ area_name('{entity}') }} receive the real entity ID.
     if ((msg.includes("{{") || msg.includes("{%")) && alert.entity && this._hass) {
       const es = this._hass.states[alert.entity];
@@ -3022,12 +3029,16 @@ class AlertTickerCard extends LitElement {
           .replace(/\{name\}/g, name)
           .replace(/\{entity\}/g, alert.entity);
       }
-      if (msg.includes("{device}")) {
+      if (msg.includes("{device}") || msg.includes("{area}")) {
         const entityEntry = this._hass.entities?.[alert.entity];
         const deviceId = entityEntry?.device_id;
         const device = deviceId ? this._hass.devices?.[deviceId] : null;
         const deviceName = device?.name_by_user || device?.name || alert.entity;
-        msg = msg.replace(/\{device\}/g, deviceName);
+        const areaId = entityEntry?.area_id || device?.area_id || null;
+        const areaName = areaId ? (this._hass.areas?.[areaId]?.name || "") : "";
+        msg = msg
+          .replace(/\{device\}/g, deviceName)
+          .replace(/\{area\}/g, areaName);
       }
     }
 
@@ -3051,8 +3062,8 @@ class AlertTickerCard extends LitElement {
       const { remainingStr } = this._getTimerData(alert);
       msg = msg.replace(/\{timer\}/g, remainingStr);
     }
-    // {state}, {name}, {entity}, {device} — live entity values (for messages without {{ }})
-    if (alert.entity && this._hass && (msg.includes("{state}") || msg.includes("{name}") || msg.includes("{entity}") || msg.includes("{device}"))) {
+    // {state}, {name}, {entity}, {device}, {area} — live entity values (for messages without {{ }})
+    if (alert.entity && this._hass && (msg.includes("{state}") || msg.includes("{name}") || msg.includes("{entity}") || msg.includes("{device}") || msg.includes("{area}"))) {
       const es = this._hass.states[alert.entity];
       if (es) {
         const translatedState = this._formatStateValue(es, alert.attribute);
@@ -3062,13 +3073,17 @@ class AlertTickerCard extends LitElement {
           .replace(/\{name\}/g, name)
           .replace(/\{entity\}/g, alert.entity);
       }
-      // {device} — resolved from the device registry (hass.entities + hass.devices)
-      if (msg.includes("{device}")) {
+      // {device} / {area} — resolved from the device registry (hass.entities + hass.devices + hass.areas)
+      if (msg.includes("{device}") || msg.includes("{area}")) {
         const entityEntry = this._hass.entities?.[alert.entity];
         const deviceId = entityEntry?.device_id;
         const device = deviceId ? this._hass.devices?.[deviceId] : null;
         const deviceName = device?.name_by_user || device?.name || alert.entity;
-        msg = msg.replace(/\{device\}/g, deviceName);
+        const areaId = entityEntry?.area_id || device?.area_id || null;
+        const areaName = areaId ? (this._hass.areas?.[areaId]?.name || "") : "";
+        msg = msg
+          .replace(/\{device\}/g, deviceName)
+          .replace(/\{area\}/g, areaName);
       }
     }
     return msg;
@@ -3808,6 +3823,20 @@ class AlertTickerCard extends LitElement {
         this.dispatchEvent(new CustomEvent("ll-custom", {
           bubbles: true, composed: true,
           detail: { ...cfg },
+        }));
+        break;
+      }
+      case "assist": {
+        this.dispatchEvent(new CustomEvent("show-dialog", {
+          bubbles: true, composed: true,
+          detail: {
+            dialogTag: "ha-voice-command-dialog",
+            dialogImport: () => Promise.resolve(),
+            dialogParams: {
+              pipeline_id: cfg.pipeline_id || "preferred",
+              start_listening: cfg.start_listening ?? false,
+            },
+          },
         }));
         break;
       }
@@ -10986,11 +11015,13 @@ if (!customElements.get("alert-ticker-card")) {
 }
 
 window.customCards = window.customCards || [];
-if (!window.customCards.find((c) => c.type === "alert-ticker-card")) {
-  window.customCards.push({
-    type: "alert-ticker-card",
-    name: "AlertTicker Card",
-    description: "Display alerts based on entity states with 50 visual themes, 12 animations, snooze, numeric conditions, attribute triggers, AND/OR conditions, action buttons, and a full visual editor.",
-    preview: false,
-  });
-}
+const _atcIdx = window.customCards.findIndex((c) => c.type === "alert-ticker-card");
+const _atcEntry = {
+  type: "alert-ticker-card",
+  name: "AlertTicker Card",
+  description: "Display alerts based on entity states with 50 visual themes, 12 animations, snooze, numeric conditions, attribute triggers, AND/OR conditions, action buttons, and a full visual editor.",
+  preview: false,
+  version: CARD_VERSION,
+};
+if (_atcIdx === -1) window.customCards.push(_atcEntry);
+else window.customCards[_atcIdx] = _atcEntry;

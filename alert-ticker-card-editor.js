@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.6.4
+ * AlertTicker Card Editor v1.3.7
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.6.4";
+const CARD_VERSION = "1.3.7";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1087,11 +1087,11 @@ const ET = {
     group_secondary_text: "Testo secondario di gruppo",
     group_secondary_text_help: "Riga secondaria sotto il messaggio di gruppo. Usa {count} e {names}. Se non impostato mostra l'elenco dei nomi.",
     group_expanded_message: "Messaggio singolo (espanso)",
-    group_expanded_message_help: "Messaggio per ogni entità quando il gruppo è espanso. Usa {state}, {name}, {entity}, {device}. Supporta anche {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Messaggio per ogni entità quando il gruppo è espanso. Usa {state}, {name}, {entity}, {device}, {area}. Supporta anche {{ states('sensor.x') }}.",
     group_tap_action_section: "Tap sul gruppo — azione al tocco",
     group_hold_action_section: "Hold sul gruppo — azione pressione lunga",
     timer_theme_category: "Timer",
-    message_placeholder_hint: "Segnaposto: {name} nome entità, {state} stato, {entity} ID entità, {device} nome dispositivo",
+    message_placeholder_hint: "Segnaposto: {name} nome entità, {state} stato, {entity} ID entità, {device} nome dispositivo, {area} area",
     timer_placeholder_hint: "Usa {timer} nel messaggio per mostrare il countdown (es. 'Disabilitato per {timer}')",
     action_type: "Tipo azione",
     action_none: "Nessuna",
@@ -1104,6 +1104,10 @@ const ET = {
     action_service_data: "Dati extra (JSON opzionale)",
     action_navigate_path: "Percorso (es. /lovelace/home)",
     action_url_path: "URL da aprire",
+    action_assist: "Assistente vocale",
+    action_pipeline_id: "Pipeline (vuoto = predefinita)",
+    action_pipeline_id_help: "ID del pipeline vocale da usare. Lascia vuoto per usare quello predefinito.",
+    action_start_listening: "Avvia ascolto",
     delete_item: "Elimina",
     section_overlay: "Overlay Notifica 🔔",
     overlay_mode: "Mostra banner overlay quando scatta un avviso",
@@ -1415,11 +1419,11 @@ const ET = {
     group_secondary_text: "Group secondary text",
     group_secondary_text_help: "Secondary line below the group message. Supports {count} and {names}. If not set, shows the entity name list.",
     group_expanded_message: "Item message (expanded)",
-    group_expanded_message_help: "Message for each entity when the group is expanded. Use {state}, {name}, {entity}, {device}. Supports {{ states('sensor.x') }} templates.",
+    group_expanded_message_help: "Message for each entity when the group is expanded. Use {state}, {name}, {entity}, {device}, {area}. Supports {{ states('sensor.x') }} templates.",
     group_tap_action_section: "Group tap action",
     group_hold_action_section: "Group hold action",
     timer_theme_category: "Timer",
-    message_placeholder_hint: "Placeholders: {name} entity name, {state} state, {entity} entity ID, {device} device name",
+    message_placeholder_hint: "Placeholders: {name} entity name, {state} state, {entity} entity ID, {device} device name, {area} area",
     timer_placeholder_hint: "Use {timer} in the message to show the countdown (e.g. 'Disabled for {timer}')",
     action_type: "Action type",
     action_none: "None",
@@ -1432,6 +1436,10 @@ const ET = {
     action_service_data: "Extra data (optional JSON)",
     action_navigate_path: "Path (e.g. /lovelace/home)",
     action_url_path: "URL to open",
+    action_assist: "Assist",
+    action_pipeline_id: "Pipeline (empty = preferred)",
+    action_pipeline_id_help: "Voice pipeline ID to use. Leave empty to use the preferred pipeline.",
+    action_start_listening: "Start listening",
     delete_item: "Delete",
     section_overlay: "Overlay Notification 🔔",
     overlay_mode: "Show overlay banner when an alert triggers",
@@ -1743,11 +1751,11 @@ const ET = {
     group_secondary_text: "Texte secondaire du groupe",
     group_secondary_text_help: "Ligne secondaire sous le message du groupe. Supporte {count} et {names}. Si non défini, affiche la liste des noms.",
     group_expanded_message: "Message unitaire (développé)",
-    group_expanded_message_help: "Message affiché pour chaque entité en vue développée. Utilisez {state}, {name}, {entity}, {device}. Supporte {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Message affiché pour chaque entité en vue développée. Utilisez {state}, {name}, {entity}, {device}, {area}. Supporte {{ states('sensor.x') }}.",
     group_tap_action_section: "Action tap sur le groupe",
     group_hold_action_section: "Action appui long sur le groupe",
     timer_theme_category: "Timer",
-    message_placeholder_hint: "Variables : {name} nom entité, {state} état, {entity} ID entité, {device} nom appareil",
+    message_placeholder_hint: "Variables : {name} nom entité, {state} état, {entity} ID entité, {device} nom appareil, {area} zone",
     timer_placeholder_hint: "Utilisez {timer} dans le message pour afficher le compte à rebours (ex. 'Désactivé pour {timer}')",
     action_type: "Type d'action",
     action_none: "Aucune",
@@ -1760,6 +1768,10 @@ const ET = {
     action_service_data: "Données extra (JSON optionnel)",
     action_navigate_path: "Chemin (ex. /lovelace/home)",
     action_url_path: "URL à ouvrir",
+    action_assist: "Assistant vocal",
+    action_pipeline_id: "Pipeline (vide = préféré)",
+    action_pipeline_id_help: "ID du pipeline vocal à utiliser. Laisser vide pour utiliser le pipeline préféré.",
+    action_start_listening: "Démarrer l'écoute",
     delete_item: "Supprimer",
     section_overlay: "Notification Overlay 🔔",
     overlay_mode: "Afficher un banner overlay lorsqu'une alerte se déclenche",
@@ -2071,11 +2083,11 @@ const ET = {
     group_secondary_text: "Sekundärer Gruppentext",
     group_secondary_text_help: "Sekundärzeile unter der Gruppennachricht. Unterstützt {count} und {names}. Wenn nicht gesetzt, wird die Namensliste angezeigt.",
     group_expanded_message: "Einzelnachricht (erweitert)",
-    group_expanded_message_help: "Nachricht für jede Entität in der erweiterten Ansicht. Verwende {state}, {name}, {entity}, {device}. Unterstützt {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Nachricht für jede Entität in der erweiterten Ansicht. Verwende {state}, {name}, {entity}, {device}, {area}. Unterstützt {{ states('sensor.x') }}.",
     group_tap_action_section: "Gruppen-Tap-Aktion",
     group_hold_action_section: "Gruppen-Halte-Aktion",
     timer_theme_category: "Timer",
-    message_placeholder_hint: "Platzhalter: {name} Entitätsname, {state} Zustand, {entity} Entitäts-ID, {device} Gerätename",
+    message_placeholder_hint: "Platzhalter: {name} Entitätsname, {state} Zustand, {entity} Entitäts-ID, {device} Gerätename, {area} Bereich",
     timer_placeholder_hint: "Verwende {timer} in der Nachricht für den Countdown (z.B. 'Deaktiviert für {timer}')",
     action_type: "Aktionstyp",
     action_none: "Keine",
@@ -2088,6 +2100,10 @@ const ET = {
     action_service_data: "Zusatzdaten (optionales JSON)",
     action_navigate_path: "Pfad (z.B. /lovelace/home)",
     action_url_path: "Zu öffnende URL",
+    action_assist: "Assistent",
+    action_pipeline_id: "Pipeline (leer = bevorzugt)",
+    action_pipeline_id_help: "ID der Sprach-Pipeline. Leer lassen für die bevorzugte Pipeline.",
+    action_start_listening: "Zuhören starten",
     delete_item: "Löschen",
     section_overlay: "Overlay-Benachrichtigung 🔔",
     overlay_mode: "Overlay-Banner anzeigen wenn ein Alert ausgelöst wird",
@@ -2399,11 +2415,11 @@ const ET = {
     group_secondary_text: "Secundaire groepstekst",
     group_secondary_text_help: "Secundaire regel onder het groepsbericht. Ondersteunt {count} en {names}. Indien niet ingesteld, wordt de namenlijst weergegeven.",
     group_expanded_message: "Individueel bericht (uitgevouwen)",
-    group_expanded_message_help: "Bericht voor elke entiteit in uitgevouwen weergave. Gebruik {state}, {name}, {entity}, {device}. Ondersteunt {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Bericht voor elke entiteit in uitgevouwen weergave. Gebruik {state}, {name}, {entity}, {device}, {area}. Ondersteunt {{ states('sensor.x') }}.",
     group_tap_action_section: "Groepstik-actie",
     group_hold_action_section: "Groeps-houd-actie",
     timer_theme_category: "Timer",
-    message_placeholder_hint: "Plaatshouders: {name} entiteitsnaam, {state} toestand, {entity} entiteits-ID, {device} apparaatnaam",
+    message_placeholder_hint: "Plaatshouders: {name} entiteitsnaam, {state} toestand, {entity} entiteits-ID, {device} apparaatnaam, {area} ruimte",
     timer_placeholder_hint: "Gebruik {timer} in het bericht voor de countdown (bijv. 'Uitgeschakeld voor {timer}')",
     action_type: "Actietype",
     action_none: "Geen",
@@ -2416,6 +2432,10 @@ const ET = {
     action_service_data: "Extra gegevens (optionele JSON)",
     action_navigate_path: "Pad (bijv. /lovelace/home)",
     action_url_path: "Te openen URL",
+    action_assist: "Assistent",
+    action_pipeline_id: "Pipeline (leeg = voorkeur)",
+    action_pipeline_id_help: "ID van de spraakpipeline. Leeg laten voor de standaard pipeline.",
+    action_start_listening: "Begin met luisteren",
     delete_item: "Verwijderen",
     section_overlay: "Overlay-melding 🔔",
     overlay_mode: "Toon overlay-banner wanneer een melding activeert",
@@ -2727,11 +2747,11 @@ const ET = {
     group_secondary_text: "Văn bản phụ của nhóm",
     group_secondary_text_help: "Dòng phụ bên dưới tin nhắn nhóm. Hỗ trợ {count} và {names}. Nếu không đặt, hiển thị danh sách tên.",
     group_expanded_message: "Tin nhắn đơn (đã mở rộng)",
-    group_expanded_message_help: "Tin nhắn cho từng thực thể khi nhóm được mở rộng. Dùng {state}, {name}, {entity}, {device}. Hỗ trợ {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Tin nhắn cho từng thực thể khi nhóm được mở rộng. Dùng {state}, {name}, {entity}, {device}, {area}. Hỗ trợ {{ states('sensor.x') }}.",
     group_tap_action_section: "Hành động nhấn vào nhóm",
     group_hold_action_section: "Hành động nhấn giữ vào nhóm",
     timer_theme_category: "Hẹn giờ",
-    message_placeholder_hint: "Biến: {name} tên thực thể, {state} trạng thái, {entity} ID thực thể, {device} tên thiết bị",
+    message_placeholder_hint: "Biến: {name} tên thực thể, {state} trạng thái, {entity} ID thực thể, {device} tên thiết bị, {area} khu vực",
     timer_placeholder_hint: "Dùng {timer} trong thông báo để hiển thị đếm ngược (vd. 'Đã tắt trong {timer}')",
     action_type: "Loại hành động",
     action_none: "Không có",
@@ -2744,6 +2764,10 @@ const ET = {
     action_service_data: "Dữ liệu thêm (JSON tùy chọn)",
     action_navigate_path: "Đường dẫn (vd. /lovelace/home)",
     action_url_path: "URL cần mở",
+    action_assist: "Trợ lý giọng nói",
+    action_pipeline_id: "Pipeline (trống = mặc định)",
+    action_pipeline_id_help: "ID pipeline giọng nói. Để trống để dùng pipeline mặc định.",
+    action_start_listening: "Bắt đầu nghe",
     delete_item: "Xóa",
     section_overlay: "Thông báo Overlay 🔔",
     overlay_mode: "Hiển thị banner overlay khi có báo động mới",
@@ -3055,11 +3079,11 @@ const ET = {
     group_secondary_text: "Дополнительный текст группы",
     group_secondary_text_help: "Дополнительная строка под сообщением группы. Поддерживает {count} и {names}. Если не задано, показывает список имён.",
     group_expanded_message: "Сообщение элемента (развёрнуто)",
-    group_expanded_message_help: "Сообщение для каждой сущности при развёрнутом виде. Используйте {state}, {name}, {entity}, {device}. Поддерживает {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Сообщение для каждой сущности при развёрнутом виде. Используйте {state}, {name}, {entity}, {device}, {area}. Поддерживает {{ states('sensor.x') }}.",
     group_tap_action_section: "Действие по нажатию на группу",
     group_hold_action_section: "Действие по удержанию группы",
     timer_theme_category: "Таймер",
-    message_placeholder_hint: "Переменные: {name} имя объекта, {state} состояние, {entity} ID объекта, {device} имя устройства",
+    message_placeholder_hint: "Переменные: {name} имя объекта, {state} состояние, {entity} ID объекта, {device} имя устройства, {area} помещение",
     timer_placeholder_hint: "Используйте {timer} в сообщении для отображения обратного отсчёта (например 'Отключится через {timer}')",
     action_type: "Тип действия",
     action_none: "Нет",
@@ -3072,6 +3096,10 @@ const ET = {
     action_service_data: "Дополнительные данные (необязательный JSON)",
     action_navigate_path: "Путь (например /lovelace/home)",
     action_url_path: "URL для открытия",
+    action_assist: "Голосовой помощник",
+    action_pipeline_id: "Pipeline (пусто = по умолчанию)",
+    action_pipeline_id_help: "ID голосового pipeline. Оставьте пустым для использования pipeline по умолчанию.",
+    action_start_listening: "Начать прослушивание",
     delete_item: "Удалить",
     section_overlay: "Оверлей-уведомление 🔔",
     overlay_mode: "Показывать оверлей-баннер при срабатывании оповещения",
@@ -3379,11 +3407,11 @@ const ET = {
     group_secondary_text: "Sekundær gruppetekst",
     group_secondary_text_help: "Sekundær linje under gruppebesked. Understøtter {count} og {names}. Viser navneliste hvis ikke angivet.",
     group_expanded_message: "Enkeltbesked (udvidet)",
-    group_expanded_message_help: "Besked for hver entitet i udvidet visning. Brug {state}, {name}, {entity}, {device}. Understøtter {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Besked for hver entitet i udvidet visning. Brug {state}, {name}, {entity}, {device}, {area}. Understøtter {{ states('sensor.x') }}.",
     group_tap_action_section: "Tap-handling på gruppe",
     group_hold_action_section: "Hold-handling på gruppe",
     timer_theme_category: "Timer",
-    message_placeholder_hint: "Pladsholdere: {name} enheds‑navn, {state} tilstand, {entity} enheds‑ID, {device} enheds‑navn",
+    message_placeholder_hint: "Pladsholdere: {name} enheds‑navn, {state} tilstand, {entity} enheds‑ID, {device} enheds‑navn, {area} område",
     timer_placeholder_hint: "Brug {timer} i beskeden for at vise nedtælling (f.eks. 'Deaktiveret i {timer}')",
     action_type: "Handlingstype",
     action_none: "Ingen",
@@ -3396,6 +3424,10 @@ const ET = {
     action_service_data: "Ekstra data (valgfrit JSON)",
     action_navigate_path: "Sti (f.eks. /lovelace/home)",
     action_url_path: "URL der skal åbnes",
+    action_assist: "Assistent",
+    action_pipeline_id: "Pipeline (tom = foretrukket)",
+    action_pipeline_id_help: "ID på tale-pipeline. Lad feltet være tomt for at bruge den foretrukne pipeline.",
+    action_start_listening: "Start lytning",
     delete_item: "Slet",
     section_overlay: "Overlay-notifikation 🔔",
     overlay_mode: "Vis overlay-banner, når en advarsel udløses",
@@ -3711,11 +3743,11 @@ const ET = {
     group_secondary_text: "Sekundární text skupiny",
     group_secondary_text_help: "Sekundární řádek pod zprávou skupiny. Podporuje {count} a {names}. Pokud není nastaveno, zobrazí seznam jmen.",
     group_expanded_message: "Zpráva položky (rozbaleno)",
-    group_expanded_message_help: "Zpráva pro každou entitu v rozbalené skupině. Použijte {state}, {name}, {entity}, {device}. Podporuje {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Zpráva pro každou entitu v rozbalené skupině. Použijte {state}, {name}, {entity}, {device}, {area}. Podporuje {{ states('sensor.x') }}.",
     group_tap_action_section: "Akce při doteku skupiny",
     group_hold_action_section: "Akce při dlouhém doteku skupiny",
     timer_theme_category: "Časovač",
-    message_placeholder_hint: "Zástupná slova: {name} název entity, {state} stav, {entity} ID entity, {device} název zařízení",
+    message_placeholder_hint: "Zástupná slova: {name} název entity, {state} stav, {entity} ID entity, {device} název zařízení, {area} oblast",
     timer_placeholder_hint: "Použijte {timer} v těle zprávy pro zobrazení odpočtu (např. 'Vypnuto za {timer}')",
     action_type: "Typ akce",
     action_none: "Žádná",
@@ -3728,6 +3760,10 @@ const ET = {
     action_service_data: "Extra data (volitelně JSON)",
     action_navigate_path: "Cesta (např. /lovelace/home)",
     action_url_path: "URL k otevření",
+    action_assist: "Hlasový asistent",
+    action_pipeline_id: "Pipeline (prázdné = výchozí)",
+    action_pipeline_id_help: "ID hlasového pipeline. Nechte prázdné pro použití výchozího pipeline.",
+    action_start_listening: "Začít naslouchat",
     delete_item: "Smazat",
     section_overlay: "Překryvné oznámení 🔔",
     overlay_mode: "Zobraz překryvné oznámení při spuštění varování",
@@ -4043,11 +4079,11 @@ const ET = {
     group_secondary_text: "Texto secundário do grupo",
     group_secondary_text_help: "Linha secundária abaixo da mensagem do grupo. Suporta {count} e {names}. Se não definido, mostra a lista de nomes.",
     group_expanded_message: "Mensagem individual (expandida)",
-    group_expanded_message_help: "Mensagem para cada entidade quando o grupo está expandido. Use {state}, {name}, {entity}, {device}. Suporta {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Mensagem para cada entidade quando o grupo está expandido. Use {state}, {name}, {entity}, {device}, {area}. Suporta {{ states('sensor.x') }}.",
     group_tap_action_section: "Ação de toque no grupo",
     group_hold_action_section: "Ação de pressão longa no grupo",
     timer_theme_category: "Temporizador",
-    message_placeholder_hint: "Espaços reservados: {name} nome da entidade, {state} estado, {entity} ID da entidade, {device} nome do dispositivo",
+    message_placeholder_hint: "Espaços reservados: {name} nome da entidade, {state} estado, {entity} ID da entidade, {device} nome do dispositivo, {area} área",
     timer_placeholder_hint: "Use {timer} na mensagem para mostrar a contagem regressiva (ex. 'Desabilitado por {timer}')",
     action_type: "Tipo de ação",
     action_none: "Nenhuma",
@@ -4060,6 +4096,10 @@ const ET = {
     action_service_data: "Dados extras (JSON opcional)",
     action_navigate_path: "Caminho (ex. /lovelace/home)",
     action_url_path: "URL a abrir",
+    action_assist: "Assistente de voz",
+    action_pipeline_id: "Pipeline (vazio = padrão)",
+    action_pipeline_id_help: "ID do pipeline de voz. Deixe vazio para usar o pipeline padrão.",
+    action_start_listening: "Iniciar escuta",
     delete_item: "Excluir",
     section_overlay: "Notificação Overlay 🔔",
     overlay_mode: "Mostrar banner overlay quando um alerta disparar",
@@ -4371,11 +4411,11 @@ const ET = {
     group_secondary_text: "Texto secundario del grupo",
     group_secondary_text_help: "Línea secundaria bajo el mensaje del grupo. Admite {count} y {names}. Si no se define, muestra la lista de nombres.",
     group_expanded_message: "Mensaje individual (expandido)",
-    group_expanded_message_help: "Mensaje para cada entidad cuando el grupo está expandido. Use {state}, {name}, {entity}, {device}. Admite {{ states('sensor.x') }}.",
+    group_expanded_message_help: "Mensaje para cada entidad cuando el grupo está expandido. Use {state}, {name}, {entity}, {device}, {area}. Admite {{ states('sensor.x') }}.",
     group_tap_action_section: "Acción de toque en el grupo",
     group_hold_action_section: "Acción de pulsación larga en el grupo",
     timer_theme_category: "Temporizador",
-    message_placeholder_hint: "Marcadores: {name} nombre de entidad, {state} estado, {entity} ID de entidad, {device} nombre del dispositivo",
+    message_placeholder_hint: "Marcadores: {name} nombre de entidad, {state} estado, {entity} ID de entidad, {device} nombre del dispositivo, {area} área",
     timer_placeholder_hint: "Usa {timer} en el mensaje para mostrar la cuenta atrás (ej. 'Deshabilitado por {timer}')",
     action_type: "Tipo de acción",
     action_none: "Ninguna",
@@ -4388,6 +4428,10 @@ const ET = {
     action_service_data: "Datos extra (JSON opcional)",
     action_navigate_path: "Ruta (ej. /lovelace/home)",
     action_url_path: "URL a abrir",
+    action_assist: "Asistente de voz",
+    action_pipeline_id: "Pipeline (vacío = predeterminado)",
+    action_pipeline_id_help: "ID del pipeline de voz. Dejar vacío para usar el predeterminado.",
+    action_start_listening: "Iniciar escucha",
     delete_item: "Eliminar",
     section_overlay: "Notificación Overlay 🔔",
     overlay_mode: "Mostrar banner overlay cuando se active una alerta",
@@ -4699,11 +4743,11 @@ const ET = {
     group_secondary_text: "Grup ikincil metni",
     group_secondary_text_help: "Grup mesajının altındaki ikincil satır. {count} ve {names} destekler. Ayarlanmazsa, varlık adı listesini gösterir.",
     group_expanded_message: "Öğe mesajı (genişletilmiş)",
-    group_expanded_message_help: "Grup genişletildiğinde her varlık için mesaj. {state}, {name}, {entity}, {device} kullanın. {{ states('sensor.x') }} şablonlarını destekler.",
+    group_expanded_message_help: "Grup genişletildiğinde her varlık için mesaj. {state}, {name}, {entity}, {device}, {area} kullanın. {{ states('sensor.x') }} şablonlarını destekler.",
     group_tap_action_section: "Grup dokunma eylemi",
     group_hold_action_section: "Grup basılı tutma eylemi",
     timer_theme_category: "Zamanlayıcı",
-    message_placeholder_hint: "Yer tutucular: {name} varlık adı, {state} durum, {entity} varlık kimliği, {device} cihaz adı",
+    message_placeholder_hint: "Yer tutucular: {name} varlık adı, {state} durum, {entity} varlık kimliği, {device} cihaz adı, {area} alan",
     timer_placeholder_hint: "Geri sayımı göstermek için mesajda {timer} kullanın (örn. 'Devre dışı {timer}')",
     action_type: "Eylem türü",
     action_none: "Hiçbiri",
@@ -4716,6 +4760,10 @@ const ET = {
     action_service_data: "Ekstra veri (isteğe bağlı JSON)",
     action_navigate_path: "Yol (örn. /lovelace/home)",
     action_url_path: "Açılacak URL",
+    action_assist: "Sesli asistan",
+    action_pipeline_id: "Pipeline (boş = tercih edilen)",
+    action_pipeline_id_help: "Kullanılacak sesli pipeline ID'si. Tercih edilen pipeline için boş bırakın.",
+    action_start_listening: "Dinlemeyi başlat",
     delete_item: "Sil",
     section_overlay: "Overlay Bildirimi 🔔",
     overlay_mode: "Uyarı tetiklendiğinde overlay banner göster",
@@ -7522,7 +7570,7 @@ class AlertTickerCardEditor extends LitElement {
         <select class="native-select"
           @change="${(e) => this._setActionConfig(index, key, "action", e.target.value)}"
         >
-          ${["none","call-service","navigate","more-info","url"].map((t) => html`
+          ${["none","call-service","navigate","more-info","url","assist"].map((t) => html`
             <option value="${t}" ?selected="${type === t}">
               ${this._t("action_" + t.replace("-","_")) || t}
             </option>
@@ -7560,6 +7608,23 @@ class AlertTickerCardEditor extends LitElement {
           @change="${(e) => this._setActionConfig(index, key, "url_path", e.target.value)}"
         ></ha-input>
       ` : ""}
+      ${type === "assist" ? html`
+        <ha-input
+          .label="${this._t("action_pipeline_id")}"
+          .value="${cfg.pipeline_id || ""}"
+          @change="${(e) => this._setActionConfig(index, key, "pipeline_id", e.target.value)}"
+        ></ha-input>
+        <div class="helper-text">${this._t("action_pipeline_id_help")}</div>
+        <div class="form-row">
+          <div class="form-row-inline">
+            <span>${this._t("action_start_listening")}</span>
+            <ha-switch
+              .checked="${cfg.start_listening ?? false}"
+              @change="${(e) => this._setActionConfig(index, key, "start_listening", e.target.checked)}"
+            ></ha-switch>
+          </div>
+        </div>
+      ` : ""}
     `;
   }
 
@@ -7574,7 +7639,7 @@ class AlertTickerCardEditor extends LitElement {
         <select class="native-select"
           @change="${(e) => this._setCardActionConfig(configKey, "action", e.target.value)}"
         >
-          ${["none","call-service","navigate","more-info","url"].map((t) => html`
+          ${["none","call-service","navigate","more-info","url","assist"].map((t) => html`
             <option value="${t}" ?selected="${type === t}">
               ${this._t("action_" + t.replace("-","_")) || t}
             </option>
@@ -7611,6 +7676,23 @@ class AlertTickerCardEditor extends LitElement {
           .value="${cfg.url_path || ""}"
           @change="${(e) => this._setCardActionConfig(configKey, "url_path", e.target.value)}"
         ></ha-input>
+      ` : ""}
+      ${type === "assist" ? html`
+        <ha-input
+          .label="${this._t("action_pipeline_id")}"
+          .value="${cfg.pipeline_id || ""}"
+          @change="${(e) => this._setCardActionConfig(configKey, "pipeline_id", e.target.value)}"
+        ></ha-input>
+        <div class="helper-text">${this._t("action_pipeline_id_help")}</div>
+        <div class="form-row">
+          <div class="form-row-inline">
+            <span>${this._t("action_start_listening")}</span>
+            <ha-switch
+              .checked="${cfg.start_listening ?? false}"
+              @change="${(e) => this._setCardActionConfig(configKey, "start_listening", e.target.checked)}"
+            ></ha-switch>
+          </div>
+        </div>
       ` : ""}
     `;
   }

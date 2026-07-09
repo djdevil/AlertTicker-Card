@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.7] - 2026-07-09
+
+### Fixed
+
+- **Test mode preview shows wrong alert when config has `group: true` alerts** ([#173](https://github.com/djdevil/AlertTicker-Card/issues/173)) — the test mode `findIndex` ran on the pre-grouping `active` array, then `_activeAlerts` was set to the post-grouping array after the grouping pass. Alerts with `group: true` collapse N entities into 1 slide, shifting positions for all subsequent alerts. The stored `_currentIndex` (pre-grouping) then pointed to the wrong entry in the post-grouping array. Fixed by moving the test mode index resolution to after the grouping pass so `_currentIndex` is always consistent with the final `_activeAlerts`. Priority-1 alerts appeared correct only because they sorted before the group entries and were unaffected by the position shift.
+
+### Added
+
+- **`assist` action for all tap/hold/snooze slots** ([#180](https://github.com/djdevil/AlertTicker-Card/discussions/180)) — new action type `assist` opens the Home Assistant voice assistant dialog directly from any action slot (`tap_action`, `hold_action`, `double_tap_action`, `snooze_action`, `clear_tap_action`, `clear_hold_action`, `clear_double_tap_action`, `group_tap_action`, `group_hold_action`). Supports two optional parameters: `pipeline_id` (ID of the voice pipeline to use; defaults to the HA-preferred pipeline when left empty) and `start_listening` (boolean; when `true`, the microphone opens immediately without requiring the user to tap the mic button). Both parameters are exposed in the visual editor for all action slots, with translations in all 12 supported languages.
+
+- **`{area}` placeholder in alert messages** ([#166](https://github.com/djdevil/AlertTicker-Card/discussions/166)) — new `{area}` token resolves to the HA area name assigned to the entity (or to its parent device as fallback). Works in `message`, `secondary_text`, `tts_message`, `push_notify_title`, `push_notify_message`, `group_expanded_message` and all other fields that support placeholders. The overlay notification engine also resolves `{area}` in the same way. Entity area assignment takes priority over device area assignment. If the entity has no area, the result is an empty string.
+
+---
+
 ## [1.3.6.4] - 2026-07-09
 
 ### Fixed
