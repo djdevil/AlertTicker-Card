@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.6
+ * AlertTicker Card v1.3.6.2
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.6";
+const CARD_VERSION = "1.3.6.2";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1673,6 +1673,7 @@ class AlertTickerCard extends LitElement {
     this._forecastData = [];
     this._forecastEntity = null;
     this._forecastUnsub = null;
+    this._lastConnSocket = null;
     this._wfShowForecast = false;
     this._wfForecastShown = false;
     this._wfFlipTimer = null;
@@ -2379,6 +2380,13 @@ class AlertTickerCard extends LitElement {
       if (this._forecastUnsub) { try { this._forecastUnsub(); } catch (_) {} this._forecastUnsub = null; this._forecastEntity = null; }
       this._stopWfFlipTimer();
       return;
+    }
+    // Detect WebSocket reconnect (HA restart): connection.socket is a new object on reconnect.
+    // When detected, reset forecastEntity so the subscription is re-established.
+    const curSocket = hass.connection?.socket;
+    if (curSocket && curSocket !== this._lastConnSocket) {
+      this._lastConnSocket = curSocket;
+      this._forecastEntity = null;
     }
     const ws = hass.states[entity];
     if (!ws) return;
@@ -4029,6 +4037,7 @@ class AlertTickerCard extends LitElement {
     this._tmplCache.clear();
     // Unsubscribe weather forecast subscription and flip timer
     if (this._forecastUnsub) { try { this._forecastUnsub(); } catch (_) {} this._forecastUnsub = null; }
+    this._forecastEntity = null;
     this._stopWfFlipTimer();
     // Cancel all auto_dismiss / on_change / trigger_delay timers
     Object.values(this._autoDismissTimers).forEach(t => clearTimeout(t));
@@ -6854,7 +6863,11 @@ class AlertTickerCard extends LitElement {
       .at-fold-wrapper.atc-no-anim .w-hail-drop,
       .at-fold-wrapper.atc-no-anim .w-lightning-bolt,
       .at-fold-wrapper.atc-no-anim .w-exceptional-particle,
+      .at-fold-wrapper.atc-no-anim .w-snowflake,
+      .at-fold-wrapper.atc-no-anim .w-shooting-star,
       .at-fold-wrapper.atc-no-anim .sun-rays-wrap,
+      .at-fold-wrapper.atc-no-anim .sun-halo,
+      .at-fold-wrapper.atc-no-anim .sun-core,
       .at-fold-wrapper.atc-no-anim .w-moon,
       .at-fold-wrapper.atc-no-anim .w-star,
       .at-fold-wrapper.atc-no-anim .w-cloud          { animation-play-state: paused !important; }

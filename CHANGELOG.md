@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.6.2] - 2026-07-09
+
+### Fixed
+
+- **Weather widget stops displaying after HA restart** ([#181](https://github.com/djdevil/AlertTicker-Card/issues/181)) — after a Home Assistant restart, the `weather/subscribe_forecast` WebSocket subscription is killed server-side. The subscribe guard (`entity !== this._forecastEntity`) correctly skipped redundant re-subscriptions during normal operation but also blocked re-subscription after a reconnect, leaving the weather forecast permanently stale or blank until the browser was refreshed. Fixed with two changes: (1) `hass.connection.socket` is tracked — when it becomes a new object (new WebSocket after reconnect), `_forecastEntity` is reset to force a fresh subscription; (2) `_forecastEntity` is also reset in `disconnectedCallback` so that Lovelace card remounts (e.g. dashboard navigation) always trigger a clean re-subscription.
+
+- **`disable_animation` / `clear_disable_animation` still animating sun core, halo, shooting star, and snowflakes** ([#172](https://github.com/djdevil/AlertTicker-Card/issues/172)) — four weather elements were absent from the `animation-play-state: paused !important` rule: `.sun-core` (pulsing glow), `.sun-halo` (floating halo), `.w-shooting-star` (shooting star trail), and `.w-snowflake` (falling snowflakes). All four are now included, completing full animation suppression for the All Clear weather widget.
+
+---
+
 ## [1.3.6] - 2026-07-09
 
 ### Added
