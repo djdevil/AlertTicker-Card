@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.6.3
+ * AlertTicker Card v1.3.6.4
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.6.3";
+const CARD_VERSION = "1.3.6.4";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1673,7 +1673,8 @@ class AlertTickerCard extends LitElement {
     this._forecastData = [];
     this._forecastEntity = null;
     this._forecastUnsub = null;
-    this._lastConnSocket = null;
+    this._haStartedSetup = false;
+    this._haStartedUnsub = null;
     this._wfShowForecast = false;
     this._wfForecastShown = false;
     this._wfFlipTimer = null;
@@ -1795,6 +1796,22 @@ class AlertTickerCard extends LitElement {
     this._syncTemplates();
     this._computeActiveAlerts();
     this._updateWeather(hass);
+    // One-time setup: subscribe to homeassistant_started so the weather/subscribe_forecast
+    // subscription is re-established after every HA restart without a page reload.
+    // subscribeEvents auto-resubscribes after WebSocket reconnects, so this listener
+    // survives the connection drop and fires once HA has fully started again.
+    if (!this._haStartedSetup && hass?.connection) {
+      this._haStartedSetup = true;
+      hass.connection.subscribeEvents(
+        () => {
+          this._forecastEntity = null;
+          if (this._hass) this._updateWeather(this._hass);
+        },
+        'homeassistant_started'
+      ).then(unsub => { this._haStartedUnsub = unsub; }).catch(() => {
+        this._haStartedSetup = false;
+      });
+    }
   }
 
   // ---- Translation helper --------------------------------------------------
@@ -2380,13 +2397,6 @@ class AlertTickerCard extends LitElement {
       if (this._forecastUnsub) { try { this._forecastUnsub(); } catch (_) {} this._forecastUnsub = null; this._forecastEntity = null; }
       this._stopWfFlipTimer();
       return;
-    }
-    // Detect WebSocket reconnect (HA restart): connection.socket is a new object on reconnect.
-    // When detected, reset forecastEntity so the subscription is re-established.
-    const curSocket = hass.connection?.socket;
-    if (curSocket && curSocket !== this._lastConnSocket) {
-      this._lastConnSocket = curSocket;
-      this._forecastEntity = null;
     }
     const ws = hass.states[entity];
     if (!ws) return;
@@ -4038,6 +4048,8 @@ class AlertTickerCard extends LitElement {
     // Unsubscribe weather forecast subscription and flip timer
     if (this._forecastUnsub) { try { this._forecastUnsub(); } catch (_) {} this._forecastUnsub = null; }
     this._forecastEntity = null;
+    this._haStartedSetup = false;
+    if (this._haStartedUnsub) { try { this._haStartedUnsub(); } catch (_) {} this._haStartedUnsub = null; }
     this._stopWfFlipTimer();
     // Cancel all auto_dismiss / on_change / trigger_delay timers
     Object.values(this._autoDismissTimers).forEach(t => clearTimeout(t));

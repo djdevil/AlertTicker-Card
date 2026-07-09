@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.6.4] - 2026-07-09
+
+### Fixed
+
+- **Weather widget stops displaying after HA restart — revised fix** ([#181](https://github.com/djdevil/AlertTicker-Card/issues/181)) — the v1.3.6.2 fix tracked `hass.connection.socket` to detect WebSocket reconnects, but this property is not reliably accessible across HA versions and the fix had no effect. Replaced with a `homeassistant_started` event subscription (`hass.connection.subscribeEvents`). Unlike `subscribeMessage`, `subscribeEvents` auto-resubscribes after every WebSocket reconnect, so it survives the connection drop and fires exactly once when HA has fully restarted. The callback resets `_forecastEntity` and immediately re-establishes the `weather/subscribe_forecast` subscription, restoring the weather display without a page reload.
+
+---
+
 ## [1.3.6.3] - 2026-07-09
 
 ### Fixed
