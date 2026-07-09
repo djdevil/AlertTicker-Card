@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.6.2
+ * AlertTicker Card v1.3.6.3
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.6.2";
+const CARD_VERSION = "1.3.6.3";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -5695,7 +5695,7 @@ class AlertTickerCard extends LitElement {
           const wPu = wHasAction ? (e) => this._onPointerUp(e)  : null;
           const wPl = wHasAction ? ()  => this._cancelHold()    : null;
           return html`<div class="atc-card-root"><div class="${this._hostClass}"><div class="atc-inner-clip">
-            <div class="${wHasAction ? "atc-clickable" : ""}"
+            <div class="at-fold-wrapper${(this._config?.disable_animation || this._config?.clear_disable_animation) ? " atc-no-anim" : ""}${wHasAction ? " atc-clickable" : ""}"
               @pointerdown="${wPd}" @pointerup="${wPu}"
               @pointerleave="${wPl}" @pointercancel="${wPl}">${widget}</div>
           </div>${clearSnoozedPill}</div></div>`;
@@ -5853,7 +5853,7 @@ class AlertTickerCard extends LitElement {
       <div class="atc-card-root">
         <div class="${this._hostClass}">
           <div class="atc-inner-clip${accentCls}" style="${accentSty}">
-            <div class="at-fold-wrapper ${this._animPhase}${hasInteraction ? " atc-clickable" : ""}${(current?.disable_animation || this._config?.disable_animation) ? " atc-no-anim" : ""}"
+            <div class="at-fold-wrapper ${this._animPhase}${hasInteraction ? " atc-clickable" : ""}${(current?.disable_animation || this._config?.disable_animation || (isWidgetSlide && this._config?.clear_disable_animation)) ? " atc-no-anim" : ""}"
               data-anim="${this._config.cycle_animation || "fold"}"
               @pointerdown="${pdHandler}" @pointerup="${puHandler}"
               @pointerleave="${plHandler}" @pointercancel="${plHandler}"

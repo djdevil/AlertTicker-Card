@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.6.3] - 2026-07-09
+
+### Fixed
+
+- **`disable_animation` / `clear_disable_animation` not suppressing weather animations when `show_when_clear: true`** ([#172](https://github.com/djdevil/AlertTicker-Card/issues/172)) — the `show_when_clear` render path wrapped the weather widget in a plain `<div>` with no `at-fold-wrapper` class. Because all the `animation-play-state: paused` rules are scoped to `.at-fold-wrapper.atc-no-anim`, the class was never applied and animations continued regardless of the flag. Fixed by adding `at-fold-wrapper` (and the `atc-no-anim` guard) to that wrapper. The same missing check is also patched for the `show_widget_in_cycle` path, which now respects `clear_disable_animation` when the weather widget is the active slide.
+
+---
+
 ## [1.3.6.2] - 2026-07-09
 
 ### Fixed
