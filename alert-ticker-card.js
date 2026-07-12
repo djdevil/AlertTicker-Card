@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.7
+ * AlertTicker Card v1.3.8
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.7";
+const CARD_VERSION = "1.3.8";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1808,7 +1808,9 @@ class AlertTickerCard extends LitElement {
     // subscription is re-established after every HA restart without a page reload.
     // subscribeEvents auto-resubscribes after WebSocket reconnects, so this listener
     // survives the connection drop and fires once HA has fully started again.
-    if (!this._haStartedSetup && hass?.connection) {
+    // Guard: homeassistant_started is admin-only in HA — non-admin users get an
+    // Unauthorized error on every hass update, flooding the log (#182).
+    if (!this._haStartedSetup && hass?.connection && hass.user?.is_admin === true) {
       this._haStartedSetup = true;
       hass.connection.subscribeEvents(
         () => {

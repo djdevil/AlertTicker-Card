@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.8] - 2026-07-11
+
+### Fixed
+
+- **Non-admin users flood HA log with "Refusing to allow … to subscribe to event homeassistant_started" / "Unauthorized" errors** ([#182](https://github.com/djdevil/AlertTicker-Card/issues/182)) — `homeassistant_started` is an admin-only event in Home Assistant. The subscription attempt added in v1.3.6.4 (to re-establish the weather forecast after an HA restart) always returned `Unauthorized` for non-admin users. Because the `.catch()` handler reset the setup flag on every failure, the card retried on every `set hass()` call — which fires every few seconds on any state change — producing thousands of paired error log entries within minutes. Fixed by adding a `hass.user?.is_admin === true` guard before the subscription attempt. Non-admin users never attempt the subscription, so no errors are generated. Admin users retain the full reconnection behavior. Non-admin users lose only the automatic re-subscription after an HA restart (a browser refresh after a restart still works normally).
+
+---
+
 ## [1.3.7] - 2026-07-09
 
 ### Fixed
