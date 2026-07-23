@@ -3,7 +3,7 @@
 A custom Lovelace card to display alerts and notifications based on entity states. Supports **52 visual themes** (including 4 dedicated timer themes, 8 spectacular 3D themes, and 2 weather forecast themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **mobile push notifications**, **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.3.8-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.3.9-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -517,7 +517,7 @@ Instead of listing individual entities or writing a text filter, specify a HA de
   state: "15"
   message: "Low battery: {name} ({state}%)"
   theme: battery
-  device_class_exclude:
+  entity_filter_exclude:
     - sensor.battery_test_device
 ```
 
@@ -1094,9 +1094,8 @@ The tab shows an **ON** badge when overlay mode is active.
 | `name` | `string` | ❌ | Editor display label for this alert panel |
 | `entity` | `string` | ✅* | Entity ID |
 | `entity_filter` | `string` | ✅* | Text filter — supports `*` wildcard (replaces `entity`) |
-| `entity_filter_exclude` | `list` | ❌ | Entity IDs to exclude from filter |
+| `entity_filter_exclude` | `list` | ❌ | Entity IDs to exclude from `entity_filter` or `device_class` match |
 | `device_class` | `string` | ✅* | HA device class (e.g. `smoke`, `battery`, `motion`) — auto-discovers all matching entities |
-| `device_class_exclude` | `list` | ❌ | Entity IDs to exclude from device class match |
 | `show_filter_name` | `boolean` | `true` | Set `false` to hide the entity friendly name below the message |
 | `attribute` | `string` | ❌ | Attribute to check instead of state — supports dot-notation (e.g. `activity.0.forecast`) |
 | `operator` | `string` | ❌ | `=` `!=` `>` `<` `>=` `<=` `contains` `not_contains` (default: `=`) |

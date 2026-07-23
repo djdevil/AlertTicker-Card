@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.8
+ * AlertTicker Card v1.3.9
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.8";
+const CARD_VERSION = "1.3.9";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1066,7 +1066,7 @@ const _ATC_OVERLAY = (() => {
     const hasWild = f.includes("*");
     const re = hasWild ? new RegExp("^" + f.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$") : null;
     const matchFn = f ? ((t) => hasWild ? re.test(t.toLowerCase()) : t.toLowerCase().includes(f)) : null;
-    const excluded = new Set(a.entity_filter_exclude || []);
+    const excluded = new Set(a.entity_filter_exclude || a.device_class_exclude || []);
     const labelFilter = a.label_filter ? (Array.isArray(a.label_filter) ? a.label_filter : [a.label_filter]) : null;
     const areaFilter  = a.area_filter  ? (Array.isArray(a.area_filter)  ? a.area_filter  : [a.area_filter])  : null;
     for (const [eid, es] of Object.entries(hass.states)) {
@@ -1104,7 +1104,7 @@ const _ATC_OVERLAY = (() => {
     const hasWild = f.includes("*");
     const re = hasWild ? new RegExp("^" + f.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$") : null;
     const matchFn = f ? ((t) => hasWild ? re.test(t.toLowerCase()) : t.toLowerCase().includes(f)) : null;
-    const excluded = new Set(a.entity_filter_exclude || []);
+    const excluded = new Set(a.entity_filter_exclude || a.device_class_exclude || []);
     const labelFilter = a.label_filter ? (Array.isArray(a.label_filter) ? a.label_filter : [a.label_filter]) : null;
     const areaFilter  = a.area_filter  ? (Array.isArray(a.area_filter)  ? a.area_filter  : [a.area_filter])  : null;
     const result = [];
@@ -1882,7 +1882,7 @@ class AlertTickerCard extends LitElement {
       const alert = this._config.alerts[idx];
       if ((alert.entity_filter || alert.device_class || alert.label_filter || alert.area_filter) && !alert.entity) {
         const matchFn = alert.entity_filter ? this._buildFilterMatcher(alert.entity_filter) : null;
-        const excluded = new Set(alert.entity_filter_exclude || []);
+        const excluded = new Set(alert.entity_filter_exclude || alert.device_class_exclude || []);
         const labelFilter = alert.label_filter ? (Array.isArray(alert.label_filter) ? alert.label_filter : [alert.label_filter]) : null;
         const areaFilter  = alert.area_filter  ? (Array.isArray(alert.area_filter)  ? alert.area_filter  : [alert.area_filter])  : null;
         const matched = Object.entries(this._hass.states).filter(([entityId, state]) => {
@@ -5322,7 +5322,7 @@ class AlertTickerCard extends LitElement {
       <div class="at-countdown ${urgent ? "cd-urgent" : ""}">
         <div class="cd-icon">${icon}</div>
         <div class="cd-content">
-          <div class="cd-badge">${isActive ? this._t("timer_active") : this._t("timer_done")}</div>
+          ${alert.show_badge !== false ? html`<div class="cd-badge">${alert.badge_label || (isActive ? this._t("timer_active") : this._t("timer_done"))}</div>` : ""}
           <div class="cd-title">${message}</div>
           ${this._renderSecondaryValue(alert)}
         </div>
@@ -5350,7 +5350,7 @@ class AlertTickerCard extends LitElement {
         <div class="hg2-fill" style="height:${fillH}%;background:${color}20"></div>
         <div class="hg2-icon">${icon}</div>
         <div class="hg2-content">
-          <div class="hg2-badge">${isActive ? this._t("timer_active") : this._t("timer_done")}</div>
+          ${alert.show_badge !== false ? html`<div class="hg2-badge">${alert.badge_label || (isActive ? this._t("timer_active") : this._t("timer_done"))}</div>` : ""}
           <div class="hg2-title">${message}</div>
           ${this._renderSecondaryValue(alert)}
         </div>
@@ -5373,7 +5373,7 @@ class AlertTickerCard extends LitElement {
       <div class="at-timer-pulse" style="--tp-color:${color};--tp-speed:${speed}s">
         <div class="tp-icon">${icon}</div>
         <div class="tp-content">
-          <div class="tp-badge">${isActive ? this._t("timer_active") : this._t("timer_done")}</div>
+          ${alert.show_badge !== false ? html`<div class="tp-badge">${alert.badge_label || (isActive ? this._t("timer_active") : this._t("timer_done"))}</div>` : ""}
           <div class="tp-title">${message}</div>
           ${this._renderSecondaryValue(alert)}
         </div>
@@ -5398,7 +5398,7 @@ class AlertTickerCard extends LitElement {
       <div class="at-timer-ring">
         <div class="tr2-icon">${icon}</div>
         <div class="tr2-content">
-          <div class="tr2-badge">${isActive ? this._t("timer_active") : this._t("timer_done")}</div>
+          ${alert.show_badge !== false ? html`<div class="tr2-badge">${alert.badge_label || (isActive ? this._t("timer_active") : this._t("timer_done"))}</div>` : ""}
           <div class="tr2-title">${message}</div>
           ${this._renderSecondaryValue(alert)}
         </div>

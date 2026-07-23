@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9] - 2026-07-23
+
+### Fixed
+
+- **`device_class_exclude` documented but only `entity_filter_exclude` worked in code** ([#184](https://github.com/djdevil/AlertTicker-Card/issues/184)) — The README showed `device_class_exclude` as the key to exclude specific entity IDs from a `device_class`-based alert, but the code only checked `entity_filter_exclude`. Fixed by aliasing both keys (`entity_filter_exclude || device_class_exclude`) in all three places where exclusions are evaluated. Existing configs using either key now work correctly. The README example has also been updated to use `entity_filter_exclude` consistently.
+- **Countdown/timer theme badge ignores `show_badge` and `badge_label`** ([#183](https://github.com/djdevil/AlertTicker-Card/issues/183)) — Timer themes (`countdown`, `hourglass`, `timer_pulse`, `timer_ring`) hardcoded the badge to the translated "Running" / "Expired" strings and never checked the `show_badge` or `badge_label` config keys. Setting `show_badge: false` had no effect, and `badge_label` was silently ignored. Fixed by updating all four timer render methods to respect `show_badge: false` (hides the badge) and `badge_label` (overrides the default text). Both fields were already accessible in the visual editor and continue to work as documented for all other themes.
+
+---
+
 ## [1.3.8] - 2026-07-11
 
 ### Fixed
