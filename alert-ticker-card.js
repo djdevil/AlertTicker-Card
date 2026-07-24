@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.9
+ * AlertTicker Card v1.3.9.1
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -27,7 +27,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9";
+const CARD_VERSION = "1.3.9.1";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -9948,8 +9948,10 @@ class AlertTickerCard extends LitElement {
         width: 100% !important;
       }
 
-      /* Core: flip theme card to vertical stacking */
-      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-cam-bg-wrap),
+      /* Core: flip theme card to vertical stacking.
+         atc-wf-wrap is excluded: it is a CSS Grid container, not an alert theme div.
+         Applying align-items:center to it would collapse the grid slots (#185). */
+      .atc-vertical .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-cam-bg-wrap):not(.atc-wf-wrap),
       .atc-vertical .atc-cam-bg-content > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player) {
         flex-direction: column !important;
         align-items: center !important;
@@ -9957,6 +9959,14 @@ class AlertTickerCard extends LitElement {
         text-align: center !important;
         padding: 20px 18px 16px !important;
         gap: 6px !important;
+      }
+      /* Weather+Forecast alternating: slots and panels must fill the full grid height */
+      .atc-vertical .atc-wf-slot {
+        height: 100%;
+      }
+      .atc-vertical .atc-wf-slot > .atc-clear-widget {
+        height: 100%;
+        min-height: 0;
       }
 
       /* Icon: was flex-shrink on left edge, now centered at top */

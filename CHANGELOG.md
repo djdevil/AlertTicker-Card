@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.1] - 2026-07-24
+
+### Fixed
+
+- **Weather + Forecast (alternating) renders small and centered in vertical mode** ([#185](https://github.com/djdevil/AlertTicker-Card/issues/185)) — In `vertical: true` mode, the CSS rule that flips alert theme cards to vertical stacking was unintentionally matching `atc-wf-wrap` (the CSS Grid container for the alternating widget). Applying `align-items: center !important` to a grid container overrides the default `align-self: stretch` on its children, collapsing the two slot divs to content height instead of filling the available space. Fixed by adding `:not(.atc-wf-wrap)` to the vertical rule selector, and adding dedicated `height: 100%` rules for the slot and panel elements in vertical mode. Individual `weather` and `forecast` modes were not affected.
+
+---
+
 ## [1.3.9] - 2026-07-23
 
 ### Fixed
