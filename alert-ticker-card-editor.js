@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.9.8.3
+ * AlertTicker Card Editor v1.3.9.8.4
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.9.8.3";
+const CARD_VERSION = "1.3.9.8.4";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1063,6 +1063,7 @@ const ET = {
     secondary_text_help: "Testo fisso mostrato sotto il messaggio. Supporta {state}, {name}, {entity}. Non richiede un'entità sensore.",
     show_filter_name: "Mostra nome entità (da entity_filter)",
     show_filter_state: "Mostra stato",
+    battery_trim_name: "Rimuovi suffisso «Battery» dal nome",
     secondary_attribute: "Attributo valore secondario",
     show_secondary_name: "Mostra nome entità affianco al valore",
     conditions_section: "Condizioni aggiuntive",
@@ -1155,6 +1156,9 @@ const ET = {
     music_show_title: "Mostra titolo brano",
     music_show_artist: "Mostra artista",
     music_show_controls: "Mostra controlli di riproduzione",
+    music_show_power: "Pulsante di spegnimento",
+    music_show_player_picker: "Selettore lettore",
+    music_compact_layout: "Layout compatto (metadati in alto a destra)",
   },
   en: {
     tab_general: "General",
@@ -1406,6 +1410,7 @@ const ET = {
     secondary_text_help: "Fixed text shown below the message. Supports {state}, {name}, {entity}. No sensor entity required.",
     show_filter_name: "Show entity name (from entity_filter)",
     show_filter_state: "Show state",
+    battery_trim_name: "Strip «Battery» suffix from entity name",
     secondary_attribute: "Secondary value attribute",
     show_secondary_name: "Show entity name next to value",
     conditions_section: "Extra conditions",
@@ -1498,6 +1503,9 @@ const ET = {
     music_show_title: "Show track title",
     music_show_artist: "Show artist",
     music_show_controls: "Show playback controls",
+    music_show_power: "Power button",
+    music_show_player_picker: "Player selector",
+    music_compact_layout: "Compact layout (metadata top-right)",
   },
   fr: {
     tab_general: "Général",
@@ -1749,6 +1757,7 @@ const ET = {
     secondary_text_help: "Texte fixe affiché sous le message. Supporte {state}, {name}, {entity}. Aucune entité capteur requise.",
     show_filter_name: "Afficher le nom de l'entité (depuis entity_filter)",
     show_filter_state: "Afficher l'état",
+    battery_trim_name: "Supprimer le suffixe «Battery» du nom",
     secondary_attribute: "Attribut valeur secondaire",
     show_secondary_name: "Afficher le nom de l'entité à côté de la valeur",
     conditions_section: "Conditions supplémentaires",
@@ -1841,6 +1850,9 @@ const ET = {
     music_show_title: "Afficher le titre de la piste",
     music_show_artist: "Afficher l'artiste",
     music_show_controls: "Afficher les commandes de lecture",
+    music_show_power: "Bouton d'alimentation",
+    music_show_player_picker: "Sélecteur de lecteur",
+    music_compact_layout: "Mise en page compacte (métadonnées en haut à droite)",
   },
   de: {
     tab_general: "Allgemein",
@@ -2092,6 +2104,7 @@ const ET = {
     secondary_text_help: "Fester Text unter der Nachricht. Unterstützt {state}, {name}, {entity}. Kein Sensor-Entity erforderlich.",
     show_filter_name: "Entity-Name anzeigen (aus entity_filter)",
     show_filter_state: "Zustand anzeigen",
+    battery_trim_name: "«Battery»-Suffix aus dem Namen entfernen",
     secondary_attribute: "Sekundärwert-Attribut",
     show_secondary_name: "Entity-Name neben dem Wert anzeigen",
     conditions_section: "Zusätzliche Bedingungen",
@@ -2184,6 +2197,9 @@ const ET = {
     music_show_title: "Titel anzeigen",
     music_show_artist: "Interpret anzeigen",
     music_show_controls: "Wiedergabesteuerung anzeigen",
+    music_show_power: "Ausschalttaste",
+    music_show_player_picker: "Player-Auswahl",
+    music_compact_layout: "Kompaktes Layout (Metadaten oben rechts)",
   },
   nl: {
     tab_general: "Algemeen",
@@ -2435,6 +2451,7 @@ const ET = {
     secondary_text_help: "Vaste tekst onder het bericht. Ondersteunt {state}, {name}, {entity}. Geen sensor-entiteit vereist.",
     show_filter_name: "Entiteitsnaam weergeven (uit entity_filter)",
     show_filter_state: "Status weergeven",
+    battery_trim_name: "«Battery»-achtervoegsel uit naam verwijderen",
     secondary_attribute: "Secundaire waarde-attribuut",
     show_secondary_name: "Entiteitsnaam naast waarde weergeven",
     conditions_section: "Extra voorwaarden",
@@ -2527,6 +2544,9 @@ const ET = {
     music_show_title: "Nummertitel tonen",
     music_show_artist: "Artiest tonen",
     music_show_controls: "Afspeelknoppen tonen",
+    music_show_power: "Uitknop",
+    music_show_player_picker: "Spelerkeuze",
+    music_compact_layout: "Compact layout (metadata rechtsboven)",
   },
   vi: {
     tab_general: "Chung",
@@ -2778,6 +2798,7 @@ const ET = {
     secondary_text_help: "Văn bản cố định hiển thị bên dưới thông báo. Hỗ trợ {state}, {name}, {entity}. Không cần thực thể cảm biến.",
     show_filter_name: "Hiển thị tên thực thể (từ entity_filter)",
     show_filter_state: "Hiển thị trạng thái",
+    battery_trim_name: "Xóa hậu tố «Battery» khỏi tên",
     secondary_attribute: "Thuộc tính giá trị phụ",
     show_secondary_name: "Hiển thị tên thực thể bên cạnh giá trị",
     conditions_section: "Điều kiện bổ sung",
@@ -2870,6 +2891,9 @@ const ET = {
     music_show_title: "Hiển thị tiêu đề",
     music_show_artist: "Hiển thị nghệ sĩ",
     music_show_controls: "Hiển thị điều khiển phát",
+    music_show_power: "Nút tắt nguồn",
+    music_show_player_picker: "Bộ chọn trình phát",
+    music_compact_layout: "Bố cục thu gọn (siêu dữ liệu góc trên bên phải)",
   },
   ru: {
     tab_general: "Основное",
@@ -3121,6 +3145,7 @@ const ET = {
     secondary_text_help: "Фиксированный текст под сообщением. Поддерживает {state}, {name}, {entity}. Не требует датчика.",
     show_filter_name: "Показывать имя объекта (из entity_filter)",
     show_filter_state: "Показывать состояние",
+    battery_trim_name: "Убрать суффикс «Battery» из имени",
     secondary_attribute: "Атрибут вторичного значения",
     show_secondary_name: "Показывать имя объекта рядом со значением",
     conditions_section: "Дополнительные условия",
@@ -3213,6 +3238,9 @@ const ET = {
     music_show_title: "Показать название",
     music_show_artist: "Показать исполнителя",
     music_show_controls: "Показать элементы управления",
+    music_show_power: "Кнопка питания",
+    music_show_player_picker: "Выбор плеера",
+    music_compact_layout: "Компактный режим (метаданные справа вверху)",
   },
   da: {
     tab_general: "Generelt",
@@ -3460,6 +3488,7 @@ const ET = {
     secondary_text_help: "Fast tekst under beskeden. Understøtter {state}, {name}, {entity}. Ingen sensor‑enhed kræves.",
     show_filter_name: "Vis enheds‑navn (fra entity_filter)",
     show_filter_state: "Vis tilstand",
+    battery_trim_name: "Fjern «Battery»-suffiks fra navn",
     secondary_attribute: "Sekundær værdi‑attribut",
     show_secondary_name: "Vis enheds‑navn ved siden af værdien",
     conditions_section: "Ekstra betingelser",
@@ -3556,6 +3585,9 @@ const ET = {
     music_show_title: "Vis sporets titel",
     music_show_artist: "Vis kunstner",
     music_show_controls: "Vis afspilningsknapper",
+    music_show_power: "Slukknap",
+    music_show_player_picker: "Afspillervælger",
+    music_compact_layout: "Kompakt layout (metadata øverst til højre)",
   },
   cs: {
     tab_general: "Obecné",
@@ -3807,6 +3839,7 @@ const ET = {
     secondary_text_help: "Pevný text zobrazený pod hlavní zprávou varování. Podporuje {state}, {name}, {entity}. Nevyžaduje žádnou další entitu.",
     show_filter_name: "Zobrazit jméno entity (podle entity_filter)",
     show_filter_state: "Zobrazit stav",
+    battery_trim_name: "Odebrat příponu «Battery» z názvu",
     secondary_attribute: "Hodnota sekundárního atributu",
     show_secondary_name: "Zobraz název entity vedle stavu",
     conditions_section: "Extra podmínky",
@@ -3903,6 +3936,9 @@ const ET = {
     music_show_title: "Zobrazit název skladby",
     music_show_artist: "Zobrazit interpreta",
     music_show_controls: "Zobrazit ovládání přehrávání",
+    music_show_power: "Tlačítko napájení",
+    music_show_player_picker: "Výběr přehrávače",
+    music_compact_layout: "Kompaktní rozložení (metadata vpravo nahoře)",
   },
   pt: {
     tab_general: "Geral",
@@ -4154,6 +4190,7 @@ const ET = {
     secondary_text_help: "Texto fixo mostrado abaixo da mensagem. Suporta {state}, {name}, {entity}. Não requer entidade sensor.",
     show_filter_name: "Mostrar nome da entidade (de entity_filter)",
     show_filter_state: "Mostrar estado",
+    battery_trim_name: "Remover sufixo «Battery» do nome",
     secondary_attribute: "Atributo de valor secundário",
     show_secondary_name: "Mostrar nome da entidade ao lado do valor",
     conditions_section: "Condições extras",
@@ -4246,6 +4283,9 @@ const ET = {
     music_show_title: "Mostrar título da faixa",
     music_show_artist: "Mostrar artista",
     music_show_controls: "Mostrar controles de reprodução",
+    music_show_power: "Botão de energia",
+    music_show_player_picker: "Seletor de player",
+    music_compact_layout: "Layout compacto (metadados no canto superior direito)",
   },
   es: {
     tab_general: "General",
@@ -4497,6 +4537,7 @@ const ET = {
     secondary_text_help: "Texto fijo mostrado debajo del mensaje. Soporta {state}, {name}, {entity}. No requiere entidad sensor.",
     show_filter_name: "Mostrar nombre de la entidad (de entity_filter)",
     show_filter_state: "Mostrar estado",
+    battery_trim_name: "Eliminar sufijo «Battery» del nombre",
     secondary_attribute: "Atributo de valor secundario",
     show_secondary_name: "Mostrar nombre de la entidad junto al valor",
     conditions_section: "Condiciones adicionales",
@@ -4589,6 +4630,9 @@ const ET = {
     music_show_title: "Mostrar título de la pista",
     music_show_artist: "Mostrar artista",
     music_show_controls: "Mostrar controles de reproducción",
+    music_show_power: "Botón de apagado",
+    music_show_player_picker: "Selector de reproductor",
+    music_compact_layout: "Diseño compacto (metadatos arriba a la derecha)",
   },
   tr: {
     tab_general: "Genel",
@@ -4840,6 +4884,7 @@ const ET = {
     secondary_text_help: "Mesajın altında gösterilen sabit metin. {state}, {name}, {entity} destekler. Sensör varlığı gerekmez.",
     show_filter_name: "Varlık adını göster (entity_filter'dan)",
     show_filter_state: "Durumu göster",
+    battery_trim_name: "«Battery» ekini addan kaldır",
     secondary_attribute: "İkincil değer niteliği",
     show_secondary_name: "Değerin yanında varlık adını göster",
     conditions_section: "Ekstra koşullar",
@@ -4932,6 +4977,9 @@ const ET = {
     music_show_title: "Parça başlığını göster",
     music_show_artist: "Sanatçıyı göster",
     music_show_controls: "Oynatma kontrollerini göster",
+    music_show_power: "Güç düğmesi",
+    music_show_player_picker: "Oynatıcı seçici",
+    music_compact_layout: "Kompakt düzen (meta veriler sağ üstte)",
   },
 };
 
@@ -6517,6 +6565,14 @@ class AlertTickerCardEditor extends LitElement {
                       @change="${(e) => this._updateAlert(index, { show_filter_state: e.target.checked ? true : undefined })}"
                     ></ha-switch>
                   </ha-formfield>
+                  ${alert.theme === "battery" ? html`
+                    <ha-formfield .label="${this._t("battery_trim_name")}">
+                      <ha-switch
+                        ?checked="${!!alert.battery_trim_name}"
+                        @change="${(e) => this._updateAlert(index, { battery_trim_name: e.target.checked ? true : undefined })}"
+                      ></ha-switch>
+                    </ha-formfield>
+                  ` : ""}
                 ` : ""}
                 ` : ""}
 
@@ -6587,6 +6643,28 @@ class AlertTickerCardEditor extends LitElement {
                       <ha-switch
                         ?checked="${alert.music_show_controls !== false}"
                         @change="${(e) => this._updateAlert(index, { music_show_controls: e.target.checked ? undefined : false })}"
+                      ></ha-switch>
+                    </ha-formfield>
+                  </div>
+                  <div>
+                    <ha-formfield .label="${this._t("music_show_power")}">
+                      <ha-switch
+                        ?checked="${!!alert.music_show_power}"
+                        @change="${(e) => this._updateAlert(index, { music_show_power: e.target.checked || undefined })}"
+                      ></ha-switch>
+                    </ha-formfield>
+                  </div>
+                  <div>
+                    <ha-formfield .label="${this._t("music_show_player_picker")}">
+                      <ha-switch
+                        ?checked="${!!alert.music_show_player_picker}"
+                        @change="${(e) => this._updateAlert(index, { music_show_player_picker: e.target.checked || undefined })}"
+                      ></ha-switch>
+                    </ha-formfield>
+                    <ha-formfield .label="${this._t("music_compact_layout")}">
+                      <ha-switch
+                        ?checked="${!!alert.music_compact_layout}"
+                        @change="${(e) => this._updateAlert(index, { music_compact_layout: e.target.checked || undefined })}"
                       ></ha-switch>
                     </ha-formfield>
                   </div>

@@ -3,7 +3,7 @@
 A custom Lovelace card to display alerts and notifications based on entity states. Supports **52 visual themes** (including 4 dedicated timer themes, 8 spectacular 3D themes, and 2 weather forecast themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **mobile push notifications**, **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.3.9.8.3-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![Version](https://img.shields.io/badge/version-1.3.9.8.4-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
@@ -260,7 +260,10 @@ Switching back to a non-media-player entity reverts to `emergency`.
 | `music_show_art` | `boolean` | `true` | Show album artwork (background blur + thumbnail) |
 | `music_show_title` | `boolean` | `true` | Show track title (with marquee scroll for long titles) |
 | `music_show_artist` | `boolean` | `true` | Show artist name |
-| `music_show_controls` | `boolean` | `true` | Show previous / play-pause / next buttons |
+| `music_show_controls` | `boolean` | `true` | Show previous / play-pause / next / mute buttons and volume slider |
+| `music_show_power` | `boolean` | `false` | Add a power icon (bottom-right corner) — calls `media_player.turn_off` |
+| `music_show_player_picker` | `boolean` | `false` | Add a cast icon (bottom-right corner) — opens a dropdown to switch the active player for this session |
+| `music_compact_layout` | `boolean` | `false` | Compact layout: track title and artist move to the top-right column, controls stay left — ideal for small/narrow displays |
 
 ---
 
@@ -1171,7 +1174,11 @@ The tab shows an **ON** badge when overlay mode is active.
 | `music_show_art` | `boolean` | `true` | Show album artwork in the music player (background blur + thumbnail) |
 | `music_show_title` | `boolean` | `true` | Show track title (with marquee for long titles) |
 | `music_show_artist` | `boolean` | `true` | Show artist name |
-| `music_show_controls` | `boolean` | `true` | Show previous / play-pause / next buttons |
+| `music_show_controls` | `boolean` | `true` | Show previous / play-pause / next / mute buttons and volume slider |
+| `music_show_power` | `boolean` | `false` | Add a power icon in the bottom-right corner — calls `media_player.turn_off` |
+| `music_show_player_picker` | `boolean` | `false` | Add a cast icon in the bottom-right corner — dropdown to switch the active player for this session |
+| `music_compact_layout` | `boolean` | `false` | Compact layout: track title + artist move to the top-right column, controls stay left — ideal for small displays |
+| `battery_trim_name` | `boolean` | `false` | (`theme: battery` only) Strip the trailing word "Battery" from entity friendly names to shorten long labels |
 | `camera_entity` | `string` | ❌ | Camera entity for overlay banner and card background |
 | `camera_live` | `boolean` | `false` | Show a live HLS/WebRTC stream in the overlay banner instead of a static snapshot (requires `camera_entity`) |
 | `camera_in_card` | `boolean` | `false` | Show the camera image as a background layer behind the alert card slide (requires `camera_entity`) |

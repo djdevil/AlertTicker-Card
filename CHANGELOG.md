@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.8.4] - 2026-08-17
+
+### Fixed
+
+- **`=` (equals) condition not matching `input_number` helpers** ([#199](https://github.com/djdevil/AlertTicker-Card/issues/199)) — `input_number` entities store their state as a float string (e.g. `"5.0"`) while users typically type `5` as the trigger value, causing a string comparison mismatch. The `=` and `!=` operators now compare numerically when both sides parse as valid numbers, falling back to string comparison for non-numeric states. `>`, `<`, `>=`, `<=` were already using numeric comparison and are unaffected.
+
+### Added / Improved
+
+- **Battery theme UI improvements** ([#198](https://github.com/djdevil/AlertTicker-Card/discussions/198)) — three enhancements for the `battery` theme when used with `device_class` / `label_filter` entity groups:
+  - Battery level is now shown automatically on the right side of the card in a large, colour-coded number (green ≥ 40 %, yellow 20–39 %, red < 20 %). The inline state value is suppressed when the level is already visible on the right.
+  - Entity names are now truncated with an ellipsis instead of overflowing and hiding the level value.
+  - New option `battery_trim_name: true` — strips the trailing word "Battery" (case-insensitive) from entity friendly names to shorten long labels. Also available in the visual editor.
+
+- **Music player — compact layout** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — new option `music_compact_layout: true` repositions track title and artist to the top-right of the player using CSS grid, freeing vertical space for the controls on the left. Designed for small/narrow displays where the default stacked layout is too tall. Available in the visual editor.
+
+- **Music player — power button** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — new option `music_show_power: true` adds a small power icon in the bottom-right corner of the music player card. Tapping it calls `media_player.turn_off` on the active entity. Default `false` (opt-in). Available in the visual editor.
+
+- **Music player — player picker** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — new option `music_show_player_picker: true` adds a cast icon in the bottom-right corner. Tapping it opens a dropdown listing all available `media_player.*` entities; selecting one switches which player the card displays and controls for that session (resets on page reload). Active player highlighted with the accent colour. Available in the visual editor.
+
+---
+
 ## [1.3.9.8.3] - 2026-08-15
 
 ### Fixed
