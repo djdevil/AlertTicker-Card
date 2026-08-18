@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.8.5] - 2026-08-19
+
+### Improved
+
+- **Music player — compact layout redesigned** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — the compact layout implementation has been redesigned for reliability on small/narrow screens:
+  - The album art thumbnail is hidden; the **cover art fills the full card background** (clean image, no blur — slightly darkened for text readability).
+  - A vertical gradient overlay (transparent top → dark bottom) keeps playback controls legible.
+  - Title and artist appear full-width above the controls.
+  - The **volume slider now spans the full card width** with no thumbnail competing for space.
+
+---
+
 ## [1.3.9.8.4] - 2026-08-17
 
 ### Fixed
@@ -19,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Entity names are now truncated with an ellipsis instead of overflowing and hiding the level value.
   - New option `battery_trim_name: true` — strips the trailing word "Battery" (case-insensitive) from entity friendly names to shorten long labels. Also available in the visual editor.
 
-- **Music player — compact layout** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — new option `music_compact_layout: true` repositions track title and artist to the top-right of the player using CSS grid, freeing vertical space for the controls on the left. Designed for small/narrow displays where the default stacked layout is too tall. Available in the visual editor.
+- **Music player — compact layout** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — new option `music_compact_layout: true` for small/narrow displays. The album art thumbnail is hidden and the cover art fills the full card background (clean image, no blur). Title and artist appear above the playback controls; the volume slider has full width. Available in the visual editor.
 
 - **Music player — power button** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — new option `music_show_power: true` adds a small power icon in the bottom-right corner of the music player card. Tapping it calls `media_player.turn_off` on the active entity. Default `false` (opt-in). Available in the visual editor.
 

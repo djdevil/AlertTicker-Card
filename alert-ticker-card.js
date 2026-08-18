@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.9.8.3
+ * AlertTicker Card v1.3.9.8.5
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9.8.4";
+const CARD_VERSION = "1.3.9.8.5";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -5490,7 +5490,7 @@ class AlertTickerCard extends LitElement {
     const _compact      = alert.music_compact_layout === true;
     return html`
       <div class="at-music at-music--player${!_showArt ? ' at-music--no-art' : ''}${_compact ? ' at-music--compact' : ''}" style="--mu-accent:${accent}">
-        ${(_showArt && artUrl) ? html`<div class="mu-art-bg" style="background-image:url('${artUrl}')"></div>` : ""}
+        ${(artUrl && (_showArt || _compact)) ? html`<div class="mu-art-bg" style="background-image:url('${artUrl}')"></div>` : ""}
         <div class="mu-art-overlay"></div>
         <div class="mu-player-body">
           <div class="mu-now-playing">
@@ -5554,12 +5554,15 @@ class AlertTickerCard extends LitElement {
   /** Corner actions overlay for music player — rendered at atc-snooze-host level */
   _renderMusicCornerActions(alert) {
     if (!alert || alert.theme !== "music" || !alert.show_player_controls) return "";
-    const _showPower  = alert.music_show_power === true;
-    const _showPicker = !!alert.music_show_player_picker;
-    if (!_showPower && !_showPicker) return "";
     const _alertKey = alert.entity || alert._groupKey || "";
     const _overrideId = this._musicEntityOverride[_alertKey];
     const _activeEntityId = _overrideId || alert.entity;
+    const es = this._hass?.states[_activeEntityId];
+    // Only show power button when the entity actually supports turn_off (supported_features bit 256)
+    const _canPowerOff = !!((es?.attributes?.supported_features ?? 0) & 256);
+    const _showPower  = alert.music_show_power === true && _canPowerOff;
+    const _showPicker = !!alert.music_show_player_picker;
+    if (!_showPower && !_showPicker) return "";
     const callPower = () => this._hass.callService("media_player", "turn_off", { entity_id: _activeEntityId });
     return html`
       <div class="mu-corner-actions">
@@ -8662,23 +8665,19 @@ class AlertTickerCard extends LitElement {
       .at-music--no-art .mu-player-right { padding: 8px 10px 8px 0; }
       .at-music--no-art .mu-player-controls { width: 100%; }
       .at-music--no-art .mu-vol-slider { min-width: 80px; }
-      /* --- Compact layout: metadata top-right, controls left --- */
+      /* --- Compact layout: title/artist above controls, thumb scaled --- */
       .at-music--compact .mu-player-body {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        grid-template-rows: auto auto;
-        column-gap: 12px; row-gap: 8px;
-        align-items: center; align-content: center;
+        display: flex; flex-direction: column; justify-content: center; gap: 4px;
       }
-      .at-music--compact .mu-now-playing    { grid-column: 1; grid-row: 1; }
-      .at-music--compact .mu-player-controls { grid-column: 1; grid-row: 2; margin-top: 4px; }
-      .at-music--compact .mu-player-info {
-        grid-column: 2; grid-row: 1 / 3;
-        display: flex; flex-direction: column; justify-content: center;
-        text-align: right; max-width: 140px;
-      }
-      .at-music--compact .mu-player-title { font-size: 0.78rem; }
-      .at-music--compact .mu-player-artist { font-size: 0.62rem; }
+      .at-music--compact .mu-now-playing { display: none; }
+      .at-music--compact .mu-player-info { order: 1; min-width: 0; }
+      .at-music--compact .mu-player-controls { order: 2; margin-top: 0; width: 100%; }
+      .at-music--compact .mu-player-title { font-size: 0.82rem; }
+      .at-music--compact .mu-player-artist { font-size: 0.68rem; margin-top: 0; }
+      .at-music--compact .mu-art-thumb { display: none; }
+      .at-music--compact .mu-vol-slider { min-width: 0; flex: 1; }
+      .at-music--compact .mu-art-bg { -webkit-filter: brightness(0.42) saturate(1.2); filter: brightness(0.42) saturate(1.2); transform: none; }
+      .at-music--compact .mu-art-overlay { background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%); }
       .mu-ctrl-btn {
         background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
         border-radius: 50%; width: 34px; height: 34px; cursor: pointer;
