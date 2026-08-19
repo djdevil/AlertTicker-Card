@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.8.8] - 2026-08-19
+
+### Improved
+
+- **Music player — compact layout controls** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — playback and volume controls are now split into two separate groups: playback buttons (prev, play, next, mute) aligned left, volume buttons (🔉 🔊+) aligned right, with natural empty space between them for visual separation. Volume percentage removed to keep buttons round and consistent.
+
+---
+
 ## [1.3.9.8.7] - 2026-08-19
 
 ### Added
