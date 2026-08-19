@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.8.6] - 2026-08-19
+
+### Improved
+
+- **Music player — compact layout polish** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — three UX refinements to the compact mode introduced in v1.3.9.8.5:
+  - **Single-line scrolling metadata** — artist and title are joined into one marquee line (`Artist · Title`), saving vertical space. Filter entity name is appended when relevant.
+  - **Volume step buttons** — the slider is replaced with **−/vol%/+** tap buttons (±10% per tap) which are much easier to use on small touch screens.
+  - **NOW PLAYING indicator restored** — the equaliser animation and badge label return in a compact inline form above the metadata row.
+  - **Controls spread evenly** across the full card width (`justify-content: space-between`) instead of bunching to the left.
+
+---
+
 ## [1.3.9.8.5] - 2026-08-19
 
 ### Improved

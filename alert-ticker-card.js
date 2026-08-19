@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.9.8.5
+ * AlertTicker Card v1.3.9.8.6
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9.8.5";
+const CARD_VERSION = "1.3.9.8.6";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -5503,15 +5503,26 @@ class AlertTickerCard extends LitElement {
             <span class="mu-np-label">${alert.badge_label || "NOW PLAYING"}</span>
           </div>
           <div class="mu-player-info">
-            ${_showTitle ? (title.length > 22
-              ? html`<div class="mu-player-title mu-marquee-wrap"><span class="mu-marquee-inner" style="animation-duration:${Math.max(6, title.length * 0.28).toFixed(1)}s">${title}      ${title}</span></div>`
-              : html`<div class="mu-player-title">${title}</div>`) : ""}
-            ${(_showArtist && artist) ? (artist.length > 28
-              ? html`<div class="mu-player-artist mu-marquee-wrap"><span class="mu-marquee-inner" style="animation-duration:${Math.max(5, artist.length * 0.25).toFixed(1)}s">${artist}      ${artist}</span></div>`
-              : html`<div class="mu-player-artist">${artist}</div>`) : ""}
-            ${(alert.entity_filter || alert.device_class) && alert.show_filter_name !== false
-              ? html`<div class="mu-player-artist" style="opacity:0.6">${es.attributes.friendly_name || alert.entity}</div>`
-              : ""}
+            ${_compact ? (() => {
+              const _parts = [
+                (_showArtist && artist) ? artist : null,
+                _showTitle ? title : null,
+                ((alert.entity_filter || alert.device_class) && alert.show_filter_name !== false)
+                  ? (es.attributes.friendly_name || alert.entity) : null
+              ].filter(Boolean);
+              const _meta = _parts.join(' · ');
+              return _meta ? html`<div class="mu-compact-meta mu-marquee-wrap"><span class="mu-marquee-inner" style="animation-duration:${Math.max(8, _meta.length * 0.22).toFixed(1)}s">${_meta}      ${_meta}</span></div>` : "";
+            })() : html`
+              ${_showTitle ? (title.length > 22
+                ? html`<div class="mu-player-title mu-marquee-wrap"><span class="mu-marquee-inner" style="animation-duration:${Math.max(6, title.length * 0.28).toFixed(1)}s">${title}      ${title}</span></div>`
+                : html`<div class="mu-player-title">${title}</div>`) : ""}
+              ${(_showArtist && artist) ? (artist.length > 28
+                ? html`<div class="mu-player-artist mu-marquee-wrap"><span class="mu-marquee-inner" style="animation-duration:${Math.max(5, artist.length * 0.25).toFixed(1)}s">${artist}      ${artist}</span></div>`
+                : html`<div class="mu-player-artist">${artist}</div>`) : ""}
+              ${(alert.entity_filter || alert.device_class) && alert.show_filter_name !== false
+                ? html`<div class="mu-player-artist" style="opacity:0.6">${es.attributes.friendly_name || alert.entity}</div>`
+                : ""}
+            `}
           </div>
           ${_showControls ? html`
           <div class="mu-player-controls">
@@ -5535,13 +5546,27 @@ class AlertTickerCard extends LitElement {
               @click="${() => call('volume_mute', { is_volume_muted: !isMuted })}">
               <ha-icon icon="${isMuted ? 'mdi:volume-off' : 'mdi:volume-high'}" style="--mdc-icon-size:18px"></ha-icon>
             </button>
-            <input type="range" class="mu-vol-slider ${isMuted ? 'mu-vol-slider--muted' : ''}"
-              min="0" max="100" step="1" .value="${vol}"
-              style="background:${volBg}"
-              @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
-              @input="${(e) => { e.target.style.background = `linear-gradient(to right, var(--mu-accent, #e040fb) ${e.target.value}%, rgba(255,255,255,0.15) ${e.target.value}%)`; }}"
-              @change="${(e) => call('volume_set', { volume_level: parseFloat(e.target.value) / 100 })}"
-            />
+            ${_compact ? html`
+              <button class="mu-ctrl-btn mu-vol-step-btn"
+                @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+                @click="${() => call('volume_set', { volume_level: Math.max(0, vol - 10) / 100 })}">
+                <ha-icon icon="mdi:minus" style="--mdc-icon-size:14px"></ha-icon>
+              </button>
+              <span class="mu-vol-pct">${vol}%</span>
+              <button class="mu-ctrl-btn mu-vol-step-btn"
+                @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+                @click="${() => call('volume_set', { volume_level: Math.min(100, vol + 10) / 100 })}">
+                <ha-icon icon="mdi:plus" style="--mdc-icon-size:14px"></ha-icon>
+              </button>
+            ` : html`
+              <input type="range" class="mu-vol-slider ${isMuted ? 'mu-vol-slider--muted' : ''}"
+                min="0" max="100" step="1" .value="${vol}"
+                style="background:${volBg}"
+                @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+                @input="${(e) => { e.target.style.background = `linear-gradient(to right, var(--mu-accent, #e040fb) ${e.target.value}%, rgba(255,255,255,0.15) ${e.target.value}%)`; }}"
+                @change="${(e) => call('volume_set', { volume_level: parseFloat(e.target.value) / 100 })}"
+              />
+            `}
           </div>` : ""}
         </div>
         ${(_showArt && artUrl) ? html`<img class="mu-art-thumb ${isPlaying ? 'mu-art-thumb--playing' : ''}" src="${artUrl}" alt="">` : ""}
@@ -8669,13 +8694,15 @@ class AlertTickerCard extends LitElement {
       .at-music--compact .mu-player-body {
         display: flex; flex-direction: column; justify-content: center; gap: 4px;
       }
-      .at-music--compact .mu-now-playing { display: none; }
+      .at-music--compact .mu-now-playing { flex-direction: row; align-items: center; gap: 5px; margin-bottom: 2px; }
+      .at-music--compact .mu-np-label { font-size: 0.58rem; letter-spacing: 0.06em; }
+      .at-music--compact .mu-eq { transform: scale(0.8); transform-origin: left center; }
       .at-music--compact .mu-player-info { order: 1; min-width: 0; }
-      .at-music--compact .mu-player-controls { order: 2; margin-top: 0; width: 100%; }
-      .at-music--compact .mu-player-title { font-size: 0.82rem; }
-      .at-music--compact .mu-player-artist { font-size: 0.68rem; margin-top: 0; }
+      .at-music--compact .mu-player-controls { order: 2; margin-top: 0; width: 100%; justify-content: space-between; }
+      .mu-compact-meta { font-size: 0.82rem; color: rgba(255,255,255,0.88); font-weight: 600; }
       .at-music--compact .mu-art-thumb { display: none; }
-      .at-music--compact .mu-vol-slider { min-width: 0; flex: 1; }
+      .mu-vol-step-btn { width: 28px; height: 28px; flex-shrink: 0; }
+      .mu-vol-pct { font-size: 0.75rem; color: rgba(255,255,255,0.85); min-width: 32px; text-align: center; flex-shrink: 0; font-weight: 500; }
       .at-music--compact .mu-art-bg { -webkit-filter: brightness(0.42) saturate(1.2); filter: brightness(0.42) saturate(1.2); transform: none; }
       .at-music--compact .mu-art-overlay { background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%); }
       .mu-ctrl-btn {
