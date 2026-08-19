@@ -6626,6 +6626,23 @@ class AlertTickerCardEditor extends LitElement {
                     placeholder="NOW PLAYING"
                     @change="${(e) => this._updateAlert(index, { badge_label: e.target.value.trim() || undefined })}"
                   ></ha-input>
+                  <div class="section-divider">${this._t("music_compact_layout")}</div>
+                  <div>
+                    <ha-formfield .label="${this._t("music_compact_layout")}">
+                      <ha-switch
+                        ?checked="${!!alert.music_compact_layout}"
+                        @change="${(e) => this._updateAlert(index, { music_compact_layout: e.target.checked || undefined })}"
+                      ></ha-switch>
+                    </ha-formfield>
+                    ${alert.music_compact_layout ? html`
+                    <ha-formfield .label="${this._t("music_compact_show_badge")}">
+                      <ha-switch
+                        ?checked="${alert.music_compact_show_badge !== false}"
+                        @change="${(e) => this._updateAlert(index, { music_compact_show_badge: e.target.checked ? undefined : false })}"
+                      ></ha-switch>
+                    </ha-formfield>` : ""}
+                  </div>
+                  <div class="section-divider">${this._t("music_player_controls")}</div>
                   <div>
                     <ha-formfield .label="${this._t("music_show_art")}">
                       <ha-switch
@@ -6673,19 +6690,6 @@ class AlertTickerCardEditor extends LitElement {
                         @change="${(e) => this._updateAlert(index, { music_show_player_picker: e.target.checked || undefined })}"
                       ></ha-switch>
                     </ha-formfield>
-                    <ha-formfield .label="${this._t("music_compact_layout")}">
-                      <ha-switch
-                        ?checked="${!!alert.music_compact_layout}"
-                        @change="${(e) => this._updateAlert(index, { music_compact_layout: e.target.checked || undefined })}"
-                      ></ha-switch>
-                    </ha-formfield>
-                    ${alert.music_compact_layout ? html`
-                    <ha-formfield .label="${this._t("music_compact_show_badge")}">
-                      <ha-switch
-                        ?checked="${alert.music_compact_show_badge !== false}"
-                        @change="${(e) => this._updateAlert(index, { music_compact_show_badge: e.target.checked ? undefined : false })}"
-                      ></ha-switch>
-                    </ha-formfield>` : ""}
                   </div>
                 ` : ""}
 

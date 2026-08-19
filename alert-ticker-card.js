@@ -5552,11 +5552,14 @@ class AlertTickerCard extends LitElement {
             <div class="mu-vol-group">
               <button class="mu-ctrl-btn mu-vol-step-btn"
                 @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+                @touchstart="${(e) => e.stopPropagation()}" @touchend="${(e) => e.stopPropagation()}"
                 @click="${() => call('volume_set', { volume_level: Math.max(0, vol - 10) / 100 })}">
                 <ha-icon icon="mdi:volume-minus" style="--mdc-icon-size:18px"></ha-icon>
               </button>
+              <span class="mu-vol-num">${isMuted ? '\u2014' : vol}</span>
               <button class="mu-ctrl-btn mu-vol-step-btn"
                 @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+                @touchstart="${(e) => e.stopPropagation()}" @touchend="${(e) => e.stopPropagation()}"
                 @click="${() => call('volume_set', { volume_level: Math.min(100, vol + 10) / 100 })}">
                 <ha-icon icon="mdi:volume-plus" style="--mdc-icon-size:18px"></ha-icon>
               </button>
@@ -6240,7 +6243,7 @@ class AlertTickerCard extends LitElement {
     const swipeStart = (e) => this._onSwipeStart(e);
     const swipeEnd   = (e) => this._onSwipeEnd(e);
     const navButtons   = this._renderNavButtons();
-    const touchHandle  = this._renderTouchZone();
+    const touchHandle  = (current?.theme === 'music' && current?.show_player_controls && current?.music_compact_layout) ? "" : this._renderTouchZone();
 
     const counterOverlay = this._config.large_buttons ? this._renderCounterOverlay() : "";
 
@@ -8671,10 +8674,12 @@ class AlertTickerCard extends LitElement {
         -webkit-filter: blur(14px) brightness(0.55) saturate(1.5);
         filter: blur(14px) brightness(0.55) saturate(1.5);
         transform: scale(1.1); will-change: transform;
+        pointer-events: none;
       }
       .mu-art-overlay {
         position: absolute; top: 0; left: 0; right: 0; bottom: 0;
         background: linear-gradient(90deg, rgba(12,0,22,0.93) 0%, rgba(12,0,22,0.62) 52%, rgba(12,0,22,0.12) 100%);
+        pointer-events: none;
       }
       .mu-player-body {
         position: relative; flex: 1; display: flex;
@@ -8725,6 +8730,7 @@ class AlertTickerCard extends LitElement {
       .mu-play-group { display: flex; align-items: center; gap: 8px; }
       .mu-vol-group { display: flex; align-items: center; gap: 8px; }
       .mu-vol-step-btn { width: 34px; height: 34px; flex-shrink: 0; }
+      .mu-vol-num { font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.75); min-width: 22px; text-align: center; letter-spacing: -0.5px; }
       .mu-compact-meta { font-size: 0.82rem; color: rgba(255,255,255,0.88); font-weight: 600; }
       .at-music--compact .mu-art-thumb { display: none; }
       .at-music--compact .mu-art-bg { -webkit-filter: brightness(0.42) saturate(1.2); filter: brightness(0.42) saturate(1.2); transform: none; }
@@ -8758,8 +8764,9 @@ class AlertTickerCard extends LitElement {
       .mu-corner-actions {
         position: absolute; bottom: 10px; right: 10px;
         display: flex; align-items: center; gap: 4px; z-index: 25;
-        pointer-events: auto;
+        pointer-events: none;
       }
+      .mu-corner-btn { pointer-events: auto; }
       .mu-corner-btn {
         background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
         border-radius: 50%; width: 18px; height: 18px;

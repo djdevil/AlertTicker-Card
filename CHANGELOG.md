@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Music player — compact layout controls** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — playback and volume controls are now split into two separate groups: playback buttons (prev, play, next, mute) aligned left, volume buttons (🔉 🔊+) aligned right, with natural empty space between them for visual separation. Volume percentage removed to keep buttons round and consistent.
 
+### Fixed
+
+- **Compact layout — volume `+` button not clickable** — root cause identified: `atc-touch-zone` (the invisible right-side touch handle for showing snooze/history buttons) is rendered outside `atc-inner-clip` at `z-index: 5`, covering the right 22% of the card including the `+` button. Touch zone is now suppressed when in compact music player mode since dedicated playback buttons handle all interaction.
+- **Compact layout — overlays blocking clicks** — `mu-art-bg` and `mu-art-overlay` (position: absolute, full-card coverage) had `pointer-events: auto` by default, intercepting touches on the controls beneath them. Both now have `pointer-events: none`.
+- **Compact layout — touch events not stopped on volume buttons** — `touchstart`/`touchend` were not stopped on vol− / vol+ buttons, causing the card swipe handler to fire on tap. Both events now call `stopPropagation`.
+- **Editor — compact layout section** — `music_compact_layout` toggle and `music_compact_show_badge` sub-toggle moved to a dedicated section at the top of the music options, before show/hide toggles.
+- **Compact layout — volume number restored** — current volume level shown between vol− and vol+ buttons (no `%` suffix) for at-a-glance feedback.
+
 ---
 
 ## [1.3.9.8.7] - 2026-08-19
