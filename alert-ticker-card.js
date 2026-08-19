@@ -8698,7 +8698,7 @@ class AlertTickerCard extends LitElement {
       .at-music--compact .mu-np-label { font-size: 0.58rem; letter-spacing: 0.06em; }
       .at-music--compact .mu-eq { transform: scale(0.8); transform-origin: left center; }
       .at-music--compact .mu-player-info { order: 1; min-width: 0; }
-      .at-music--compact .mu-player-controls { order: 2; margin-top: 0; width: 100%; justify-content: space-between; }
+      .at-music--compact .mu-player-controls { order: 2; margin-top: 0; width: 100%; justify-content: space-between; padding-right: 46px; box-sizing: border-box; }
       .mu-compact-meta { font-size: 0.82rem; color: rgba(255,255,255,0.88); font-weight: 600; }
       .at-music--compact .mu-art-thumb { display: none; }
       .mu-vol-step-btn { width: 28px; height: 28px; flex-shrink: 0; }
