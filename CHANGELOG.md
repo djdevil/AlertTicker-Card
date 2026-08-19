@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.8.7] - 2026-08-19
+
+### Added
+
+- **Music player — `music_compact_show_badge`** ([#194](https://github.com/djdevil/AlertTicker-Card/discussions/194)) — new toggle (default `true`) to show or hide the NOW PLAYING indicator in compact layout. Available in the visual editor when `music_compact_layout` is enabled.
+
+### Fixed
+
+- **Compact layout — controls z-index** — playback controls row now sits above the corner actions overlay (`z-index: 26`) so the `+` volume button is always clickable without reserving dead space on the right.
+
+---
+
 ## [1.3.9.8.6] - 2026-08-19
 
 ### Improved

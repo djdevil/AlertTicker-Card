@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.9.8.6
+ * AlertTicker Card v1.3.9.8.7
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9.8.6";
+const CARD_VERSION = "1.3.9.8.7";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -5493,6 +5493,7 @@ class AlertTickerCard extends LitElement {
         ${(artUrl && (_showArt || _compact)) ? html`<div class="mu-art-bg" style="background-image:url('${artUrl}')"></div>` : ""}
         <div class="mu-art-overlay"></div>
         <div class="mu-player-body">
+          ${(_compact && alert.music_compact_show_badge === false) ? "" : html`
           <div class="mu-now-playing">
             ${isPlaying ? html`
               <div class="mu-eq">
@@ -5501,7 +5502,7 @@ class AlertTickerCard extends LitElement {
                 <span class="mu-eq-bar"></span>
               </div>` : html`<span class="mu-pause-dot">◼</span>`}
             <span class="mu-np-label">${alert.badge_label || "NOW PLAYING"}</span>
-          </div>
+          </div>`}
           <div class="mu-player-info">
             ${_compact ? (() => {
               const _parts = [
@@ -8698,7 +8699,7 @@ class AlertTickerCard extends LitElement {
       .at-music--compact .mu-np-label { font-size: 0.58rem; letter-spacing: 0.06em; }
       .at-music--compact .mu-eq { transform: scale(0.8); transform-origin: left center; }
       .at-music--compact .mu-player-info { order: 1; min-width: 0; }
-      .at-music--compact .mu-player-controls { order: 2; margin-top: 0; width: 100%; justify-content: space-between; padding-right: 46px; box-sizing: border-box; }
+      .at-music--compact .mu-player-controls { order: 2; margin-top: 0; width: 100%; justify-content: space-between; position: relative; z-index: 26; }
       .mu-compact-meta { font-size: 0.82rem; color: rgba(255,255,255,0.88); font-weight: 600; }
       .at-music--compact .mu-art-thumb { display: none; }
       .mu-vol-step-btn { width: 28px; height: 28px; flex-shrink: 0; }

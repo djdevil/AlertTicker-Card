@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.9.8.6
+ * AlertTicker Card Editor v1.3.9.8.7
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.9.8.6";
+const CARD_VERSION = "1.3.9.8.7";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1159,6 +1159,7 @@ const ET = {
     music_show_power: "Pulsante di spegnimento",
     music_show_player_picker: "Selettore lettore",
     music_compact_layout: "Layout compatto (metadati in alto a destra)",
+    music_compact_show_badge: "Badge NOW PLAYING (layout compatto)",
   },
   en: {
     tab_general: "General",
@@ -1506,6 +1507,7 @@ const ET = {
     music_show_power: "Power button",
     music_show_player_picker: "Player selector",
     music_compact_layout: "Compact layout (metadata top-right)",
+    music_compact_show_badge: "NOW PLAYING badge (compact layout)",
   },
   fr: {
     tab_general: "Général",
@@ -1853,6 +1855,7 @@ const ET = {
     music_show_power: "Bouton d'alimentation",
     music_show_player_picker: "Sélecteur de lecteur",
     music_compact_layout: "Mise en page compacte (métadonnées en haut à droite)",
+    music_compact_show_badge: "Badge EN COURS (mise en page compacte)",
   },
   de: {
     tab_general: "Allgemein",
@@ -2200,6 +2203,7 @@ const ET = {
     music_show_power: "Ausschalttaste",
     music_show_player_picker: "Player-Auswahl",
     music_compact_layout: "Kompaktes Layout (Metadaten oben rechts)",
+    music_compact_show_badge: "NOW PLAYING-Badge (Kompaktlayout)",
   },
   nl: {
     tab_general: "Algemeen",
@@ -2547,6 +2551,7 @@ const ET = {
     music_show_power: "Uitknop",
     music_show_player_picker: "Spelerkeuze",
     music_compact_layout: "Compact layout (metadata rechtsboven)",
+    music_compact_show_badge: "NOW PLAYING-badge (compact layout)",
   },
   vi: {
     tab_general: "Chung",
@@ -2894,6 +2899,7 @@ const ET = {
     music_show_power: "Nút tắt nguồn",
     music_show_player_picker: "Bộ chọn trình phát",
     music_compact_layout: "Bố cục thu gọn (siêu dữ liệu góc trên bên phải)",
+    music_compact_show_badge: "Huy hiệu NOW PLAYING (bố cục thu gọn)",
   },
   ru: {
     tab_general: "Основное",
@@ -3241,6 +3247,7 @@ const ET = {
     music_show_power: "Кнопка питания",
     music_show_player_picker: "Выбор плеера",
     music_compact_layout: "Компактный режим (метаданные справа вверху)",
+    music_compact_show_badge: "Значок NOW PLAYING (компактный режим)",
   },
   da: {
     tab_general: "Generelt",
@@ -3588,6 +3595,7 @@ const ET = {
     music_show_power: "Slukknap",
     music_show_player_picker: "Afspillervælger",
     music_compact_layout: "Kompakt layout (metadata øverst til højre)",
+    music_compact_show_badge: "NOW PLAYING-badge (kompakt layout)",
   },
   cs: {
     tab_general: "Obecné",
@@ -3939,6 +3947,7 @@ const ET = {
     music_show_power: "Tlačítko napájení",
     music_show_player_picker: "Výběr přehrávače",
     music_compact_layout: "Kompaktní rozložení (metadata vpravo nahoře)",
+    music_compact_show_badge: "Odznak NOW PLAYING (kompaktní rozložení)",
   },
   pt: {
     tab_general: "Geral",
@@ -4286,6 +4295,7 @@ const ET = {
     music_show_power: "Botão de energia",
     music_show_player_picker: "Seletor de player",
     music_compact_layout: "Layout compacto (metadados no canto superior direito)",
+    music_compact_show_badge: "Badge NOW PLAYING (layout compacto)",
   },
   es: {
     tab_general: "General",
@@ -4633,6 +4643,7 @@ const ET = {
     music_show_power: "Botón de apagado",
     music_show_player_picker: "Selector de reproductor",
     music_compact_layout: "Diseño compacto (metadatos arriba a la derecha)",
+    music_compact_show_badge: "Badge NOW PLAYING (diseño compacto)",
   },
   tr: {
     tab_general: "Genel",
@@ -4980,6 +4991,7 @@ const ET = {
     music_show_power: "Güç düğmesi",
     music_show_player_picker: "Oynatıcı seçici",
     music_compact_layout: "Kompakt düzen (meta veriler sağ üstte)",
+    music_compact_show_badge: "NOW PLAYING rozeti (kompakt düzen)",
   },
 };
 
@@ -6667,6 +6679,13 @@ class AlertTickerCardEditor extends LitElement {
                         @change="${(e) => this._updateAlert(index, { music_compact_layout: e.target.checked || undefined })}"
                       ></ha-switch>
                     </ha-formfield>
+                    ${alert.music_compact_layout ? html`
+                    <ha-formfield .label="${this._t("music_compact_show_badge")}">
+                      <ha-switch
+                        ?checked="${alert.music_compact_show_badge !== false}"
+                        @change="${(e) => this._updateAlert(index, { music_compact_show_badge: e.target.checked ? undefined : false })}"
+                      ></ha-switch>
+                    </ha-formfield>` : ""}
                   </div>
                 ` : ""}
 
