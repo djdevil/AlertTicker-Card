@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.9.8.9
+ * AlertTicker Card Editor v1.3.9.9
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.9.8.9";
+const CARD_VERSION = "1.3.9.9";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -876,6 +876,10 @@ const ET = {
     section_cycling: "Ciclo & Animazione",
     section_snooze: "Snooze 💤",
     section_history: "Cronologia",
+    section_automation: "Automazione",
+    active_state_entity: "Entità stato attivo",
+    active_state_entity_help: "Scrive on/off su un input_boolean quando questo avviso si attiva o si azzera",
+    active_state_entity_warning: "⚠️ Funziona solo se la dashboard è sempre aperta nel browser (es. tablet fisso). Se la scheda viene chiusa, il booleano non viene aggiornato.",
     show_when_clear: "Mostra quando non ci sono avvisi",
     large_buttons: "Pulsanti grandi sempre visibili (💤 e 📋)",
     ha_theme: "Adatta al tema HA (compatibile con Mushroom e tutti i temi globali)",
@@ -1224,6 +1228,10 @@ const ET = {
     section_cycling: "Cycling & Animation",
     section_snooze: "Snooze 💤",
     section_history: "History",
+    section_automation: "Automation",
+    active_state_entity: "Active state entity",
+    active_state_entity_help: "Writes on/off to an input_boolean when this specific alert becomes active or clears",
+    active_state_entity_warning: "⚠️ Only works while the browser tab with this dashboard is open (e.g. a fixed wall tablet). If the tab is closed, the boolean is not updated.",
     show_when_clear: "Show when no alerts are active",
     large_buttons: "Large always-visible buttons (💤 and 📋)",
     ha_theme: "Adapt to HA theme (compatible with Mushroom and all global themes)",
@@ -1572,6 +1580,10 @@ const ET = {
     section_cycling: "Cycle & Animation",
     section_snooze: "Snooze 💤",
     section_history: "Historique",
+    section_automation: "Automatisation",
+    active_state_entity: "Entité état actif",
+    active_state_entity_help: "Écrit on/off sur un input_boolean quand cette alerte s'active ou s'efface",
+    active_state_entity_warning: "⚠️ Fonctionne uniquement si l'onglet du navigateur est toujours ouvert (ex. tablette fixée). Si l'onglet est fermé, le booléen n'est pas mis à jour.",
     show_when_clear: "Afficher quand aucune alerte n'est active",
     large_buttons: "Grands boutons toujours visibles (💤 et 📋)",
     ha_theme: "Adapter au thème HA (compatible Mushroom et tous les thèmes globaux)",
@@ -1920,6 +1932,10 @@ const ET = {
     section_cycling: "Zyklus & Animation",
     section_snooze: "Schlummern 💤",
     section_history: "Verlauf",
+    section_automation: "Automatisierung",
+    active_state_entity: "Aktiver Status-Entität",
+    active_state_entity_help: "Schreibt on/off in einen input_boolean, wenn dieser Alarm aktiv wird oder sich leert",
+    active_state_entity_warning: "⚠️ Funktioniert nur, wenn der Browser-Tab mit diesem Dashboard geöffnet ist (z.B. festes Wandtablet). Wenn der Tab geschlossen wird, wird der Boolean nicht aktualisiert.",
     show_when_clear: "Anzeigen wenn keine Warnung aktiv",
     large_buttons: "Große, immer sichtbare Schaltflächen (💤 und 📋)",
     ha_theme: "An HA-Theme anpassen (kompatibel mit Mushroom und allen globalen Themes)",
@@ -2268,6 +2284,10 @@ const ET = {
     section_cycling: "Cyclus & Animatie",
     section_snooze: "Sluimer 💤",
     section_history: "Geschiedenis",
+    section_automation: "Automatisering",
+    active_state_entity: "Actieve status entiteit",
+    active_state_entity_help: "Schrijft on/off naar een input_boolean wanneer deze melding actief wordt of verdwijnt",
+    active_state_entity_warning: "⚠️ Werkt alleen als het browsertabblad met dit dashboard open is (bijv. vaste tablet). Als het tabblad gesloten is, wordt de boolean niet bijgewerkt.",
     show_when_clear: "Tonen wanneer geen meldingen actief zijn",
     large_buttons: "Grote, altijd zichtbare knoppen (💤 en 📋)",
     ha_theme: "Aanpassen aan HA-thema (compatibel met Mushroom en alle globale thema's)",
@@ -2616,6 +2636,10 @@ const ET = {
     section_cycling: "Chu kỳ & Hoạt ảnh",
     section_snooze: "Tạm hoãn 💤",
     section_history: "Lịch sử",
+    section_automation: "Tự động hóa",
+    active_state_entity: "Thực thể trạng thái hoạt động",
+    active_state_entity_help: "Ghi on/off vào input_boolean khi cảnh báo hoạt động hoặc xóa",
+    active_state_entity_warning: "⚠️ Chỉ hoạt động khi tab trình duyệt với dashboard này đang mở (vd. máy tính bảng cố định). Nếu tab bị đóng, boolean sẽ không được cập nhật.",
     show_when_clear: "Hiển thị khi không có báo động",
     large_buttons: "Nút lớn luôn hiển thị (💤 và 📋)",
     ha_theme: "Thích ứng với chủ đề HA (tương thích Mushroom và tất cả chủ đề toàn cục)",
@@ -2964,6 +2988,10 @@ const ET = {
     section_cycling: "Цикл и анимация",
     section_snooze: "Отложить 💤",
     section_history: "История",
+    section_automation: "Автоматизация",
+    active_state_entity: "Объект активного состояния",
+    active_state_entity_help: "Записывает on/off в input_boolean при активации или сбросе оповещений",
+    active_state_entity_warning: "⚠️ Работает только пока вкладка браузера с этой панелью открыта (напр. настенный планшет). Если вкладка закрыта, булевый объект не обновляется.",
     show_when_clear: "Показывать при отсутствии оповещений",
     large_buttons: "Большие всегда видимые кнопки (💤 и 📋)",
     ha_theme: "Адаптация к теме HA (совместимо с Mushroom и всеми глобальными темами)",
@@ -3312,6 +3340,10 @@ const ET = {
     section_cycling: "Rotation og animation",
     section_snooze: "Slumre 💤",
     section_history: "Historik",
+    section_automation: "Automatisering",
+    active_state_entity: "Aktiv tilstandsenhed",
+    active_state_entity_help: "Skriver on/off til en input_boolean, når advarsler aktiveres eller ryddes",
+    active_state_entity_warning: "⚠️ Virker kun, mens browser-fanen med dette dashboard er åben (f.eks. fast tablet). Hvis fanen lukkes, opdateres boolean ikke.",
     show_when_clear: "Vis når ingen advarsler er aktive",
     large_buttons: "Store altid‑synlige knapper (💤 og 📋)",
     ha_theme: "Tilpas til HA‑tema (kompatibelt med Mushroom og alle globale temaer)",
@@ -3660,6 +3692,10 @@ const ET = {
     section_cycling: "Rotace & animace",
     section_snooze: "Odložit 💤",
     section_history: "Historie",
+    section_automation: "Automatizace",
+    active_state_entity: "Entita aktivního stavu",
+    active_state_entity_help: "Zapíše on/off do input_boolean, když se upozornění aktivují nebo vymažou",
+    active_state_entity_warning: "⚠️ Funguje pouze pokud je záložka prohlížeče s tímto dashboardem otevřená (např. pevný tablet). Pokud je záložka zavřená, boolean se neaktualizuje.",
     show_when_clear: "Zobrazit pokud není aktivní žádné varování",
     large_buttons: "Velká pohotovostní tlačítka (💤 a 📋)",
     ha_theme: "Přizpůsobit vzhledu HomeAssistenta (kompatibilní s Mushroom a globálními vzhledy)",
@@ -4012,6 +4048,10 @@ const ET = {
     section_cycling: "Ciclo & Animação",
     section_snooze: "Silenciar 💤",
     section_history: "Histórico",
+    section_automation: "Automação",
+    active_state_entity: "Entidade de estado ativo",
+    active_state_entity_help: "Escreve on/off num input_boolean quando os alertas ficam ativos ou se limpam",
+    active_state_entity_warning: "⚠️ Funciona apenas enquanto a aba do navegador com este dashboard estiver aberta (ex. tablet fixo). Se a aba for fechada, o boolean não é atualizado.",
     show_when_clear: "Mostrar quando não há alertas ativos",
     large_buttons: "Botões grandes sempre visíveis (💤 e 📋)",
     ha_theme: "Adaptar ao tema do HA (compatível com Mushroom e todos os temas globais)",
@@ -4360,6 +4400,10 @@ const ET = {
     section_cycling: "Ciclo y Animación",
     section_snooze: "Posponer 💤",
     section_history: "Historial",
+    section_automation: "Automatización",
+    active_state_entity: "Entidad de estado activo",
+    active_state_entity_help: "Escribe on/off en un input_boolean cuando las alertas se activan o se borran",
+    active_state_entity_warning: "⚠️ Solo funciona mientras la pestaña del navegador con este dashboard esté abierta (p.ej. tablet fija). Si se cierra, el booleano no se actualiza.",
     show_when_clear: "Mostrar cuando no hay alertas activas",
     large_buttons: "Botones grandes siempre visibles (💤 y 📋)",
     ha_theme: "Adaptar al tema HA (compatible con Mushroom y todos los temas globales)",
@@ -4708,6 +4752,10 @@ const ET = {
     section_cycling: "Döngü & Animasyon",
     section_snooze: "Erteleme 💤",
     section_history: "Geçmiş",
+    section_automation: "Otomasyon",
+    active_state_entity: "Aktif durum varlığı",
+    active_state_entity_help: "Uyarılar aktif olduğunda veya temizlendiğinde input_boolean'a on/off yazar",
+    active_state_entity_warning: "⚠️ Yalnızca bu dashboard'un bulunduğu tarayıcı sekmesi açıkken çalışır (örn. sabit tablet). Sekme kapatılırsa boolean güncellenmez.",
     show_when_clear: "Aktif uyarı yokken göster",
     large_buttons: "Her zaman görünür büyük düğmeler (💤 ve 📋)",
     ha_theme: "HA temasına uyarla (Mushroom ve tüm global temalarla uyumlu)",
@@ -5782,6 +5830,7 @@ class AlertTickerCardEditor extends LitElement {
         </div>
         <div class="helper-text">${this._t("history_max_events_help")}</div>
       </div>
+
     `;
   }
 
@@ -7433,6 +7482,21 @@ class AlertTickerCardEditor extends LitElement {
                 ${this._renderActionConfig(alert, index, "double_tap_action", this._t("double_tap_action_section"))}
                 ${this._renderActionConfig(alert, index, "hold_action",       this._t("hold_action_section"))}
                 ${this._renderActionConfig(alert, index, "snooze_action", this._t("snooze_action_section"))}
+
+                <!-- ── AUTOMATION ───────────────────────────────────────── -->
+                <div class="section-divider">🔗 ${this._t("section_automation")}</div>
+                <div class="form-row">
+                  <ha-entity-picker
+                    .hass="${this._hass}"
+                    .value="${alert.active_state_entity || ''}"
+                    .includeDomains="${['input_boolean']}"
+                    .label="${this._t('active_state_entity')}"
+                    allow-custom-entity
+                    @value-changed="${(e) => this._updateAlert(index, { active_state_entity: e.detail.value || undefined })}"
+                  ></ha-entity-picker>
+                  <div class="helper-text">${this._t("active_state_entity_help")}</div>
+                  <div class="helper-text" style="color:var(--warning-color,#f4a835);margin-top:4px">${this._t("active_state_entity_warning")}</div>
+                </div>
 
                 <!-- ── CARD OVERRIDE ────────────────────────────────────── -->
                 <div class="section-divider">🃏 ${this._t("card_override_section")}</div>

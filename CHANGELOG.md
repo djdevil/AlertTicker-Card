@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.9] - 2026-08-21
+
+### Added
+
+- **`active_state_entity`** ([#196](https://github.com/djdevil/AlertTicker-Card/discussions/196)) — new **per-alert** option that writes `on`/`off` to a dedicated `input_boolean` whenever that specific alert becomes active or clears. Each alert can target a different boolean, allowing independent automations per alert (e.g. turn on a coloured lamp only for the temperature alert). A guard prevents redundant service calls — the service is called only when the state actually changes. Available in the visual editor under a dedicated **Automation** section inside each alert, with a browser-tab caveat warning.
+
+---
+
 ## [1.3.9.8.9] - 2026-08-21
 
 ### Fixed

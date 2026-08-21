@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.9.8.9
+ * AlertTicker Card v1.3.9.9
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9.8.9";
+const CARD_VERSION = "1.3.9.9";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1719,6 +1719,7 @@ class AlertTickerCard extends LitElement {
     this._musicPickerOpen = null;
     this._musicEntityOverride = {};
     this._musicVinylMode = {};
+    this._lastActiveState = {};
     this._snoozedCount = 0;
     this._dismissedCount = 0;
     this._snoozed    = new Map(); // snoozeKey → expiry timestamp
@@ -2302,6 +2303,19 @@ class AlertTickerCard extends LitElement {
     this._activeAlerts = active;
     this._snoozedCount = snoozedCount;
     this._dismissedCount = dismissedCount;
+
+    // Per-alert active_state_entity sync — call input_boolean only when state crosses active/inactive
+    const activeIdxSet = new Set(active.map((a) => a._configIdx));
+    (this._config?.alerts || []).forEach((alertCfg, idx) => {
+      if (!alertCfg.active_state_entity) return;
+      const isNowActive = activeIdxSet.has(idx);
+      if (this._lastActiveState[idx] !== isNowActive) {
+        this._lastActiveState[idx] = isNowActive;
+        this._hass.callService('input_boolean', isNowActive ? 'turn_on' : 'turn_off', {
+          entity_id: alertCfg.active_state_entity,
+        });
+      }
+    });
 
     // Clamp index — don't blindly reset to 0 on every state update
     if (this._currentIndex >= active.length) {
