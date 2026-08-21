@@ -4,6 +4,7 @@
 
 [![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg?logo=home-assistant)](https://github.com/custom-components/hacs)
 [![Version](https://img.shields.io/github/v/release/djdevil/AlertTicker-Card?color=blue&label=version)](https://github.com/djdevil/AlertTicker-Card/releases/latest)
+[![HACS Action](https://github.com/djdevil/AlertTicker-Card/actions/workflows/hacs.yml/badge.svg)](https://github.com/djdevil/AlertTicker-Card/actions/workflows/hacs.yml)
 [![Downloads](https://img.shields.io/github/downloads/djdevil/AlertTicker-Card/total?color=brightgreen&label=downloads)](https://github.com/djdevil/AlertTicker-Card/releases)
 [![Stars](https://img.shields.io/github/stars/djdevil/AlertTicker-Card?color=yellow&label=stars)](https://github.com/djdevil/AlertTicker-Card/stargazers)
 [![License](https://img.shields.io/github/license/djdevil/AlertTicker-Card?color=lightgrey)](LICENSE)

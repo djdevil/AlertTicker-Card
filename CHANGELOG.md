@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.9.1] - 2026-08-21
+
+### Housekeeping (no functional changes)
+
+- Add HACS validation workflow (`.github/workflows/hacs.yml`) — required for HACS Default submission.
+- Add `SECURITY.md` — enables GitHub Security Policy tab with responsible-disclosure guidelines.
+
+---
+
 ## [1.3.9.9] - 2026-08-21
 
 ### Added
