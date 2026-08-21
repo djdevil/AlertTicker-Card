@@ -1,14 +1,32 @@
-﻿# AlertTicker Card for Home Assistant
+﻿# 🔔 AlertTicker Card
 
-A custom Lovelace card to display alerts and notifications based on entity states. Supports **52 visual themes** (including 4 dedicated timer themes, 8 spectacular 3D themes, and 2 weather forecast themes), 12 transition animations, card interactions, entity filter, device class auto-discovery, **grouped alerts with expand/collapse**, alert history, snooze, secondary entity values, timer countdown, full Jinja2 template support, vertical layout, HA global theme adaptation, **global overlay/toast notifications visible from any dashboard view**, per-alert time windows, per-alert user visibility, manual alert navigation, animated weather/clock clear widget, **7-day weather forecast widget**, **media player mode with album art and playback controls**, **Text-to-Speech announcements** (standard TTS, Alexa, Google Home), **mobile push notifications**, **live camera snapshots in the overlay banner**, and a complete visual editor — all without writing a single line of YAML.
+> **The most complete alert & notification card for Home Assistant** — 52 themes, TTS, push, overlay banner, media player, weather widget, and a full visual editor. Zero YAML required.
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Version](https://img.shields.io/badge/version-1.3.9.8.9-blue.svg)](https://github.com/djdevil/AlertTicker-Card)
+[![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg?logo=home-assistant)](https://github.com/custom-components/hacs)
+[![Version](https://img.shields.io/github/v/release/djdevil/AlertTicker-Card?color=blue&label=version)](https://github.com/djdevil/AlertTicker-Card/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/djdevil/AlertTicker-Card/total?color=brightgreen&label=downloads)](https://github.com/djdevil/AlertTicker-Card/releases)
+[![Stars](https://img.shields.io/github/stars/djdevil/AlertTicker-Card?color=yellow&label=stars)](https://github.com/djdevil/AlertTicker-Card/stargazers)
+[![License](https://img.shields.io/github/license/djdevil/AlertTicker-Card?color=lightgrey)](LICENSE)
+[![Discussions](https://img.shields.io/github/discussions/djdevil/AlertTicker-Card?color=blueviolet&label=discussions)](https://github.com/djdevil/AlertTicker-Card/discussions)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/divil17f)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
 
-> ☕ If you enjoy this card and it saves you time, consider buying me a coffee — it keeps the updates coming!
+---
+
+### ✨ What makes AlertTicker different
+
+- 🎨 **52 visual themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, and a full music-player mode with album art
+- ⚡ **Trigger on anything** — entity state, attribute, template, device class, entity filter with wildcards, AND/OR logic
+- 📢 **Notify everywhere** — in-dashboard cycling ticker, **global overlay banner** visible from any view, **TTS** (Alexa / Google / any speaker), **push notifications**, **camera snapshots & live streams**
+- 🌍 **12 languages** — IT, EN, FR, DE, NL, VI, RU, DA, CS, PT-BR, ES, TR
+- 🎯 **Per-alert control** — themes, time windows, user visibility, snooze, priority, actions, group/collapse, `active_state_entity` for HA automations
+- 🖼️ **Full visual editor** — configure every option in the GUI, no YAML needed
+- 📱 **Mobile-first UX** — swipe to snooze, invisible touch zones, HA Companion push support
+
+---
+
+> ☕ **If this card saves you time, consider buying me a coffee — it keeps the updates coming!**
 >
 > [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
 
@@ -30,7 +48,19 @@ A special thank you to **[@yunusuztr](https://github.com/yunusuztr)** for contri
 
 ---
 
-## Video Tutorial
+## 💬 Join the Community
+
+**📢 [Official thread on the Home Assistant Community Forum →](https://community.home-assistant.io/t/alertticker-card-for-home-assistant/1005906)**
+
+Share your setup, ask questions, showcase your themes, and get help from other users and from the developer.
+
+- 🐛 [Report a bug](https://github.com/djdevil/AlertTicker-Card/issues/new/choose)
+- 💡 [Feature ideas & discussions](https://github.com/djdevil/AlertTicker-Card/discussions)
+- 🇮🇹 [Home Assistant Community — official thread](https://community.home-assistant.io/t/alertticker-card-for-home-assistant/1005906)
+
+---
+
+## 🎥 Video Tutorial
 
 A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)** for making a dedicated video about AlertTicker Card!
 
@@ -103,6 +133,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
 | **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech, Portuguese (pt-BR), Spanish, Turkish — **12 languages** |
+| **🔗 active_state_entity** | Per-alert option — write `on`/`off` to any `input_boolean` when that specific alert becomes active or clears. Each alert can target a different boolean, wiring them to independent HA automations (lamp, script, push notification…) |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
 ---
@@ -1101,6 +1132,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `text_align` | `string` | `left` | `center` to center message text (useful in wide Panel layouts) |
 | `ha_theme` | `boolean` | `false` | Adapt card colors to the active HA global theme |
 | `history_max_events` | `number` | `50` | Max history entries to keep |
+| `active_state_entity` | `string` | — | **Per-alert.** `input_boolean.*` entity to write `on`/`off` to when this specific alert becomes active or clears. Each alert can target a different boolean. Works only while the browser tab is open. |
 | `card_height` | `number` | *(auto)* | Fixed card height in px — prevents layout shifts when cycling |
 | `card_border` | `boolean` | `false` | Show the standard HA border around the card at all times |
 | `overlay_mode` | `boolean` | `false` | Show a floating banner when a new alert triggers — visible from any dashboard view |

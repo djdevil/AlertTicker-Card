@@ -1,0 +1,46 @@
+name: 💡 Feature request
+description: Suggest a new feature or improvement for AlertTicker Card
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement! For open-ended ideas or brainstorming, consider starting a [Discussion](https://github.com/djdevil/AlertTicker-Card/discussions) instead — it keeps the issue tracker focused on concrete work.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or the limitation you are hitting today.
+      placeholder: "I would like to do X but currently the card does not support Y."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should the feature work? Include the config option name if you have one in mind.
+      placeholder: |
+        New option `my_option` on the alert:
+        ```yaml
+        - entity: sensor.foo
+          my_option: bar
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have considered
+      description: Any workarounds you have tried, or other approaches that could work.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and discussions and could not find a similar request.
+          required: true

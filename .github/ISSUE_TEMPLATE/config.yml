@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📢 Home Assistant Community Forum
+    url: https://community.home-assistant.io/t/alertticker-card-for-home-assistant/1005906
+    about: Official thread on the HA forum — share setups, browse tips from other users, and get community help.
+  - name: 💬 GitHub Discussions
+    url: https://github.com/djdevil/AlertTicker-Card/discussions
+    about: For usage questions, config help, ideas, or general discussion — please use Discussions instead of opening an issue.
+  - name: ☕ Buy Me A Coffee
+    url: https://www.buymeacoffee.com/divil17f
+    about: If this card saves you time, support the project — it keeps the updates coming.

@@ -1,51 +1,51 @@
-## AlertTicker Card
+# 🔔 AlertTicker Card
 
-Custom Lovelace card for Home Assistant to display alerts and notifications based on entity states, with **17 visual themes**, per-alert theme assignment, 3D fold animation cycling, priority ordering, and a complete visual editor in 4 languages.
+The most complete alert & notification card for Home Assistant — **52 visual themes**, TTS, push notifications, global overlay banner, media player mode, weather widget, and a full visual editor. **Zero YAML required.**
 
-### Features
+![AlertTicker Card demo](https://raw.githubusercontent.com/djdevil/AlertTicker-Card/main/images/demo.gif)
 
-- **17 Visual Themes** — Critical, Warning, Info, OK/All-Clear, Style categories
-- **Per-alert theme** — each alert has its own independent theme and icon
-- **Multiple entities** per card, each with configurable trigger state and message
-- **Priority system** (1=Critical → 4=Low) with automatic sorting
-- **3D fold animation** when cycling between active alerts
-- **All-clear state** — optional message shown when no alerts are active
-- **Full visual editor** — no YAML required
-- **Languages** — Italian, English, French, German (auto-detected)
-- **HACS compatible** — cache-busting via `import.meta.url`
+## ✨ Highlights
 
-### Themes
+- 🎨 **52 themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, music player mode
+- ⚡ **Trigger on anything** — entity state, attribute, template, device class, entity filter with wildcards, AND/OR conditions
+- 📢 **Notify everywhere** — in-dashboard ticker, **global overlay banner** visible from any view, **TTS** (Alexa / Google / any speaker), **push notifications**, **live camera streams**
+- 🌍 **12 languages** — IT · EN · FR · DE · NL · VI · RU · DA · CS · PT-BR · ES · TR
+- 🎯 **Per-alert control** — themes, time windows, user visibility, snooze, priority, actions, group/collapse, `active_state_entity` for HA automations
+- 🖼️ **Full visual editor** — every option configurable in the GUI
 
-| Category | Themes |
-|----------|--------|
-| Critical | `emergency` 🚨 · `fire` 🔥 · `alarm` 🔴 · `lightning` 🌩️ |
-| Warning  | `warning` ⚠️ · `caution` 🟡 |
-| Info     | `info` ℹ️ · `notification` 🔔 · `aurora` 🌌 |
-| OK       | `success` ✅ · `check` 🟢 · `confetti` 🎉 |
-| Style    | `ticker` 📰 · `neon` ⚡ · `glass` 🔮 · `matrix` 💻 · `minimal` 📋 |
-
-### Basic Configuration
+## 🚀 Quick example
 
 ```yaml
 type: custom:alert-ticker-card
 cycle_interval: 5
 show_when_clear: true
-clear_message: "All systems operational"
-clear_theme: success
+clear_display_mode: weather_clock
 alerts:
-  - entity: binary_sensor.power_sensor
-    state: "off"
-    message: "Power outage detected"
+  - entity: binary_sensor.smoke
+    state: "on"
+    message: "🔥 Smoke detected in {area}!"
     priority: 1
     theme: emergency
   - entity: binary_sensor.garage_door
     state: "on"
-    message: "Garage door left open"
+    message: "🚪 Garage door left open"
     priority: 2
     theme: warning
-  - entity: update.zigbee_bridge
-    state: "on"
-    message: "Firmware update available"
+  - device_class: battery
+    operator: "<"
+    state: "15"
+    message: "🪫 Low battery: {friendly_name} ({state}%)"
     priority: 3
-    theme: info
+    theme: caution
 ```
+
+## 📚 Full documentation
+
+See the full [README](https://github.com/djdevil/AlertTicker-Card#readme) for every option, theme, and advanced configuration example.
+
+## 💬 Support & Community
+
+- 📢 [Official thread on Home Assistant Community Forum](https://community.home-assistant.io/t/alertticker-card-for-home-assistant/1005906)
+- 🐛 [Report a bug](https://github.com/djdevil/AlertTicker-Card/issues/new/choose)
+- 💡 [Request a feature](https://github.com/djdevil/AlertTicker-Card/discussions)
+- ☕ [Buy me a coffee](https://www.buymeacoffee.com/divil17f) — keeps the updates coming!

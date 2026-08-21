@@ -1,0 +1,86 @@
+name: 🐛 Bug report
+description: Report a bug or unexpected behaviour in AlertTicker Card
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill in as much detail as possible so it can be reproduced and fixed quickly.
+
+  - type: input
+    id: version
+    attributes:
+      label: AlertTicker Card version
+      description: Shown in the top-left of the card in the visual editor.
+      placeholder: "e.g. 1.3.9.9"
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: Settings → About in HA.
+      placeholder: "e.g. 2026.8.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: Where does the bug happen?
+      options:
+        - Chrome (desktop)
+        - Firefox (desktop)
+        - Safari (desktop / macOS)
+        - Edge (desktop)
+        - HA Companion iOS
+        - HA Companion Android
+        - Safari (iPad / iPhone)
+        - Chrome (Android)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: describe
+    attributes:
+      label: Describe the bug
+      description: What is happening? What did you expect to happen instead?
+      placeholder: "When I do X, Y happens — I expected Z."
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Your card YAML config
+      description: Paste the YAML from the Code Editor (⋮ → Show code editor). Wrap in triple backticks with `yaml` for formatting.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or video (optional but helpful)
+      description: Drag & drop images/GIFs here.
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console errors (optional)
+      description: Open DevTools (F12) → Console tab. Copy any red errors related to `alert-ticker`.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and could not find a duplicate.
+          required: true
+        - label: I have cleared the browser cache after updating.
+          required: true
