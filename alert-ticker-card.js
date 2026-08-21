@@ -1,5 +1,5 @@
 ﻿/**
- * AlertTicker Card v1.3.9.8.8
+ * AlertTicker Card v1.3.9.8.9
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9.8.8";
+const CARD_VERSION = "1.3.9.8.9";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1697,6 +1697,7 @@ class AlertTickerCard extends LitElement {
       _clockDate: { type: String },
       _musicPickerOpen: { type: String },
       _musicEntityOverride: { type: Object },
+      _musicVinylMode: { type: Object },
     };
   }
 
@@ -1717,6 +1718,7 @@ class AlertTickerCard extends LitElement {
     this._snoozeMenuOpen = null;
     this._musicPickerOpen = null;
     this._musicEntityOverride = {};
+    this._musicVinylMode = {};
     this._snoozedCount = 0;
     this._dismissedCount = 0;
     this._snoozed    = new Map(); // snoozeKey → expiry timestamp
@@ -3254,9 +3256,13 @@ class AlertTickerCard extends LitElement {
     const triggerStr = String(trigger);
 
     if (operator === "=" || operator === "==") {
+      const na = parseFloat(entityStateValue), nt = parseFloat(triggerStr);
+      if (!isNaN(na) && !isNaN(nt)) return na === nt;
       return entityStateValue === triggerStr;
     }
     if (operator === "!=") {
+      const na = parseFloat(entityStateValue), nt = parseFloat(triggerStr);
+      if (!isNaN(na) && !isNaN(nt)) return na !== nt;
       return entityStateValue !== triggerStr;
     }
 
@@ -4442,9 +4448,17 @@ class AlertTickerCard extends LitElement {
           const name = alert.show_secondary_name
             ? (es.attributes.friendly_name || alert.secondary_entity)
             : null;
-          lines.push(html`<div class="atc-secondary-value atc-secondary-entity-line">
-            ${name ? html`<span class="atc-secondary-entity-name">${name}</span> ` : ""}${val}
-          </div>`);
+          const _svText = name ? (name + " " + val) : val;
+          if (_svText.length > 28) {
+            const _svDur = Math.max(6, _svText.length * 0.22).toFixed(1);
+            lines.push(html`<div class="atc-secondary-value atc-secondary-entity-line atc-sv-marquee-wrap">
+              <span class="atc-sv-marquee-inner" style="animation-duration:${_svDur}s">${_svText}���${_svText}</span>
+            </div>`);
+          } else {
+            lines.push(html`<div class="atc-secondary-value atc-secondary-entity-line">
+              ${name ? html`<span class="atc-secondary-entity-name">${name}</span> ` : ""}${val}
+            </div>`);
+          }
         }
       } else if (this._hass) {
         // Entity not found — show a subtle warning so the user can correct the ID
@@ -5595,7 +5609,20 @@ class AlertTickerCard extends LitElement {
             />
           </div>`) : ""}
         </div>
-        ${(_showArt && artUrl) ? html`<img class="mu-art-thumb ${isPlaying ? 'mu-art-thumb--playing' : ''}" src="${artUrl}" alt="">` : ""}
+        ${(_showArt && artUrl) ? (
+          this._musicVinylMode[_alertKey]
+            ? html`<div class="mu-art-vinyl ${isPlaying ? 'mu-art-vinyl--playing' : 'mu-art-vinyl--paused'}"
+                @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+                @touchstart="${(e) => e.stopPropagation()}" @touchend="${(e) => e.stopPropagation()}"
+                @click="${(e) => { e.stopPropagation(); this._toggleVinyl(_alertKey); }}">
+                <div class="mu-vinyl-label" style="background-image:url('${artUrl}')"></div>
+              </div>`
+            : html`<img class="mu-art-thumb ${isPlaying ? 'mu-art-thumb--playing' : ''}"
+                src="${artUrl}" alt="" style="cursor:pointer"
+                @pointerdown="${(e) => e.stopPropagation()}" @pointerup="${(e) => e.stopPropagation()}"
+                @touchstart="${(e) => e.stopPropagation()}" @touchend="${(e) => e.stopPropagation()}"
+                @click="${(e) => { e.stopPropagation(); this._toggleVinyl(_alertKey); }}">`
+        ) : ""}
         <div class="mu-player-right">${this._renderCounter()}</div>
         <div class="mu-accent-line"></div>
       </div>
@@ -5670,6 +5697,10 @@ class AlertTickerCard extends LitElement {
   _selectMusicPlayer(alertKey, entityId) {
     this._musicEntityOverride = { ...this._musicEntityOverride, [alertKey]: entityId };
     this._musicPickerOpen = null;
+  }
+
+  _toggleVinyl(key) {
+    this._musicVinylMode = { ...this._musicVinylMode, [key]: !this._musicVinylMode[key] };
   }
 
   /**
@@ -6243,7 +6274,7 @@ class AlertTickerCard extends LitElement {
     const swipeStart = (e) => this._onSwipeStart(e);
     const swipeEnd   = (e) => this._onSwipeEnd(e);
     const navButtons   = this._renderNavButtons();
-    const touchHandle  = (current?.theme === 'music' && current?.show_player_controls && current?.music_compact_layout) ? "" : this._renderTouchZone();
+    const touchHandle  = (current?.theme === 'music' && current?.show_player_controls) ? "" : this._renderTouchZone();
 
     const counterOverlay = this._config.large_buttons ? this._renderCounterOverlay() : "";
 
@@ -6436,6 +6467,9 @@ class AlertTickerCard extends LitElement {
         font-weight: 600;
         opacity: 0.85;
       }
+      .atc-sv-marquee-wrap { overflow: hidden; white-space: nowrap; text-overflow: clip; }
+      .atc-sv-marquee-inner { display: inline-block; white-space: nowrap; animation: atc-sv-scroll linear infinite; }
+      @keyframes atc-sv-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
       .atc-secondary-missing {
         font-size: 0.72rem;
         opacity: 0.5;
@@ -8766,7 +8800,7 @@ class AlertTickerCard extends LitElement {
         display: flex; align-items: center; gap: 4px; z-index: 25;
         pointer-events: none;
       }
-      .mu-corner-btn { pointer-events: auto; }
+      .mu-corner-btn, .mu-picker-option, .mu-picker-menu { pointer-events: auto; }
       .mu-corner-btn {
         background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
         border-radius: 50%; width: 18px; height: 18px;
@@ -8837,6 +8871,49 @@ class AlertTickerCard extends LitElement {
                     0 4px 22px rgba(0,0,0,0.55);
       }
       @keyframes muSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      /* ---- Vinyl record mode -------------------------------------------- */
+      .mu-art-vinyl {
+        position: relative; flex-shrink: 0; cursor: pointer;
+        width: 82px; height: 82px; border-radius: 50%;
+        background: radial-gradient(circle, #1c1c1c 0%, #0a0a0a 100%);
+        margin: auto 14px auto 0;
+        box-shadow:
+          inset 0 0 0 3px rgba(255,255,255,0.04),
+          inset 0 0 0 7px #0a0a0a,
+          inset 0 0 0 9px rgba(255,255,255,0.03),
+          inset 0 0 0 14px #0a0a0a,
+          inset 0 0 0 16px rgba(255,255,255,0.025),
+          inset 0 0 0 21px #0a0a0a,
+          inset 0 0 0 23px rgba(255,255,255,0.02),
+          inset 0 0 0 28px #0a0a0a,
+          inset 0 0 0 30px rgba(255,255,255,0.015),
+          inset 0 0 0 35px #0a0a0a,
+          0 0 0 2px color-mix(in srgb, var(--mu-accent, #e040fb) 45%, transparent),
+          0 0 28px color-mix(in srgb, var(--mu-accent, #e040fb) 40%, transparent),
+          0 4px 22px rgba(0,0,0,0.7);
+        animation: muVinylAppear 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+      }
+      .mu-art-vinyl--playing { animation: muVinylAppear 0.45s cubic-bezier(0.34,1.56,0.64,1) both, muSpin 10s linear 0.45s infinite; }
+      .mu-art-vinyl--paused  { animation: muVinylAppear 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+      @keyframes muVinylAppear {
+        from { opacity: 0; transform: scale(0.55) rotate(-180deg); }
+        to   { opacity: 1; transform: scale(1) rotate(0deg); }
+      }
+      .mu-vinyl-label {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 30px; height: 30px; border-radius: 50%;
+        background-size: cover; background-position: center;
+        background-color: #222;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 0 8px rgba(0,0,0,0.6);
+      }
+      .mu-vinyl-label::after {
+        content: ''; position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 5px; height: 5px; border-radius: 50%;
+        background: #0a0a0a;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.25);
+      }
       .mu-accent-line {
         position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
         background: linear-gradient(90deg, transparent 0%,

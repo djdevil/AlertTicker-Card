@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.8.9] - 2026-08-21
+
+### Fixed
+
+- **`=` / `!=` operator — numeric sensor comparison** ([#202](https://github.com/djdevil/AlertTicker-Card/issues/202)) — `_matchesState` now uses numeric comparison (like `_matchOp` already did) for `=` and `!=` operators. Previously a template sensor returning `"0.0"` compared against `state: '0'` with `!=` would evaluate as `"0.0" !== "0"` → `true`, causing the alert to fire even when the count was zero. Both operators now parse both sides as floats when possible, falling back to string comparison only for non-numeric values.
+
+---
+
 ## [1.3.9.8.8] - 2026-08-19
 
 ### Improved
