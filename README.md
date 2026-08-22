@@ -1,6 +1,6 @@
-﻿# 🔔 AlertTicker Card
+﻿# 🔔 AlertTicker Card for Home Assistant
 
-> **The most complete alert & notification card for Home Assistant** — 52 themes, TTS, push, overlay banner, media player, weather widget, and a full visual editor. Zero YAML required.
+> **The most complete alert & notification card for Home Assistant Lovelace dashboards** — 52 visual themes, TTS voice announcements, push notifications, global overlay banner, media player mode, weather forecast widget, and a full visual editor. Zero YAML required.
 
 [![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg?logo=home-assistant)](https://github.com/custom-components/hacs)
 [![Version](https://img.shields.io/github/v/release/djdevil/AlertTicker-Card?color=blue&label=version)](https://github.com/djdevil/AlertTicker-Card/releases/latest)
@@ -30,6 +30,30 @@
 > ☕ **If this card saves you time, consider buying me a coffee — it keeps the updates coming!**
 >
 > [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/divil17f)
+
+---
+
+## 📚 Table of Contents
+
+- [Community Contributors](#community-contributors)
+- [Join the Community](#-join-the-community) — HA forum thread, issues, discussions
+- [Video Tutorial](#-video-tutorial)
+- [Features at a Glance](#features-at-a-glance)
+- [Text-to-Speech (TTS) Announcements](#-text-to-speech-announcements-new-in-122) — Alexa, Google Home, HA speakers
+- [Mobile Push Notifications](#-mobile-push-notifications-new-in-13)
+- [Music Player Mode](#-music-player-mode-new-in-126) — album art, playback controls, vinyl mode
+- [Camera in Overlay & Card Background](#-camera-in-overlay-banner--card-background-snapshot-122--live-stream--card-bg-131) — snapshots & live streams
+- [Themes](#themes) — all 52 themes explained
+- [How It Works](#how-it-works)
+- [Installation](#installation) — HACS + manual
+- [Visual Editor](#visual-editor)
+- [YAML Configuration](#yaml-configuration) — all options reference
+- [Examples](#examples) — real-world configs
+- [Languages](#languages) — 12 supported languages
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support the Project](#support)
 
 ---
 
@@ -69,15 +93,15 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 
 ---
 
-![AlertTicker Card](images/logo.png)
+![AlertTicker Card logo — Home Assistant Lovelace alert and notification card](images/logo.png)
 
-![AlertTicker Card demo](images/demo.gif)
+![AlertTicker Card demo showing multiple alerts cycling with animated 3D fold transitions in Home Assistant dashboard](images/demo.gif)
 
 ---
 
-![Warning and Info themes](images/1.png)
+![AlertTicker Card themes for Home Assistant — warning and info alert styles with icons](images/1.png)
 
-![OK, Style and Multiple Alerts](images/2.png)
+![AlertTicker Card multi-alert display with success, ticker, neon and matrix themes for Home Assistant Lovelace](images/2.png)
 
 ---
 
