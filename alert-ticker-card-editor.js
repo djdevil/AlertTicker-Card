@@ -1242,6 +1242,8 @@ const ET = {
     card_height_help: "Locks the height to prevent layout shifts when alerts change. Leave empty for automatic height.",
     card_border: "Show card border & name",
     card_border_help: "Adds the standard Home Assistant border around the card. When no alerts are active, shows a placeholder with the card name instead of hiding completely.",
+    severity_border: "Show severity border",
+    severity_border_help: "Draws a 1px colored border around each alert matching its severity (critical/warning/info/OK). Turn off to keep badge/icon color coding without the border. Width is themeable via --atc-severity-border-width.",
     card_background: "Custom background / transparency",
     card_background_help: "Enable to use the HA theme variable (--ha-card-background). Enter a custom CSS value to use a fixed color, e.g. rgba(0,0,0,0.5).",
     show_snooze_bar: "Show snooze reactivation bar 💤",
@@ -5616,6 +5618,16 @@ class AlertTickerCardEditor extends LitElement {
           ></ha-switch>
         </div>
         <div class="helper-text">${this._t("card_border_help")}</div>
+      </div>
+      <div class="form-row">
+        <div class="toggle-row">
+          <span>${this._t("severity_border")}</span>
+          <ha-switch
+            .checked="${cfg.severity_border !== false}"
+            @change="${(e) => this._fireConfig({ ...this._config, severity_border: e.target.checked ? undefined : false })}"
+          ></ha-switch>
+        </div>
+        <div class="helper-text">${this._t("severity_border_help")}</div>
       </div>
       <div class="form-row">
         <div class="toggle-row">

@@ -989,6 +989,23 @@ When enabled:
 
 All 50 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
 
+### Severity border
+
+Each alert block also gets a 1px border in its severity color (critical/warning/info/OK), separate from the badge/text colors above. Turn it off per-card while keeping the color-coded badges and icons:
+
+```yaml
+severity_border: false
+```
+
+Default: `true` (on) — existing dashboards are unaffected. The border width is also exposed as the `--atc-severity-border-width` CSS custom property (default `1px`) if you'd rather control it theme-wide instead of per-card:
+
+```yaml
+your-theme-name:
+  atc-severity-border-width: "0px"
+```
+
+`severity_border: false` on the card always wins over the theme variable.
+
 ### Card border
 
 Enable a persistent visible border around the card using the standard HA border style:
@@ -1164,6 +1181,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `active_state_entity` | `string` | — | **Per-alert.** `input_boolean.*` entity to write `on`/`off` to when this specific alert becomes active or clears. Each alert can target a different boolean. Works only while the browser tab is open. |
 | `card_height` | `number` | *(auto)* | Fixed card height in px — prevents layout shifts when cycling |
 | `card_border` | `boolean` | `false` | Show the standard HA border around the card at all times |
+| `severity_border` | `boolean` | `true` | Show the 1px severity-colored border around each alert block. Set `false` to keep badge/icon color coding without the border. Width themeable via `--atc-severity-border-width`. |
 | `overlay_mode` | `boolean` | `false` | Show a floating banner when a new alert triggers — visible from any dashboard view |
 | `overlay_position` | `string` | `top` | Banner position: `top`, `center`, or `bottom` |
 | `overlay_duration` | `number` | `8` | Seconds before auto-dismiss (0 = manual close only) |

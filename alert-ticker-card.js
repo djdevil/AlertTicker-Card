@@ -4392,6 +4392,7 @@ class AlertTickerCard extends LitElement {
     this.style.setProperty("--atc-card-outline", this._config?.card_border
       ? "1px solid var(--ha-card-border-color, var(--divider-color, rgba(255,255,255,0.25)))"
       : "var(--ha-card-border-width, 0px) solid var(--ha-card-border-color, transparent)");
+    this.style.setProperty("--atc-severity-border-width", this._config?.severity_border === false ? "0px" : "");
     const bg = this._config?.card_background;
     if (bg && bg !== false) {
       let bgValue;
@@ -10242,7 +10243,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-motion,
       .atc-ha-theme .at-intruder,
       .atc-ha-theme .at-toxic {
-        border: 1px solid var(--error-color, #e53935) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--error-color, #e53935) !important;
       }
       .atc-ha-theme .at-emergency [class$="-badge"],
       .atc-ha-theme .at-alarm     [class$="-badge"],
@@ -10266,7 +10267,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-smoke,
       .atc-ha-theme .at-wind,
       .atc-ha-theme .at-leak {
-        border: 1px solid var(--warning-color, #ff9800) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--warning-color, #ff9800) !important;
       }
       .atc-ha-theme .at-warning     [class$="-badge"],
       .atc-ha-theme .at-caution     [class$="-badge"],
@@ -10301,7 +10302,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-cyberpunk,
       .atc-ha-theme .at-vapor,
       .atc-ha-theme .at-ticker {
-        border: 1px solid var(--info-color, var(--primary-color, #2196f3)) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--info-color, var(--primary-color, #2196f3)) !important;
       }
       .atc-ha-theme .at-info         [class$="-badge"],
       .atc-ha-theme .at-notification [class$="-badge"],
@@ -10335,7 +10336,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-sunrise,
       .atc-ha-theme .at-plant,
       .atc-ha-theme .at-lock {
-        border: 1px solid var(--success-color, #43a047) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--success-color, #43a047) !important;
       }
       .atc-ha-theme .at-success  [class$="-badge"],
       .atc-ha-theme .at-check    [class$="-badge"],
@@ -10351,7 +10352,7 @@ class AlertTickerCard extends LitElement {
       /* ── 3D Spectacular — critical ── */
       .atc-ha-theme .at-portal,
       .atc-ha-theme .at-void {
-        border: 1px solid var(--error-color, #f44336) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--error-color, #f44336) !important;
       }
       .atc-ha-theme .at-portal [class$="-badge"],
       .atc-ha-theme .at-void   [class$="-badge"] {
@@ -10366,7 +10367,7 @@ class AlertTickerCard extends LitElement {
       /* ── 3D Spectacular — warning ── */
       .atc-ha-theme .at-volt,
       .atc-ha-theme .at-nebula {
-        border: 1px solid var(--warning-color, #ff9800) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--warning-color, #ff9800) !important;
       }
       .atc-ha-theme .at-volt   [class$="-badge"],
       .atc-ha-theme .at-nebula [class$="-badge"] {
@@ -10379,7 +10380,7 @@ class AlertTickerCard extends LitElement {
       /* ── 3D Spectacular — info ── */
       .atc-ha-theme .at-prism,
       .atc-ha-theme .at-arcade {
-        border: 1px solid var(--info-color, var(--primary-color, #2196f3)) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--info-color, var(--primary-color, #2196f3)) !important;
       }
       .atc-ha-theme .at-prism  [class$="-badge"] {
         background: var(--info-color, var(--primary-color, #2196f3)) !important;
@@ -10396,7 +10397,7 @@ class AlertTickerCard extends LitElement {
       /* ── 3D Spectacular — ok ── */
       .atc-ha-theme .at-diamond,
       .atc-ha-theme .at-quantum {
-        border: 1px solid var(--success-color, #43a047) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--success-color, #43a047) !important;
       }
       .atc-ha-theme .at-diamond [class$="-badge"],
       .atc-ha-theme .at-quantum [class$="-badge"] {
@@ -10413,7 +10414,7 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .at-timer-pulse,
       .atc-ha-theme .at-timer-ring {
         background: var(--card-background-color, #1c1c2e) !important;
-        border: 1px solid var(--divider-color, rgba(0,0,0,0.12)) !important;
+        border: var(--atc-severity-border-width, 1px) solid var(--divider-color, rgba(0,0,0,0.12)) !important;
       }
 
       /* ── Decorative elements reset ── */
