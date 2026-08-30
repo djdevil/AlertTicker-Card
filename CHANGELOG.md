@@ -6,6 +6,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.9.7] - 2026-08-30
+
+### Added
+
+- **Alert templates library** — one-click preset bundles in the visual editor next to the existing **+ Add alert** button. A new dropdown **+ Add from template...** lets you pick from **eleven curated bundles**:
+
+  Basic bundles (single feature):
+  - 🔋 **Battery Monitor** — every battery entity below 20% using `device_class: battery` + `battery3d` theme
+  - 🚪 **Doors & Windows** — every door / window sensor open, `caution` theme
+  - 🔥 **Fire & CO Safety** — smoke and CO detectors, critical priority, `fire` / `toxic` themes
+  - 💧 **Water Leak** — moisture / leak sensors, critical priority, `flood` theme
+  - 👁 **Motion** — motion sensors triggering, `motion` theme
+  - 🔄 **Software Updates** — HA and integration updates available, `update` theme
+
+  Advanced bundles (multi-feature showcase):
+  - 🎥 **Security Camera** — motion + full-screen camera **overlay** with live stream, showcases `overlay_mode` + `camera_entity` + `camera_live`
+  - 🔔 **Doorbell** — persistent alert with **sound + TTS + push notification + camera** overlay, showcases the full notification stack in one preset
+  - 🏠 **People Presence** — `on_change` trigger on any `person.*` entity with auto-dismiss, `presence` theme
+  - 🌡 **Climate Comfort** — two alerts, `>26°C` (temperature theme) and `<18°C` (frost theme), showcases numeric operators + two-condition setup
+  - 📡 **Devices Offline** — array-state match on `["unavailable", "unknown"]` for battery sensors, showcases the multi-value state syntax
+
+  All bundles use `device_class` / `entity_filter` filters so they auto-match every pertinent entity on the user's HA instance — zero per-entity configuration required. Alert messages are **intentionally empty** so the theme's own icon + the card's auto-generated entity name (secondary line) do the visual talking without redundant text. State fields use **arrays** where useful (e.g. doors accept both `"on"` and `"open"`, smoke accepts `"on"` and `"detected"`) so the templates work across HA core integrations AND third-party stacks like Zigbee2MQTT / Aqara / Sonoff that report literal text states. Advanced bundles that need card-level defaults (like `overlay_mode: true` for camera/doorbell) apply those defaults **only if the user hasn't already set them**, never overwriting existing config. Cuts the setup time for common scenarios from ~10 minutes to ~30 seconds.
+
+- **`font_scale` option — larger cards for HD/4K/wall-panel displays** (forum feedback from Ricardo) — new card-level option that proportionally zooms text, icons, and padding. Range 0.6 → 3.0, default 1. Fixes the "everything is tiny on my HD display" pain point without needing card-mod hacks. Uses CSS `zoom` under the hood so both visual and layout box scale together — you may need to bump `grid_options.rows` on larger scales to give the card enough space. Available in the visual editor (Layout tab) right below Card height.
+  ```yaml
+  type: custom:alert-ticker-card
+  font_scale: 1.5          # 50% larger — good for 24" wall panels
+  # font_scale: 2         # double size — good for 42" TV dashboards
+  grid_options:
+    rows: 2                # bump this to give the enlarged card room to breathe
+  ```
+
+- **First-time onboarding hint** — the **+ Add from template...** dropdown pulses with a soft blue glow and a ✨ sparkle badge the first time you open the editor, drawing attention to the new feature. Once you focus the dropdown (or pick a template) the hint disappears permanently, tracked via `localStorage` key `atc-tpl-hint-seen`. Non-invasive, respectful, and reset per browser only.
+
+---
+
 ## [1.3.9.9.6] - 2026-08-29
 
 ### Fixed

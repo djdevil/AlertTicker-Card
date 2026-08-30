@@ -1,5 +1,5 @@
-﻿/**
- * AlertTicker Card v1.3.9.9.6
+/**
+ * AlertTicker Card v1.3.9.9.7
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9.9.6";
+const CARD_VERSION = "1.3.9.9.7";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -4553,6 +4553,11 @@ class AlertTickerCard extends LitElement {
       ? "1px solid var(--ha-card-border-color, var(--divider-color, rgba(255,255,255,0.25)))"
       : "var(--ha-card-border-width, 0px) solid var(--ha-card-border-color, transparent)");
     this.style.setProperty("--atc-severity-border-width", this._config?.severity_border === false ? "0px" : "");
+    // Font scaling for HD / 4K / wall-panel displays (#forum feedback from Ricardo).
+    // Uses CSS `zoom` to proportionally enlarge text + icons + padding together.
+    // Default 1 (no scaling); typical use case is 1.3-2 for large screens.
+    const fontScale = parseFloat(this._config?.font_scale) || 1;
+    this.style.setProperty("--atc-zoom", fontScale > 0.5 && fontScale <= 4 ? String(fontScale) : "1");
     const bg = this._config?.card_background;
     if (bg && bg !== false) {
       let bgValue;
@@ -6621,6 +6626,10 @@ class AlertTickerCard extends LitElement {
         border-radius: var(--ha-card-border-radius, 12px);
         box-shadow: var(--ha-card-box-shadow, none);
         isolation: isolate;
+        /* font_scale — proportional zoom for HD/4K/wall-panel displays.
+         * Uses the CSS zoom property which affects layout box, so bumping this
+         * may require increasing grid_options.rows to give the card more space. */
+        zoom: var(--atc-zoom, 1);
       }
       /* While any popup is open: lift this element above adjacent cards.
        * isolation:auto removes the isolated stacking context so position+z-index

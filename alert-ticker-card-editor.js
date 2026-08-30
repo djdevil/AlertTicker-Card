@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.9.9.6
+ * AlertTicker Card Editor v1.3.9.9.7
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.9.9.6";
+const CARD_VERSION = "1.3.9.9.7";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -82,6 +82,349 @@ const THEME_META = {
   hourglass:    { icon: "⏳", category: "timer"    },
   timer_pulse:  { icon: "💥", category: "timer"    },
   timer_ring:   { icon: "🔵", category: "timer"    },
+};
+
+// ---------------------------------------------------------------------------
+// Alert templates — one-click preset bundles for common HA use cases.
+// Each template contains one or more alert configs that are appended to the
+// current alerts list when the user picks the template from the dropdown.
+// Uses device_class filters so no per-entity selection is required — the
+// template auto-matches all pertinent entities on the user's HA instance.
+// ---------------------------------------------------------------------------
+const ALERT_TEMPLATES = {
+  battery_monitor: {
+    icon: "🔋",
+    nameByLang: {
+      it: "Monitor batterie", en: "Battery Monitor", fr: "Surveillance batteries",
+      de: "Batterie-Monitor", nl: "Batterij monitor", vi: "Giám sát pin",
+      ru: "Мониторинг батарей", da: "Batteri-overvågning", cs: "Sledování baterií",
+      pt: "Monitor de baterias", es: "Monitor de baterías", tr: "Pil izleyici",
+    },
+    descByLang: {
+      it: "Avvisa quando una batteria scende sotto il 20%",
+      en: "Alerts when any battery drops below 20%",
+      fr: "Alerte quand une batterie descend sous 20%",
+      de: "Warnung wenn eine Batterie unter 20% fällt",
+      nl: "Waarschuwing wanneer een batterij onder 20% zakt",
+      vi: "Cảnh báo khi pin giảm xuống dưới 20%",
+      ru: "Оповещение когда батарея падает ниже 20%",
+      da: "Advarsel når batterier falder under 20%",
+      cs: "Upozornění, když baterie klesne pod 20%",
+      pt: "Alerta quando qualquer bateria cai abaixo de 20%",
+      es: "Alerta cuando cualquier batería baja del 20%",
+      tr: "Herhangi bir pil %20'nin altına düştüğünde uyarır",
+    },
+    alerts: [{
+      device_class: "battery",
+      operator: "<=",
+      state: "20",
+      theme: "battery3d",
+      priority: 2,
+      use_ha_icon: true,
+      message: "",
+    }],
+  },
+
+  doors_windows: {
+    icon: "🚪",
+    nameByLang: {
+      it: "Porte & finestre", en: "Doors & Windows", fr: "Portes & fenêtres",
+      de: "Türen & Fenster", nl: "Deuren & ramen", vi: "Cửa & cửa sổ",
+      ru: "Двери и окна", da: "Døre & vinduer", cs: "Dveře & okna",
+      pt: "Portas & janelas", es: "Puertas & ventanas", tr: "Kapılar & pencereler",
+    },
+    descByLang: {
+      it: "Avvisa quando porte o finestre sono aperte",
+      en: "Alerts when doors or windows are open",
+      fr: "Alerte quand portes ou fenêtres sont ouvertes",
+      de: "Warnung wenn Türen oder Fenster geöffnet sind",
+      nl: "Waarschuwing wanneer deuren of ramen open zijn",
+      vi: "Cảnh báo khi cửa hoặc cửa sổ mở",
+      ru: "Оповещение когда двери или окна открыты",
+      da: "Advarsel når døre eller vinduer er åbne",
+      cs: "Upozornění, když jsou dveře nebo okna otevřené",
+      pt: "Alerta quando portas ou janelas estão abertas",
+      es: "Alerta cuando puertas o ventanas están abiertas",
+      tr: "Kapılar veya pencereler açık olduğunda uyarır",
+    },
+    alerts: [
+      { device_class: "door",   state: ["on", "open"], theme: "caution", priority: 3, use_ha_icon: true, message: "" },
+      { device_class: "window", state: ["on", "open"], theme: "caution", priority: 3, use_ha_icon: true, message: "" },
+    ],
+  },
+
+  fire_safety: {
+    icon: "🔥",
+    nameByLang: {
+      it: "Sicurezza fumo & CO", en: "Fire & CO Safety", fr: "Sécurité fumée & CO",
+      de: "Rauch- & CO-Sicherheit", nl: "Rook- & CO-veiligheid", vi: "An toàn khói & CO",
+      ru: "Дым и CO", da: "Røg & CO-sikkerhed", cs: "Bezpečnost kouř & CO",
+      pt: "Segurança fumo & CO", es: "Seguridad humo & CO", tr: "Duman & CO güvenliği",
+    },
+    descByLang: {
+      it: "Rilevatori fumo e monossido di carbonio con priorità critica",
+      en: "Smoke and carbon monoxide detectors, critical priority",
+      fr: "Détecteurs de fumée et monoxyde de carbone, priorité critique",
+      de: "Rauch- und Kohlenmonoxid-Melder, kritische Priorität",
+      nl: "Rook- en koolmonoxide-detectoren, kritieke prioriteit",
+      vi: "Máy phát hiện khói và CO, ưu tiên cao nhất",
+      ru: "Датчики дыма и угарного газа, критический приоритет",
+      da: "Røg- og kulilte-detektorer, kritisk prioritet",
+      cs: "Detektory kouře a oxidu uhelnatého, kritická priorita",
+      pt: "Detectores de fumo e CO, prioridade crítica",
+      es: "Detectores de humo y CO, prioridad crítica",
+      tr: "Duman ve CO dedektörleri, kritik öncelik",
+    },
+    alerts: [
+      { device_class: "smoke",           state: ["on", "detected"], theme: "fire",  priority: 1, use_ha_icon: true, message: "" },
+      { device_class: "carbon_monoxide", state: ["on", "detected"], theme: "toxic", priority: 1, use_ha_icon: true, message: "" },
+    ],
+  },
+
+  water_leak: {
+    icon: "💧",
+    nameByLang: {
+      it: "Perdite acqua", en: "Water Leak", fr: "Fuite d'eau",
+      de: "Wasserleck", nl: "Waterlek", vi: "Rò rỉ nước",
+      ru: "Утечка воды", da: "Vandlækage", cs: "Únik vody",
+      pt: "Vazamento de água", es: "Fuga de agua", tr: "Su sızıntısı",
+    },
+    descByLang: {
+      it: "Sensori di allagamento con priorità critica",
+      en: "Moisture / leak sensors, critical priority",
+      fr: "Capteurs d'humidité / fuite, priorité critique",
+      de: "Feuchtigkeits-/Leck-Sensoren, kritische Priorität",
+      nl: "Vocht-/leksensoren, kritieke prioriteit",
+      vi: "Cảm biến độ ẩm / rò rỉ, ưu tiên cao nhất",
+      ru: "Датчики влажности / утечки, критический приоритет",
+      da: "Fugt-/lækage-sensorer, kritisk prioritet",
+      cs: "Snímače vlhkosti / úniku, kritická priorita",
+      pt: "Sensores de humidade / vazamento, prioridade crítica",
+      es: "Sensores de humedad / fuga, prioridad crítica",
+      tr: "Nem / sızıntı sensörleri, kritik öncelik",
+    },
+    alerts: [{
+      device_class: "moisture", state: ["on", "wet", "leak", "detected"], theme: "flood", priority: 1, use_ha_icon: true,
+      message: "",
+    }],
+  },
+
+  motion: {
+    icon: "👁",
+    nameByLang: {
+      it: "Movimento", en: "Motion", fr: "Mouvement",
+      de: "Bewegung", nl: "Beweging", vi: "Chuyển động",
+      ru: "Движение", da: "Bevægelse", cs: "Pohyb",
+      pt: "Movimento", es: "Movimiento", tr: "Hareket",
+    },
+    descByLang: {
+      it: "Avvisa quando viene rilevato movimento",
+      en: "Alerts when motion is detected",
+      fr: "Alerte quand un mouvement est détecté",
+      de: "Warnung wenn Bewegung erkannt wird",
+      nl: "Waarschuwing wanneer beweging wordt gedetecteerd",
+      vi: "Cảnh báo khi phát hiện chuyển động",
+      ru: "Оповещение когда обнаружено движение",
+      da: "Advarsel når der registreres bevægelse",
+      cs: "Upozornění, když je detekován pohyb",
+      pt: "Alerta quando movimento é detectado",
+      es: "Alerta cuando se detecta movimiento",
+      tr: "Hareket algılandığında uyarır",
+    },
+    alerts: [{
+      device_class: "motion", state: ["on", "detected"], theme: "motion", priority: 3, use_ha_icon: true,
+      message: "",
+    }],
+  },
+
+  updates: {
+    icon: "🔄",
+    nameByLang: {
+      it: "Aggiornamenti software", en: "Software Updates", fr: "Mises à jour logicielles",
+      de: "Software-Updates", nl: "Software-updates", vi: "Cập nhật phần mềm",
+      ru: "Обновления ПО", da: "Software-opdateringer", cs: "Aktualizace softwaru",
+      pt: "Atualizações de software", es: "Actualizaciones de software", tr: "Yazılım güncellemeleri",
+    },
+    descByLang: {
+      it: "Avvisa quando è disponibile un aggiornamento HA / integrazione",
+      en: "Alerts when a HA / integration update is available",
+      fr: "Alerte quand une mise à jour HA / intégration est disponible",
+      de: "Warnung wenn ein HA-/Integrations-Update verfügbar ist",
+      nl: "Waarschuwing wanneer een HA-/integratie-update beschikbaar is",
+      vi: "Cảnh báo khi có bản cập nhật HA / tích hợp",
+      ru: "Оповещение когда доступно обновление HA / интеграции",
+      da: "Advarsel når der er en HA-/integrations-opdatering",
+      cs: "Upozornění, když je dostupná aktualizace HA / integrace",
+      pt: "Alerta quando há uma atualização HA / integração",
+      es: "Alerta cuando hay una actualización HA / integración",
+      tr: "HA / entegrasyon güncellemesi mevcut olduğunda uyarır",
+    },
+    alerts: [{
+      entity_filter: "update.", state: "on", theme: "update", priority: 4, use_ha_icon: true,
+      message: "",
+    }],
+  },
+
+  // ─── Advanced bundles that showcase specific card features ───
+
+  security_camera: {
+    icon: "🎥",
+    nameByLang: {
+      it: "Sicurezza con camera", en: "Security Camera", fr: "Caméra de sécurité",
+      de: "Sicherheitskamera", nl: "Beveiligingscamera", vi: "Camera an ninh",
+      ru: "Камера безопасности", da: "Sikkerhedskamera", cs: "Bezpečnostní kamera",
+      pt: "Câmera de segurança", es: "Cámara de seguridad", tr: "Güvenlik kamerası",
+    },
+    descByLang: {
+      it: "Movimento + camera overlay full-screen (scegli tu sensor + camera dopo)",
+      en: "Motion + full-screen camera overlay (pick sensor + camera afterwards)",
+      fr: "Mouvement + overlay caméra plein écran (choisir capteur + caméra ensuite)",
+      de: "Bewegung + Vollbild-Kamera-Overlay (Sensor + Kamera danach wählen)",
+      nl: "Beweging + full-screen camera overlay (kies sensor + camera daarna)",
+      vi: "Chuyển động + overlay camera toàn màn hình (chọn cảm biến + camera sau)",
+      ru: "Движение + полноэкранный оверлей камеры (выберите датчик + камеру после)",
+      da: "Bevægelse + fuldskærms-kamera-overlay (vælg sensor + kamera bagefter)",
+      cs: "Pohyb + celoobrazovkový overlay kamery (vyberte senzor + kameru poté)",
+      pt: "Movimento + overlay câmera tela cheia (escolha sensor + câmera depois)",
+      es: "Movimiento + overlay cámara pantalla completa (elige sensor + cámara después)",
+      tr: "Hareket + tam ekran kamera overlay (sensör + kamerayı sonra seç)",
+    },
+    // Set overlay_mode at card level; entity/camera left blank for user to pick
+    cardConfig: { overlay_mode: true, overlay_duration: 15, overlay_scale: 1.5 },
+    alerts: [{
+      entity: "", state: ["on", "detected"], theme: "motion", priority: 2,
+      camera_entity: "", camera_live: true, camera_in_card: true,
+      snooze_default_duration: 0.5, sound: true, use_ha_icon: true,
+      message: "",
+    }],
+  },
+
+  doorbell: {
+    icon: "🔔",
+    nameByLang: {
+      it: "Campanello", en: "Doorbell", fr: "Sonnette",
+      de: "Türklingel", nl: "Deurbel", vi: "Chuông cửa",
+      ru: "Дверной звонок", da: "Dørklokke", cs: "Zvonek",
+      pt: "Campainha", es: "Timbre", tr: "Kapı zili",
+    },
+    descByLang: {
+      it: "Suono + push + TTS + camera (scegli tu campanello + camera dopo)",
+      en: "Sound + push + TTS + camera (pick doorbell + camera afterwards)",
+      fr: "Son + push + TTS + caméra (choisir sonnette + caméra ensuite)",
+      de: "Ton + Push + TTS + Kamera (Klingel + Kamera danach wählen)",
+      nl: "Geluid + push + TTS + camera (kies deurbel + camera daarna)",
+      vi: "Âm thanh + push + TTS + camera (chọn chuông + camera sau)",
+      ru: "Звук + push + TTS + камера (выберите звонок + камеру после)",
+      da: "Lyd + push + TTS + kamera (vælg dørklokke + kamera bagefter)",
+      cs: "Zvuk + push + TTS + kamera (vyberte zvonek + kameru poté)",
+      pt: "Som + push + TTS + câmera (escolha campainha + câmera depois)",
+      es: "Sonido + push + TTS + cámara (elige timbre + cámara después)",
+      tr: "Ses + push + TTS + kamera (kapı zili + kamerayı sonra seç)",
+    },
+    cardConfig: { overlay_mode: true, overlay_duration: 20 },
+    alerts: [{
+      entity: "", state: ["on", "pressed", "single"], theme: "notification", priority: 1,
+      camera_entity: "", camera_in_card: true,
+      sound: true, tts: true, push_notify: true,
+      persistent: true, use_ha_icon: true,
+      message: "",
+    }],
+  },
+
+  presence: {
+    icon: "🏠",
+    nameByLang: {
+      it: "Presenza persone", en: "People Presence", fr: "Présence personnes",
+      de: "Personen-Anwesenheit", nl: "Aanwezigheid personen", vi: "Sự hiện diện của người",
+      ru: "Присутствие людей", da: "Personers tilstedeværelse", cs: "Přítomnost osob",
+      pt: "Presença de pessoas", es: "Presencia de personas", tr: "Kişi varlığı",
+    },
+    descByLang: {
+      it: "Avvisa quando qualcuno arriva o esce di casa",
+      en: "Alerts when someone arrives home or leaves",
+      fr: "Alerte quand quelqu'un rentre ou sort",
+      de: "Warnung wenn jemand nach Hause kommt oder geht",
+      nl: "Waarschuwing wanneer iemand thuiskomt of vertrekt",
+      vi: "Cảnh báo khi có người về hoặc rời khỏi nhà",
+      ru: "Оповещение когда кто-то приходит или уходит",
+      da: "Advarsel når nogen kommer hjem eller går",
+      cs: "Upozornění, když někdo přichází nebo odchází",
+      pt: "Alerta quando alguém chega ou sai de casa",
+      es: "Alerta cuando alguien llega o sale de casa",
+      tr: "Biri eve geldiğinde veya çıktığında uyarır",
+    },
+    alerts: [{
+      entity_filter: "person.",
+      on_change: true, auto_dismiss_after: 20,
+      theme: "presence", priority: 3, use_ha_icon: true,
+      message: "",
+    }],
+  },
+
+  climate_comfort: {
+    icon: "🌡",
+    nameByLang: {
+      it: "Comfort climatico", en: "Climate Comfort", fr: "Confort climatique",
+      de: "Klima-Komfort", nl: "Klimaatcomfort", vi: "Sự thoải mái khí hậu",
+      ru: "Климатический комфорт", da: "Klima-komfort", cs: "Klimatický komfort",
+      pt: "Conforto climático", es: "Confort climático", tr: "İklim konforu",
+    },
+    descByLang: {
+      it: "Avvisa quando la temperatura interna esce dal range confortevole (18-26°C)",
+      en: "Alerts when indoor temperature falls outside the comfort range (18-26°C)",
+      fr: "Alerte quand la température intérieure sort de la plage 18-26°C",
+      de: "Warnung wenn Innentemperatur außerhalb 18-26°C liegt",
+      nl: "Waarschuwing wanneer binnentemperatuur buiten 18-26°C valt",
+      vi: "Cảnh báo khi nhiệt độ trong nhà ngoài 18-26°C",
+      ru: "Оповещение когда температура вне диапазона 18-26°C",
+      da: "Advarsel når indendørs temperatur er uden for 18-26°C",
+      cs: "Upozornění, když je vnitřní teplota mimo 18-26°C",
+      pt: "Alerta quando a temperatura interior sai da faixa 18-26°C",
+      es: "Alerta cuando la temperatura interior sale del rango 18-26°C",
+      tr: "İç mekan sıcaklığı 18-26°C aralığı dışına çıktığında uyarır",
+    },
+    alerts: [
+      {
+        device_class: "temperature", operator: ">", state: "26",
+        theme: "temperature", priority: 3, use_ha_icon: true,
+        message: "",
+      },
+      {
+        device_class: "temperature", operator: "<", state: "18",
+        theme: "frost", priority: 3, use_ha_icon: true,
+        message: "",
+      },
+    ],
+  },
+
+  device_offline: {
+    icon: "📡",
+    nameByLang: {
+      it: "Dispositivi offline", en: "Devices Offline", fr: "Appareils hors ligne",
+      de: "Geräte offline", nl: "Apparaten offline", vi: "Thiết bị offline",
+      ru: "Устройства offline", da: "Enheder offline", cs: "Zařízení offline",
+      pt: "Dispositivos offline", es: "Dispositivos offline", tr: "Cihazlar çevrimdışı",
+    },
+    descByLang: {
+      it: "Rileva batterie e sensori diventati 'unavailable' o 'unknown'",
+      en: "Detects battery / sensor entities that go 'unavailable' or 'unknown'",
+      fr: "Détecte batteries / capteurs devenus 'indisponible' ou 'inconnu'",
+      de: "Erkennt Batterien / Sensoren die 'unavailable' oder 'unknown' werden",
+      nl: "Detecteert batterijen / sensoren die 'onbeschikbaar' of 'onbekend' worden",
+      vi: "Phát hiện pin / cảm biến trở thành 'unavailable' hoặc 'unknown'",
+      ru: "Обнаруживает батареи / сенсоры со статусом 'unavailable' или 'unknown'",
+      da: "Registrerer batterier / sensorer der bliver 'unavailable' eller 'unknown'",
+      cs: "Detekuje baterie / senzory ve stavu 'unavailable' nebo 'unknown'",
+      pt: "Detecta baterias / sensores que ficam 'unavailable' ou 'unknown'",
+      es: "Detecta baterías / sensores en 'unavailable' o 'unknown'",
+      tr: "'unavailable' veya 'unknown' hale gelen pil / sensörleri algılar",
+    },
+    alerts: [{
+      device_class: "battery", operator: "=", state: ["unavailable", "unknown"],
+      theme: "satellite", priority: 4, use_ha_icon: true,
+      message: "",
+    }],
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -890,6 +1233,8 @@ const ET = {
     text_align_center: "Testo centrato (utile per layout Panel molto larghi)",
     card_height: "Altezza fissa card (px)",
     card_height_help: "Fissa l'altezza per evitare spostamenti del layout quando cambiano gli avvisi. Lascia vuoto per altezza automatica.",
+    font_scale: "Scala font (per display HD/4K)",
+    font_scale_help: "Ingrandisce testo + icone + padding proporzionalmente. 1 = normale, 1.5 = 50% più grande, 2 = doppio. Usa per wall panel o TV grandi. Potresti dover aumentare grid_options.rows.",
     card_border: "Mostra bordo e nome card",
     card_border_help: "Aggiunge il bordo standard di Home Assistant attorno alla card. Quando non ci sono avvisi attivi, mostra un segnaposto con il nome della card invece di nasconderla completamente.",
     card_background: "Sfondo personalizzato / trasparenza",
@@ -977,6 +1322,7 @@ const ET = {
     clear_theme: "Tema per stato 'tutto ok'",
     alerts_list: "Lista avvisi configurati",
     add_alert: "Aggiungi avviso",
+    add_from_template: "+ Aggiungi da template...",
     alert_entity: "Entità",
     alert_operator: "Condizione",
     alert_state: "Valore",
@@ -1250,6 +1596,8 @@ const ET = {
     text_align_center: "Center text (useful for wide Panel layout)",
     card_height: "Fixed card height (px)",
     card_height_help: "Locks the height to prevent layout shifts when alerts change. Leave empty for automatic height.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Show card border & name",
     card_border_help: "Adds the standard Home Assistant border around the card. When no alerts are active, shows a placeholder with the card name instead of hiding completely.",
     severity_border: "Show severity border",
@@ -1339,6 +1687,7 @@ const ET = {
     clear_theme: "Theme for 'all clear' state",
     alerts_list: "Configured alerts",
     add_alert: "Add alert",
+    add_from_template: "+ Add from template...",
     alert_entity: "Entity",
     alert_operator: "Condition",
     alert_state: "Value",
@@ -1612,6 +1961,8 @@ const ET = {
     text_align_center: "Texte centré (utile pour la disposition Panel large)",
     card_height: "Hauteur fixe de la carte (px)",
     card_height_help: "Fixe la hauteur pour éviter les décalages de mise en page lors des changements d'alertes. Laisser vide pour hauteur automatique.",
+    font_scale: "Échelle de police (écrans HD/4K)",
+    font_scale_help: "Agrandit le texte + les icônes + le padding proportionnellement. 1 = normal, 1.5 = 50% plus grand, 2 = double. Utilisez pour tablettes murales ou grandes TV.",
     card_border: "Afficher la bordure et le nom",
     card_border_help: "Ajoute la bordure standard de Home Assistant autour de la carte. Quand aucune alerte n'est active, affiche un espace réservé avec le nom de la carte au lieu de la masquer complètement.",
     card_background: "Arrière-plan personnalisé / transparence",
@@ -1699,6 +2050,7 @@ const ET = {
     clear_theme: "Thème pour l'état 'tout va bien'",
     alerts_list: "Liste des alertes configurées",
     add_alert: "Ajouter une alerte",
+    add_from_template: "+ Ajouter depuis un modèle...",
     alert_entity: "Entité",
     alert_operator: "Condition",
     alert_state: "Valeur",
@@ -1972,6 +2324,8 @@ const ET = {
     text_align_center: "Text zentrieren (nützlich für breites Panel-Layout)",
     card_height: "Feste Kartenhöhe (px)",
     card_height_help: "Sperrt die Höhe, um Layoutverschiebungen beim Wechsel von Alerts zu verhindern. Leer lassen für automatische Höhe.",
+    font_scale: "Schriftskalierung (HD/4K-Displays)",
+    font_scale_help: "Vergrößert Text + Icons + Abstände proportional. 1 = normal, 1.5 = 50% größer, 2 = doppelt. Für Wandtablets oder große Fernseher.",
     card_border: "Rahmen und Namen anzeigen",
     card_border_help: "Fügt den Standard-Home-Assistant-Rahmen um die Karte hinzu. Wenn keine Alerts aktiv sind, wird ein Platzhalter mit dem Kartennamen angezeigt, anstatt die Karte vollständig auszublenden.",
     card_background: "Benutzerdefinierter Hintergrund / Transparenz",
@@ -2059,6 +2413,7 @@ const ET = {
     clear_theme: "Thema für 'Alles in Ordnung'",
     alerts_list: "Konfigurierte Warnungen",
     add_alert: "Warnung hinzufügen",
+    add_from_template: "+ Aus Vorlage hinzufügen...",
     alert_entity: "Entität",
     alert_operator: "Bedingung",
     alert_state: "Wert",
@@ -2332,6 +2687,8 @@ const ET = {
     text_align_center: "Tekst centreren (handig voor breed Panel-layout)",
     card_height: "Vaste kaarthoogte (px)",
     card_height_help: "Vergrendelt de hoogte om lay-outverschuivingen bij wisselende meldingen te voorkomen. Leeg laten voor automatische hoogte.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Toon rand en naam",
     card_border_help: "Voegt de standaard Home Assistant rand toe rond de kaart. Wanneer er geen meldingen actief zijn, wordt een tijdelijke aanduiding met de kaartnaam weergegeven in plaats van de kaart volledig te verbergen.",
     card_background: "Aangepaste achtergrond / transparantie",
@@ -2419,6 +2776,7 @@ const ET = {
     clear_theme: "Thema voor 'alles in orde'",
     alerts_list: "Geconfigureerde meldingen",
     add_alert: "Melding toevoegen",
+    add_from_template: "+ Toevoegen vanuit sjabloon...",
     alert_entity: "Entiteit",
     alert_operator: "Conditie",
     alert_state: "Waarde",
@@ -2692,6 +3050,8 @@ const ET = {
     text_align_center: "Căn giữa văn bản (hữu ích cho layout Panel rộng)",
     card_height: "Chiều cao cố định (px)",
     card_height_help: "Khóa chiều cao để ngăn dịch chuyển bố cục khi cảnh báo thay đổi. Để trống để chiều cao tự động.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Hiển thị viền và tên card",
     card_border_help: "Thêm viền chuẩn Home Assistant xung quanh card. Khi không có cảnh báo nào hoạt động, hiển thị placeholder với tên card thay vì ẩn hoàn toàn.",
     card_background: "Nền tùy chỉnh / độ trong suốt",
@@ -2779,6 +3139,7 @@ const ET = {
     clear_theme: "Giao diện trạng thái 'mọi thứ ổn'",
     alerts_list: "Danh sách báo động đã cài đặt",
     add_alert: "Thêm báo động",
+    add_from_template: "+ Thêm từ mẫu...",
     alert_entity: "Thực thể (Entity)",
     alert_operator: "Điều kiện",
     alert_state: "Giá trị",
@@ -3052,6 +3413,8 @@ const ET = {
     text_align_center: "Текст по центру (полезно для широких макетов Panel)",
     card_height: "Фиксированная высота карточки (px)",
     card_height_help: "Фиксирует высоту для предотвращения смещений при смене оповещений. Оставьте пустым для автоматической высоты.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Показывать рамку и название",
     card_border_help: "Добавляет стандартную рамку Home Assistant вокруг карточки. Когда нет активных оповещений, отображается заполнитель с названием карточки вместо полного скрытия.",
     card_background: "Пользовательский фон / прозрачность",
@@ -3139,6 +3502,7 @@ const ET = {
     clear_theme: "Тема состояния 'всё в порядке'",
     alerts_list: "Список настроенных оповещений",
     add_alert: "Добавить оповещение",
+    add_from_template: "+ Добавить из шаблона...",
     alert_entity: "Объект",
     alert_operator: "Условие",
     alert_state: "Значение",
@@ -3412,6 +3776,8 @@ const ET = {
     text_align_center: "Centrer tekst (nyttig til bredt panel‑layout)",
     card_height: "Fast kort‑højde (px)",
     card_height_help: "Låser højden for at undgå layout‑skift, når advarsler ændres. Lad stå tom for automatisk højde.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     show_snooze_bar: "Vis reaktiveringsbar for slumre 💤",
     show_dismiss_bar: "Vis afvist advarselsbar 🔕",
     show_snooze_button: "Vis slumreknap 💤",
@@ -3495,6 +3861,7 @@ const ET = {
     clear_theme: "Tema for 'alt er i orden'‑tilstand",
     alerts_list: "Konfigurerede advarsler",
     add_alert: "Tilføj advarsel",
+    add_from_template: "+ Tilføj fra skabelon...",
     alert_entity: "Enhed",
     alert_operator: "Betingelse",
     alert_state: "Værdi",
@@ -3772,6 +4139,8 @@ const ET = {
     text_align_center: "Vycentrovaný text (vhodné pro široké rozložení panelu)",
     card_height: "Pevná výška karty (px)",
     card_height_help: "Uzamkne výšku karty aby nedocházelo k posunům při změně varování. Ponechte prázdné pro automatickou výšku.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Zobrazit okraje a název",
     card_border_help: "Přidá standardní okraje Home Assistenta okolo karty. Zobrazí kartu, pokud nejsou aktivní žádná varování, namísto úplného schování karty.",
     card_background: "Vlastní pozadí / průhlednost",
@@ -3859,6 +4228,7 @@ const ET = {
     clear_theme: "Vzhled pro stav 'Vše OK'",
     alerts_list: "Nastavená varování",
     add_alert: "Nové varování",
+    add_from_template: "+ Přidat ze šablony...",
     alert_entity: "Entita",
     alert_operator: "Podmínka",
     alert_state: "Hodnota",
@@ -4136,6 +4506,8 @@ const ET = {
     text_align_center: "Texto centralizado (útil para layout Panel muito largo)",
     card_height: "Altura fixa do card (px)",
     card_height_help: "Fixa a altura para evitar deslocamentos de layout quando os alertas mudam. Deixe vazio para altura automática.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Mostrar borda e nome do card",
     card_border_help: "Adiciona a borda padrão do Home Assistant ao redor do card. Quando não há alertas ativos, mostra um espaço reservado com o nome do card em vez de ocultá-lo completamente.",
     card_background: "Fundo personalizado / transparência",
@@ -4223,6 +4595,7 @@ const ET = {
     clear_theme: "Tema para o estado 'tudo limpo'",
     alerts_list: "Alertas configurados",
     add_alert: "Adicionar alerta",
+    add_from_template: "+ Adicionar do modelo...",
     alert_entity: "Entidade",
     alert_operator: "Condição",
     alert_state: "Valor",
@@ -4496,6 +4869,8 @@ const ET = {
     text_align_center: "Texto centrado (útil para diseño Panel muy ancho)",
     card_height: "Altura fija de la tarjeta (px)",
     card_height_help: "Fija la altura para evitar desplazamientos de diseño al cambiar las alertas. Deja vacío para altura automática.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Mostrar borde y nombre de la tarjeta",
     card_border_help: "Añade el borde estándar de Home Assistant alrededor de la tarjeta. Cuando no hay alertas activas, muestra un marcador con el nombre de la tarjeta en lugar de ocultarla.",
     card_background: "Fondo personalizado / transparencia",
@@ -4583,6 +4958,7 @@ const ET = {
     clear_theme: "Tema para el estado 'todo bien'",
     alerts_list: "Alertas configuradas",
     add_alert: "Añadir alerta",
+    add_from_template: "+ Añadir desde plantilla...",
     alert_entity: "Entidad",
     alert_operator: "Condición",
     alert_state: "Valor",
@@ -4856,6 +5232,8 @@ const ET = {
     text_align_center: "Metni ortala (geniş Panel düzeni için kullanışlı)",
     card_height: "Sabit kart yüksekliği (px)",
     card_height_help: "Uyarılar değiştiğinde düzen kaymalarını önlemek için yüksekliği sabitle. Otomatik yükseklik için boş bırak.",
+    font_scale: "Font scale (for HD/4K displays)",
+    font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Kart kenarlığını ve adını göster",
     card_border_help: "Kartın etrafına standart Home Assistant kenarlığı ekler. Aktif uyarı yokken, kartı tamamen gizlemek yerine kart adıyla bir yer tutucu gösterir.",
     card_background: "Özel arkaplan / şeffaflık",
@@ -4943,6 +5321,7 @@ const ET = {
     clear_theme: "'Her şey yolunda' durumu için tema",
     alerts_list: "Yapılandırılmış uyarılar",
     add_alert: "Uyarı ekle",
+    add_from_template: "+ Şablondan ekle...",
     alert_entity: "Varlık",
     alert_operator: "Koşul",
     alert_state: "Değer",
@@ -5318,6 +5697,9 @@ class AlertTickerCardEditor extends LitElement {
     this._initializing = false;         // true during first render microtask burst
     this._haUsers = null;               // null = not yet fetched, [] = fetch failed/empty
     this._haUsersFetching = false;
+    // Onboarding: highlight the "Add from template" dropdown until first use
+    this._templatesHintSeen = false;
+    try { this._templatesHintSeen = !!localStorage.getItem("atc-tpl-hint-seen"); } catch (_) {}
   }
 
   _onTimeInput(e) {
@@ -5708,6 +6090,22 @@ class AlertTickerCardEditor extends LitElement {
           }}"
         ></ha-input>
         <div class="helper-text">${this._t("card_height_help")}</div>
+      </div>
+      <div class="form-row">
+        <ha-input
+          type="number"
+          .label="${this._t("font_scale")}"
+          .value="${cfg.font_scale ? String(cfg.font_scale) : ""}"
+          min="0.6"
+          max="3"
+          step="0.1"
+          placeholder="1.0"
+          @change="${(e) => {
+            const v = parseFloat(e.target.value);
+            this._fireConfig({ ...this._config, font_scale: (v > 0.5 && v !== 1 ? v : undefined) });
+          }}"
+        ></ha-input>
+        <div class="helper-text">${this._t("font_scale_help")}</div>
       </div>
       <div class="form-row">
         <div class="toggle-row">
@@ -6351,9 +6749,25 @@ class AlertTickerCardEditor extends LitElement {
 
       ${this._renderAlertEditPanel()}
 
-      <button class="btn-add-alert" @click="${() => this._addAlert()}">
-        + ${this._t("add_alert")}
-      </button>
+      <div class="add-alert-row">
+        <button class="btn-add-alert" @click="${() => this._addAlert()}">
+          + ${this._t("add_alert")}
+        </button>
+        <div class="native-select-wrap add-alert-template-wrap ${this._templatesHintSeen ? '' : 'tpl-hint-glow'}">
+          <select class="native-select" .value="${''}"
+            @focus="${() => this._markTemplateHintSeen()}"
+            @change="${(e) => { this._addFromTemplate(e.target.value); e.target.value = ''; }}"
+          >
+            <option value="">${this._t("add_from_template")}</option>
+            ${Object.entries(ALERT_TEMPLATES).map(([key, t]) => {
+              const lang = this._lang || 'en';
+              const name = t.nameByLang[lang] || t.nameByLang.en;
+              const desc = t.descByLang[lang] || t.descByLang.en;
+              return html`<option value="${key}">${t.icon} ${name} — ${desc}</option>`;
+            })}
+          </select>
+        </div>
+      </div>
 
       <div class="test-mode-box${this._config.test_mode ? " test-mode-box--active" : ""}">
         <div class="test-mode-box-header">
@@ -7757,6 +8171,57 @@ class AlertTickerCardEditor extends LitElement {
     this._fireConfig(newConfig);
   }
 
+  /**
+   * Instantiate a preset bundle (see ALERT_TEMPLATES). Appends the template's
+   * alerts to the current list. Messages use simple placeholders like
+   * `{name}` and `{state}` which stay language-neutral — the theme icon and
+   * colour palette convey the alert type.
+   *
+   * Some advanced templates (security_camera, doorbell) also carry a
+   * `cardConfig` payload with card-level defaults (e.g. overlay_mode) —
+   * these are applied ONLY where the user hasn't already set a value, so
+   * existing config is never silently overwritten.
+   *
+   * The first added alert is opened in the edit panel so the user can tweak
+   * entities / thresholds immediately.
+   */
+  _addFromTemplate(templateKey) {
+    if (!templateKey) return;
+    const template = ALERT_TEMPLATES[templateKey];
+    if (!template) return;
+    this._markTemplateHintSeen(); // remove first-time glow if still on
+
+    const currentAlerts = [...(this._config.alerts || [])];
+    const firstNewIndex = currentAlerts.length;
+    const newAlerts = template.alerts.map((tplAlert) => ({ ...tplAlert }));
+
+    // Merge cardConfig defaults, but never overwrite what the user already set
+    let mergedCardCfg = {};
+    if (template.cardConfig) {
+      for (const [k, v] of Object.entries(template.cardConfig)) {
+        if (this._config[k] === undefined) mergedCardCfg[k] = v;
+      }
+    }
+
+    this._editingIndex = firstNewIndex;
+    const nextConfig = { ...this._config, ...mergedCardCfg, alerts: [...currentAlerts, ...newAlerts] };
+    if (this._config.test_mode) nextConfig._preview_index = firstNewIndex;
+    this._fireConfig(nextConfig);
+  }
+
+  /**
+   * Onboarding hint: highlight the "Add from template" dropdown the first
+   * time the user opens the editor, until they interact with it once.
+   * Persisted in localStorage as `atc-tpl-hint-seen` so it appears exactly
+   * once per browser.
+   */
+  _markTemplateHintSeen() {
+    if (this._templatesHintSeen) return;
+    this._templatesHintSeen = true;
+    try { localStorage.setItem("atc-tpl-hint-seen", "1"); } catch (_) {}
+    this.requestUpdate();
+  }
+
   _deleteAlert(index) {
     const alerts = [...(this._config.alerts || [])];
     alerts.splice(index, 1);
@@ -9120,6 +9585,41 @@ class AlertTickerCardEditor extends LitElement {
       .btn-move-inline:disabled {
         opacity: 0.25;
         cursor: default;
+      }
+
+      /* ---- Add button + template dropdown row ---- */
+      .add-alert-row {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+        margin-top: 8px;
+      }
+      .add-alert-row .btn-add-alert { margin-top: 0; flex: 1; }
+      .add-alert-template-wrap { flex: 1; margin-top: 0; position: relative; border-radius: 8px; }
+      .add-alert-template-wrap .native-select { height: 100%; min-height: 40px; }
+      @media (max-width: 480px) {
+        .add-alert-row { flex-direction: column; }
+      }
+      /* First-time onboarding glow — draws attention to the templates dropdown */
+      .add-alert-template-wrap.tpl-hint-glow {
+        animation: tplHintPulse 2.2s ease-in-out infinite;
+      }
+      .add-alert-template-wrap.tpl-hint-glow::before {
+        content: "✨";
+        position: absolute;
+        top: -8px; right: -6px;
+        z-index: 2;
+        font-size: 1rem;
+        pointer-events: none;
+        animation: tplHintSparkle 2.2s ease-in-out infinite;
+      }
+      @keyframes tplHintPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(3, 169, 244, 0);   }
+        50%      { box-shadow: 0 0 0 6px rgba(3, 169, 244, 0.35), 0 0 16px 2px rgba(3,169,244,0.55); }
+      }
+      @keyframes tplHintSparkle {
+        0%, 100% { opacity: 0.55; transform: scale(0.9) rotate(-8deg); }
+        50%      { opacity: 1;    transform: scale(1.15) rotate(8deg); }
       }
 
       /* ---- Add button ---- */

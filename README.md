@@ -1168,6 +1168,41 @@ No YAML knowledge required. The editor uses a **hub-and-spoke** layout: the main
 
 ### 🔔 Alerts tab
 
+#### 📚 Alert templates *(new in 1.3.9.9.7)*
+
+Next to the classic **+ Add alert** button, a **+ Add from template...** dropdown gives you one-click access to **eleven curated preset bundles**. Each template uses HA `device_class` filters so it auto-matches every pertinent entity on your instance — no per-entity picking required.
+
+**Basic bundles** (one feature per template):
+
+| Template | What it does | Themes used |
+|----------|-------------|-------------|
+| 🔋 **Battery Monitor** | Alerts on every battery entity below 20% | `battery3d` |
+| 🚪 **Doors & Windows** | Alerts on any door or window sensor left open | `caution` |
+| 🔥 **Fire & CO Safety** | Smoke and CO detectors, critical priority | `fire`, `toxic` |
+| 💧 **Water Leak** | Moisture / leak sensors, critical priority | `flood` |
+| 👁 **Motion** | All motion sensors triggering | `motion` |
+| 🔄 **Software Updates** | HA and integration updates available | `update` |
+
+**Advanced bundles** (multi-feature showcase):
+
+| Template | What it does | Extra card features |
+|----------|-------------|---------------------|
+| 🎥 **Security Camera** | Motion → full-screen camera live overlay | `overlay_mode` + `camera_entity` + `camera_live` |
+| 🔔 **Doorbell** | Persistent alert with camera, sound, TTS, push | Full notification stack in one preset |
+| 🏠 **People Presence** | `on_change` on any `person.*` with auto-dismiss | `on_change` + `auto_dismiss_after` |
+| 🌡 **Climate Comfort** | Alert when temperature exits 18–26°C range | Two numeric-operator alerts + `frost` theme |
+| 📡 **Devices Offline** | Battery sensors going `unavailable` / `unknown` | Array-state match syntax |
+
+Pick one → the template's alerts are **appended** to your current list (you can edit / delete each one individually afterwards). Alert messages are intentionally minimal (`{name}` or `{name} — {state}%`) so the theme's icon and colour palette convey the alert type — no translation needed.
+
+Advanced bundles that require card-level defaults (like `overlay_mode: true` for camera/doorbell) apply those defaults **only if you haven't already set them**, so your existing dashboard config is never overwritten.
+
+Duplicates are allowed on purpose — if you want two Battery Monitor alerts with different thresholds, just pick the template twice and tweak.
+
+> ✨ **First-time hint:** the very first time you open the editor after upgrading, the templates dropdown pulses with a soft blue glow and a ✨ sparkle badge to draw your attention. Focus the dropdown once and the hint disappears permanently.
+
+#### Per-alert fields
+
 For each alert:
 
 | Field | Description |
@@ -1291,6 +1326,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `history_max_events` | `number` | `50` | Max history entries to keep |
 | `active_state_entity` | `string` | — | **Per-alert.** `input_boolean.*` entity to write `on`/`off` to when this specific alert becomes active or clears. Each alert can target a different boolean. Works only while the browser tab is open. |
 | `card_height` | `number` | *(auto)* | Fixed card height in px — prevents layout shifts when cycling |
+| `font_scale` | `number` | `1` | **New in 1.3.9.9.7** — proportional zoom for HD / 4K / wall-panel displays. `1` = normal, `1.5` = 50% larger, `2` = double. May require bumping `grid_options.rows`. |
 | `card_border` | `boolean` | `false` | Show the standard HA border around the card at all times |
 | `severity_border` | `boolean` | `true` | Show the 1px severity-colored border around each alert block. Set `false` to keep badge/icon color coding without the border. Width themeable via `--atc-severity-border-width`. |
 | `overlay_mode` | `boolean` | `false` | Show a floating banner when a new alert triggers — visible from any dashboard view |
