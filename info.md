@@ -1,12 +1,12 @@
 # 🔔 AlertTicker Card
 
-The most complete alert & notification card for Home Assistant — **52 visual themes**, TTS, push notifications, global overlay banner, media player mode, weather widget, and a full visual editor. **Zero YAML required.**
+The most complete alert & notification card for Home Assistant — **53 visual themes**, TTS, push notifications, global overlay banner, media player mode, weather widget, and a full visual editor. **Zero YAML required.**
 
 ![AlertTicker Card demo](https://raw.githubusercontent.com/djdevil/AlertTicker-Card/main/images/demo.gif)
 
 ## ✨ Highlights
 
-- 🎨 **52 themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, music player mode
+- 🎨 **53 themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, music player mode
 - ⚡ **Trigger on anything** — entity state, attribute, template, device class, entity filter with wildcards, AND/OR conditions
 - 📢 **Notify everywhere** — in-dashboard ticker, **global overlay banner** visible from any view, **TTS** (Alexa / Google / any speaker), **push notifications**, **live camera streams**
 - 🌍 **12 languages** — IT · EN · FR · DE · NL · VI · RU · DA · CS · PT-BR · ES · TR

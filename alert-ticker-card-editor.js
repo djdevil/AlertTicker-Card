@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.9.9.5
+ * AlertTicker Card Editor v1.3.9.9.6
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.9.9.5";
+const CARD_VERSION = "1.3.9.9.6";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -42,6 +42,7 @@ const THEME_META = {
   radar:        { icon: "🎯", category: "warning"  },
   temperature:  { icon: "🌡️", category: "warning"  },
   battery:      { icon: "🔋", category: "warning"  },
+  battery3d:    { icon: "🔋", category: "warning"  },
   door:         { icon: "🚪", category: "warning"  },
   window:       { icon: "🪟", category: "warning"  },
   hologram:     { icon: "🔷", category: "info"     },
@@ -847,6 +848,7 @@ const ET = {
     clear_weather_aqi_entity: "Qualità dell'aria / PM2.5 (sensore)",
     clear_clock_show_date: "Mostra data",
     clear_clock_12h: "Formato 12 ore (AM/PM)",
+    clear_clock_show_seconds: "Mostra i secondi",
     clear_clock_date_label: "Posizione data",
     clear_clock_style_label: "Stile orologio",
     clear_clock_colors_title: "Colori personalizzati (opzionale)",
@@ -1206,6 +1208,7 @@ const ET = {
     clear_weather_aqi_entity: "Air quality / PM2.5 (sensor)",
     clear_clock_show_date: "Show date",
     clear_clock_12h: "12-hour format (AM/PM)",
+    clear_clock_show_seconds: "Show seconds",
     clear_clock_date_label: "Date position",
     clear_clock_style_label: "Clock style",
     clear_clock_colors_title: "Custom colors (optional)",
@@ -1567,6 +1570,7 @@ const ET = {
     clear_weather_aqi_entity: "Qualité de l'air / PM2.5 (capteur)",
     clear_clock_show_date: "Afficher la date",
     clear_clock_12h: "Format 12 heures (AM/PM)",
+    clear_clock_show_seconds: "Afficher les secondes",
     clear_clock_date_label: "Position de la date",
     clear_clock_style_label: "Style horloge",
     clear_clock_colors_title: "Couleurs personnalisées (optionnel)",
@@ -1926,6 +1930,7 @@ const ET = {
     clear_weather_aqi_entity: "Luftqualität / PM2.5 (Sensor)",
     clear_clock_show_date: "Datum anzeigen",
     clear_clock_12h: "12-Stunden-Format (AM/PM)",
+    clear_clock_show_seconds: "Sekunden anzeigen",
     clear_clock_date_label: "Datumsposition",
     clear_clock_style_label: "Uhr-Stil",
     clear_clock_colors_title: "Benutzerdefinierte Farben (optional)",
@@ -2285,6 +2290,7 @@ const ET = {
     clear_weather_aqi_entity: "Luchtkwaliteit / PM2.5 (sensor)",
     clear_clock_show_date: "Datum weergeven",
     clear_clock_12h: "12-uursformaat (AM/PM)",
+    clear_clock_show_seconds: "Seconden tonen",
     clear_clock_date_label: "Datumpositie",
     clear_clock_style_label: "Klokstijl",
     clear_clock_colors_title: "Aangepaste kleuren (optioneel)",
@@ -2644,6 +2650,7 @@ const ET = {
     clear_weather_aqi_entity: "Chất lượng không khí / PM2.5 (cảm biến)",
     clear_clock_show_date: "Hiển thị ngày",
     clear_clock_12h: "Định dạng 12 giờ (AM/PM)",
+    clear_clock_show_seconds: "Hiển thị giây",
     clear_clock_date_label: "Vị trí ngày",
     clear_clock_style_label: "Kiểu đồng hồ",
     clear_clock_colors_title: "Màu tùy chỉnh (tùy chọn)",
@@ -3003,6 +3010,7 @@ const ET = {
     clear_weather_aqi_entity: "Качество воздуха / PM2.5 (датчик)",
     clear_clock_show_date: "Показать дату",
     clear_clock_12h: "12-часовой формат (AM/PM)",
+    clear_clock_show_seconds: "Показать секунды",
     clear_clock_date_label: "Позиция даты",
     clear_clock_style_label: "Стиль часов",
     clear_clock_colors_title: "Пользовательские цвета (необязательно)",
@@ -3362,6 +3370,7 @@ const ET = {
     clear_weather_aqi_entity: "Luftkvalitet / PM2.5 (sensor)",
     clear_clock_show_date: "Vis dato",
     clear_clock_12h: "12-timers format (AM/PM)",
+    clear_clock_show_seconds: "Vis sekunder",
     clear_clock_date_label: "Datoposition",
     clear_clock_style_label: "Ur-stil",
     clear_clock_colors_title: "Brugerdefinerede farver (valgfrit)",
@@ -3721,6 +3730,7 @@ const ET = {
     clear_weather_aqi_entity: "Kvalita ovzduší / PM2.5 (senzor)",
     clear_clock_show_date: "Zobrazit datum",
     clear_clock_12h: "12hodinový formát (AM/PM)",
+    clear_clock_show_seconds: "Zobrazit sekundy",
     clear_clock_date_label: "Pozice data",
     date_position_above: "⬆ Nad časem",
     date_position_below: "⬇ Pod časem",
@@ -4084,6 +4094,7 @@ const ET = {
     clear_weather_aqi_entity: "Qualidade do ar / PM2.5 (sensor)",
     clear_clock_show_date: "Mostrar data",
     clear_clock_12h: "Formato 12 horas (AM/PM)",
+    clear_clock_show_seconds: "Mostrar segundos",
     clear_clock_date_label: "Posição da data",
     clear_clock_style_label: "Estilo do relógio",
     clear_clock_colors_title: "Cores personalizadas (opcional)",
@@ -4443,6 +4454,7 @@ const ET = {
     clear_weather_aqi_entity: "Calidad del aire / PM2.5 (sensor)",
     clear_clock_show_date: "Mostrar fecha",
     clear_clock_12h: "Formato 12 horas (AM/PM)",
+    clear_clock_show_seconds: "Mostrar segundos",
     clear_clock_date_label: "Posición de la fecha",
     clear_clock_style_label: "Estilo del reloj",
     clear_clock_colors_title: "Colores personalizados (opcional)",
@@ -4802,6 +4814,7 @@ const ET = {
     clear_weather_aqi_entity: "Hava kalitesi / PM2.5 (sensör)",
     clear_clock_show_date: "Tarihi göster",
     clear_clock_12h: "12 saat formatı (AM/PM)",
+    clear_clock_show_seconds: "Saniyeleri göster",
     clear_clock_date_label: "Tarih konumu",
     clear_clock_style_label: "Saat stili",
     clear_clock_colors_title: "Özel renkler (isteğe bağlı)",
@@ -5148,6 +5161,7 @@ const THEME_DESC_I18N = {
   radar:        { it: "Sonar sweep",           en: "Sonar sweep",          fr: "Balayage sonar",        de: "Sonar-Scan",            nl: "Sonar sweep",          vi: "Quét sonar",           ru: "Сонар-развёртка",       da: "Sonar-sweep",           cs: "Sonar sweep",           pt: "Varredura sonar",       es: "Barrido sonar",         tr: "Sonar taraması"        },
   temperature:  { it: "Termometro",            en: "Thermometer",          fr: "Thermomètre",           de: "Thermometer",           nl: "Thermometer",          vi: "Nhiệt kế",             ru: "Термометр",             da: "Termometer",            cs: "Teploměr",              pt: "Termômetro",            es: "Termómetro",            tr: "Termometre"            },
   battery:      { it: "Scarica",               en: "Draining",             fr: "En décharge",           de: "Entladen",              nl: "Ontladen",             vi: "Đang cạn",             ru: "Разряжается",           da: "Aflader",               cs: "Vybíjení",              pt: "Descarregando",         es: "Descargando",           tr: "Tükeniyor"             },
+  battery3d:    { it: "Batteria 3D con progress bar", en: "3D battery with progress bar", fr: "Batterie 3D avec barre",  de: "3D-Akku mit Fortschrittsbalken", nl: "3D-batterij met voortgang", vi: "Pin 3D với thanh tiến trình", ru: "3D-батарея с прогрессом", da: "3D-batteri med bjælke", cs: "3D baterie s ukazatelem", pt: "Bateria 3D com progresso", es: "Batería 3D con progreso", tr: "İlerleme çubuklu 3D pil" },
   door:         { it: "Porta aperta",          en: "Open door",            fr: "Porte ouverte",         de: "Offene Tür",            nl: "Open deur",            vi: "Cửa mở",               ru: "Открытая дверь",        da: "Åben dør",              cs: "Otevřené dveře",        pt: "Porta aberta",          es: "Puerta abierta",        tr: "Açık kapı"             },
   window:       { it: "Finestra aperta",       en: "Open window",          fr: "Fenêtre ouverte",       de: "Offenes Fenster",       nl: "Open raam",            vi: "Cửa sổ mở",            ru: "Открытое окно",         da: "Åbent vindue",          cs: "Otevřené okno",         pt: "Janela aberta",         es: "Ventana abierta",       tr: "Açık pencere"          },
   smoke:        { it: "Fumo grigio",           en: "Grey smoke",           fr: "Fumée grise",           de: "Grauer Rauch",          nl: "Grijze rook",          vi: "Khói xám",             ru: "Серый дым",             da: "Grå røg",               cs: "Šedý kouř",             pt: "Fumaça cinza",          es: "Humo gris",             tr: "Gri duman"             },
@@ -5226,6 +5240,7 @@ const THEME_OPTIONS = [
   { value: "radar"        },
   { value: "temperature"  },
   { value: "battery"      },
+  { value: "battery3d"    },
   { value: "door"         },
   { value: "window"       },
   { value: "smoke"        },
@@ -5464,7 +5479,7 @@ class AlertTickerCardEditor extends LitElement {
       emergency: "🚨", fire: "🔥", alarm: "🔴", lightning: "🌩️", nuclear: "☢️",
       flood: "🌊", motion: "👁️", intruder: "🚷", toxic: "☠️",
       warning: "⚠️", caution: "🟡", radar: "🎯", temperature: "🌡️",
-      battery: "🔋", door: "🚪", window: "🪟", smoke: "🌫️", wind: "💨", leak: "💧",
+      battery: "🔋", battery3d: "🔋", door: "🚪", window: "🪟", smoke: "🌫️", wind: "💨", leak: "💧",
       info: "ℹ️", notification: "🔔", aurora: "🌌", hologram: "🔷",
       presence: "🏠", update: "🔄", cloud: "☁️", satellite: "📡", tips: "💡", light: "🔆", music: "🎵",
       success: "✅", check: "🟢", confetti: "🎉", heartbeat: "💓",
@@ -5478,6 +5493,7 @@ class AlertTickerCardEditor extends LitElement {
     };
     const NAME = {
       timer_pulse: "Timer Pulse", timer_ring: "Timer Ring",
+      battery3d: "Battery 3D",
     };
     const emoji = EMOJI[opt.value] || "";
     const name  = NAME[opt.value] || (opt.value.charAt(0).toUpperCase() + opt.value.slice(1));
@@ -6039,6 +6055,15 @@ class AlertTickerCardEditor extends LitElement {
               ></ha-switch>
             </div>
           </div>
+          <div class="form-row">
+            <div class="switch-row">
+              <span class="switch-label">${this._t("clear_clock_show_seconds")}</span>
+              <ha-switch
+                .checked="${cfg.clear_clock_show_seconds !== false}"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_clock_show_seconds: e.target.checked })}"
+              ></ha-switch>
+            </div>
+          </div>
 
         ` : ''}
 
@@ -6426,7 +6451,7 @@ class AlertTickerCardEditor extends LitElement {
                   <div class="theme-priority-theme">
                     ${this._renderThemeSelect(
                       "alert_theme",
-                      alert.theme || (this._isTimerLike(alert.entity) || this._hass?.states[alert.entity]?.attributes?.unit_of_measurement === "%" ? "countdown" : "emergency"),
+                      alert.theme || this._pickDefaultTheme(alert.entity),
                       (v) => this._alertThemeChanged(v, index),
                       false,
                       this._isTimerLike(alert.entity) || (alert.entity_filter || "").startsWith("timer.")
@@ -7761,6 +7786,22 @@ class AlertTickerCardEditor extends LitElement {
     return uom === "s" || uom === "min";
   }
 
+  /**
+   * Pick the smartest default theme for a new alert based on the entity type.
+   * Battery entities → battery3d (dedicated theme). Other %/timer/timestamp
+   * entities → countdown (progress bar). Everything else → emergency.
+   */
+  _pickDefaultTheme(entityId) {
+    if (!entityId) return "emergency";
+    if (this._isTimerLike(entityId)) return "countdown";
+    const attrs = this._hass?.states[entityId]?.attributes;
+    if (!attrs) return "emergency";
+    if (attrs.unit_of_measurement === "%") {
+      return attrs.device_class === "battery" ? "battery3d" : "countdown";
+    }
+    return "emergency";
+  }
+
   // -------------------------------------------------------------------------
   // Event handlers — individual alert fields
   // -------------------------------------------------------------------------
@@ -7803,12 +7844,21 @@ class AlertTickerCardEditor extends LitElement {
       }
     }
 
-    // % sensor (battery, progress…) — auto-switch to countdown theme, no state conditions needed
+    // % sensor (battery, progress…) — auto-switch theme, no state conditions needed.
+    // Battery entities (device_class: "battery") get the dedicated battery3d theme
+    // with fill icon + progress bar + charging support. Other % sensors get the
+    // generic countdown progress bar as before.
     if (isPct) {
       const prevThemeCat = (THEME_META[alert.theme] || {}).category;
       if (prevThemeCat !== "timer") {
-        changes.theme = "countdown";
-        changes.icon = THEME_META.countdown.icon;
+        const isBattery = this._hass?.states[value]?.attributes?.device_class === "battery";
+        if (isBattery) {
+          changes.theme = "battery3d";
+          changes.icon = THEME_META.battery3d.icon;
+        } else {
+          changes.theme = "countdown";
+          changes.icon = THEME_META.countdown.icon;
+        }
       }
     }
 

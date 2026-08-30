@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.9.6] - 2026-08-29
+
+### Fixed
+
+- **Cross-device sync flooded HA logs with `Unauthorized` errors for non-admin users** ([#214](https://github.com/djdevil/AlertTicker-Card/issues/214)) — Home Assistant restricts `subscribe_events` and `fire_event` on custom event types to admin/owner users only. The v1.3.9.9.5 sync implementation subscribed unconditionally, producing two log lines per session for every non-admin dashboard user (`Error handling message: Unauthorized` + `Refusing to allow <user> to subscribe to event alertticker_sync`). The card now checks `hass.user.is_admin` before subscribing or firing, and silently skips both for non-admin users — they get local-only snooze/dismiss (identical to pre-1.3.9.9.5 behaviour, no regression) and zero log noise. Admin users continue to enjoy full cross-device sync as before.
+
+### Added
+
+- **`clear_clock_show_seconds` option** ([#205](https://github.com/djdevil/AlertTicker-Card/discussions/205) / [PR #212](https://github.com/djdevil/AlertTicker-Card/pull/212) by [@highergroundstudio](https://github.com/highergroundstudio)) — new card-level toggle to hide seconds from the all-clear clock widget. Default is `true` (seconds shown) so existing dashboards are unaffected. Set `clear_clock_show_seconds: false` for a cleaner `3:58 PM` / `15:58` look without the second ticker. Toggle available in the visual editor under the All Clear clock section, translated to all 12 supported languages. Empty-state fallback also shortened from `00:00:00` to `00:00` for consistency.
+- **New theme `battery3d`** — richer battery visualisation with a CSS-drawn battery icon that fills based on the entity value, a horizontal animated progress bar, and dynamic colour transitions (green > 60%, orange 21–60%, red ≤ 20%). Supports an optional `charging_entity` config (binary_sensor); when the charging entity is `on` the colour switches to cyan and an animated ⚡ lightning bolt appears inside the battery icon plus a "Charging" badge in the header. Coexists with the classic `battery` theme — use whichever fits your layout.
+
+  Editor bonus: selecting an entity with `device_class: "battery"` in the visual editor now auto-picks `battery3d` (previously it defaulted to the generic `countdown` progress-bar). Non-battery `%` sensors keep the `countdown` default. No config needed — it just works.
+  ```yaml
+  - entity: sensor.phone_battery_level
+    theme: battery3d
+    message: 'Phone battery'
+    charging_entity: binary_sensor.phone_is_charging   # optional
+  ```
+
+---
+
 ## [1.3.9.9.5] - 2026-08-26
 
 ### Fixed

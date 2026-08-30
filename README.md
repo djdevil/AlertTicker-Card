@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>The most complete alert & notification card for Home Assistant Lovelace dashboards</strong><br>
-  52 visual themes, TTS voice announcements, push notifications, global overlay banner, media player mode, weather forecast widget, and a full visual editor. Zero YAML required.
+  53 visual themes, TTS voice announcements, push notifications, global overlay banner, media player mode, weather forecast widget, and a full visual editor. Zero YAML required.
 </p>
 
 <p align="center">
@@ -28,7 +28,7 @@
 
 ### ✨ What makes AlertTicker different
 
-- 🎨 **52 visual themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, and a full music-player mode with album art
+- 🎨 **53 visual themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, and a full music-player mode with album art
 - ⚡ **Trigger on anything** — entity state, attribute, template, device class, entity filter with wildcards, AND/OR logic
 - 📢 **Notify everywhere** — in-dashboard cycling ticker, **global overlay banner** visible from any view, **TTS** (Alexa / Google / any speaker), **push notifications**, **camera snapshots & live streams**
 - 🌍 **12 languages** — IT, EN, FR, DE, NL, VI, RU, DA, CS, PT-BR, ES, TR
@@ -54,7 +54,7 @@
 - [Mobile Push Notifications](#-mobile-push-notifications-new-in-13)
 - [Music Player Mode](#-music-player-mode-new-in-126) — album art, playback controls, vinyl mode
 - [Camera in Overlay & Card Background](#-camera-in-overlay-banner--card-background-snapshot-122--live-stream--card-bg-131) — snapshots & live streams
-- [Themes](#themes) — all 52 themes explained
+- [Themes](#themes) — all 53 themes explained
 - [How It Works](#how-it-works)
 - [Installation](#installation) — HACS + manual
 - [Visual Editor](#visual-editor)
@@ -437,6 +437,7 @@ alerts:
 | `radar` | 🎯 | Dark green card with circular sonar display, sweeping cone and concentric rings |
 | `temperature` | 🌡️ | Dark orange card with shaking thermometer and animated fill bar |
 | `battery` | 🔋 | Dark card with blinking battery drain animation |
+| `battery3d` | 🔋 | **New in 1.3.9.9.6** — CSS battery icon that fills based on the entity value, horizontal progress bar, dynamic colour (green > 60% / orange 21–60% / red ≤ 20%). Optional `charging_entity` shows ⚡ lightning bolt and switches to cyan while charging |
 | `door` | 🚪 | Dark card with animated `mdi:door-open` icon that pivots on its hinge (CSS perspective rotateY) |
 | `window` | 🪟 | Dark card with `mdi:window-open-variant` swinging on a top-pivot (rotateX) |
 | `smoke` | 🌫️ | Dark grey card with drifting smoke puff animation |
@@ -819,6 +820,8 @@ Works for all state transitions:
 - Persistent alert dismiss
 
 **Note:** Because the sync uses live events, a device that was offline (browser closed) when a snooze happened won't automatically catch up when it comes back online. In that case its local storage still holds the last-known state until the next sync event or the alert re-triggers.
+
+**Requires admin user (since 1.3.9.9.6):** Home Assistant restricts custom-event WebSocket subscriptions to admin/owner accounts only. For **non-admin** users the card silently skips subscribing (no HA log noise, no errors) and falls back to local-only snooze/dismiss — exactly like pre-1.3.9.9.5. If you want cross-device sync to work for a specific user, that user needs the admin role in Home Assistant.
 
 ### snooze_action
 
@@ -1270,6 +1273,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `clear_clock_style` | `string` | — | Clock style: `aurora`, `gold`, `matrix` |
 | `clear_weather_style` | `string` | — | Weather badge style: `stage`, `split`, `cinematic` |
 | `clear_clock_show_date` | `boolean` | `true` | Show or hide the date in clock / weather+clock mode |
+| `clear_clock_show_seconds` | `boolean` | `true` | **New in 1.3.9.9.6** — hide seconds from the clock display for a cleaner `15:58` look instead of `15:58:47` |
 | `clear_clock_date_position` | `string` | `below` | Date position relative to time: `above` or `below` |
 | `clear_weather_entity` | `string` | `null` | `weather.*` entity for weather/weather_clock modes |
 | `clear_badge_label` | `string` | `"Resolved"` | Badge text on the all-clear card |
@@ -1411,6 +1415,29 @@ alerts:
     entity_filter_exclude:
       - sensor.battery_test_device
 ```
+
+### Phone battery with charging status (`battery3d` theme)
+
+```yaml
+type: custom:alert-ticker-card
+show_when_clear: true
+alerts:
+  - entity: sensor.iphone_battery_level
+    operator: "<="
+    state: "100"                    # always active so the widget stays visible
+    message: "iPhone"
+    theme: battery3d
+    charging_entity: binary_sensor.iphone_is_charging   # optional — enables ⚡ lightning + cyan colour while charging
+```
+
+The `battery3d` theme colours the CSS battery icon **and** the horizontal progress bar dynamically:
+
+- **≤ 20%** red — low battery
+- **21–60%** orange — medium
+- **> 60%** green — healthy
+- **Charging** cyan with an animated ⚡ inside the icon (overrides the level colour)
+
+Works with any entity that reports a 0–100 numeric state (phones, tablets, laptops, robot vacuums, EVs, IoT sensors, HA Companion battery, etc.).
 
 ### Smoke detector with TTS + camera snapshot
 
