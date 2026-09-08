@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.9.9.7
+ * AlertTicker Card v1.3.9.9.8
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9.9.7";
+const CARD_VERSION = "1.3.9.9.8";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -9705,13 +9705,22 @@ class AlertTickerCard extends LitElement {
       .atc-large-buttons .atc-history-btn::after {
         content: none;
       }
-      /* Hide all floating buttons during card transition animation */
+      /* Hide all floating buttons during card transition animation.
+       * Uses visibility:hidden in addition to opacity so hover states / touch-active
+       * / :hover selectors can't accidentally reveal the buttons mid-cycle when
+       * groups are expanded and multiple slides animate rapidly (issue reported by
+       * user: snooze/history/nav flashed on every cycle in grouped alerts). */
       .atc-animating .atc-snooze-wrap,
+      .atc-animating .atc-snooze-btn,
       .atc-animating .atc-history-btn,
-      .atc-animating .atc-nav-btn {
+      .atc-animating .atc-nav-btn,
+      .atc-animating .atc-group-back-btn,
+      .atc-animating .atc-snoozed-pill,
+      .atc-animating .atc-counter-overlay {
         opacity: 0 !important;
         pointer-events: none !important;
-        transition: opacity 0.15s ease;
+        visibility: hidden !important;
+        transition: none !important;
       }
       /* Nav arrow: push right arrow past both large buttons (history at 46+30=76px) */
       .atc-large-buttons .atc-nav-next {

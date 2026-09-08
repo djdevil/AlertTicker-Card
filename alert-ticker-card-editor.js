@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.9.9.7
+ * AlertTicker Card Editor v1.3.9.9.8
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.9.9.7";
+const CARD_VERSION = "1.3.9.9.8";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1836,10 +1836,10 @@ const ET = {
     action_pipeline_id: "Pipeline (empty = preferred)",
     action_pipeline_id_help: "Voice pipeline ID to use. Leave empty to use the preferred pipeline.",
     action_start_listening: "Start listening",
-    action_confirmation: "Yêu cầu xác nhận",
-    action_confirmation_help: "Hiển thị hộp thoại \"Bạn có chắc không?\" trước khi thực hiện hành động. Hữu ích cho các thao tác phá hoại như tắt báo động hoặc mở khóa cửa.",
-    action_confirmation_text: "Thông báo xác nhận (tùy chọn)",
-    action_confirmation_placeholder: "Bạn có chắc muốn thực hiện hành động này?",
+    action_confirmation: "Ask for confirmation",
+    action_confirmation_help: "Shows a \"Are you sure?\" prompt before executing the action. Useful for destructive operations like disarming an alarm or unlocking doors.",
+    action_confirmation_text: "Confirmation message (optional)",
+    action_confirmation_placeholder: "Are you sure you want to execute this action?",
     delete_item: "Delete",
     section_overlay: "Overlay Notification 🔔",
     overlay_mode: "Show overlay banner when an alert triggers",
@@ -2744,7 +2744,7 @@ const ET = {
     section_push_notify: "📱 Push-meldingen",
     push_notify_master_toggle: "Mobiele push-meldingen inschakelen",
     push_notify_master_toggle_help: "Hoofdschakelaar. Als uitgeschakeld, stuurt geen melding een push-notificatie, ook als het per melding is ingeschakeld.",
-    client_side_warning: "⚠️ Chỉ hoạt động khi một bảng điều khiển HA đang mở trong trình duyệt. Đối với cảnh báo quan trọng 24/7, sử dụng tự động hóa HA phía máy chủ.",
+    client_side_warning: "⚠️ Werkt alleen als een HA-dashboard open is in een browser (desktop, vaste tablet, of Companion-app op de voorgrond). Voor kritieke 24/7 meldingen gebruik een server-side HA-automatisering.",
     alert_push_notify: "Mobiele push-melding versturen",
     alert_push_notify_help: "Wanneer deze melding activeert, stuurt een push-melding via de geselecteerde notify-service.",
     alert_push_notify_title: "Meldingstitel (Jinja2)",

@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.9.8] - 2026-08-30
+
+### Fixed
+
+- **Editor showed Vietnamese text for English users on the action confirmation labels** ([#215](https://github.com/djdevil/AlertTicker-Card/issues/215)) — a batch translation script accidentally inserted the Vietnamese strings for `action_confirmation`, `action_confirmation_help`, `action_confirmation_text`, and `action_confirmation_placeholder` inside the English `en:` block of the editor translation table. English (and any language falling back to English) users saw *"Yêu cầu xác nhận"* / *"Bạn có chắc muốn thực hiện hành động này?"* on the "Ask for confirmation" toggle and helper text. Similarly, the Dutch `client_side_warning` string was Vietnamese too. Both blocks now carry the correct native strings.
+- **Snooze / history / nav buttons flashed during cycle animation in grouped alerts** — the CSS rule that hides floating buttons during transitions targeted only some of them, and used only `opacity: 0` which could still be overridden by `:hover` or the 4-second `atc-touch-active` window from a prior tap. In grouped alerts cycling through members, the buttons visibly appeared on every cycle. Rule now covers **all seven** floating elements (`.atc-snooze-wrap`, `.atc-snooze-btn`, `.atc-history-btn`, `.atc-nav-btn`, `.atc-group-back-btn`, `.atc-snoozed-pill`, `.atc-counter-overlay`) with `visibility: hidden !important` on top of the opacity zero, so nothing can flash through mid-animation regardless of hover / touch-active state.
+
+---
+
 ## [1.3.9.9.7] - 2026-08-30
 
 ### Added
