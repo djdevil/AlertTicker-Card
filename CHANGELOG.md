@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Wallpanel weather style** — improves readability on wall-mounted dashboards with larger weather information while hiding high/low temperatures and wind.
+
+---
+
 ## [1.3.9.9.8] - 2026-08-30
 
 ### Fixed

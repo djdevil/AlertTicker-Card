@@ -747,7 +747,7 @@ When used with `show_widget_in_cycle: true`, the card ensures **both** the weath
 | `stage` | Large centered clock on top; weather compacted into a single horizontal frosted pill below |
 | `split` | Card divided into two equal full-height panels — left: weather icon + temperature, right: clock |
 | `cinematic` | Animated weather background fills the entire card; all info condensed into a transparent caption bar pinned to the bottom |
-| `wallpanel` | Default layout with larger weather details for wallpanels, with only temperature and humidity |
+| `wallpanel` | Default layout with larger weather details for wall-mounted displays; hides high/low temperatures and wind and focuses mainly on temperature and humidity |
 
 > The `split` style works with all weather modes including `weather_forecast` — the first panel shows weather + clock side by side, then alternates with the 7-day forecast.
 
