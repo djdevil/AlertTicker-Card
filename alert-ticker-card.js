@@ -11204,6 +11204,30 @@ class AlertTickerCard extends LitElement {
         letter-spacing: 0.18em;
       }
 
+      /* ── WEATHER STYLE: wallpanel ── */
+      /* Default layout with larger typography for wall-mounted dashboards. */
+      .atc-cw-style--wallpanel .atc-cw-corners { padding: 10px 12px; }
+      .atc-cw-style--wallpanel .atc-cw-badge {
+        padding: 7px 10px;
+        border-radius: 11px;
+      }
+      .atc-cw-style--wallpanel .atc-cw-badge--weather {
+        gap: 3px;
+        min-width: 88px;
+      }
+      .atc-cw-style--wallpanel .atc-cw-badge-row1 { gap: 5px; }
+      .atc-cw-style--wallpanel .atc-cw-badge-row-minmax,
+      .atc-cw-style--wallpanel .atc-cw-badge-row2 { gap: 7px; }
+      .atc-cw-style--wallpanel .atc-cw-minmax-hi,
+      .atc-cw-style--wallpanel .atc-cw-minmax-lo,
+      .atc-cw-style--wallpanel .atc-cw-badge-row2 { display: none; }
+      .atc-cw-style--wallpanel .atc-cw-w-icon { --mdc-icon-size: 26px; }
+      .atc-cw-style--wallpanel .atc-cw-temp { font-size: 3rem; }
+      .atc-cw-style--wallpanel .atc-cw-meta { font-size: 1rem; }
+      .atc-cw-style--wallpanel .atc-cw-condition { font-size: 1rem; }
+      .atc-cw-style--wallpanel .atc-cw-clock { font-size: 1.55rem; }
+      .atc-cw-style--wallpanel .atc-cw-clock-date { font-size: 0.62rem; }
+
       /* ── WEATHER STYLE: frosted ──────────────────────────────────────── */
       .atc-cw-style--frosted .atc-cw-badge {
         background: rgba(255,255,255,0.08);

@@ -747,6 +747,7 @@ When used with `show_widget_in_cycle: true`, the card ensures **both** the weath
 | `stage` | Large centered clock on top; weather compacted into a single horizontal frosted pill below |
 | `split` | Card divided into two equal full-height panels — left: weather icon + temperature, right: clock |
 | `cinematic` | Animated weather background fills the entire card; all info condensed into a transparent caption bar pinned to the bottom |
+| `wallpanel` | Default layout with larger weather details for wallpanels, with only temperature and humidity |
 
 > The `split` style works with all weather modes including `weather_forecast` — the first panel shows weather + clock side by side, then alternates with the 7-day forecast.
 
@@ -1282,7 +1283,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | **Show when no alerts** | Toggle to keep the card visible when everything is OK |
 | **Display mode** | `Message` · `Clock` · `Weather` · `Weather + Clock` |
 | **Clock style** | Style variant for clock-only mode (`aurora`, `gold`, `matrix`) |
-| **Weather badge style** | Layout variant for weather modes (`stage`, `split`, `cinematic`) |
+| **Weather badge style** | Layout variant for weather modes (`stage`, `split`, `cinematic`, `wallpanel`) |
 | **Show date** | Toggle date display in clock / weather+clock mode |
 | **Date position** | `Above` or `Below` the time digits |
 | **Weather entity** | `weather.*` entity (shown when mode is Weather or Weather + Clock) |
@@ -1306,7 +1307,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `clear_theme` | `string` | `success` | Theme for all-clear (`success`, `check`, `confetti`, …) |
 | `clear_display_mode` | `string` | `message` | All-clear widget: `message`, `clock`, `weather`, `weather_clock`, `forecast`, `weather_forecast` |
 | `clear_clock_style` | `string` | — | Clock style: `aurora`, `gold`, `matrix` |
-| `clear_weather_style` | `string` | — | Weather badge style: `stage`, `split`, `cinematic` |
+| `clear_weather_style` | `string` | — | Weather badge style, including `stage`, `split`, `cinematic`, and `wallpanel` |
 | `clear_clock_show_date` | `boolean` | `true` | Show or hide the date in clock / weather+clock mode |
 | `clear_clock_show_seconds` | `boolean` | `true` | **New in 1.3.9.9.6** — hide seconds from the clock display for a cleaner `15:58` look instead of `15:58:47` |
 | `clear_clock_date_position` | `string` | `below` | Date position relative to time: `above` or `below` |

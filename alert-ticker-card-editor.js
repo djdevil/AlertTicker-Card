@@ -1211,6 +1211,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Sopra l'ora",
     date_position_below: "⬇ Sotto l'ora",
     cycle_interval: "Intervallo ciclo (secondi)",
@@ -1574,6 +1575,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Above time",
     date_position_below: "⬇ Below time",
     cycle_interval: "Cycle interval (seconds)",
@@ -1939,6 +1941,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Au-dessus de l'heure",
     date_position_below: "⬇ En-dessous de l'heure",
     cycle_interval: "Intervalle de cycle (secondes)",
@@ -2302,6 +2305,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Über der Uhrzeit",
     date_position_below: "⬇ Unter der Uhrzeit",
     cycle_interval: "Zyklusintervall (Sekunden)",
@@ -2665,6 +2669,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Boven de tijd",
     date_position_below: "⬇ Onder de tijd",
     cycle_interval: "Cyclusinterval (seconden)",
@@ -3028,6 +3033,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Trên giờ",
     date_position_below: "⬇ Dưới giờ",
     cycle_interval: "Chu kỳ chuyển đổi (giây)",
@@ -3391,6 +3397,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Над временем",
     date_position_below: "⬇ Под временем",
     cycle_interval: "Интервал цикла (секунды)",
@@ -3754,6 +3761,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Over klokkeslættet",
     date_position_below: "⬇ Under klokkeslættet",
     cycle_interval: "Rotations interval (sekunder)",
@@ -4119,6 +4127,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     cycle_interval: "Interval rotace (sekundy)",
     cycle_interval_help: "Sekundy mezi rotací varování, pokud je jich více aktivních",
     show_widget_in_cycle: "Zobrazit počasí/čas v cyklu",
@@ -4484,6 +4493,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Acima do horário",
     date_position_below: "⬇ Abaixo do horário",
     cycle_interval: "Intervalo do ciclo (segundos)",
@@ -4847,6 +4857,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Encima de la hora",
     date_position_below: "⬇ Debajo de la hora",
     cycle_interval: "Intervalo de ciclo (segundos)",
@@ -5210,6 +5221,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Saatin üstünde",
     date_position_below: "⬇ Saatin altında",
     cycle_interval: "Döngü aralığı (saniye)",
@@ -6531,6 +6543,7 @@ class AlertTickerCardEditor extends LitElement {
                 <option value="stage"    ?selected="${cfg.clear_weather_style === 'stage'}">${this._t("style_stage")}</option>
                 <option value="split" ?selected="${cfg.clear_weather_style === 'split'}">${this._t("style_split")}</option>
                 <option value="cinematic" ?selected="${cfg.clear_weather_style === 'cinematic'}">${this._t("style_cinematic")}</option>
+                <option value="wallpanel" ?selected="${cfg.clear_weather_style === 'wallpanel'}">${this._t("style_wallpanel")}</option>
               </select>
             </div>
           </div>
