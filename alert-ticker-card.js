@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.9.9.9
+ * AlertTicker Card v1.3.9.9.10
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.9.9.9";
+const CARD_VERSION = "1.3.9.9.10";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -2378,6 +2378,18 @@ class AlertTickerCard extends LitElement {
       // has been shown at least once before advancing to the next alert
       const _onWidgetSlide = _hasWSlide && this._currentIndex === _totalSlides - 1;
       if (_onWidgetSlide && this._config?.clear_display_mode === "weather_forecast" && !this._wfForecastShown) return;
+      // Instant swap when animations are disabled (discussion #218)
+      if (this._config?.cycle_animation === "none" || this._config?.disable_animation) {
+        const nextIndex = (this._currentIndex + 1) % _totalSlides;
+        this._currentIndex = nextIndex;
+        if (_hasWSlide && nextIndex === _totalSlides - 1 && this._config?.clear_display_mode === "weather_forecast") {
+          this._wfForecastShown = false;
+          this._stopWfFlipTimer();
+          this._startWfFlipTimer();
+        }
+        this.requestUpdate();
+        return;
+      }
       // 1. Fold out
       this._animPhase = "fold-out";
       this.requestUpdate();
@@ -11203,6 +11215,32 @@ class AlertTickerCard extends LitElement {
         font-family: monospace;
         letter-spacing: 0.18em;
       }
+
+
+      /* ── WEATHER STYLE: wallpanel ── */
+      /* Default layout with larger typography for wall-mounted dashboards.
+       * Contributed by @feixm1 via PR #217. */
+      .atc-cw-style--wallpanel .atc-cw-corners { padding: 10px 12px; }
+      .atc-cw-style--wallpanel .atc-cw-badge {
+        padding: 7px 10px;
+        border-radius: 11px;
+      }
+      .atc-cw-style--wallpanel .atc-cw-badge--weather {
+        gap: 3px;
+        min-width: 88px;
+      }
+      .atc-cw-style--wallpanel .atc-cw-badge-row1 { gap: 5px; }
+      .atc-cw-style--wallpanel .atc-cw-badge-row-minmax,
+      .atc-cw-style--wallpanel .atc-cw-badge-row2 { gap: 7px; }
+      .atc-cw-style--wallpanel .atc-cw-minmax-hi,
+      .atc-cw-style--wallpanel .atc-cw-minmax-lo,
+      .atc-cw-style--wallpanel .atc-cw-badge-row2 { display: none; }
+      .atc-cw-style--wallpanel .atc-cw-w-icon { --mdc-icon-size: 26px; }
+      .atc-cw-style--wallpanel .atc-cw-temp { font-size: 3rem; }
+      .atc-cw-style--wallpanel .atc-cw-meta { font-size: 1rem; }
+      .atc-cw-style--wallpanel .atc-cw-condition { font-size: 1rem; }
+      .atc-cw-style--wallpanel .atc-cw-clock { font-size: 1.55rem; }
+      .atc-cw-style--wallpanel .atc-cw-clock-date { font-size: 0.62rem; }
 
       /* ── WEATHER STYLE: frosted ──────────────────────────────────────── */
       .atc-cw-style--frosted .atc-cw-badge {

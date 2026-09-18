@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.9.9.9
+ * AlertTicker Card Editor v1.3.9.9.10
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.9.9.9";
+const CARD_VERSION = "1.3.9.9.10";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1211,6 +1211,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Sopra l'ora",
     date_position_below: "⬇ Sotto l'ora",
     cycle_interval: "Intervallo ciclo (secondi)",
@@ -1379,6 +1380,7 @@ const ET = {
     op_contains: "⊃ contiene",
     op_not_contains: "⊅ non contiene",
     cycle_animation: "Animazione transizione",
+    anim_none:    "🚫 Nessuna — cambio istantaneo",
     anim_fold:    "🃏 Fold — piega 3D",
     anim_slide:   "➡️ Slide — scorrimento",
     anim_fade:    "🌫️ Fade — dissolvenza",
@@ -1574,6 +1576,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Above time",
     date_position_below: "⬇ Below time",
     cycle_interval: "Cycle interval (seconds)",
@@ -1744,6 +1747,7 @@ const ET = {
     op_contains: "⊃ contains",
     op_not_contains: "⊅ doesn't contain",
     cycle_animation: "Transition animation",
+    anim_none:    "🚫 None — instant swap",
     anim_fold:    "🃏 Fold — 3D page turn",
     anim_slide:   "➡️ Slide — horizontal push",
     anim_fade:    "🌫️ Fade — cross-dissolve",
@@ -1939,6 +1943,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Au-dessus de l'heure",
     date_position_below: "⬇ En-dessous de l'heure",
     cycle_interval: "Intervalle de cycle (secondes)",
@@ -2107,6 +2112,7 @@ const ET = {
     op_contains: "⊃ contient",
     op_not_contains: "⊅ ne contient pas",
     cycle_animation: "Animation de transition",
+    anim_none:    "🚫 Aucune — changement instantané",
     anim_fold:    "🃏 Fold — pliage 3D",
     anim_slide:   "➡️ Slide — défilement",
     anim_fade:    "🌫️ Fade — fondu",
@@ -2302,6 +2308,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Über der Uhrzeit",
     date_position_below: "⬇ Unter der Uhrzeit",
     cycle_interval: "Zyklusintervall (Sekunden)",
@@ -2470,6 +2477,7 @@ const ET = {
     op_contains: "⊃ enthält",
     op_not_contains: "⊅ enthält nicht",
     cycle_animation: "Übergangsanimation",
+    anim_none:    "🚫 Keine — sofortiger Wechsel",
     anim_fold:    "🃏 Fold — 3D-Seitenumbruch",
     anim_slide:   "➡️ Slide — seitlich schieben",
     anim_fade:    "🌫️ Fade — Überblenden",
@@ -2665,6 +2673,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Boven de tijd",
     date_position_below: "⬇ Onder de tijd",
     cycle_interval: "Cyclusinterval (seconden)",
@@ -2833,6 +2842,7 @@ const ET = {
     op_contains: "⊃ bevat",
     op_not_contains: "⊅ bevat niet",
     cycle_animation: "Overgangsanimatie",
+    anim_none:    "🚫 Geen — direct wisselen",
     anim_fold:    "🃏 Fold — 3D-paginavouw",
     anim_slide:   "➡️ Slide — horizontaal schuiven",
     anim_fade:    "🌫️ Fade — vervagen",
@@ -3028,6 +3038,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Trên giờ",
     date_position_below: "⬇ Dưới giờ",
     cycle_interval: "Chu kỳ chuyển đổi (giây)",
@@ -3196,6 +3207,7 @@ const ET = {
     op_contains: "⊃ chứa",
     op_not_contains: "⊅ không chứa",
     cycle_animation: "Hiệu ứng chuyển đổi",
+    anim_none:    "🚫 Không — chuyển tức thì",
     anim_fold:    "🃏 Fold — lật trang 3D",
     anim_slide:   "➡️ Slide — trượt ngang",
     anim_fade:    "🌫️ Fade — mờ dần",
@@ -3391,6 +3403,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Над временем",
     date_position_below: "⬇ Под временем",
     cycle_interval: "Интервал цикла (секунды)",
@@ -3559,6 +3572,7 @@ const ET = {
     op_contains: "⊃ содержит",
     op_not_contains: "⊅ не содержит",
     cycle_animation: "Эффект перехода",
+    anim_none:    "🚫 Без — мгновенная смена",
     anim_fold:    "🃏 Fold — 3D переворот",
     anim_slide:   "➡️ Slide — горизонтальное скольжение",
     anim_fade:    "🌫️ Fade — плавное исчезновение",
@@ -3754,6 +3768,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Over klokkeslættet",
     date_position_below: "⬇ Under klokkeslættet",
     cycle_interval: "Rotations interval (sekunder)",
@@ -3918,6 +3933,7 @@ const ET = {
     op_contains: "⊃ indeholder",
     op_not_contains: "⊅ indeholder ikke",
     cycle_animation: "Overgangsanimation",
+    anim_none:    "🚫 Ingen — øjeblikkeligt skift",
     anim_fold:    "🃏 Fold — 3D sidebog",
     anim_slide:   "➡️ Slide — horisontal skub",
     anim_fade:    "🌫️ Fade — fade‑overgang",
@@ -4119,6 +4135,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     cycle_interval: "Interval rotace (sekundy)",
     cycle_interval_help: "Sekundy mezi rotací varování, pokud je jich více aktivních",
     show_widget_in_cycle: "Zobrazit počasí/čas v cyklu",
@@ -4285,6 +4302,7 @@ const ET = {
     op_contains: "⊃ obsahuje",
     op_not_contains: "⊅ neobsahuje",
     cycle_animation: "Animace rotace",
+    anim_none:    "🚫 Žádná — okamžitá výměna",
     anim_fold:    "🃏 Fold — 3D otočení stránky",
     anim_slide:   "➡️ Slide — horizontální odsunutí",
     anim_fade:    "🌫️ Fade — prolnutí",
@@ -4484,6 +4502,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Acima do horário",
     date_position_below: "⬇ Abaixo do horário",
     cycle_interval: "Intervalo do ciclo (segundos)",
@@ -4652,6 +4671,7 @@ const ET = {
     op_contains: "⊃ contém",
     op_not_contains: "⊅ não contém",
     cycle_animation: "Animação de transição",
+    anim_none:    "🚫 Nenhuma — troca instantânea",
     anim_fold:    "🃏 Fold — virada 3D",
     anim_slide:   "➡️ Slide — deslizamento horizontal",
     anim_fade:    "🌫️ Fade — dissolução cruzada",
@@ -4847,6 +4867,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Encima de la hora",
     date_position_below: "⬇ Debajo de la hora",
     cycle_interval: "Intervalo de ciclo (segundos)",
@@ -5015,6 +5036,7 @@ const ET = {
     op_contains: "⊃ contiene",
     op_not_contains: "⊅ no contiene",
     cycle_animation: "Animación de transición",
+    anim_none:    "🚫 Ninguna — cambio instantáneo",
     anim_fold:    "🃏 Fold — giro 3D",
     anim_slide:   "➡️ Slide — deslizamiento horizontal",
     anim_fade:    "🌫️ Fade — disolución cruzada",
@@ -5210,6 +5232,7 @@ const ET = {
     style_stage:     "🎭 Stage",
     style_split:     "▌▐ Split",
     style_cinematic: "🎬 Cinematic",
+    style_wallpanel: "📺 Wallpanel",
     date_position_above: "⬆ Saatin üstünde",
     date_position_below: "⬇ Saatin altında",
     cycle_interval: "Döngü aralığı (saniye)",
@@ -5378,6 +5401,7 @@ const ET = {
     op_contains: "⊃ içerir",
     op_not_contains: "⊅ içermez",
     cycle_animation: "Geçiş animasyonu",
+    anim_none:    "🚫 Yok — anlık değişim",
     anim_fold:    "🃏 Fold — 3D sayfa dönüşü",
     anim_slide:   "➡️ Slide — yatay itme",
     anim_fade:    "🌫️ Fade — çapraz erime",
@@ -6209,7 +6233,7 @@ class AlertTickerCardEditor extends LitElement {
         <div class="native-select-wrap">
           <label class="native-select-label">${this._t("cycle_animation")}</label>
           <select class="native-select" @change="${(e) => this._cycleAnimationChanged(e.target.value)}">
-            ${["fold", "slide", "fade", "flip", "zoom", "glitch", "bounce", "swing", "blur", "split", "roll", "curtain"].map((a) => html`
+            ${["none", "fold", "slide", "fade", "flip", "zoom", "glitch", "bounce", "swing", "blur", "split", "roll", "curtain"].map((a) => html`
               <option value="${a}" ?selected="${(cfg.cycle_animation || "fold") === a}">
                 ${this._t("anim_" + a)}
               </option>
@@ -6531,6 +6555,7 @@ class AlertTickerCardEditor extends LitElement {
                 <option value="stage"    ?selected="${cfg.clear_weather_style === 'stage'}">${this._t("style_stage")}</option>
                 <option value="split" ?selected="${cfg.clear_weather_style === 'split'}">${this._t("style_split")}</option>
                 <option value="cinematic" ?selected="${cfg.clear_weather_style === 'cinematic'}">${this._t("style_cinematic")}</option>
+                <option value="wallpanel" ?selected="${cfg.clear_weather_style === 'wallpanel'}">${this._t("style_wallpanel")}</option>
               </select>
             </div>
           </div>

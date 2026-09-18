@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.9.10] - 2026-09-16
+
+### Added
+
+- **New weather style `wallpanel`** ([#217](https://github.com/djdevil/AlertTicker-Card/pull/217) by [@feixm1](https://github.com/feixm1)) — default layout tuned for wall-mounted tablets and large displays: bigger temperature and condition text, larger clock, focus on temperature + humidity while hiding hi/lo and wind. Available in the visual editor (All Clear → Weather badge style) as **📺 Wallpanel** alongside the existing Stage / Split / Cinematic options. Translated in all 12 supported languages.
+- **New `none` cycle animation option** ([#218](https://github.com/djdevil/AlertTicker-Card/discussions/218) by [@shashankmittal](https://github.com/shashankmittal)) — new **🚫 None — instant swap** entry at the top of the Transition animation dropdown. Skips both the CSS transition AND the ~680ms JS delay per cycle. Useful for low-powered wall panels, informational tickers with lots of frequent alerts, and anyone who prefers instant slide changes. Applies immediately when selected, no other config changes needed. Translated in all 12 languages.
+
+---
+
 ## [1.3.9.9.9] - 2026-09-08
 
 ### Fixed
