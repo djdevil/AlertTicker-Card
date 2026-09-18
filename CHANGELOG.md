@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.9.9.9] - 2026-09-08
+
+### Fixed
+
+- **Full editor translations audit — 25 misplaced strings fixed across 6 languages** ([#216](https://github.com/djdevil/AlertTicker-Card/issues/216)) — deep review of the editor translations table (`ET`) revealed a systematic off-by-one shift: for the keys `client_side_warning` and the four `action_confirmation*` labels, each of the languages VI / RU / DA / CS / PT / ES contained the NEXT language's translation instead of its own (VI had RU text, RU had DA text, DA had CS text, CS had PT text, PT had ES text, ES had TR text). This affected any editor user whose HA language was one of those six — including English speakers whose HA fell back to those blocks. All 25 mismatched strings replaced with correct native translations. Automated audit script added to `c:/tmp/audit_translations.py` for future prevention.
+
+---
+
 ## [1.3.9.9.8] - 2026-08-30
 
 ### Fixed
