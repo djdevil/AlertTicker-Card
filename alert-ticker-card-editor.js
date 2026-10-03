@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.10
+ * AlertTicker Card Editor v1.3.11
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.10";
+const CARD_VERSION = "1.3.11";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1379,6 +1379,8 @@ const ET = {
     op_lte: "≤ min. o uguale",
     op_contains: "⊃ contiene",
     op_not_contains: "⊅ non contiene",
+    op_older:        "⏳ più vecchio di (sec)",
+    op_newer:        "🆕 più nuovo di (sec)",
     cycle_animation: "Animazione transizione",
     anim_none:    "🚫 Nessuna — cambio istantaneo",
     anim_fold:    "🃏 Fold — piega 3D",
@@ -1492,6 +1494,12 @@ const ET = {
     overlay_how_works: "Il banner appare solo quando la card non è visibile a schermo — su un'altra vista o fuori dalla finestra. Nessun banner ridondante quando l'avviso è già visibile.",
     overlay_min_priority: "Priorità minima per l'overlay",
     overlay_min_priority_help: "Mostra il banner overlay solo per avvisi con priorità ≤ a questo valore (1=Critico, 2=Attenzione, 3=Info, 4=Bassa). Lascia vuoto per mostrare tutti gli avvisi.",
+    overlay_dismissible: "Permetti chiusura manuale",
+    overlay_dismissible_help: "Se disattivato, il banner non si chiude mai da solo né col pulsante — rimane finché la condizione è attiva. Utile su dashboard pubbliche o utenti casuali.",
+    overlay_rotation: "Ruota tra avvisi multipli",
+    overlay_rotation_help: "Quando sono attivi più avvisi contemporaneamente, il banner alterna tra di essi con contatore 1/N — come fa la card.",
+    overlay_rotation_interval: "Intervallo rotazione (secondi)",
+    overlay_rotation_interval_help: "Secondi di visualizzazione di ogni avviso prima di passare al successivo.",
     alert_overlay: "Mostra nell'overlay",
     alert_overlay_help: "Disattiva per escludere questo avviso dal banner overlay. Rimane visibile nella card normale.",
     disable_animation: "Disabilita animazioni 🎬",
@@ -1746,6 +1754,8 @@ const ET = {
     op_lte: "≤ less or equal",
     op_contains: "⊃ contains",
     op_not_contains: "⊅ doesn't contain",
+    op_older:        "⏳ older than (sec)",
+    op_newer:        "🆕 newer than (sec)",
     cycle_animation: "Transition animation",
     anim_none:    "🚫 None — instant swap",
     anim_fold:    "🃏 Fold — 3D page turn",
@@ -1859,6 +1869,12 @@ const ET = {
     overlay_how_works: "The banner appears only when the card is not visible on screen — on a different view or scrolled out of sight. No redundant banner when the alert is already visible.",
     overlay_min_priority: "Minimum priority for overlay",
     overlay_min_priority_help: "Only show the overlay banner for alerts with priority ≤ this value (1=Critical, 2=Warning, 3=Info, 4=Low). Leave empty to show all alerts.",
+    overlay_dismissible: "Allow manual dismissal",
+    overlay_dismissible_help: "When off, the banner never auto-hides and has no close button — stays until the condition clears. Useful on dashboards shared with casual users.",
+    overlay_rotation: "Rotate between multiple alerts",
+    overlay_rotation_help: "When several alerts are active at once, cycle the banner through them with a 1/N counter — like the card does.",
+    overlay_rotation_interval: "Rotation interval (seconds)",
+    overlay_rotation_interval_help: "Seconds each alert stays on screen before switching to the next.",
     alert_overlay: "Show in overlay",
     alert_overlay_help: "Disable to exclude this alert from the overlay banner. It still appears in the normal card.",
     disable_animation: "Disable animations 🎬",
@@ -2111,6 +2127,8 @@ const ET = {
     op_lte: "≤ inférieur ou égal",
     op_contains: "⊃ contient",
     op_not_contains: "⊅ ne contient pas",
+    op_older:        "⏳ plus vieux que (sec)",
+    op_newer:        "🆕 plus récent que (sec)",
     cycle_animation: "Animation de transition",
     anim_none:    "🚫 Aucune — changement instantané",
     anim_fold:    "🃏 Fold — pliage 3D",
@@ -2224,6 +2242,12 @@ const ET = {
     overlay_how_works: "Le banner apparaît uniquement quand la carte n'est pas visible à l'écran — sur une autre vue ou hors de la fenêtre. Pas de banner redondant quand l'alerte est déjà visible.",
     overlay_min_priority: "Priorité minimale pour l'overlay",
     overlay_min_priority_help: "Affiche le banner overlay uniquement pour les alertes avec une priorité ≤ à cette valeur (1=Critique, 2=Avertissement, 3=Info, 4=Faible). Laisser vide pour afficher toutes les alertes.",
+    overlay_dismissible: "Autoriser la fermeture manuelle",
+    overlay_dismissible_help: "Si désactivé, le banner ne se ferme jamais tout seul ni par bouton — reste jusqu'à résolution. Utile pour tableaux de bord partagés.",
+    overlay_rotation: "Alterner entre plusieurs alertes",
+    overlay_rotation_help: "Quand plusieurs alertes sont actives, le banner les parcourt avec un compteur 1/N — comme le fait la carte.",
+    overlay_rotation_interval: "Intervalle de rotation (secondes)",
+    overlay_rotation_interval_help: "Secondes d'affichage de chaque alerte avant la suivante.",
     alert_overlay: "Afficher dans l'overlay",
     alert_overlay_help: "Désactiver pour exclure cette alerte du banner overlay. Elle reste visible dans la carte normale.",
     disable_animation: "Désactiver les animations 🎬",
@@ -2476,6 +2500,8 @@ const ET = {
     op_lte: "≤ kleiner oder gleich",
     op_contains: "⊃ enthält",
     op_not_contains: "⊅ enthält nicht",
+    op_older:        "⏳ älter als (Sek.)",
+    op_newer:        "🆕 neuer als (Sek.)",
     cycle_animation: "Übergangsanimation",
     anim_none:    "🚫 Keine — sofortiger Wechsel",
     anim_fold:    "🃏 Fold — 3D-Seitenumbruch",
@@ -2589,6 +2615,12 @@ const ET = {
     overlay_how_works: "Das Banner erscheint nur, wenn die Karte nicht auf dem Bildschirm sichtbar ist — in einer anderen Ansicht oder außerhalb des Sichtbereichs. Kein redundantes Banner, wenn der Alert bereits sichtbar ist.",
     overlay_min_priority: "Mindestpriorität für Overlay",
     overlay_min_priority_help: "Zeige den Overlay-Banner nur für Alarme mit Priorität ≤ diesem Wert (1=Kritisch, 2=Warnung, 3=Info, 4=Niedrig). Leer lassen für alle Alarme.",
+    overlay_dismissible: "Manuelles Schließen erlauben",
+    overlay_dismissible_help: "Wenn aus, verschwindet das Banner weder automatisch noch per Knopf — bleibt bis zur Auflösung. Nützlich für geteilte Dashboards.",
+    overlay_rotation: "Zwischen mehreren Alerts rotieren",
+    overlay_rotation_help: "Wenn mehrere Alerts gleichzeitig aktiv sind, wechselt das Banner zwischen ihnen mit 1/N-Zähler — wie die Karte.",
+    overlay_rotation_interval: "Rotationsintervall (Sekunden)",
+    overlay_rotation_interval_help: "Sekunden, die jeder Alert angezeigt wird, bevor zum nächsten gewechselt wird.",
     alert_overlay: "Im Overlay anzeigen",
     alert_overlay_help: "Deaktivieren, um diesen Alarm vom Overlay-Banner auszuschließen. Er bleibt in der normalen Karte sichtbar.",
     disable_animation: "Animationen deaktivieren 🎬",
@@ -2841,6 +2873,8 @@ const ET = {
     op_lte: "≤ kleiner of gelijk",
     op_contains: "⊃ bevat",
     op_not_contains: "⊅ bevat niet",
+    op_older:        "⏳ ouder dan (sec)",
+    op_newer:        "🆕 nieuwer dan (sec)",
     cycle_animation: "Overgangsanimatie",
     anim_none:    "🚫 Geen — direct wisselen",
     anim_fold:    "🃏 Fold — 3D-paginavouw",
@@ -2954,6 +2988,12 @@ const ET = {
     overlay_how_works: "Het banner verschijnt alleen wanneer de kaart niet zichtbaar is op het scherm — op een andere weergave of buiten het zichtbare gebied. Geen redundant banner als de melding al zichtbaar is.",
     overlay_min_priority: "Minimale prioriteit voor overlay",
     overlay_min_priority_help: "Toon de overlay-banner alleen voor meldingen met prioriteit ≤ deze waarde (1=Kritiek, 2=Waarschuwing, 3=Info, 4=Laag). Leeg laten voor alle meldingen.",
+    overlay_dismissible: "Handmatig sluiten toestaan",
+    overlay_dismissible_help: "Als uit, verdwijnt het banner nooit automatisch of met de knop — blijft tot de voorwaarde opgelost is. Nuttig voor gedeelde dashboards.",
+    overlay_rotation: "Wissel tussen meerdere meldingen",
+    overlay_rotation_help: "Wanneer meerdere meldingen tegelijk actief zijn, laat het banner ze afwisselend zien met 1/N-teller — zoals de kaart.",
+    overlay_rotation_interval: "Rotatie-interval (seconden)",
+    overlay_rotation_interval_help: "Seconden dat elke melding getoond wordt voordat naar de volgende wordt overgeschakeld.",
     alert_overlay: "Tonen in overlay",
     alert_overlay_help: "Schakel uit om deze melding uit te sluiten van de overlay-banner. Ze blijft zichtbaar in de normale kaart.",
     disable_animation: "Animaties uitschakelen 🎬",
@@ -3206,6 +3246,8 @@ const ET = {
     op_lte: "≤ nhỏ hơn hoặc bằng",
     op_contains: "⊃ chứa",
     op_not_contains: "⊅ không chứa",
+    op_older:        "⏳ cũ hơn (giây)",
+    op_newer:        "🆕 mới hơn (giây)",
     cycle_animation: "Hiệu ứng chuyển đổi",
     anim_none:    "🚫 Không — chuyển tức thì",
     anim_fold:    "🃏 Fold — lật trang 3D",
@@ -3319,6 +3361,12 @@ const ET = {
     overlay_how_works: "Banner chỉ xuất hiện khi thẻ không hiển thị trên màn hình — trên chế độ xem khác hoặc ngoài vùng hiển thị. Không hiển thị banner dư thừa khi cảnh báo đã hiển thị.",
     overlay_min_priority: "Độ ưu tiên tối thiểu cho overlay",
     overlay_min_priority_help: "Chỉ hiển thị banner overlay cho các cảnh báo có độ ưu tiên ≤ giá trị này (1=Nghiêm trọng, 2=Cảnh báo, 3=Thông tin, 4=Thấp). Để trống để hiển thị tất cả.",
+    overlay_dismissible: "Cho phép đóng thủ công",
+    overlay_dismissible_help: "Khi tắt, banner không bao giờ tự ẩn và không có nút đóng — ở lại cho đến khi điều kiện giải quyết. Hữu ích cho dashboard chia sẻ.",
+    overlay_rotation: "Xoay giữa nhiều báo động",
+    overlay_rotation_help: "Khi nhiều báo động cùng hoạt động, banner luân phiên giữa chúng với bộ đếm 1/N — như card làm.",
+    overlay_rotation_interval: "Khoảng thời gian xoay (giây)",
+    overlay_rotation_interval_help: "Số giây mỗi báo động hiển thị trước khi chuyển sang báo động tiếp theo.",
     alert_overlay: "Hiển thị trong overlay",
     alert_overlay_help: "Tắt để loại trừ cảnh báo này khỏi banner overlay. Nó vẫn hiển thị trong thẻ thông thường.",
     disable_animation: "Tắt hoạt ảnh 🎬",
@@ -3571,6 +3619,8 @@ const ET = {
     op_lte: "≤ меньше или равно",
     op_contains: "⊃ содержит",
     op_not_contains: "⊅ не содержит",
+    op_older:        "⏳ старше чем (сек)",
+    op_newer:        "🆕 новее чем (сек)",
     cycle_animation: "Эффект перехода",
     anim_none:    "🚫 Без — мгновенная смена",
     anim_fold:    "🃏 Fold — 3D переворот",
@@ -3684,6 +3734,12 @@ const ET = {
     overlay_how_works: "Баннер появляется только когда карточка не видна на экране — на другом виде или за пределами окна. Баннер не показывается, если оповещение уже видно.",
     overlay_min_priority: "Минимальный приоритет для оверлея",
     overlay_min_priority_help: "Показывать баннер оверлея только для оповещений с приоритетом ≤ этому значению (1=Критический, 2=Предупреждение, 3=Информация, 4=Низкий). Оставьте пустым для всех оповещений.",
+    overlay_dismissible: "Разрешить ручное закрытие",
+    overlay_dismissible_help: "Если выключено, банер никогда не исчезает автоматически и не имеет кнопки закрытия — остаётся до разрешения условия. Полезно для общих панелей.",
+    overlay_rotation: "Чередовать несколько предупреждений",
+    overlay_rotation_help: "Когда несколько предупреждений активны одновременно, банер чередует их со счётчиком 1/N — как карта.",
+    overlay_rotation_interval: "Интервал ротации (секунды)",
+    overlay_rotation_interval_help: "Секунды отображения каждого предупреждения перед переключением на следующее.",
     alert_overlay: "Показывать в оверлее",
     alert_overlay_help: "Отключите, чтобы исключить это оповещение из баннера оверлея. Оно останется видимым в обычной карточке.",
     disable_animation: "Отключить анимации 🎬",
@@ -3932,6 +3988,8 @@ const ET = {
     op_lte: "≤ mindre eller lig med",
     op_contains: "⊃ indeholder",
     op_not_contains: "⊅ indeholder ikke",
+    op_older:        "⏳ ældre end (sek)",
+    op_newer:        "🆕 nyere end (sek)",
     cycle_animation: "Overgangsanimation",
     anim_none:    "🚫 Ingen — øjeblikkeligt skift",
     anim_fold:    "🃏 Fold — 3D sidebog",
@@ -4045,6 +4103,12 @@ const ET = {
     overlay_how_works: "Banneret vises kun, når kortet ikke er synligt — på en anden visning. Vises ikke, hvis advarslen allerede er synlig på kortet.",
     overlay_min_priority: "Minimumprioritet for overlay",
     overlay_min_priority_help: "Vis kun overlay-banneret for advarsler med prioritet ≤ denne værdi (1=Kritisk, 2=Advarsel, 3=Info, 4=Lav). Lad feltet stå tomt for alle advarsler.",
+    overlay_dismissible: "Tillad manuel afvisning",
+    overlay_dismissible_help: "Når slået fra, forsvinder banneret aldrig af sig selv og har ingen lukkeknap — bliver indtil betingelsen er løst. Nyttigt til delte dashboards.",
+    overlay_rotation: "Skift mellem flere alerts",
+    overlay_rotation_help: "Når flere alerts er aktive samtidigt, skifter banneret mellem dem med 1/N-tæller — ligesom kortet gør.",
+    overlay_rotation_interval: "Rotationsinterval (sekunder)",
+    overlay_rotation_interval_help: "Sekunder hvert alert vises, før der skiftes til næste.",
     alert_overlay: "Vis i overlay",
     alert_overlay_help: "Deaktiver for at udelukke denne advarsel fra overlay-banneret. Den forbliver synlig i det normale kort.",
     disable_animation: "Deaktiver animationer 🎬",
@@ -4301,6 +4365,8 @@ const ET = {
     op_lte: "≤ menší nebo rovno",
     op_contains: "⊃ obsahuje",
     op_not_contains: "⊅ neobsahuje",
+    op_older:        "⏳ starší než (sek)",
+    op_newer:        "🆕 novější než (sek)",
     cycle_animation: "Animace rotace",
     anim_none:    "🚫 Žádná — okamžitá výměna",
     anim_fold:    "🃏 Fold — 3D otočení stránky",
@@ -4414,6 +4480,12 @@ const ET = {
     overlay_how_works: "Baner se zobrazí pouze pokud karta s varováními není na obrazovce viditelná - uživatel je na jiném ovládícím panelu nebo je karta mimo obrazovku. Nezobrazuje se redundantně.",
     overlay_min_priority: "Minimální priorita pro overlay",
     overlay_min_priority_help: "Zobrazit banner overlay pouze pro upozornění s prioritou ≤ této hodnotě (1=Kritické, 2=Varování, 3=Info, 4=Nízká). Nechte prázdné pro všechna upozornění.",
+    overlay_dismissible: "Povolit ruční zavření",
+    overlay_dismissible_help: "Když je vypnuto, banner se nikdy sám neschová a nemá zavírací tlačítko — zůstane dokud se podmínka nevyřeší. Užitečné pro sdílené dashboardy.",
+    overlay_rotation: "Střídat mezi více upozorněními",
+    overlay_rotation_help: "Když je současně aktivních více upozornění, banner mezi nimi střídá s počítadlem 1/N — stejně jako karta.",
+    overlay_rotation_interval: "Interval střídání (sekundy)",
+    overlay_rotation_interval_help: "Sekundy zobrazení každého upozornění před přepnutím na další.",
     alert_overlay: "Zobrazit v overlay",
     alert_overlay_help: "Deaktivujte pro vyloučení tohoto upozornění z banneru overlay. Zůstane viditelné v normální kartě.",
     disable_animation: "Zakázat animace 🎬",
@@ -4670,6 +4742,8 @@ const ET = {
     op_lte: "≤ menor ou igual",
     op_contains: "⊃ contém",
     op_not_contains: "⊅ não contém",
+    op_older:        "⏳ mais antigo que (seg)",
+    op_newer:        "🆕 mais recente que (seg)",
     cycle_animation: "Animação de transição",
     anim_none:    "🚫 Nenhuma — troca instantânea",
     anim_fold:    "🃏 Fold — virada 3D",
@@ -4783,6 +4857,12 @@ const ET = {
     overlay_how_works: "O banner aparece apenas quando o card não está visível na tela — em uma visualização diferente ou rolado para fora da vista. Nenhum banner redundante quando o alerta já está visível.",
     overlay_min_priority: "Prioridade mínima para overlay",
     overlay_min_priority_help: "Mostrar o banner overlay apenas para alertas com prioridade ≤ este valor (1=Crítico, 2=Aviso, 3=Info, 4=Baixo). Deixar vazio para mostrar todos.",
+    overlay_dismissible: "Permitir fechamento manual",
+    overlay_dismissible_help: "Quando desligado, o banner nunca se oculta automaticamente e não tem botão de fechar — permanece até a condição se resolver. Útil em dashboards compartilhados.",
+    overlay_rotation: "Alternar entre múltiplos alertas",
+    overlay_rotation_help: "Quando vários alertas estão ativos simultaneamente, o banner alterna entre eles com contador 1/N — como o card faz.",
+    overlay_rotation_interval: "Intervalo de rotação (segundos)",
+    overlay_rotation_interval_help: "Segundos que cada alerta fica em tela antes de passar ao próximo.",
     alert_overlay: "Mostrar no overlay",
     alert_overlay_help: "Desative para excluir este alerta do banner overlay. Ele permanece visível no cartão normal.",
     disable_animation: "Desativar animações 🎬",
@@ -5035,6 +5115,8 @@ const ET = {
     op_lte: "≤ menor o igual",
     op_contains: "⊃ contiene",
     op_not_contains: "⊅ no contiene",
+    op_older:        "⏳ más antiguo de (seg)",
+    op_newer:        "🆕 más reciente de (seg)",
     cycle_animation: "Animación de transición",
     anim_none:    "🚫 Ninguna — cambio instantáneo",
     anim_fold:    "🃏 Fold — giro 3D",
@@ -5148,6 +5230,12 @@ const ET = {
     overlay_how_works: "El banner aparece solo cuando la tarjeta no está visible en pantalla — en otra vista o fuera del campo de visión. No aparece cuando la alerta ya es visible.",
     overlay_min_priority: "Prioridad mínima para overlay",
     overlay_min_priority_help: "Mostrar el banner overlay solo para alertas con prioridad ≤ este valor (1=Crítico, 2=Aviso, 3=Info, 4=Baja). Dejar vacío para mostrar todas.",
+    overlay_dismissible: "Permitir cierre manual",
+    overlay_dismissible_help: "Cuando está apagado, el banner nunca se oculta automáticamente ni tiene botón de cerrar — permanece hasta que la condición se resuelva. Útil en paneles compartidos.",
+    overlay_rotation: "Alternar entre varias alertas",
+    overlay_rotation_help: "Cuando varias alertas están activas al mismo tiempo, el banner alterna entre ellas con contador 1/N — como lo hace la tarjeta.",
+    overlay_rotation_interval: "Intervalo de rotación (segundos)",
+    overlay_rotation_interval_help: "Segundos que cada alerta se muestra antes de pasar a la siguiente.",
     alert_overlay: "Mostrar en overlay",
     alert_overlay_help: "Desactiva para excluir esta alerta del banner overlay. Sigue siendo visible en la tarjeta normal.",
     disable_animation: "Deshabilitar animaciones 🎬",
@@ -5400,6 +5488,8 @@ const ET = {
     op_lte: "≤ küçük eşit",
     op_contains: "⊃ içerir",
     op_not_contains: "⊅ içermez",
+    op_older:        "⏳ şundan eski (sn)",
+    op_newer:        "🆕 şundan yeni (sn)",
     cycle_animation: "Geçiş animasyonu",
     anim_none:    "🚫 Yok — anlık değişim",
     anim_fold:    "🃏 Fold — 3D sayfa dönüşü",
@@ -5513,6 +5603,12 @@ const ET = {
     overlay_how_works: "Banner yalnızca kart ekranda görünmediğinde gösterilir — farklı bir görünüm veya görüş alanı dışında. Uyarı zaten görünürken gereksiz banner gösterilmez.",
     overlay_min_priority: "Overlay için minimum öncelik",
     overlay_min_priority_help: "Overlay banner'ı yalnızca bu değere ≤ önceliğe sahip uyarılar için göster (1=Kritik, 2=Uyarı, 3=Bilgi, 4=Düşük). Tüm uyarılar için boş bırakın.",
+    overlay_dismissible: "Manuel kapatmaya izin ver",
+    overlay_dismissible_help: "Kapatıldığında, banner asla otomatik gizlenmez ve kapat düğmesi yoktur — koşul çözülene kadar kalır. Paylaşımlı panolar için yararlı.",
+    overlay_rotation: "Birden fazla alarm arasında geç",
+    overlay_rotation_help: "Aynı anda birden fazla alarm aktifken, banner 1/N sayacıyla aralarında döner — kartın yaptığı gibi.",
+    overlay_rotation_interval: "Rotasyon aralığı (saniye)",
+    overlay_rotation_interval_help: "Her alarmın sonrakine geçmeden önce ekranda kaldığı saniye sayısı.",
     alert_overlay: "Overlay'de göster",
     alert_overlay_help: "Bu uyarıyı overlay banner'ından hariç tutmak için devre dışı bırakın. Normal kartta görünür kalmaya devam eder.",
     disable_animation: "Animasyonları devre dışı bırak 🎬",
@@ -6751,6 +6847,42 @@ class AlertTickerCardEditor extends LitElement {
               }}"
             ></ha-input>
             <div class="helper-text">${this._t("overlay_min_priority_help")}</div>
+
+            <div style="display:flex;align-items:center;gap:12px;margin-top:14px">
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:500">${this._t("overlay_dismissible")}</div>
+                <div class="helper-text">${this._t("overlay_dismissible_help")}</div>
+              </div>
+              <ha-switch
+                ?checked="${cfg.overlay_dismissible !== false}"
+                @change="${(e) => this._fireConfig({ ...this._config, overlay_dismissible: e.target.checked ? undefined : false })}"
+              ></ha-switch>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:500">${this._t("overlay_rotation")}</div>
+                <div class="helper-text">${this._t("overlay_rotation_help")}</div>
+              </div>
+              <ha-switch
+                ?checked="${!!cfg.overlay_rotation}"
+                @change="${(e) => this._fireConfig({ ...this._config, overlay_rotation: e.target.checked || undefined })}"
+              ></ha-switch>
+            </div>
+
+            ${cfg.overlay_rotation ? html`
+              <ha-input
+                type="number"
+                .label="${this._t("overlay_rotation_interval")}"
+                .value="${cfg.overlay_rotation_interval != null ? String(cfg.overlay_rotation_interval) : "5"}"
+                min="1" max="60" placeholder="5"
+                @change="${(e) => {
+                  const v = parseInt(e.target.value);
+                  this._fireConfig({ ...this._config, overlay_rotation_interval: (isNaN(v) || v < 1) ? undefined : v });
+                }}"
+              ></ha-input>
+              <div class="helper-text">${this._t("overlay_rotation_interval_help")}</div>
+            ` : ""}
           </div>
           ` : ""}
         </div>
@@ -7392,6 +7524,8 @@ class AlertTickerCardEditor extends LitElement {
                         ["<=",          "op_lte"],
                         ["contains",     "op_contains"],
                         ["not_contains", "op_not_contains"],
+                        ["older",        "op_older"],
+                        ["newer",        "op_newer"],
                       ].map(([op, key]) => html`
                         <option value="${op}" ?selected="${(alert.operator || "=") === op}">
                           ${this._t(key)}
@@ -7469,7 +7603,7 @@ class AlertTickerCardEditor extends LitElement {
                           class="native-select"
                           @change="${(e) => this._updateCondition(index, ci, { operator: e.target.value })}"
                         >
-                          ${[["=","op_eq"],["!=","op_ne"],[">","op_gt"],["<","op_lt"],[">=","op_gte"],["<=","op_lte"],["contains","op_contains"],["not_contains","op_not_contains"]].map(([op, key]) => html`
+                          ${[["=","op_eq"],["!=","op_ne"],[">","op_gt"],["<","op_lt"],[">=","op_gte"],["<=","op_lte"],["contains","op_contains"],["not_contains","op_not_contains"],["older","op_older"],["newer","op_newer"]].map(([op, key]) => html`
                             <option value="${op}" ?selected="${(cond.operator || "=") === op}">${this._t(key)}</option>
                           `)}
                         </select>

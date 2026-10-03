@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.10
+ * AlertTicker Card v1.3.11
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.10";
+const CARD_VERSION = "1.3.11";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -863,6 +863,12 @@ const _ATC_OVERLAY = (() => {
         cursor: pointer; padding: 0 4px; line-height: 1;
       }
       .atc-ov-close:hover { color: #fff; }
+      .atc-ov-counter {
+        flex-shrink: 0; font-size: 11px; font-weight: 600;
+        letter-spacing: 0.5px; opacity: 0.75; color: #fff;
+        padding: 3px 8px; border-radius: 10px;
+        background: rgba(255,255,255,0.12); font-variant-numeric: tabular-nums;
+      }
       .atc-ov-bar {
         position: absolute; bottom: 0; left: 0; height: 3px;
         background: rgba(255,255,255,.45);
@@ -935,12 +941,15 @@ const _ATC_OVERLAY = (() => {
     _root.className = `atc-ov-${pos === "bottom" ? "bottom" : pos === "center" ? "center" : "top"}`;
   }
 
-  function _paint(icon, cat, badge, msg, cfg, theme, secondary, cameraUrl, cameraLive, camHass, camState) {
+  function _paint(icon, cat, badge, msg, cfg, theme, secondary, cameraUrl, cameraLive, camHass, camState, counterText) {
     _ensureStyle();
     _ensureRoot(cfg.overlay_position);
     clearTimeout(_autoTimer);
     _root.innerHTML = "";
     const duration = cfg.overlay_duration != null ? Number(cfg.overlay_duration) : 8;
+    // #221: when the user wants the banner to stay (e.g. dashboards shared with
+    // casual users), suppress BOTH the close button and the auto-hide timer.
+    const dismissible = cfg.overlay_dismissible !== false;
     const safeCat   = ["critical","warning","info","ok","style","timer"].includes(cat) ? cat : "info";
     const themeMeta = THEME_META[theme] || {};
     const themeColor = themeMeta.color || null;
@@ -949,6 +958,7 @@ const _ATC_OVERLAY = (() => {
     toast.className = `atc-ov-toast atc-ov-${safeCat}`;
     if (themeBg)    toast.style.background    = themeBg;
     if (themeColor) toast.style.borderLeftColor = themeColor;
+    const showBar = dismissible && duration > 0;
     toast.innerHTML =
       `<span class="atc-ov-icon">${icon}</span>` +
       `<div class="atc-ov-body">` +
@@ -956,9 +966,11 @@ const _ATC_OVERLAY = (() => {
         `<div class="atc-ov-msg">${msg}</div>` +
         (secondary ? `<div class="atc-ov-secondary">${secondary}</div>` : "") +
       `</div>` +
-      `<button class="atc-ov-close" title="Dismiss">✕</button>` +
-      (duration > 0 ? `<div class="atc-ov-bar" style="animation-duration:${duration}s${themeColor ? ";background:" + themeColor : ""}"></div>` : "");
-    toast.querySelector(".atc-ov-close").addEventListener("click", e => { e.stopPropagation(); _hide(); });
+      (counterText ? `<span class="atc-ov-counter">${counterText}</span>` : "") +
+      (dismissible ? `<button class="atc-ov-close" title="Dismiss">✕</button>` : "") +
+      (showBar ? `<div class="atc-ov-bar" style="animation-duration:${duration}s${themeColor ? ";background:" + themeColor : ""}"></div>` : "");
+    const closeBtn = toast.querySelector(".atc-ov-close");
+    if (closeBtn) closeBtn.addEventListener("click", e => { e.stopPropagation(); _hide(); });
     // Camera snapshot or live stream — restructure toast to column layout (image added after scale)
     if (cameraUrl || (cameraLive && camHass && camState)) {
       toast.style.flexDirection = "column";
@@ -985,6 +997,11 @@ const _ATC_OVERLAY = (() => {
       }
       const closeEl = toast.querySelector('.atc-ov-close');
       if (closeEl) closeEl.style.fontSize = (18 * scale) + 'px';
+      const counterEl = toast.querySelector('.atc-ov-counter');
+      if (counterEl) {
+        counterEl.style.fontSize = (11 * scale) + 'px';
+        counterEl.style.padding = `${3 * scale}px ${8 * scale}px`;
+      }
     }
     // Add camera (snapshot or live stream) AFTER scale so dimensions are proportional
     if (cameraLive && camHass && camState) {
@@ -1027,6 +1044,7 @@ const _ATC_OVERLAY = (() => {
 
   function _hide() {
     _currentWatcherAlert = null;
+    _stopRotation();
     try {
       clearTimeout(_autoTimer);
       if (_root) {
@@ -1036,6 +1054,51 @@ const _ATC_OVERLAY = (() => {
         _root.style.display = "none";
       }
     } catch (_) {}
+  }
+
+  // #221: rotation helpers — show multiple active alerts in sequence with
+  // 1/N counter. One rotation state at a time (shared singleton overlay).
+  function _paintRotationCurrent() {
+    if (!_rotation) return;
+    const r = _rotation;
+    const it = r.items[r.idx];
+    if (!it) return;
+    const counter = r.items.length > 1 ? `${r.idx + 1}/${r.items.length}` : "";
+    _paint(it.icon, it.cat, it.badge, it.msg, it.cfg, it.theme, it.secondary,
+           it.cameraUrl, it.cameraLive, it.camHass, it.camState, counter);
+  }
+
+  function _startRotation(cardId, items, cfg) {
+    _stopRotation();
+    if (!items.length) return;
+    const interval = Math.max(1, Number(cfg.overlay_rotation_interval) || 5) * 1000;
+    _rotation = { cardId, items, idx: 0, cfg, timer: null };
+    _paintRotationCurrent();
+    if (items.length > 1) {
+      _rotation.timer = setInterval(() => {
+        if (!_rotation) return;
+        _rotation.idx = (_rotation.idx + 1) % _rotation.items.length;
+        _paintRotationCurrent();
+      }, interval);
+    }
+  }
+
+  function _stopRotation() {
+    if (_rotation?.timer) { try { clearInterval(_rotation.timer); } catch (_) {} }
+    _rotation = null;
+  }
+
+  // Returns true if rotation was updated in place (same cardId + same item set),
+  // false if the caller should call _startRotation to (re)start.
+  function _updateRotationItems(cardId, items) {
+    if (!_rotation || _rotation.cardId !== cardId) return false;
+    const oldKeys = _rotation.items.map(i => i.dedupeKey).join("|");
+    const newKeys = items.map(i => i.dedupeKey).join("|");
+    if (oldKeys === newKeys) {
+      _rotation.items = items; // refresh content (updated msg etc.)
+      return true;
+    }
+    return false;
   }
 
   // ── Dedup — prevents card-path + watcher-path from both firing ─────────────
@@ -1060,6 +1123,9 @@ const _ATC_OVERLAY = (() => {
   let _prevS         = new Map();
   let _filterNotified = new Map(); // cardId → Map<alertIndex, Set<entityId>> — per-entity dedup for filter alerts
   let _watchInterval = null;
+  // #221: rotation state — cycles the overlay through multiple active alerts
+  // from the same card at the user's chosen interval, with 1/N counter.
+  let _rotation = null; // null | { cardId, items, idx, timer, cfg }
   // trigger_delay tracking for overlay (mirrors card-side logic for when card is not mounted)
   const _ovDelayTimers = new Map(); // "cardId:i" → setTimeout ID
   const _ovDelayActive = new Set(); // "cardId:i" keys whose delay has elapsed
@@ -1079,6 +1145,16 @@ const _ATC_OVERLAY = (() => {
       }
       return es.state;
     } catch (_) { return null; }
+  }
+
+  // Parse a value as a timestamp. Accepts ISO 8601 strings, numeric unix epoch
+  // (ms if > 1e12, seconds otherwise). Returns ms-since-epoch or null if invalid.
+  function _parseTimestamp(v) {
+    if (v == null || v === "" || v === "unknown" || v === "unavailable") return null;
+    const n = Number(v);
+    if (!isNaN(n) && n > 0) return n > 1e12 ? n : n * 1000;
+    const d = Date.parse(v);
+    return isNaN(d) ? null : d;
   }
 
   function _matchOp(actual, op, trigger) {
@@ -1103,6 +1179,19 @@ const _ATC_OVERLAY = (() => {
       case "<=":           return !isNaN(n) && !isNaN(t) && n <= t;
       case "contains":     return actual.toLowerCase().includes(trigger.toLowerCase());
       case "not_contains":  return !actual.toLowerCase().includes(trigger.toLowerCase());
+      case "older": {
+        // actual = timestamp (iso / epoch), trigger = seconds threshold
+        const ms = _parseTimestamp(actual);
+        const thr = parseFloat(trigger);
+        if (ms == null || isNaN(thr)) return false;
+        return (Date.now() - ms) / 1000 > thr;
+      }
+      case "newer": {
+        const ms = _parseTimestamp(actual);
+        const thr = parseFloat(trigger);
+        if (ms == null || isNaN(thr)) return false;
+        return (Date.now() - ms) / 1000 < thr;
+      }
       default:             return String(actual) === String(trigger);
     }
   }
@@ -1438,6 +1527,57 @@ const _ATC_OVERLAY = (() => {
           }
         }
 
+        // #221: rotation mode — cycle the overlay through ALL currently active
+        // alerts for this card instead of firing them one-by-one with dedup.
+        // Filter-mode alerts (device_class/area/label) are skipped from rotation
+        // for now; they continue through the per-tick path below.
+        if (reg.config?.overlay_rotation) {
+          const items = [];
+          const tLang = T[reg.lang] || T.en;
+          for (const i of curActive) {
+            const a = reg.alerts[i];
+            if (!a) continue;
+            if (!a.entity && (a.entity_filter || a.device_class || a.label_filter || a.area_filter)) continue;
+            if (a.overlay === false) continue;
+            if (reg.config.overlay_min_priority != null && (a.priority ?? 3) > reg.config.overlay_min_priority) continue;
+            const cat     = (THEME_META[a.theme] || {}).category || "info";
+            const rawIcon = a.icon || (THEME_META[a.theme] || {}).icon || "🔔";
+            const icon    = (rawIcon && /^[\w-]+:/.test(rawIcon))
+              ? `<ha-icon icon="${rawIcon}"${a.icon_color ? ` style="color:${a.icon_color}"` : ""}></ha-icon>`
+              : rawIcon;
+            const badge   = a.show_badge === false ? "" : (a.badge_label || ({ critical: tLang.critical, warning: tLang.warning_label, ok: tLang.success_label }[cat] ?? tLang.info_label));
+            const msg     = _resolveMsg(hass, a);
+            const entityPart = (() => {
+              if (!a.secondary_entity) return "";
+              const es = hass.states[a.secondary_entity];
+              if (!es) return "";
+              const st = _ovFmtState(hass, es, a.secondary_attribute || null);
+              return a.show_secondary_name ? `${es.attributes?.friendly_name || a.secondary_entity} ${st}` : st;
+            })();
+            const cameraLive = !!a.camera_live;
+            const camState   = (a.camera_entity && cameraLive) ? (hass.states[a.camera_entity] || null) : null;
+            const camUrl     = (a.camera_entity && !cameraLive) ? (hass.states[a.camera_entity]?.attributes?.entity_picture || null) : null;
+            items.push({
+              dedupeKey: "e:" + (a.entity || "") + ":" + i,
+              icon, cat, badge, msg,
+              cfg: reg.config, theme: a.theme,
+              secondary: entityPart,
+              cameraUrl: camUrl, cameraLive, camHass: hass, camState,
+            });
+            newBases.add(i);
+          }
+          if (items.length) {
+            if (!_updateRotationItems(id, items)) _startRotation(id, items, reg.config);
+            _currentWatcherAlert = { id, alertIdx: -1 }; // sentinel so hideIfFromCard works
+            _bases.set(id, newBases);
+            continue;
+          }
+          // No active items for this card — stop rotation if we were running one.
+          if (_rotation && _rotation.cardId === id) _hide();
+          _bases.set(id, newBases);
+          continue;
+        }
+
         for (const i of curActive) {
           const a = reg.alerts[i];
           const isFilterMode = !a.entity && (a.entity_filter || a.device_class || a.label_filter || a.area_filter);
@@ -1587,6 +1727,27 @@ const _ATC_OVERLAY = (() => {
         }
         _regs.set(id, { alerts: alerts || [], config, lang, element, disconnected: false });
         if (!_watchInterval) _watchInterval = setInterval(_tick, 2000);
+        // #222: persist overlay-enabled registrations so overlay keeps firing
+        // on page reloads even if the user never navigates back to the view
+        // holding the card (lazy-loaded Lovelace views would otherwise skip
+        // re-instantiating the card and the watcher would stay dormant).
+        if (config?.overlay_mode) {
+          try {
+            const serialized = [];
+            for (const [rid, rreg] of _regs) {
+              if (!rreg.config?.overlay_mode) continue;
+              serialized.push({
+                id: rid,
+                alerts: rreg.alerts,
+                config: rreg.config,
+                lang: rreg.lang,
+                savedAt: Date.now(),
+              });
+            }
+            const payload = JSON.stringify(serialized);
+            if (payload.length < 500000) localStorage.setItem("atc-overlay-regs", payload);
+          } catch (_) {}
+        }
       } catch (_) {}
     },
     detach(id) {
@@ -1611,6 +1772,25 @@ const _ATC_OVERLAY = (() => {
     },
   };
 })();
+
+// #222: restore persisted overlay registrations at module load time so the
+// watcher starts running immediately, before any card instance mounts. Without
+// this, overlay banners only fire after the user has visited the dashboard
+// view holding the card at least once per browser session.
+try {
+  const _savedRaw = localStorage.getItem("atc-overlay-regs");
+  if (_savedRaw) {
+    const _saved = JSON.parse(_savedRaw);
+    const _maxAgeMs = 30 * 24 * 3600 * 1000; // 30 days — drop stale configs
+    if (Array.isArray(_saved)) {
+      for (const r of _saved) {
+        if (!r || !r.id || !r.config?.overlay_mode) continue;
+        if (r.savedAt && Date.now() - r.savedAt > _maxAgeMs) continue;
+        _ATC_OVERLAY.register(r.id, r.alerts || [], r.config || {}, r.lang || "en", null);
+      }
+    }
+  }
+} catch (_) {}
 
 // ---------------------------------------------------------------------------
 // AtcCardProxy — renders any native HA card config inside an alert slide.
@@ -2500,6 +2680,18 @@ class AlertTickerCard extends LitElement {
           this._computeActiveAlerts();
         }
       }
+      // #223: timestamp operators depend on now(), not on entity updates.
+      // Re-evaluate every 30s if any alert / condition uses older or newer.
+      if (now.getSeconds() === 0 || now.getSeconds() === 30) {
+        const alerts = this._config && this._config.alerts;
+        if (Array.isArray(alerts)) {
+          const hasTs = alerts.some((a) =>
+            a.operator === "older" || a.operator === "newer" ||
+            (Array.isArray(a.conditions) && a.conditions.some(
+              (c) => c.operator === "older" || c.operator === "newer")));
+          if (hasTs) this._computeActiveAlerts();
+        }
+      }
     }, 1000);
   }
 
@@ -3344,6 +3536,17 @@ class AlertTickerCard extends LitElement {
     }
     if (operator === "not_contains") {
       return !entityStateValue.toLowerCase().includes(triggerStr.toLowerCase());
+    }
+
+    // #223: timestamp comparison — "older" / "newer" treat the entity state
+    // as an ISO date or unix epoch and compare its age against the trigger
+    // threshold expressed in seconds.
+    if (operator === "older" || operator === "newer") {
+      const ms = _parseTimestamp(entityStateValue);
+      const thr = parseFloat(triggerStr);
+      if (ms == null || isNaN(thr)) return false;
+      const diffSec = (Date.now() - ms) / 1000;
+      return operator === "older" ? diffSec > thr : diffSec < thr;
     }
 
     // Numeric comparison
@@ -6027,6 +6230,13 @@ class AlertTickerCard extends LitElement {
     const color = this._timerColor(progress);
     const urgent = progress >= 0 && progress < 0.2;
     const barW = progress >= 0 ? progress * 100 : 0;
+    // #220: suppress CSS width transition when the slide swaps to a different
+    // alert, so the bar jumps to the new entity's value instead of animating
+    // between two unrelated remaining-time percentages.
+    const key = alert.entity || alert.name || "";
+    const skipTx = this._lastCountdownKey != null && this._lastCountdownKey !== key;
+    this._lastCountdownKey = key;
+    const barStyle = `width:${barW}%;background:${color}${skipTx ? ";transition:none" : ""}`;
     return html`
       <div class="at-countdown ${urgent ? "cd-urgent" : ""}">
         <div class="cd-icon">${icon}</div>
@@ -6040,7 +6250,7 @@ class AlertTickerCard extends LitElement {
           ${this._renderCounter()}
         </div>
         <div class="cd-bar-track">
-          <div class="cd-bar-fill" style="width:${barW}%;background:${color}"></div>
+          <div class="cd-bar-fill" style="${barStyle}"></div>
         </div>
       </div>
     `;
@@ -6054,9 +6264,14 @@ class AlertTickerCard extends LitElement {
     const color = this._timerColor(progress);
     const urgent = progress >= 0 && progress < 0.2;
     const fillH = progress >= 0 ? progress * 100 : 0;
+    // #220: see _renderCountdown — same transition-reset trick for the fill height.
+    const key = alert.entity || alert.name || "";
+    const skipTx = this._lastHourglassKey != null && this._lastHourglassKey !== key;
+    this._lastHourglassKey = key;
+    const fillStyle = `height:${fillH}%;background:${color}20${skipTx ? ";transition:none" : ""}`;
     return html`
       <div class="at-hourglass ${urgent ? "hg2-urgent" : ""}">
-        <div class="hg2-fill" style="height:${fillH}%;background:${color}20"></div>
+        <div class="hg2-fill" style="${fillStyle}"></div>
         <div class="hg2-icon">${icon}</div>
         <div class="hg2-content">
           ${alert.show_badge !== false ? html`<div class="hg2-badge">${alert.badge_label || (isActive ? this._t("timer_active") : this._t("timer_done"))}</div>` : ""}

@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.11] - 2026-10-03
+
+### Fixed
+
+- **Countdown / Hourglass progress bar slid between alerts on swap** ([#220](https://github.com/djdevil/AlertTicker-Card/issues/220)) — when two alerts both used the `countdown` or `hourglass` theme and the card cycled between them, the inline CSS `transition: width/height 1s linear` smoothly interpolated the bar from alert A's remaining time to alert B's, making it look like the countdown was moving backward or forward instead of belonging to the current alert. Fixed by detecting the alert key change in render and inlining `transition: none` for exactly one frame when the slide swaps, so the bar jumps straight to the new entity's value and resumes smooth ticking within the alert.
+- **Global overlay didn't fire until the dashboard view holding the card was visited** ([#222](https://github.com/djdevil/AlertTicker-Card/issues/222)) — HA Lovelace lazy-loads views, so the alert-ticker-card custom element was only instantiated when its view rendered. The overlay watcher (`setInterval`) only started inside `register()`, called from `connectedCallback` — meaning no card instance = no watcher = no overlay. Fixed by persisting overlay-enabled registrations to `localStorage` and restoring them at module load time, before any card mounts. Watcher now starts on page load regardless of which view the user is on. 30-day max-age cleanup for stale entries.
+
+### Added
+
+- **Overlay: `overlay_dismissible` option** ([discussion #221](https://github.com/djdevil/AlertTicker-Card/discussions/221) by [@ThomDyson](https://github.com/ThomDyson)) — new toggle in the Overlay editor tab. When OFF, the banner never auto-dismisses and shows no close button — it stays visible until the triggering condition resolves. Useful for dashboards shared with casual users or in kiosk mode where you don't want anyone dismissing critical alerts.
+- **Overlay: `overlay_rotation` + `overlay_rotation_interval`** ([discussion #221](https://github.com/djdevil/AlertTicker-Card/discussions/221) by [@ThomDyson](https://github.com/ThomDyson)) — when multiple alerts are simultaneously active, the overlay now cycles through them with a `1/N` counter displayed in the top-right of the toast. Interval configurable from 1-60 seconds (default 5). Rotation list auto-updates as alerts become active or clear.
+- **Timestamp operators: `older` and `newer`** ([#223](https://github.com/djdevil/AlertTicker-Card/issues/223) by [@sciurius](https://github.com/sciurius)) — new comparison operators that treat the entity state as a timestamp (ISO 8601 or unix epoch) and compare its age against the trigger value expressed in seconds. `older`: fires when the entity's timestamp is more than N seconds in the past (e.g. "sensor hasn't updated in 10 minutes"). `newer`: fires when the entity's timestamp is less than N seconds in the past. The card re-evaluates alerts using these operators every 30 seconds automatically, since the trigger depends on `now()` rather than on entity state changes. Available in both the main alert operator dropdown and in extra AND/OR conditions. Translated in all 12 languages.
+
+---
+
 ## [1.3.10] - 2026-09-18
 
 ### Added
