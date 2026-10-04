@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.12
+ * AlertTicker Card v1.3.13
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.12";
+const CARD_VERSION = "1.3.13";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -3498,7 +3498,14 @@ class AlertTickerCard extends LitElement {
    * contains / not_contains with case-insensitive substring matching.
    */
   _matchesState(entityStateValue, alert) {
-    let trigger = alert.state;
+    // #223 follow-up: when the trigger state is missing (common on extra
+    // conditions where the user only picked the entity without typing a value),
+    // default to "on" so the condition matches binary_sensor-style entities
+    // that are in the "on" state. Mirrors the overlay path's `c.state ?? "on"`
+    // (see _evalAlert) and the editor's visible default of "on". Previously
+    // the card path compared against the literal string "undefined" and always
+    // returned false, breaking configs like `conditions: [{entity: input_boolean.foo}]`.
+    let trigger = (alert.state == null || alert.state === "") ? "on" : alert.state;
     const operator = alert.operator || "=";
 
     // Legacy array form — treated as "is one of" regardless of operator

@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.13] - 2026-10-04
+
+### Fixed
+
+- **Extra conditions without a `state` field never matched** ([#223](https://github.com/djdevil/AlertTicker-Card/issues/223) reported by [@sciurius](https://github.com/sciurius)) — configs with extra AND/OR conditions where only the `entity` was set (no `state`, no `operator`) always evaluated to false in the card's `_matchesState` method, because `trigger` was undefined and comparisons fell through to `entityStateValue === "undefined"`. The overlay path's `_evalAlert` already defaulted missing state to `"on"` (via `c.state ?? "on"`), and the editor UI shows `"on"` as the visible default — so this was a long-standing inconsistency between the card and overlay evaluation paths. Fixed by defaulting the trigger to `"on"` inside `_matchesState` when the alert / condition has no explicit `state`. All four `_matchesState` call sites remain correct: the two primary-condition paths are guarded upstream (missing state = always match), the two extra-condition paths now default to `"on"` instead of silently failing.
+
+---
+
 ## [1.3.12] - 2026-10-04
 
 ### Fixed
