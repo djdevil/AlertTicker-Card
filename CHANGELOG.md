@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.12] - 2026-10-04
+
+### Fixed
+
+- **`older` / `newer` operators in extra conditions caused "Configuration error" in the preview** ([#223](https://github.com/djdevil/AlertTicker-Card/issues/223#issuecomment-5977901748) reported by [@sciurius](https://github.com/sciurius)) — v1.3.11 regression. The `_parseTimestamp` helper was defined inside the overlay module's IIFE closure, so the card class's `_matchesState` method (outside the IIFE) hit `ReferenceError: _parseTimestamp is not defined` the moment it tried to evaluate an `older` / `newer` condition. HA Lovelace surfaced this as "Configuration error" in the editor preview. Moved the helper to module scope so both the overlay `_matchOp` and the card's `_matchesState` can reach it. Fixes applied to both evaluation paths — overlay and card.
+
+---
+
 ## [1.3.11] - 2026-10-03
 
 ### Fixed

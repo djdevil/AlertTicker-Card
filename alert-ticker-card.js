@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.11
+ * AlertTicker Card v1.3.12
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.11";
+const CARD_VERSION = "1.3.12";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -814,6 +814,20 @@ function _isEditMode() {
   } catch (_) { return false; }
 }
 
+// #223 helper: parse a value as a timestamp. Accepts ISO 8601 strings and
+// numeric unix epoch (ms if > 1e12, seconds otherwise). Returns ms-since-epoch
+// or null if invalid. Lives at module scope so both the overlay _matchOp
+// closure AND the card's _matchesState class method can reach it — moving it
+// here fixes a v1.3.11 regression where the older/newer operators threw
+// ReferenceError when used in extra conditions (#223 bug reported by @sciurius).
+function _parseTimestamp(v) {
+  if (v == null || v === "" || v === "unknown" || v === "unavailable") return null;
+  const n = Number(v);
+  if (!isNaN(n) && n > 0) return n > 1e12 ? n : n * 1000;
+  const d = Date.parse(v);
+  return isNaN(d) ? null : d;
+}
+
 const _ATC_OVERLAY = (() => {
   // ── DOM helpers ────────────────────────────────────────────────────────────
   let _root  = null;
@@ -1145,16 +1159,6 @@ const _ATC_OVERLAY = (() => {
       }
       return es.state;
     } catch (_) { return null; }
-  }
-
-  // Parse a value as a timestamp. Accepts ISO 8601 strings, numeric unix epoch
-  // (ms if > 1e12, seconds otherwise). Returns ms-since-epoch or null if invalid.
-  function _parseTimestamp(v) {
-    if (v == null || v === "" || v === "unknown" || v === "unavailable") return null;
-    const n = Number(v);
-    if (!isNaN(n) && n > 0) return n > 1e12 ? n : n * 1000;
-    const d = Date.parse(v);
-    return isNaN(d) ? null : d;
   }
 
   function _matchOp(actual, op, trigger) {
