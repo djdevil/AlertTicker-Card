@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.14
+ * AlertTicker Card v1.3.15
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.14";
+const CARD_VERSION = "1.3.15";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -7874,6 +7874,15 @@ class AlertTickerCard extends LitElement {
       }
 
       /* ── DISABLE-ANIMATION override ── */
+      /* #225: universal catch-all — kills ambient CSS animations on EVERY
+         theme (door, window, water, battery, code_push, etc.) when the user
+         sets disable_animation. Previously we had a hand-maintained list of
+         about 15 classes which drifted out of sync as themes were added. The
+         specific rules below still live (they add compensation declarations
+         like opacity:1 that keep a few animations from freezing at an
+         invisible frame) but this catch-all guarantees any theme currently
+         shipped or added later is covered without further CSS work. */
+      .at-fold-wrapper.atc-no-anim *                        { animation: none !important; }
       .at-fold-wrapper.atc-no-anim .at-emergency            { animation: none !important; }
       .at-fold-wrapper.atc-no-anim .em-icon                 { animation: none !important; opacity: 1 !important; }
       .at-fold-wrapper.atc-no-anim .wn-dot                  { animation: none !important; opacity: 1 !important; transform: scale(1) !important; }

@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.15] - 2026-10-09
+
+### Fixed
+
+- **`disable_animation: true` didn't stop ambient icon animations on most themes** ([#225](https://github.com/djdevil/AlertTicker-Card/issues/225) reported by [@shashankmittal](https://github.com/shashankmittal)) — the CSS suppression list only targeted a hand-maintained set of about 15 classes (emergency, maintenance_window, matrix, caution, winter, neon_scan, swing icons, weather particles), which had drifted out of sync as themes were added. All other themes — including `door` (swinging door + light ray), `window`, `water`, `code_push`, `power`, `battery_critical`, `nocturnal`, `heartbeat`, `radar`, `hurricane`, etc. — kept animating their icons/backgrounds despite the toggle being on. Fixed by adding a universal catch-all `.at-fold-wrapper.atc-no-anim * { animation: none !important }` that covers every current and future theme. The existing specific rules remain for the few animations that need compensation (opacity:1, transform:scale(1)) to not freeze in an invisible frame.
+
+---
+
 ## [1.3.14] - 2026-10-07
 
 ### Fixed
