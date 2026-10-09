@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.14] - 2026-10-07
+
+### Fixed
+
+- **False `older` / `newer` alert flash when switching back to a backgrounded HA tab** ([#224](https://github.com/djdevil/AlertTicker-Card/issues/224) reported by [@sciurius](https://github.com/sciurius)) — when the browser tab was in the background, `hass.states` kept the last-known cached values. On tab wake, `_startTimerTick` fired immediately with that stale state before the WebSocket had re-synced with the server. For timestamp sensors used with the `older` operator, the stale state is naturally "very old" relative to now, so the condition briefly evaluated true and the alert flashed on screen for 1-2 seconds before fresh state arrived and cleared it. Fixed by tracking tab visibility via the Page Visibility API and suppressing `older` / `newer` evaluations for 10 seconds after the tab becomes visible, giving HA time to re-sync. Non-timestamp operators are unaffected; a legitimate "sensor hasn't updated in 1h" alert still fires correctly, just with up to 10s extra delay on tab wake.
+
+---
+
 ## [1.3.13] - 2026-10-04
 
 ### Fixed

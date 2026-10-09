@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.13
+ * AlertTicker Card v1.3.14
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.13";
+const CARD_VERSION = "1.3.14";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -828,6 +828,28 @@ function _parseTimestamp(v) {
   return isNaN(d) ? null : d;
 }
 
+// #224: timestamp operators (older / newer) depend on the current hass.states
+// being fresh. When the browser tab was backgrounded, hass has stale cached
+// state until the WebSocket reconnects and HA sends state_changed events —
+// usually within 1-3 seconds. During that window, a timestamp sensor still
+// reads its last-known-stale value, which naively evaluates as "older than N
+// seconds" and causes a brief false-positive alert flash on tab wake.
+//
+// Fix: track the moment the tab becomes visible and suppress older/newer
+// evaluations for the next 10 seconds, letting HA re-sync first. Initialized
+// to Date.now() so the same guard protects the very first page load.
+let _tsWakeAt = Date.now();
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  try {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') _tsWakeAt = Date.now();
+    }, { passive: true });
+  } catch (_) {}
+}
+function _inTimestampGrace() {
+  return _tsWakeAt > 0 && (Date.now() - _tsWakeAt) < 10000;
+}
+
 const _ATC_OVERLAY = (() => {
   // ── DOM helpers ────────────────────────────────────────────────────────────
   let _root  = null;
@@ -1185,12 +1207,14 @@ const _ATC_OVERLAY = (() => {
       case "not_contains":  return !actual.toLowerCase().includes(trigger.toLowerCase());
       case "older": {
         // actual = timestamp (iso / epoch), trigger = seconds threshold
+        if (_inTimestampGrace()) return false; // #224 — suppress on tab wake
         const ms = _parseTimestamp(actual);
         const thr = parseFloat(trigger);
         if (ms == null || isNaN(thr)) return false;
         return (Date.now() - ms) / 1000 > thr;
       }
       case "newer": {
+        if (_inTimestampGrace()) return false; // #224 — suppress on tab wake
         const ms = _parseTimestamp(actual);
         const thr = parseFloat(trigger);
         if (ms == null || isNaN(thr)) return false;
@@ -3553,6 +3577,10 @@ class AlertTickerCard extends LitElement {
     // as an ISO date or unix epoch and compare its age against the trigger
     // threshold expressed in seconds.
     if (operator === "older" || operator === "newer") {
+      // #224: suppress during the first 10 seconds after tab wake, when
+      // hass.states is still stale and would briefly report any timestamp as
+      // "very old" causing a false-positive alert flash.
+      if (_inTimestampGrace()) return false;
       const ms = _parseTimestamp(entityStateValue);
       const thr = parseFloat(triggerStr);
       if (ms == null || isNaN(thr)) return false;
