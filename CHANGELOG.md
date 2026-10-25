@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.18] - 2026-10-25
+
+### Fixed
+
+- **`conditions_logic: or` behaved like AND** ([#231](https://github.com/djdevil/AlertTicker-Card/issues/231) reported by [@majbom](https://github.com/majbom)) — OR now means "the alert's own condition OR any extra condition", on both the card and the overlay. Alerts with no own `state` keep matching on the extra conditions only, so configs that put every check in the extra conditions behave as before.
+- **`auto_dismiss_after` never fired on long durations** ([#234](https://github.com/djdevil/AlertTicker-Card/issues/234) reported by [@wormuths](https://github.com/wormuths)) — the countdown lived only in the browser and restarted on every page reload or view change. It now counts from when the condition became true (latest `last_changed` of the alert's entities, plus `trigger_delay`), so it survives reloads and alerts already past their time stay dismissed. Thanks to [@Ltek](https://github.com/Ltek) for pinpointing the cause.
+
+### Added
+
+- **Switch an alert off without deleting it** ([#232](https://github.com/djdevil/AlertTicker-Card/issues/232) requested by [@jazzarmac](https://github.com/jazzarmac)) — new 👁 button on each alert row in the editor, saved as `enabled: false`. A disabled alert never shows on the card or in the overlay (and so never triggers TTS or push); test mode still shows it. Disabled rows are dimmed with an OFF badge.
+- **Duplicate an alert** ([#233](https://github.com/djdevil/AlertTicker-Card/issues/233) requested by [@jazzarmac](https://github.com/jazzarmac)) — new ⧉ button on each alert row inserts a copy right below and opens it for editing.
+
+---
+
 ## [1.3.17] - 2026-10-10
 
 ### Fixed

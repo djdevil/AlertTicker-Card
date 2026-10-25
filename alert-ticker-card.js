@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.17
+ * AlertTicker Card v1.3.18
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.17";
+const CARD_VERSION = "1.3.18";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1294,6 +1294,7 @@ const _ATC_OVERLAY = (() => {
   }
 
   function _evalAlert(hass, a, prevMap) {
+    if (a.enabled === false) return false; // #232
     if (!_evalVisibleTo(hass, a)) return false;
     if (!_evalTimeRange(a)) return false;
     if ((a.entity_filter || a.device_class || a.label_filter || a.area_filter) && !a.entity) return _evalFilterAlert(hass, a);
@@ -1313,7 +1314,9 @@ const _ATC_OVERLAY = (() => {
         const eid = (c.entity === "{entity}" || c.entity === "this.entity_id") ? a.entity : c.entity;
         return _matchOp(_getVal(hass, eid, c.attribute), c.operator || "=", c.state ?? "on");
       });
-      if (logic === "or" ? !(primaryOk && res.some(Boolean)) : !(primaryOk && res.every(Boolean))) return false;
+      const hasOwnState = a.state != null && a.state !== "";
+      const orOk = hasOwnState ? (primaryOk || res.some(Boolean)) : res.some(Boolean);
+      if (logic === "or" ? !orOk : !(primaryOk && res.every(Boolean))) return false;
     } else if (!primaryOk) return false;
     return true;
   }
@@ -2155,6 +2158,8 @@ class AlertTickerCard extends LitElement {
     const expandedAlerts = [];
     for (let idx = 0; idx < this._config.alerts.length; idx++) {
       const alert = this._config.alerts[idx];
+      // enabled: false switches the alert off without deleting it (#232); test mode still shows it
+      if (alert.enabled === false && !this._config.test_mode) continue;
       if ((alert.entity_filter || alert.device_class || alert.label_filter || alert.area_filter) && !alert.entity) {
         const matchFn = alert.entity_filter ? this._buildFilterMatcher(alert.entity_filter) : null;
         const excluded = new Set(alert.entity_filter_exclude || alert.device_class_exclude || []);
@@ -2264,8 +2269,11 @@ class AlertTickerCard extends LitElement {
                 : es.state;
               return this._matchesState(val, cond);
             });
+            // OR = own condition OR any extra condition (#231). When the alert has no
+            // own state, only the extra conditions decide (primaryOk is always true then).
+            const hasOwnState = alert.state != null && alert.state !== "";
             const passes = logic === "or"
-              ? primaryOk && results.some(Boolean)
+              ? (hasOwnState ? primaryOk || results.some(Boolean) : results.some(Boolean))
               : primaryOk && results.every(Boolean);
             if (!passes) {
               // persistent: keep showing even though condition cleared
@@ -2331,15 +2339,33 @@ class AlertTickerCard extends LitElement {
               if (!this._triggerDelayActive.has(key)) return false;
             }
           }
-          // auto_dismiss_after for normal condition alerts
+          // auto_dismiss_after for normal condition alerts. Counts from when the
+          // condition became true (latest last_changed, plus trigger_delay), not from
+          // when this card instance first saw it — a page reload or view change used
+          // to restart the countdown so long durations never fired (#234).
           if (alert.auto_dismiss_after) {
             if (this._autoDismissedKeys.has(key)) return false;
             if (!this._autoDismissTimers[key]) {
+              let latestLc = entityState?.last_changed
+                ? new Date(entityState.last_changed).getTime() : 0;
+              for (const cond of _normConds(alert.conditions)) {
+                const ces = cond.entity ? this._hass.states[cond.entity] : null;
+                if (ces?.last_changed) {
+                  const t = new Date(ces.last_changed).getTime();
+                  if (t > latestLc) latestLc = t;
+                }
+              }
+              const shownAt = latestLc ? latestLc + (alert.trigger_delay || 0) * 1000 : Date.now();
+              const remaining = shownAt + alert.auto_dismiss_after * 1000 - Date.now();
+              if (remaining <= 0) {
+                this._autoDismissedKeys.add(key);
+                return false;
+              }
               this._autoDismissTimers[key] = setTimeout(() => {
                 this._autoDismissedKeys.add(key);
                 delete this._autoDismissTimers[key];
                 this._computeActiveAlerts();
-              }, alert.auto_dismiss_after * 1000);
+              }, remaining);
             }
           }
         }

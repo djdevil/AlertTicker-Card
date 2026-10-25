@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.17
+ * AlertTicker Card Editor v1.3.18
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.17";
+const CARD_VERSION = "1.3.18";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1360,6 +1360,10 @@ const ET = {
     badge_label: "Testo badge personalizzato",
     badge_label_help: "Lascia vuoto per usare il testo di default del tema",
     delete: "Elimina",
+    duplicate_alert: "Duplica avviso",
+    disable_alert: "Disattiva avviso",
+    enable_alert: "Attiva avviso",
+    alert_disabled: "OFF",
     priority_1: "1 — Critico (rosso)",
     priority_2: "2 — Attenzione (arancione)",
     priority_3: "3 — Info (blu)",
@@ -1735,6 +1739,10 @@ const ET = {
     badge_label: "Custom badge label",
     badge_label_help: "Leave empty to use the theme default label",
     delete: "Delete",
+    duplicate_alert: "Duplicate alert",
+    disable_alert: "Disable alert",
+    enable_alert: "Enable alert",
+    alert_disabled: "OFF",
     priority_1: "1 — Critical (red)",
     priority_2: "2 — Warning (orange)",
     priority_3: "3 — Info (blue)",
@@ -2108,6 +2116,10 @@ const ET = {
     badge_label: "Texte du badge personnalisé",
     badge_label_help: "Laisser vide pour utiliser le texte par défaut du thème",
     delete: "Supprimer",
+    duplicate_alert: "Dupliquer l'alerte",
+    disable_alert: "Désactiver l'alerte",
+    enable_alert: "Activer l'alerte",
+    alert_disabled: "OFF",
     priority_1: "1 — Critique (rouge)",
     priority_2: "2 — Attention (orange)",
     priority_3: "3 — Info (bleu)",
@@ -2481,6 +2493,10 @@ const ET = {
     badge_label: "Benutzerdefinierter Badge-Text",
     badge_label_help: "Leer lassen für den Standard-Text des Themas",
     delete: "Löschen",
+    duplicate_alert: "Alarm duplizieren",
+    disable_alert: "Alarm deaktivieren",
+    enable_alert: "Alarm aktivieren",
+    alert_disabled: "AUS",
     priority_1: "1 — Kritisch (rot)",
     priority_2: "2 — Warnung (orange)",
     priority_3: "3 — Info (blau)",
@@ -2854,6 +2870,10 @@ const ET = {
     badge_label: "Aangepaste badge-tekst",
     badge_label_help: "Leeg laten voor de standaardtekst van het thema",
     delete: "Verwijderen",
+    duplicate_alert: "Melding dupliceren",
+    disable_alert: "Melding uitschakelen",
+    enable_alert: "Melding inschakelen",
+    alert_disabled: "UIT",
     priority_1: "1 — Kritiek (rood)",
     priority_2: "2 — Waarschuwing (oranje)",
     priority_3: "3 — Info (blauw)",
@@ -3227,6 +3247,10 @@ const ET = {
     badge_label: "Nhãn badge tùy chỉnh",
     badge_label_help: "Để trống để dùng nhãn mặc định của giao diện",
     delete: "Xóa",
+    duplicate_alert: "Nhân bản cảnh báo",
+    disable_alert: "Tắt cảnh báo",
+    enable_alert: "Bật cảnh báo",
+    alert_disabled: "TẮT",
     priority_1: "1 — Nghiêm trọng (đỏ)",
     priority_2: "2 — Cảnh báo (cam)",
     priority_3: "3 — Thông tin (xanh)",
@@ -3600,6 +3624,10 @@ const ET = {
     badge_label: "Пользовательская метка бейджа",
     badge_label_help: "Оставьте пустым для метки по умолчанию для данной темы",
     delete: "Удалить",
+    duplicate_alert: "Дублировать оповещение",
+    disable_alert: "Отключить оповещение",
+    enable_alert: "Включить оповещение",
+    alert_disabled: "ВЫКЛ",
     priority_1: "1 — Критично (красный)",
     priority_2: "2 — Внимание (оранжевый)",
     priority_3: "3 — Информация (синий)",
@@ -3969,6 +3997,10 @@ const ET = {
     badge_label: "Brugerdefineret badge‑tekst",
     badge_label_help: "Lad stå tom for at bruge tema‑standard‑tekst",
     delete: "Slet",
+    duplicate_alert: "Dupliker advarsel",
+    disable_alert: "Deaktiver advarsel",
+    enable_alert: "Aktiver advarsel",
+    alert_disabled: "FRA",
     priority_1: "1 — Kritisk (rød)",
     priority_2: "2 — Advarsel (orange)",
     priority_3: "3 — Info (blå)",
@@ -4346,6 +4378,10 @@ const ET = {
     badge_label: "Vlastní text nadpisu",
     badge_label_help: "Ponechte prázdné a použije se nadpis podle výchozího vzhledu",
     delete: "Smazat",
+    duplicate_alert: "Duplikovat upozornění",
+    disable_alert: "Vypnout upozornění",
+    enable_alert: "Zapnout upozornění",
+    alert_disabled: "VYP",
     priority_1: "1 — Kritická (červená)",
     priority_2: "2 — Varování (oranžová)",
     priority_3: "3 — Info (modrá)",
@@ -4723,6 +4759,10 @@ const ET = {
     badge_label: "Rótulo do badge personalizado",
     badge_label_help: "Deixe vazio para usar o rótulo padrão do tema",
     delete: "Excluir",
+    duplicate_alert: "Duplicar alerta",
+    disable_alert: "Desativar alerta",
+    enable_alert: "Ativar alerta",
+    alert_disabled: "DESL",
     priority_1: "1 — Crítico (vermelho)",
     priority_2: "2 — Aviso (laranja)",
     priority_3: "3 — Info (azul)",
@@ -5096,6 +5136,10 @@ const ET = {
     badge_label: "Texto del badge personalizado",
     badge_label_help: "Deja vacío para usar el texto predeterminado del tema",
     delete: "Eliminar",
+    duplicate_alert: "Duplicar alerta",
+    disable_alert: "Desactivar alerta",
+    enable_alert: "Activar alerta",
+    alert_disabled: "APAG",
     priority_1: "1 — Crítico (rojo)",
     priority_2: "2 — Atención (naranja)",
     priority_3: "3 — Info (azul)",
@@ -5469,6 +5513,10 @@ const ET = {
     badge_label: "Özel rozet etiketi",
     badge_label_help: "Tema varsayılan etiketini kullanmak için boş bırak",
     delete: "Sil",
+    duplicate_alert: "Uyarıyı çoğalt",
+    disable_alert: "Uyarıyı devre dışı bırak",
+    enable_alert: "Uyarıyı etkinleştir",
+    alert_disabled: "KAPALI",
     priority_1: "1 — Kritik (kırmızı)",
     priority_2: "2 — Uyarı (turuncu)",
     priority_3: "3 — Bilgi (mavi)",
@@ -6964,8 +7012,9 @@ class AlertTickerCardEditor extends LitElement {
       : "";
 
     const total = (this._config.alerts || []).length;
+    const disabled = alert.enabled === false;
     return html`
-      <div class="${`alert-item${isEditing ? " is-editing" : ""}`}"
+      <div class="${`alert-item${isEditing ? " is-editing" : ""}${disabled ? " alert-item--disabled" : ""}`}"
            @click="${() => this._editAlert(index)}">
         <div class="alert-move-col">
           <button
@@ -6987,9 +7036,20 @@ class AlertTickerCardEditor extends LitElement {
           ${!alert.name && msgSnippet ? html`<div class="alert-msg-label">${msgSnippet}</div>` : ""}
           ${alert.name ? html`<div class="alert-msg-label">${entityLabel}</div>` : ""}
         </div>
+        ${disabled ? html`<span class="alert-off-badge">${this._t("alert_disabled")}</span>` : ""}
         <span class="alert-prio-badge prio-${prio}">P${prio}</span>
         <div class="alert-actions">
           <span class="alert-expand-indicator"></span>
+          <button
+            class="btn-icon"
+            title="${disabled ? this._t("enable_alert") : this._t("disable_alert")}"
+            @click="${(e) => { e.stopPropagation(); this._toggleAlertEnabled(index); }}"
+          >${disabled ? "🚫" : "👁"}</button>
+          <button
+            class="btn-icon"
+            title="${this._t("duplicate_alert")}"
+            @click="${(e) => { e.stopPropagation(); this._duplicateAlert(index); }}"
+          >⧉</button>
           <button
             class="btn-icon btn-delete"
             title="${this._t("delete")}"
@@ -8397,6 +8457,27 @@ class AlertTickerCardEditor extends LitElement {
     this._fireConfig({ ...this._config, alerts });
   }
 
+  // #233 — insert a copy right below the original and open it for editing
+  _duplicateAlert(index) {
+    const alerts = [...(this._config.alerts || [])];
+    if (!alerts[index]) return;
+    const copy = JSON.parse(JSON.stringify(alerts[index]));
+    if (copy.name) copy.name = `${copy.name} (2)`;
+    alerts.splice(index + 1, 0, copy);
+    this._filterPreviewOpen = new Set();
+    this._editingIndex = index + 1;
+    this._fireConfig({ ...this._config, alerts });
+  }
+
+  // #232 — enabled: false keeps the alert in the config but switches it off
+  _toggleAlertEnabled(index) {
+    const alerts = [...(this._config.alerts || [])];
+    if (!alerts[index]) return;
+    const { enabled, ...rest } = alerts[index];
+    alerts[index] = enabled === false ? rest : { ...rest, enabled: false };
+    this._fireConfig({ ...this._config, alerts });
+  }
+
   // -------------------------------------------------------------------------
   // Helper — true for timer.* entities, device_class:timestamp sensors, and remaining-time sensors (unit s/min)
   // -------------------------------------------------------------------------
@@ -9438,6 +9519,20 @@ class AlertTickerCardEditor extends LitElement {
       }
       .alert-item:hover {
         background: var(--secondary-background-color, #f5f5f5);
+      }
+      .alert-item--disabled .alert-icon-badge,
+      .alert-item--disabled .alert-summary-text {
+        opacity: 0.45;
+      }
+      .alert-off-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 2px 6px;
+        border-radius: 6px;
+        color: var(--secondary-text-color, #888);
+        border: 1px solid var(--divider-color, #e0e0e0);
+        white-space: nowrap;
       }
       .alert-item.is-editing {
         border-color: var(--primary-color, #03a9f4);
