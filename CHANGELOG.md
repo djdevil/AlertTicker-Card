@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.19] - 2026-10-25
+
+### Security
+
+- **Overlay banner rendered entity data as HTML** (reported by [@frenck](https://github.com/frenck) during the HACS default review) — the overlay toast was built with `innerHTML`, so the message, badge and secondary line (which carry entity states, friendly names and template results, some of which can be written by third parties such as the companion app's last-notification sensor, calendar invites or MQTT/webhook sensors) were parsed as HTML. A crafted value could run script in the Home Assistant frontend. The toast is now built from DOM nodes with `textContent`, and MDI icons are real `ha-icon` elements with their icon and color set as properties. The in-card themes were not affected (Lit escapes them). Side effect: HTML tags inside an alert message are now shown as text in the overlay, the same way the card already shows them.
+
+---
+
 ## [1.3.18] - 2026-10-25
 
 ### Fixed

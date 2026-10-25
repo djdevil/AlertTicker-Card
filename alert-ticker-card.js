@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.18
+ * AlertTicker Card v1.3.19
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.18";
+const CARD_VERSION = "1.3.19";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -995,18 +995,44 @@ const _ATC_OVERLAY = (() => {
     if (themeBg)    toast.style.background    = themeBg;
     if (themeColor) toast.style.borderLeftColor = themeColor;
     const showBar = dismissible && duration > 0;
-    toast.innerHTML =
-      `<span class="atc-ov-icon">${icon}</span>` +
-      `<div class="atc-ov-body">` +
-        (badge ? `<div class="atc-ov-badge">${badge}</div>` : "") +
-        `<div class="atc-ov-msg">${msg}</div>` +
-        (secondary ? `<div class="atc-ov-secondary">${secondary}</div>` : "") +
-      `</div>` +
-      (counterText ? `<span class="atc-ov-counter">${counterText}</span>` : "") +
-      (dismissible ? `<button class="atc-ov-close" title="Dismiss">✕</button>` : "") +
-      (showBar ? `<div class="atc-ov-bar" style="animation-duration:${duration}s${themeColor ? ";background:" + themeColor : ""}"></div>` : "");
-    const closeBtn = toast.querySelector(".atc-ov-close");
-    if (closeBtn) closeBtn.addEventListener("click", e => { e.stopPropagation(); _hide(); });
+    // Built from DOM nodes + textContent, never innerHTML: msg / secondary / badge
+    // carry entity state and friendly names, which third parties can write (e.g.
+    // the companion app's last-notification sensor), so they must not be parsed
+    // as HTML.
+    const el = (tag, cls, text) => {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = String(text);
+      return n;
+    };
+    const iconEl = el("span", "atc-ov-icon");
+    if (icon && typeof icon === "object" && icon.mdi) {
+      const ha = document.createElement("ha-icon");
+      ha.icon = icon.mdi;
+      if (icon.color) ha.style.color = icon.color;
+      iconEl.appendChild(ha);
+    } else {
+      iconEl.textContent = icon != null ? String(icon) : "";
+    }
+    toast.appendChild(iconEl);
+    const body = el("div", "atc-ov-body");
+    if (badge) body.appendChild(el("div", "atc-ov-badge", badge));
+    body.appendChild(el("div", "atc-ov-msg", msg ?? ""));
+    if (secondary) body.appendChild(el("div", "atc-ov-secondary", secondary));
+    toast.appendChild(body);
+    if (counterText) toast.appendChild(el("span", "atc-ov-counter", counterText));
+    if (dismissible) {
+      const closeBtn = el("button", "atc-ov-close", "✕");
+      closeBtn.title = "Dismiss";
+      closeBtn.addEventListener("click", e => { e.stopPropagation(); _hide(); });
+      toast.appendChild(closeBtn);
+    }
+    if (showBar) {
+      const bar = el("div", "atc-ov-bar");
+      bar.style.animationDuration = `${duration}s`;
+      if (themeColor) bar.style.background = themeColor;
+      toast.appendChild(bar);
+    }
     // Camera snapshot or live stream — restructure toast to column layout (image added after scale)
     if (cameraUrl || (cameraLive && camHass && camState)) {
       toast.style.flexDirection = "column";
@@ -1581,7 +1607,7 @@ const _ATC_OVERLAY = (() => {
             const cat     = (THEME_META[a.theme] || {}).category || "info";
             const rawIcon = a.icon || (THEME_META[a.theme] || {}).icon || "🔔";
             const icon    = (rawIcon && /^[\w-]+:/.test(rawIcon))
-              ? `<ha-icon icon="${rawIcon}"${a.icon_color ? ` style="color:${a.icon_color}"` : ""}></ha-icon>`
+              ? { mdi: rawIcon, color: a.icon_color || null }
               : rawIcon;
             const badge   = a.show_badge === false ? "" : (a.badge_label || ({ critical: tLang.critical, warning: tLang.warning_label, ok: tLang.success_label }[cat] ?? tLang.info_label));
             const msg     = _resolveMsg(hass, a);
@@ -1648,7 +1674,7 @@ const _ATC_OVERLAY = (() => {
               const cat     = (THEME_META[a.theme] || {}).category || "info";
               const rawIcon = a.icon || (THEME_META[a.theme] || {}).icon || "🔔";
               const icon    = (rawIcon && /^[\w-]+:/.test(rawIcon))
-                ? `<ha-icon icon="${rawIcon}"${a.icon_color ? ` style="color:${a.icon_color}"` : ""}></ha-icon>` : rawIcon;
+                ? { mdi: rawIcon, color: a.icon_color || null } : rawIcon;
               const tLang  = T[reg.lang] || T.en;
               const badge  = a.show_badge === false ? "" : (a.badge_label || ({ critical: tLang.critical, warning: tLang.warning_label, ok: tLang.success_label }[cat] ?? tLang.info_label));
               const cameraLive = !!a.camera_live;
@@ -1677,7 +1703,7 @@ const _ATC_OVERLAY = (() => {
           const cat     = (THEME_META[a.theme] || {}).category || "info";
           const rawIcon = a.icon || (THEME_META[a.theme] || {}).icon || "🔔";
           const icon    = (rawIcon && /^[\w-]+:/.test(rawIcon))
-            ? `<ha-icon icon="${rawIcon}"${a.icon_color ? ` style="color:${a.icon_color}"` : ""}></ha-icon>`
+            ? { mdi: rawIcon, color: a.icon_color || null }
             : rawIcon;
           const tLang  = T[reg.lang] || T.en;
           const badge  = a.show_badge === false ? "" : (a.badge_label || ({ critical: tLang.critical, warning: tLang.warning_label, ok: tLang.success_label }[cat] ?? tLang.info_label));
