@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>The most complete alert & notification card for Home Assistant Lovelace dashboards</strong><br>
-  53 visual themes, TTS voice announcements, push notifications, global overlay banner, media player mode, weather forecast widget, and a full visual editor. Zero YAML required.
+  63 visual themes, TTS voice announcements, push notifications, global overlay banner, media player mode, weather forecast widget, and a full visual editor. Zero YAML required.
 </p>
 
 <p align="center">
@@ -28,7 +28,7 @@
 
 ### ✨ What makes AlertTicker different
 
-- 🎨 **53 visual themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, and a full music-player mode with album art
+- 🎨 **63 visual themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, and a full music-player mode with album art
 - ⚡ **Trigger on anything** — entity state, attribute, template, device class, entity filter with wildcards, AND/OR logic
 - 📢 **Notify everywhere** — in-dashboard cycling ticker, **global overlay banner** visible from any view, **TTS** (Alexa / Google / any speaker), **push notifications**, **camera snapshots & live streams**
 - 🌍 **12 languages** — IT, EN, FR, DE, NL, VI, RU, DA, CS, PT-BR, ES, TR
@@ -54,7 +54,7 @@
 - [Mobile Push Notifications](#-mobile-push-notifications-new-in-13)
 - [Music Player Mode](#-music-player-mode-new-in-126) — album art, playback controls, vinyl mode
 - [Camera in Overlay & Card Background](#-camera-in-overlay-banner--card-background-snapshot-122--live-stream--card-bg-131) — snapshots & live streams
-- [Themes](#themes) — all 53 themes explained
+- [Themes](#themes) — all 63 themes explained
 - [How It Works](#how-it-works)
 - [Installation](#installation) — HACS + manual
 - [Visual Editor](#visual-editor)
@@ -160,7 +160,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Persistent alerts** | `persistent: true` — alert stays visible after sensor clears, requires manual ✕ dismiss |
 | **Swipe to snooze** | Swipe left on the card to snooze (or dismiss if `persistent: true`) — no conflict with `tap_action` |
 | **Invisible touch zone** | Right-side tap zone shows action buttons on mobile without interfering with `tap_action` |
-| **Vertical layout** | Stack icon on top, message below, centered — all 50 themes |
+| **Vertical layout** | Stack icon on top, message below, centered — all 63 themes |
 | **HA theme adaptation** | `ha_theme: true` adapts colors to any active HA global theme |
 | **Overlay notification** | Global floating banner — fires from any dashboard view, with top / center / bottom position and auto-dismiss |
 | **Clear widget** | Animated clock or weather display (condition + temp + wind + humidity) when no alerts are active |
@@ -406,7 +406,7 @@ alerts:
 | `camera_in_card` | `true` = camera image shown as a background layer behind the alert card slide on every rotation |
 
 - The snapshot/stream appears **below the alert header row** inside the overlay toast. Its height scales proportionally with `overlay_scale`.
-- `camera_in_card` uses the entity's `entity_picture` attribute as a CSS background image, visible across the full card behind a semi-transparent overlay. Works with all 50 themes.
+- `camera_in_card` uses the entity's `entity_picture` attribute as a CSS background image, visible across the full card behind a semi-transparent overlay. Works with all 63 themes.
 - If a snapshot fails to load, the image is silently removed and the banner stays intact.
 - `camera_live` requires a camera entity with HLS or WebRTC stream support. Falls back to static snapshot when the `<ha-camera-stream>` component is not yet loaded.
 
@@ -427,6 +427,8 @@ alerts:
 | `motion` | 👁️ | Dark green night-vision infrared scan effect |
 | `intruder` | 🚷 | Black card with red siren flash and rotating warning icon |
 | `toxic` | ☠️ | Black/green card with rising poison bubbles |
+| `portal` | 🌀 | Spinning crimson vortex portal (3D) |
+| `void` | ⚫ | Black hole with a purple accretion disk (3D) |
 
 ### ⚠️ Warning
 
@@ -443,6 +445,9 @@ alerts:
 | `smoke` | 🌫️ | Dark grey card with drifting smoke puff animation |
 | `wind` | 💨 | Dark card with fast horizontal streak lines |
 | `leak` | 💧 | Dark blue card with animated drip effect |
+| `nebula` | 🌌 | Deep-space nebula with drifting gas clouds (3D) |
+| `volt` | ⚡ | Electric discharge with glitching scanlines (3D) |
+| `storm` | ⛈️ | Diagonal rain with periodic lightning flashes |
 
 ### ℹ️ Info
 
@@ -459,6 +464,9 @@ alerts:
 | `tips` | 💡 | Amber lightbulb glow |
 | `light` | 🔆 | Warm incandescent glow with conical light beam fanning out from icon; bulb flares on pulse |
 | `music` | 🎵 | Dark purple/magenta card with musical notes (♪ ♫ ♩ ♬) floating upward and pulsing icon glow |
+| `arcade` | 🕹️ | Tron-style 3D perspective grid scrolling toward the viewer |
+| `prism` | 💎 | Prismatic rainbow light sweep (3D) |
+| `frost` | ❄️ | Falling snowflakes with an icy shimmer |
 
 ### ✅ OK / All Clear
 
@@ -473,6 +481,8 @@ alerts:
 | `sunrise` | 🌅 | Warm golden rising light |
 | `plant` | 🌱 | Green growing pulse |
 | `lock` | 🔒 | Deep blue secure pulse |
+| `diamond` | 💠 | Crystalline gem with a light shimmer sweep (3D) |
+| `quantum` | ⚛️ | Atomic orbital rings rotating in 3D space |
 
 ### 🎨 Style
 
@@ -499,7 +509,7 @@ alerts:
 
 All timer themes transition green → orange → red as the remaining time decreases. When using a `device_class: timestamp` sensor (e.g. an Alexa/Echo timer sensor), the progress bar is hidden since no total duration is known — the countdown still shows.
 
-> **Note:** The `clear_theme` accepts any theme from the ✅ OK category: `success`, `check`, `confetti`, `heartbeat`, `shield`, `power`, `sunrise`, `plant`, `lock`.
+> **Note:** The `clear_theme` accepts any theme from the ✅ OK category: `success`, `check`, `confetti`, `heartbeat`, `shield`, `power`, `sunrise`, `plant`, `lock`, `diamond`, `quantum`.
 
 ---
 
@@ -535,6 +545,7 @@ When multiple alerts are active, the card cycles using the selected animation:
 | `split` | Vertical split (top up, bottom down) |
 | `roll` | RotateY + translateX combined roll |
 | `curtain` | Opens from center (theater curtain) |
+| `none` | No animation — instant swap |
 
 ### Manual alert navigation
 
@@ -774,6 +785,9 @@ overlay_mode: true
 overlay_position: top     # top | center | bottom
 overlay_duration: 8       # seconds before auto-dismiss (0 = manual close only)
 overlay_scale: 1.5        # 1 | 1.5 | 2 | 3 — enlarge for wall displays
+overlay_dismissible: true # false = no ✕ and no auto-hide, stays until the condition clears
+overlay_rotation: false   # true = cycle through all active alerts with a 1/N counter
+overlay_rotation_interval: 5
 ```
 
 How it works:
@@ -941,7 +955,9 @@ When a timer entity is selected in the editor, `state` is automatically set to `
   message: "CO₂ level critical!"
 ```
 
-Supported operators: `=` (default), `!=`, `>`, `<`, `>=`, `<=`, `contains`, `not_contains`.
+Supported operators: `=` (default), `!=`, `>`, `<`, `>=`, `<=`, `contains`, `not_contains`, `older`, `newer`.
+
+`older` / `newer` compare a timestamp state (ISO date or Unix time) with now, in seconds — e.g. `operator: older` + `state: "600"` fires when a sensor hasn't updated for 10 minutes.
 
 ### Attribute-based triggers
 
@@ -968,8 +984,9 @@ Supported operators: `=` (default), `!=`, `>`, `<`, `>=`, `<=`, `contains`, `not
   theme: intruder
 ```
 
-- `and` — all conditions must match (default)
-- `or` — at least one condition must match
+- `and` (default) — the alert's own condition **and** all extra conditions must match
+- `or` — the alert's own condition **or** any extra condition must match. If the alert has no own `state`, only the extra conditions decide.
+- An extra condition without `state` matches when that entity is `on`.
 
 ### HA icons (mdi:)
 
@@ -1080,7 +1097,7 @@ Stack the icon on top and the message below, centered — useful for narrow colu
 vertical: true
 ```
 
-Works with all 50 themes. The **Ticker** theme keeps its horizontal scrolling. Can be combined with `ha_theme: true` and `large_buttons: true`.
+Works with all 63 themes. The **Ticker** theme keeps its horizontal scrolling. Can be combined with `ha_theme: true` and `large_buttons: true`.
 
 ### HA theme adaptation
 
@@ -1098,7 +1115,7 @@ When enabled:
 - Info badges/borders → `--info-color`
 - OK badges/borders → `--success-color`
 
-All 50 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
+All 63 visual themes retain their animations and layouts — only the color palette adapts. Compatible with Mushroom, Material, iOS, and any custom HA theme.
 
 ### Severity border
 
@@ -1153,6 +1170,17 @@ AlertTicker Card is in the default HACS store, no custom repository needed.
 2. Search for **AlertTicker Card**
 3. Click **Download**
 4. **Reload** your browser
+
+HACS adds the dashboard resource automatically. If your dashboards are in **YAML mode**, add it yourself:
+
+```yaml
+lovelace:
+  resources:
+    - url: /hacsfiles/AlertTicker-Card/alert-ticker-card.js
+      type: module
+```
+
+Requires Home Assistant **2023.6** or newer.
 
 ### Manual
 
@@ -1302,7 +1330,11 @@ The tab shows an **ON** badge when overlay mode is active.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `cycle_interval` | `number` | `5` | Seconds between alerts when cycling |
-| `cycle_animation` | `string` | `fold` | Transition animation |
+| `cycle_animation` | `string` | `fold` | Transition animation — see [Transition animations](#transition-animations); `none` swaps instantly |
+| `disable_animation` | `boolean` | `false` | Stop all ambient looping animations (pulses, flashes, icon swings, weather effects); slide changes become instant |
+| `show_counter` | `boolean` | `true` | Set `false` to hide the 1/N alert counter |
+| `show_dismiss_bar` | `boolean` | `true` | Set `false` to hide the bar listing dismissed alerts |
+| `card_background` | `boolean\|string` | — | `true` = use the HA theme card background; or any CSS value (e.g. `rgba(0,0,0,0.5)`) |
 | `show_when_clear` | `boolean` | `false` | Show card when no alerts are active |
 | `clear_message` | `string` | `""` | Message shown in all-clear state (message mode) |
 | `clear_theme` | `string` | `success` | Theme for all-clear (`success`, `check`, `confetti`, …) |
@@ -1311,9 +1343,15 @@ The tab shows an **ON** badge when overlay mode is active.
 | `clear_weather_style` | `string` | — | Weather badge style: `stage`, `split`, `cinematic`, `wallpanel` |
 | `clear_clock_show_date` | `boolean` | `true` | Show or hide the date in clock / weather+clock mode |
 | `clear_clock_show_seconds` | `boolean` | `true` | **New in 1.3.9.9.6** — hide seconds from the clock display for a cleaner `15:58` look instead of `15:58:47` |
+| `clear_clock_12h` | `boolean` | `false` | 12-hour clock (AM/PM) |
 | `clear_clock_date_position` | `string` | `below` | Date position relative to time: `above` or `below` |
 | `clear_weather_entity` | `string` | `null` | `weather.*` entity for weather/weather_clock modes |
 | `clear_badge_label` | `string` | `"Resolved"` | Badge text on the all-clear card |
+| `clear_icon` | `string` | `✅` | All-clear icon — emoji or `mdi:` icon |
+| `clear_icon_color` | `string` | — | All-clear icon color |
+| `clear_icon_size` | `string` | — | All-clear icon size (any CSS length) |
+| `clear_disable_animation` | `boolean` | `false` | Freeze the sun, clouds, stars and weather effects in the all-clear widget |
+| `weather_forecast_interval` | `number` | `5` | Seconds between current weather and forecast in `weather_forecast` mode |
 | `clear_tap_action` | `object` | — | Tap action for the all-clear card |
 | `clear_hold_action` | `object` | — | Hold action for the all-clear card |
 | `clear_double_tap_action` | `object` | — | Double-tap action for the all-clear card |
@@ -1335,12 +1373,16 @@ The tab shows an **ON** badge when overlay mode is active.
 | `overlay_position` | `string` | `top` | Banner position: `top`, `center`, or `bottom` |
 | `overlay_duration` | `number` | `8` | Seconds before auto-dismiss (0 = manual close only) |
 | `overlay_scale` | `number` | `1` | Banner zoom factor: `1`, `1.5`, `2`, or `3` |
+| `overlay_dismissible` | `boolean` | `true` | Set `false` to remove the ✕ button and the auto-hide: the banner stays until the condition clears |
+| `overlay_rotation` | `boolean` | `false` | With several active alerts, cycle the banner through them with a 1/N counter |
+| `overlay_rotation_interval` | `number` | `5` | Seconds each alert stays in the banner when `overlay_rotation` is on |
+| `overlay_min_priority` | `number` | — | Only show the banner for alerts with `priority` ≤ this value (1 = critical only) |
 | `tts_enabled` | `boolean` | `true` | Master toggle — set `false` to silence all TTS globally |
 | `tts_entity` | `string` | — | Default `media_player.*` speaker entity |
 | `tts_engine` | `string` | *(auto)* | TTS engine entity (auto-detected from first `tts.*` state if omitted) |
 | `tts_notify_service` | `string` | — | Default notify service for Alexa / push (e.g. `alexa_media_echo_dot`) |
 | `tts_language` | `string` | — | Language code passed to `tts.speak` (e.g. `it-IT`) |
-| `notify_push_enabled` | `boolean` | `true` | Master toggle — set `false` to disable all push notifications globally |
+| `push_notify_enabled` | `boolean` | `true` | Master toggle — set `false` to disable all push notifications globally |
 | `clear_weather_temperature_entity` | `string` | — | Override weather temperature with a local sensor entity |
 | `clear_weather_humidity_entity` | `string` | — | Override weather humidity with a local sensor entity |
 | `clear_weather_temp_high_entity` | `string` | — | Override today's high temperature with a sensor |
@@ -1359,19 +1401,26 @@ The tab shows an **ON** badge when overlay mode is active.
 | `entity` | `string` | ✅* | Entity ID |
 | `entity_filter` | `string` | ✅* | Text filter — supports `*` wildcard (replaces `entity`) |
 | `entity_filter_exclude` | `list` | ❌ | Entity IDs to exclude from `entity_filter` or `device_class` match |
+| `label_filter` | `string\|list` | ✅* | Match entities with this HA label (combinable with the other filters) |
+| `area_filter` | `string\|list` | ✅* | Match entities in this HA area (entity area first, then device area) |
 | `device_class` | `string` | ✅* | HA device class (e.g. `smoke`, `battery`, `motion`) — auto-discovers all matching entities |
 | `show_filter_name` | `boolean` | `true` | Set `false` to hide the entity friendly name below the message |
 | `attribute` | `string` | ❌ | Attribute to check instead of state — supports dot-notation (e.g. `activity.0.forecast`) |
-| `operator` | `string` | ❌ | `=` `!=` `>` `<` `>=` `<=` `contains` `not_contains` (default: `=`) |
+| `operator` | `string` | ❌ | `=` `!=` `>` `<` `>=` `<=` `contains` `not_contains` `older` `newer` (default: `=`) |
 | `state` | `string` | ✅ | Trigger value — supports Jinja2 templates (e.g. `{{ states('input_number.threshold') }}`) |
+| `enabled` | `boolean` | `true` | Set `false` to switch the alert off without deleting it (👁 button in the editor) |
 | `on_change` | `boolean` | `false` | Trigger on any state change — ignores `operator`/`state` |
-| `auto_dismiss_after` | `number` | ❌ | Auto-hide after N seconds. For `on_change`: starts on trigger. For condition alerts: starts when condition first becomes true. |
+| `trigger_delay` | `number` | ❌ | Show the alert only after the condition has stayed true for N seconds (like `for:` in automations) |
+| `auto_dismiss_after` | `number` | ❌ | Auto-hide after N seconds. For `on_change`: starts on trigger. For condition alerts: counts from when the condition became true, so it survives page reloads. |
+| `persistent` | `boolean` | `false` | Keep the alert visible after the condition clears, until dismissed with ✕ |
+| `overlay` | `boolean` | `true` | Set `false` to keep this alert out of the overlay banner |
+| `disable_animation` | `boolean` | `false` | Stop the ambient animations for this alert only |
 | `time_range` | `object` | ❌ | `{from: "HH:MM", to: "HH:MM"}` — restrict to a time window (midnight crossing supported) |
 | `visible_to` | `string\|list` | ❌ | `admin`, `non_admin`, a display-name string, or a list of names |
 | `message` | `string` | ✅ | Text shown when active — supports `{name}`, `{entity}`, `{state}`, `{timer}`, `{device}` |
 | `secondary_text` | `string` | ❌ | Static second line below the message — supports `{state}`, `{name}`, `{entity}` |
 | `theme` | `string` | ❌ | Visual theme (default: `emergency`) |
-| `priority` | `number` | ❌ | 1–4 (default: `1`) |
+| `priority` | `number` | ❌ | 1–4 (default: `1`) — lower shows first |
 | `icon` | `string` | ❌ | Emoji or `mdi:` icon override |
 | `use_ha_icon` | `boolean` | ❌ | Use HA native icon (auto-read from entity, or pick via icon picker) |
 | `use_entity_picture` | `boolean` | ❌ | Use the entity's `entity_picture` attribute as the alert icon |
@@ -1393,10 +1442,11 @@ The tab shows an **ON** badge when overlay mode is active.
 | `tts_notify_service` | `string` | ❌ | Override the global notify service (for Alexa / push) |
 | `tts_notify_type` | `string` | `tts` | Notify type sent to the service — use `announce` for Alexa speaker groups |
 | `tts_message` | `string` | ❌ | Custom spoken text — omit for auto-generated multilingual sentence |
-| `notify_push` | `boolean` | `false` | Send a push notification when this alert becomes active |
-| `notify_push_service` | `string` | ❌ | Target `notify.*` service (without prefix, e.g. `mobile_app_iphone`) |
-| `notify_push_title` | `string` | ❌ | Notification title — supports `{name}`, `{state}`, `{entity}`, `{device}`, Jinja2 |
-| `notify_push_message` | `string` | ❌ | Notification body — same placeholders; falls back to `message` if empty |
+| `push_notify` | `boolean` | `false` | Send a push notification when this alert becomes active |
+| `push_notify_service` | `string` | ❌ | Target `notify.*` service (without prefix, e.g. `mobile_app_iphone`) |
+| `push_notify_title` | `string` | ❌ | Notification title — supports `{name}`, `{state}`, `{entity}`, `{device}`, Jinja2 |
+| `push_notify_message` | `string` | ❌ | Notification body — same placeholders; falls back to `message` if empty |
+| `push_notify_data` | `object` | ❌ | Extra `data` passed to the notify service (actionable buttons, critical alerts, …) — see [Actionable & critical push notifications](#actionable--critical-push-notifications-new-in-13994) |
 | `show_player_controls` | `boolean` | ❌ | Enable graphical music player UI for `media_player.*` entities (requires `theme: music`) |
 | `music_player_color` | `string` | ❌ | Accent color for the music player UI — any CSS color (default `#e040fb`) |
 | `music_show_art` | `boolean` | `true` | Show album artwork in the music player (background blur + thumbnail) |
@@ -1412,26 +1462,29 @@ The tab shows an **ON** badge when overlay mode is active.
 | `camera_in_card` | `boolean` | `false` | Show the camera image as a background layer behind the alert card slide (requires `camera_entity`) |
 | `history_message` | `string` | ❌ | Custom text recorded in the history log — overrides `message` for history entries; supports `{name}`, `{state}`, `{entity}` |
 | `secondary_value_align` | `string` | `below` | Position of the secondary value: `below` (default, shown under the message) or `right` (shown on the same row as the title) |
-| `conditions_logic` | `string` | ❌ | `and` or `or` for extra conditions |
+| `conditions_logic` | `string` | ❌ | `and` (default): own condition AND all extra conditions · `or`: own condition OR any extra condition |
 | `conditions` | `list` | ❌ | Extra entity conditions |
 | `tap_action` | `object` | ❌ | Action on tap |
 | `hold_action` | `object` | ❌ | Action on hold (500 ms) |
 | `double_tap_action` | `object` | ❌ | Action on double-tap (single tap waits 300 ms to distinguish) |
 | `snooze_action` | `object` | ❌ | Action executed when 💤 is tapped |
 
-*One of `entity`, `entity_filter`, or `device_class` is required.
+*One of `entity`, `entity_filter`, `device_class`, `label_filter` or `area_filter` is required.
 
 ### Action object (`tap_action`, `hold_action`, `double_tap_action`, `snooze_action`, `clear_*_action`)
 
 | Field | Description |
 |-------|-------------|
-| `action` | `call-service` · `navigate` · `more-info` · `url` · `none` |
+| `action` | `call-service` · `navigate` · `more-info` · `toggle` · `url` · `fire-dom-event` · `assist` · `dismiss` · `none` |
 | `service` | HA service in `domain.service` format |
 | `target` | `{entity_id: "..."}` |
 | `service_data` | Extra service parameters (object) |
 | `navigation_path` | Path for `navigate` action |
 | `url_path` | URL for `url` action |
-| `entity_id` | Entity for `more-info` action |
+| `entity_id` | Entity for `more-info` / `toggle` action |
+| `pipeline_id` | Assist pipeline for `assist` action (default: preferred) |
+| `start_listening` | `assist` action: start listening immediately (default `false`) |
+| `confirmation` | `true` or `{text: "..."}` — ask before running the action |
 
 ---
 
@@ -1621,10 +1674,10 @@ alerts:
     state: "on"
     message: "Front door open"
     theme: door
-    notify_push: true
-    notify_push_service: mobile_app_iphone_di_mario
-    notify_push_title: "Door Alert"
-    notify_push_message: "{name} opened at {{ now().strftime('%H:%M') }}"
+    push_notify: true
+    push_notify_service: mobile_app_iphone_di_mario
+    push_notify_title: "Door Alert"
+    push_notify_message: "{name} opened at {{ now().strftime('%H:%M') }}"
 ```
 
 ### Music player with custom accent color
@@ -1733,7 +1786,7 @@ TTS fallback messages (auto-generated when no `tts_message` is set) are availabl
 ## Troubleshooting
 
 **Card not appearing after installation**
-- Add `alert-ticker-card.js` as a JavaScript module in Settings → Dashboards → Resources
+- Check **Settings → Dashboards → ⋮ → Resources**: there must be a **JavaScript module** pointing to `/hacsfiles/AlertTicker-Card/alert-ticker-card.js` (HACS install) or `/local/alert-ticker-card.js` (manual install). HACS adds it automatically, except for dashboards in YAML mode.
 - Hard-reload the browser (Ctrl+Shift+R / Cmd+Shift+R)
 
 **Features not working after update (secondary text, templates, new options)**
