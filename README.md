@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/custom-components/hacs"><img src="https://img.shields.io/badge/HACS-Custom-orange.svg?logo=home-assistant" alt="HACS"></a>
+  <a href="https://hacs.xyz"><img src="https://img.shields.io/badge/HACS-Default-41BDF5.svg?logo=home-assistant" alt="HACS Default"></a>
   <a href="https://github.com/djdevil/AlertTicker-Card/releases/latest"><img src="https://img.shields.io/github/v/release/djdevil/AlertTicker-Card?color=blue&label=version" alt="Version"></a>
   <a href="https://github.com/djdevil/AlertTicker-Card/actions/workflows/hacs.yml"><img src="https://github.com/djdevil/AlertTicker-Card/actions/workflows/hacs.yml/badge.svg" alt="HACS Action"></a>
   <a href="https://github.com/djdevil/AlertTicker-Card/releases"><img src="https://img.shields.io/github/downloads/djdevil/AlertTicker-Card/total?color=brightgreen&label=downloads" alt="Downloads"></a>
@@ -1147,11 +1147,12 @@ In the visual editor, open the **Alerts tab** → enable **Test mode** at the bo
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=djdevil&repository=AlertTicker-Card&category=plugin)
 
-1. Click the button above **or** open **HACS → Frontend**
-2. Click **⋮ → Custom repositories**
-3. Add `https://github.com/djdevil/AlertTicker-Card` as type **Lovelace**
-4. Find **AlertTicker Card** and click **Download**
-5. **Reload** your browser
+AlertTicker Card is in the default HACS store, no custom repository needed.
+
+1. Open **HACS** in Home Assistant (or click the button above)
+2. Search for **AlertTicker Card**
+3. Click **Download**
+4. **Reload** your browser
 
 ### Manual
 
