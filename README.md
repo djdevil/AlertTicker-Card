@@ -794,6 +794,7 @@ How it works:
 - When the card's view is **currently visible**, the banner is suppressed (no redundant notification — the card itself already shows the alert).
 - When you navigate away to another view (or the card is off-screen), an independent watcher reads entity states from the always-present `<home-assistant>` element every 2 seconds and fires the banner automatically.
 - A 10-second deduplication window prevents the same alert from firing twice.
+- The browser remembers the overlay settings of each card, so the banner also works right after a page reload on a view that doesn't contain the card. This copy is refreshed every time you open the card's view, and it expires if the view isn't opened for 30 days.
 - The banner is styled according to the alert category (Critical / Warning / Info / OK / Style / Timer) and dismisses automatically after `overlay_duration` seconds, or manually via the × button.
 
 #### Overlay scale
@@ -1366,6 +1367,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `history_max_events` | `number` | `50` | Max history entries to keep |
 | `active_state_entity` | `string` | — | **Per-alert.** `input_boolean.*` entity to write `on`/`off` to when this specific alert becomes active or clears. Each alert can target a different boolean. Works only while the browser tab is open. |
 | `card_height` | `number` | *(auto)* | Fixed card height in px — prevents layout shifts when cycling |
+| `card_height_fill` | `boolean` | `false` | Stretch the alert block to the full `card_height`, so short alerts are the same size as long ones |
 | `font_scale` | `number` | `1` | **New in 1.3.9.9.7** — proportional zoom for HD / 4K / wall-panel displays. `1` = normal, `1.5` = 50% larger, `2` = double. May require bumping `grid_options.rows`. |
 | `card_border` | `boolean` | `false` | Show the standard HA border around the card at all times |
 | `severity_border` | `boolean` | `true` | Show the 1px severity-colored border around each alert block. Set `false` to keep badge/icon color coding without the border. Width themeable via `--atc-severity-border-width`. |

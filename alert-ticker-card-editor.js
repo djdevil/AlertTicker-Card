@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.19
+ * AlertTicker Card Editor v1.3.20
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.19";
+const CARD_VERSION = "1.3.20";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1234,6 +1234,8 @@ const ET = {
     text_align_center: "Testo centrato (utile per layout Panel molto larghi)",
     card_height: "Altezza fissa card (px)",
     card_height_help: "Fissa l'altezza per evitare spostamenti del layout quando cambiano gli avvisi. Lascia vuoto per altezza automatica.",
+    card_height_fill: "Riempi l'altezza fissa",
+    card_height_fill_help: "Allarga il blocco dell'avviso a tutta l'altezza, così gli avvisi corti hanno la stessa dimensione di quelli lunghi.",
     font_scale: "Scala font (per display HD/4K)",
     font_scale_help: "Ingrandisce testo + icone + padding proporzionalmente. 1 = normale, 1.5 = 50% più grande, 2 = doppio. Usa per wall panel o TV grandi. Potresti dover aumentare grid_options.rows.",
     card_border: "Mostra bordo e nome card",
@@ -1611,6 +1613,8 @@ const ET = {
     text_align_center: "Center text (useful for wide Panel layout)",
     card_height: "Fixed card height (px)",
     card_height_help: "Locks the height to prevent layout shifts when alerts change. Leave empty for automatic height.",
+    card_height_fill: "Fill the fixed height",
+    card_height_fill_help: "Stretches the alert block to the full height, so short alerts are the same size as long ones.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Show card border & name",
@@ -1990,6 +1994,8 @@ const ET = {
     text_align_center: "Texte centré (utile pour la disposition Panel large)",
     card_height: "Hauteur fixe de la carte (px)",
     card_height_help: "Fixe la hauteur pour éviter les décalages de mise en page lors des changements d'alertes. Laisser vide pour hauteur automatique.",
+    card_height_fill: "Remplir la hauteur fixe",
+    card_height_fill_help: "Étire le bloc de l'alerte sur toute la hauteur, pour que les alertes courtes aient la même taille que les longues.",
     font_scale: "Échelle de police (écrans HD/4K)",
     font_scale_help: "Agrandit le texte + les icônes + le padding proportionnellement. 1 = normal, 1.5 = 50% plus grand, 2 = double. Utilisez pour tablettes murales ou grandes TV.",
     card_border: "Afficher la bordure et le nom",
@@ -2367,6 +2373,8 @@ const ET = {
     text_align_center: "Text zentrieren (nützlich für breites Panel-Layout)",
     card_height: "Feste Kartenhöhe (px)",
     card_height_help: "Sperrt die Höhe, um Layoutverschiebungen beim Wechsel von Alerts zu verhindern. Leer lassen für automatische Höhe.",
+    card_height_fill: "Feste Höhe ausfüllen",
+    card_height_fill_help: "Streckt den Alert-Block auf die volle Höhe, damit kurze Alerts genauso groß sind wie lange.",
     font_scale: "Schriftskalierung (HD/4K-Displays)",
     font_scale_help: "Vergrößert Text + Icons + Abstände proportional. 1 = normal, 1.5 = 50% größer, 2 = doppelt. Für Wandtablets oder große Fernseher.",
     card_border: "Rahmen und Namen anzeigen",
@@ -2744,6 +2752,8 @@ const ET = {
     text_align_center: "Tekst centreren (handig voor breed Panel-layout)",
     card_height: "Vaste kaarthoogte (px)",
     card_height_help: "Vergrendelt de hoogte om lay-outverschuivingen bij wisselende meldingen te voorkomen. Leeg laten voor automatische hoogte.",
+    card_height_fill: "Vaste hoogte vullen",
+    card_height_fill_help: "Rekt het meldingsblok uit over de volledige hoogte, zodat korte meldingen even groot zijn als lange.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Toon rand en naam",
@@ -3121,6 +3131,8 @@ const ET = {
     text_align_center: "Căn giữa văn bản (hữu ích cho layout Panel rộng)",
     card_height: "Chiều cao cố định (px)",
     card_height_help: "Khóa chiều cao để ngăn dịch chuyển bố cục khi cảnh báo thay đổi. Để trống để chiều cao tự động.",
+    card_height_fill: "Lấp đầy chiều cao cố định",
+    card_height_fill_help: "Kéo giãn khối cảnh báo hết chiều cao để cảnh báo ngắn có cùng kích thước với cảnh báo dài.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Hiển thị viền và tên card",
@@ -3498,6 +3510,8 @@ const ET = {
     text_align_center: "Текст по центру (полезно для широких макетов Panel)",
     card_height: "Фиксированная высота карточки (px)",
     card_height_help: "Фиксирует высоту для предотвращения смещений при смене оповещений. Оставьте пустым для автоматической высоты.",
+    card_height_fill: "Заполнять фиксированную высоту",
+    card_height_fill_help: "Растягивает блок оповещения на всю высоту, чтобы короткие оповещения были такого же размера, как длинные.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Показывать рамку и название",
@@ -3875,6 +3889,8 @@ const ET = {
     text_align_center: "Centrer tekst (nyttig til bredt panel‑layout)",
     card_height: "Fast kort‑højde (px)",
     card_height_help: "Låser højden for at undgå layout‑skift, når advarsler ændres. Lad stå tom for automatisk højde.",
+    card_height_fill: "Udfyld den faste højde",
+    card_height_fill_help: "Strækker advarselsblokken til fuld højde, så korte advarsler får samme størrelse som lange.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     show_snooze_bar: "Vis reaktiveringsbar for slumre 💤",
@@ -4252,6 +4268,8 @@ const ET = {
     text_align_center: "Vycentrovaný text (vhodné pro široké rozložení panelu)",
     card_height: "Pevná výška karty (px)",
     card_height_help: "Uzamkne výšku karty aby nedocházelo k posunům při změně varování. Ponechte prázdné pro automatickou výšku.",
+    card_height_fill: "Vyplnit pevnou výšku",
+    card_height_fill_help: "Roztáhne blok upozornění na celou výšku, aby krátká upozornění měla stejnou velikost jako dlouhá.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Zobrazit okraje a název",
@@ -4633,6 +4651,8 @@ const ET = {
     text_align_center: "Texto centralizado (útil para layout Panel muito largo)",
     card_height: "Altura fixa do card (px)",
     card_height_help: "Fixa a altura para evitar deslocamentos de layout quando os alertas mudam. Deixe vazio para altura automática.",
+    card_height_fill: "Preencher a altura fixa",
+    card_height_fill_help: "Estica o bloco do alerta por toda a altura, para que alertas curtos tenham o mesmo tamanho dos longos.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Mostrar borda e nome do card",
@@ -5010,6 +5030,8 @@ const ET = {
     text_align_center: "Texto centrado (útil para diseño Panel muy ancho)",
     card_height: "Altura fija de la tarjeta (px)",
     card_height_help: "Fija la altura para evitar desplazamientos de diseño al cambiar las alertas. Deja vacío para altura automática.",
+    card_height_fill: "Rellenar la altura fija",
+    card_height_fill_help: "Estira el bloque de la alerta a toda la altura, para que las alertas cortas tengan el mismo tamaño que las largas.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Mostrar borde y nombre de la tarjeta",
@@ -5387,6 +5409,8 @@ const ET = {
     text_align_center: "Metni ortala (geniş Panel düzeni için kullanışlı)",
     card_height: "Sabit kart yüksekliği (px)",
     card_height_help: "Uyarılar değiştiğinde düzen kaymalarını önlemek için yüksekliği sabitle. Otomatik yükseklik için boş bırak.",
+    card_height_fill: "Sabit yüksekliği doldur",
+    card_height_fill_help: "Uyarı bloğunu tüm yüksekliğe uzatır, böylece kısa uyarılar uzun olanlarla aynı boyutta olur.",
     font_scale: "Font scale (for HD/4K displays)",
     font_scale_help: "Zooms text + icons + padding proportionally. 1 = normal, 1.5 = 50% larger, 2 = double. Use for wall panels or large TVs. You may need to bump grid_options.rows.",
     card_border: "Kart kenarlığını ve adını göster",
@@ -6258,6 +6282,16 @@ class AlertTickerCardEditor extends LitElement {
           }}"
         ></ha-input>
         <div class="helper-text">${this._t("card_height_help")}</div>
+        ${cfg.card_height ? html`
+          <div class="form-row-inline" style="margin-top:8px">
+            <span>${this._t("card_height_fill")}</span>
+            <ha-switch
+              .checked="${!!cfg.card_height_fill}"
+              @change="${(ev) => this._fireConfig({ ...this._config, card_height_fill: ev.target.checked || undefined })}"
+            ></ha-switch>
+          </div>
+          <div class="helper-text">${this._t("card_height_fill_help")}</div>
+        ` : ""}
       </div>
       <div class="form-row">
         <ha-input

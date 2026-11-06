@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.20] - 2026-11-06
+
+### Fixed
+
+- **Overlay kept appearing after `overlay_mode` was turned off** ([#238](https://github.com/djdevil/AlertTicker-Card/issues/238) reported by [@EMBL-Github](https://github.com/EMBL-Github)) — the copy of the card settings saved in the browser (added in 1.3.11 so the banner works on views that never mounted the card) was only written while the overlay was on, so turning it off never updated it and the old copy came back on the next page reload. Saved settings are now rewritten on every change. Each one also remembers its view, and opening that view replaces it with the card's current settings, so removed or edited cards don't leave ghost banners behind. Cards on different views no longer overwrite each other on reload, and the 30-day expiry now actually applies: it was being renewed on every page load, so a card on a view you don't open for 30 days now stops firing until you open it again. Settings saved by older versions are discarded on update, so a card that relies on the banner on another view needs its view opened once. Unsaved settings from the editor preview are no longer saved.
+
+### Added
+
+- **`card_height_fill`** ([#237](https://github.com/djdevil/AlertTicker-Card/issues/237) requested by [@Lheriss](https://github.com/Lheriss), who also proposed the CSS) — with a fixed `card_height`, stretches the alert block to the full height so short alerts are the same size as long ones and line up with neighbouring cards. Off by default; available in the editor below the fixed height field. Translated in all 12 languages.
+
+---
+
 ## [1.3.19] - 2026-10-25
 
 ### Security
