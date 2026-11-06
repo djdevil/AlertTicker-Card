@@ -1171,8 +1171,6 @@ AlertTicker Card is in the default HACS store, no custom repository needed.
 3. Click **Download**
 4. **Reload** your browser
 
-> **Not showing up in the search yet?** The card was just added to the default store and the HACS catalog can take a few days to refresh. In the meantime you can add it manually: **HACS → ⋮ → Custom repositories** → URL `https://github.com/djdevil/AlertTicker-Card`, type **Dashboard** → **Add**, then search and download as above. Once it appears in the default store you can remove the custom repository entry; your installed card keeps working.
-
 HACS adds the dashboard resource automatically. If your dashboards are in **YAML mode**, add it yourself:
 
 ```yaml
