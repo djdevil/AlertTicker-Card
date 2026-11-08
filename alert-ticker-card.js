@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.20
+ * AlertTicker Card v1.3.21
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.20";
+const CARD_VERSION = "1.3.21";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -4819,11 +4819,16 @@ class AlertTickerCard extends LitElement {
     this._subscribeSyncEvents();
     this._startCycleTimer();
     this._startTimerTick();
+    if (!this._svResizeObs && typeof ResizeObserver === "function") {
+      this._svResizeObs = new ResizeObserver(() => this._syncSvMarquee());
+    }
+    this._svResizeObs?.observe(this);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._mounted = false;
+    this._svResizeObs?.disconnect();
     this._stopCycleTimer();
     this._stopTimerTick();
     if (this._snoozeOutsideHandler) {
@@ -4859,8 +4864,31 @@ class AlertTickerCard extends LitElement {
    *  Also stamps 'atc-has-mdi-icon' on every icon container that holds an
    *  ha-icon so CSS can remove backgrounds/filters without :has() (wider
    *  browser support, covers both -icon and -icon-wrap class patterns). */
+  /** #239: scroll a secondary entity value only when it overflows its line and
+   *  animations are on. Measured without toggling the class, so an alert that keeps
+   *  scrolling doesn't restart from the beginning on every update. */
+  _syncSvMarquee() {
+    const wraps = this.shadowRoot?.querySelectorAll(".atc-sv-marquee-wrap");
+    if (!wraps) return;
+    for (const wrap of wraps) {
+      const inner = wrap.querySelector(".atc-sv-marquee-inner");
+      const copy = wrap.querySelector(".atc-sv-copy");
+      if (!inner || !copy) continue;
+      const gap = parseFloat(getComputedStyle(copy).paddingRight) || 0;
+      const textW = copy.getBoundingClientRect().width - gap;
+      const scroll = wrap.clientWidth > 0 && textW > wrap.clientWidth + 1 && !wrap.closest(".atc-no-anim");
+      if (scroll !== wrap.classList.contains("atc-sv-scrolling")) wrap.classList.toggle("atc-sv-scrolling", scroll);
+      if (scroll) {
+        const loopW = textW + (parseFloat(getComputedStyle(copy).paddingRight) || 0);
+        const dur = Math.max(6, loopW / 35).toFixed(1) + "s";
+        if (inner.style.animationDuration !== dur) inner.style.animationDuration = dur;
+      }
+    }
+  }
+
   updated(changedProps) {
     super.updated(changedProps);
+    this._syncSvMarquee();
     // Completely remove card from layout when hidden (no active alerts, no clear card, no snooze bar).
     // Exception: if card_border is enabled OR dashboard is in edit mode, keep visible so the placeholder shows.
     const isEditMode = _isEditMode();
@@ -5026,17 +5054,12 @@ class AlertTickerCard extends LitElement {
           const name = alert.show_secondary_name
             ? (es.attributes.friendly_name || alert.secondary_entity)
             : null;
-          const _svText = name ? (name + " " + val) : val;
-          if (_svText.length > 28) {
-            const _svDur = Math.max(6, _svText.length * 0.22).toFixed(1);
-            lines.push(html`<div class="atc-secondary-value atc-secondary-entity-line atc-sv-marquee-wrap">
-              <span class="atc-sv-marquee-inner" style="animation-duration:${_svDur}s">${_svText}   ${_svText}</span>
-            </div>`);
-          } else {
-            lines.push(html`<div class="atc-secondary-value atc-secondary-entity-line">
-              ${name ? html`<span class="atc-secondary-entity-name">${name}</span> ` : ""}${val}
-            </div>`);
-          }
+          // Scrolls only when it doesn't fit (decided after layout in _syncSvMarquee);
+          // otherwise a single copy, truncated with … if animations are off (#239).
+          const _svBody = html`${name ? html`<span class="atc-secondary-entity-name">${name}</span> ` : ""}${val}`;
+          lines.push(html`<div class="atc-secondary-value atc-secondary-entity-line atc-sv-marquee-wrap">
+            <span class="atc-sv-marquee-inner"><span class="atc-sv-copy">${_svBody}</span><span class="atc-sv-copy atc-sv-copy2" aria-hidden="true">${_svBody}</span></span>
+          </div>`);
         }
       } else if (this._hass) {
         // Entity not found — show a subtle warning so the user can correct the ID
@@ -7119,9 +7142,19 @@ class AlertTickerCard extends LitElement {
         font-weight: 600;
         opacity: 0.85;
       }
-      .atc-sv-marquee-wrap { overflow: hidden; white-space: nowrap; text-overflow: clip; }
-      .atc-sv-marquee-inner { display: inline-block; white-space: nowrap; animation: atc-sv-scroll linear infinite; }
-      @keyframes atc-sv-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+      /* Secondary entity value: one copy, … when too long. When it overflows and
+         animations are on, atc-sv-scrolling shows a second copy right after the first
+         and slides by exactly one copy plus gap, so the loop has no jump. The second
+         copy is absolutely positioned so it never widens the line (#239). */
+      .atc-sv-marquee-wrap { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; max-width: 100%; }
+      .atc-sv-marquee-inner { display: inline; position: relative; }
+      .atc-sv-copy2 { display: none; }
+      .atc-sv-marquee-wrap.atc-sv-scrolling { text-overflow: clip; }
+      .atc-sv-scrolling .atc-sv-marquee-inner { display: inline-block; animation: atc-sv-scroll linear infinite; }
+      .atc-sv-scrolling .atc-sv-copy { padding-right: 2.5em; }
+      .atc-sv-scrolling .atc-sv-copy2 { display: inline; position: absolute; left: 100%; top: 0; }
+      .atc-sv-right .atc-sv-marquee-wrap { flex: 0 1 auto; }
+      @keyframes atc-sv-scroll { from { transform: translateX(0); } to { transform: translateX(-100%); } }
       .atc-secondary-missing {
         font-size: 0.72rem;
         opacity: 0.5;

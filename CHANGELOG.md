@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.21] - 2026-11-08
+
+### Fixed
+
+- **Secondary entity value: duplicated text, jumpy scrolling, right margin ignored** ([#239](https://github.com/djdevil/AlertTicker-Card/issues/239) reported by [@Othy07](https://github.com/Othy07)) — the secondary entity line started scrolling as soon as it was longer than 28 characters, even when it fit. Its scrolling copy was always rendered, so with animations disabled the text showed twice; the loop restarted 11 px off, so it jumped every cycle; and with `secondary_value_align: right` the line couldn't shrink and ran past the right padding. The line now scrolls only when it really overflows, with a seamless loop, stays inside the margins, and with animations off it shows a single copy truncated with "…".
+
+---
+
 ## [1.3.20] - 2026-11-06
 
 ### Fixed
