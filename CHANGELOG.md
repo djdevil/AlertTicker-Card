@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.22] - 2026-11-09
+
+### Fixed
+
+- **Overlay banner hidden behind the iPhone status bar** ([#240](https://github.com/djdevil/AlertTicker-Card/issues/240) reported by [@MadMax9992](https://github.com/MadMax9992)) — on devices with a notch or Dynamic Island the top banner was drawn under the clock, signal and battery icons. The overlay now adds the device's safe-area insets (`env(safe-area-inset-*)`) to its margins: top position below the status bar, bottom position above the home indicator, and the sides clear of rounded corners in landscape. Devices without a notch are unchanged.
+
+---
+
 ## [1.3.21] - 2026-11-08
 
 ### Fixed

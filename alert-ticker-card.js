@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.21
+ * AlertTicker Card v1.3.22
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.21";
+const CARD_VERSION = "1.3.22";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -866,8 +866,12 @@ const _ATC_OVERLAY = (() => {
         display: flex; flex-direction: column; gap: 8px;
         box-sizing: border-box;
       }
-      #atc-overlay-root.atc-ov-top    { top: 0; }
-      #atc-overlay-root.atc-ov-bottom { bottom: 0; }
+      #atc-overlay-root {
+        padding-left: calc(16px + env(safe-area-inset-left, 0px));
+        padding-right: calc(16px + env(safe-area-inset-right, 0px));
+      }
+      #atc-overlay-root.atc-ov-top    { top: 0; padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+      #atc-overlay-root.atc-ov-bottom { bottom: 0; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
       #atc-overlay-root.atc-ov-center { top: 50%; transform: translateY(-50%); }
       .atc-ov-toast {
         pointer-events: auto; position: relative;
