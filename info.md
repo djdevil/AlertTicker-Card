@@ -9,7 +9,7 @@ The most complete alert & notification card for Home Assistant — **63 visual t
 - 🎨 **63 themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, music player mode
 - ⚡ **Trigger on anything** — entity state, attribute, template, device class, entity filter with wildcards, AND/OR conditions
 - 📢 **Notify everywhere** — in-dashboard ticker, **global overlay banner** visible from any view, **TTS** (Alexa / Google / any speaker), **push notifications**, **live camera streams**
-- 🌍 **12 languages** — IT · EN · FR · DE · NL · VI · RU · DA · CS · PT-BR · ES · TR
+- 🌍 **14 languages** — IT · EN · FR · DE · NL · VI · RU · DA · CS · PT-BR · ES · TR · SR · SR-Latn
 - 🎯 **Per-alert control** — themes, time windows, user visibility, snooze, priority, actions, group/collapse, `active_state_entity` for HA automations
 - 🖼️ **Full visual editor** — every option configurable in the GUI
 

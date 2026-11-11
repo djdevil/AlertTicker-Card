@@ -31,7 +31,7 @@
 - 🎨 **63 visual themes** — from subtle `info` to cinematic 3D, timer countdowns, weather badges, and a full music-player mode with album art
 - ⚡ **Trigger on anything** — entity state, attribute, template, device class, entity filter with wildcards, AND/OR logic
 - 📢 **Notify everywhere** — in-dashboard cycling ticker, **global overlay banner** visible from any view, **TTS** (Alexa / Google / any speaker), **push notifications**, **camera snapshots & live streams**
-- 🌍 **12 languages** — IT, EN, FR, DE, NL, VI, RU, DA, CS, PT-BR, ES, TR
+- 🌍 **14 languages** — IT, EN, FR, DE, NL, VI, RU, DA, CS, PT-BR, ES, TR, SR (Cyrillic), SR-Latn
 - 🎯 **Per-alert control** — themes, time windows, user visibility, snooze, priority, actions, group/collapse, `active_state_entity` for HA automations
 - 🖼️ **Full visual editor** — configure every option in the GUI, no YAML needed
 - 📱 **Mobile-first UX** — swipe to snooze, invisible touch zones, HA Companion push support
@@ -60,7 +60,7 @@
 - [Visual Editor](#visual-editor)
 - [YAML Configuration](#yaml-configuration) — all options reference
 - [Examples](#examples) — real-world configs
-- [Languages](#languages) — 12 supported languages
+- [Languages](#languages) — 14 supported languages
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
@@ -81,6 +81,8 @@ A special thank you to **[@feixm1](https://github.com/feixm1)** for contributing
 A special thank you to **[@Bsector](https://github.com/Bsector)** for contributing the **Portuguese / pt-BR language** translation — providing the core card runtime strings that formed the basis of the full pt-BR support now included in the card. ([#90](https://github.com/djdevil/AlertTicker-Card/issues/90))
 
 A special thank you to **[@yunusuztr](https://github.com/yunusuztr)** for contributing the full **Turkish (TR) language** translation — covering all card labels, editor UI, theme defaults, TTS prefixes, operator names, and overlay strings. ([#134](https://github.com/djdevil/AlertTicker-Card/issues/134))
+
+A special thank you to **[@cpmarexel2f](https://github.com/cpmarexel2f)** for contributing the **Serbian language** translation, in both **Cyrillic (SR)** and **Latin (SR-Latn)** script. ([#242](https://github.com/djdevil/AlertTicker-Card/pull/242))
 
 ---
 
@@ -147,7 +149,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **HA icons** | Use any `mdi:` icon per alert via native icon picker |
 | **Entity picture / custom image** | Use the entity's `entity_picture` attribute or a static `/local/` path as the alert icon |
 | **Sound notifications** | Per-alert audio — auto-generated tones or custom URL |
-| **🔊 TTS announcements** | Read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (12 languages) |
+| **🔊 TTS announcements** | Read alerts aloud via HA TTS, Alexa, or any notify service. Multilingual fallback messages auto-generated from alert theme (14 languages) |
 | **📱 Push notifications** | Send a push notification to any `notify.*` service when an alert fires. Full Jinja2 support for title and message. Global master toggle. |
 | **📷 Camera snapshot** | Attach a live camera frame to the overlay banner, scaled proportionally with overlay zoom |
 | **📹 Camera live stream** | **NEW** — `camera_live: true` shows a live HLS/WebRTC stream in the overlay banner instead of a static snapshot |
@@ -168,7 +170,7 @@ A big thank you to **[SmartHomeJunkie](https://www.youtube.com/@SmartHomeJunkie)
 | **Card border** | Toggle to show the standard HA border around the card — always visible, off by default |
 | **Test mode** | Force-preview all alerts in the editor regardless of conditions |
 | **Visual editor** | Full GUI — no YAML required |
-| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech, Portuguese (pt-BR), Spanish, Turkish — **12 languages** |
+| **Languages** | Italian, English, French, German, Dutch, Vietnamese, Russian, Danish, Czech, Portuguese (pt-BR), Spanish, Turkish, Serbian (Cyrillic and Latin) — **14 languages** |
 | **🔗 active_state_entity** | Per-alert option — write `on`/`off` to any `input_boolean` when that specific alert becomes active or clears. Each alert can target a different boolean, wiring them to independent HA automations (lamp, script, push notification…) |
 | **Performance** | Signature-based dirty check — no unnecessary re-renders |
 
@@ -1780,8 +1782,10 @@ The card automatically detects the language from your Home Assistant settings.
 | Portuguese | `pt` | — |
 | Spanish | `es` | — |
 | Turkish | `tr` | — |
+| Serbian (Cyrillic) | `sr` | — |
+| Serbian (Latin) | `sr-Latn` | — |
 
-TTS fallback messages (auto-generated when no `tts_message` is set) are available in all 12 languages and adapt automatically to the alert's theme category (critical / warning / info / ok / timer).
+TTS fallback messages (auto-generated when no `tts_message` is set) are available in all 14 languages and adapt automatically to the alert's theme category (critical / warning / info / ok / timer).
 
 ---
 

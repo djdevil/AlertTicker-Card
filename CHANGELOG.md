@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.23] - 2026-11-11
+
+### Added
+
+- **Serbian translation, Cyrillic (`sr`) and Latin (`sr-Latn`)** ([#242](https://github.com/djdevil/AlertTicker-Card/pull/242) by [@cpmarexel2f](https://github.com/cpmarexel2f)) — card, editor, theme names and descriptions, default messages, alert templates and TTS messages. Home Assistant set to Serbian Latin now picks the Latin tables everywhere, TTS included; `sr` and other Serbian variants use Cyrillic. Fifty-two editor labels that were lost from the contributed tables (a text containing `<=` had swallowed them) were filled in; Serbian speakers are welcome to review them.
+
+### Fixed
+
+- **`{area}` and `{device}` not replaced in the overlay banner for filter alerts** ([#241](https://github.com/djdevil/AlertTicker-Card/issues/241) reported by [@Gruesy42](https://github.com/Gruesy42)) — for alerts using `device_class`, `entity_filter`, `label_filter` or `area_filter`, the banner showed `{area}` literally and `{device}` as an empty string. They now resolve to the matched entity's area and device, as on the card.
+
+---
+
 ## [1.3.22] - 2026-11-09
 
 ### Fixed
