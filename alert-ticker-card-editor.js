@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.23
+ * AlertTicker Card Editor v1.3.24
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.23";
+const CARD_VERSION = "1.3.24";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1360,6 +1360,10 @@ const ET = {
     clear_clock_show_date: "Mostra data",
     clear_clock_12h: "Formato 12 ore (AM/PM)",
     clear_clock_show_seconds: "Mostra i secondi",
+    clear_forecast_show_date: "Mostra la data nelle previsioni",
+    clear_forecast_show_rain: "Mostra la pioggia nelle previsioni",
+    clear_clock_size: "Dimensione orologio",
+    clear_clock_size_help: "1 = normale, 1.5 = 50% più grande, 2 = doppio. Solo l'ora, non la data.",
     clear_clock_date_label: "Posizione data",
     clear_clock_style_label: "Stile orologio",
     clear_clock_colors_title: "Colori personalizzati (opzionale)",
@@ -1739,6 +1743,10 @@ const ET = {
     clear_clock_show_date: "Show date",
     clear_clock_12h: "12-hour format (AM/PM)",
     clear_clock_show_seconds: "Show seconds",
+    clear_forecast_show_date: "Show date in forecast",
+    clear_forecast_show_rain: "Show rain in forecast",
+    clear_clock_size: "Clock size",
+    clear_clock_size_help: "1 = normal, 1.5 = 50% larger, 2 = double. Time only, not the date.",
     clear_clock_date_label: "Date position",
     clear_clock_style_label: "Clock style",
     clear_clock_colors_title: "Custom colors (optional)",
@@ -2120,6 +2128,10 @@ const ET = {
     clear_clock_show_date: "Afficher la date",
     clear_clock_12h: "Format 12 heures (AM/PM)",
     clear_clock_show_seconds: "Afficher les secondes",
+    clear_forecast_show_date: "Afficher la date dans les prévisions",
+    clear_forecast_show_rain: "Afficher la pluie dans les prévisions",
+    clear_clock_size: "Taille de l'horloge",
+    clear_clock_size_help: "1 = normal, 1.5 = 50 % plus grand, 2 = double. L'heure seulement, pas la date.",
     clear_clock_date_label: "Position de la date",
     clear_clock_style_label: "Style horloge",
     clear_clock_colors_title: "Couleurs personnalisées (optionnel)",
@@ -2499,6 +2511,10 @@ const ET = {
     clear_clock_show_date: "Datum anzeigen",
     clear_clock_12h: "12-Stunden-Format (AM/PM)",
     clear_clock_show_seconds: "Sekunden anzeigen",
+    clear_forecast_show_date: "Datum in der Vorhersage anzeigen",
+    clear_forecast_show_rain: "Regen in der Vorhersage anzeigen",
+    clear_clock_size: "Uhrgröße",
+    clear_clock_size_help: "1 = normal, 1.5 = 50 % größer, 2 = doppelt. Nur die Uhrzeit, nicht das Datum.",
     clear_clock_date_label: "Datumsposition",
     clear_clock_style_label: "Uhr-Stil",
     clear_clock_colors_title: "Benutzerdefinierte Farben (optional)",
@@ -2878,6 +2894,10 @@ const ET = {
     clear_clock_show_date: "Datum weergeven",
     clear_clock_12h: "12-uursformaat (AM/PM)",
     clear_clock_show_seconds: "Seconden tonen",
+    clear_forecast_show_date: "Datum tonen in de voorspelling",
+    clear_forecast_show_rain: "Regen tonen in de voorspelling",
+    clear_clock_size: "Klokgrootte",
+    clear_clock_size_help: "1 = normaal, 1.5 = 50% groter, 2 = dubbel. Alleen de tijd, niet de datum.",
     clear_clock_date_label: "Datumpositie",
     clear_clock_style_label: "Klokstijl",
     clear_clock_colors_title: "Aangepaste kleuren (optioneel)",
@@ -3257,6 +3277,10 @@ const ET = {
     clear_clock_show_date: "Hiển thị ngày",
     clear_clock_12h: "Định dạng 12 giờ (AM/PM)",
     clear_clock_show_seconds: "Hiển thị giây",
+    clear_forecast_show_date: "Hiển thị ngày trong dự báo",
+    clear_forecast_show_rain: "Hiển thị mưa trong dự báo",
+    clear_clock_size: "Kích thước đồng hồ",
+    clear_clock_size_help: "1 = bình thường, 1.5 = lớn hơn 50%, 2 = gấp đôi. Chỉ giờ, không gồm ngày.",
     clear_clock_date_label: "Vị trí ngày",
     clear_clock_style_label: "Kiểu đồng hồ",
     clear_clock_colors_title: "Màu tùy chỉnh (tùy chọn)",
@@ -3636,6 +3660,10 @@ const ET = {
     clear_clock_show_date: "Показать дату",
     clear_clock_12h: "12-часовой формат (AM/PM)",
     clear_clock_show_seconds: "Показать секунды",
+    clear_forecast_show_date: "Показывать дату в прогнозе",
+    clear_forecast_show_rain: "Показывать дождь в прогнозе",
+    clear_clock_size: "Размер часов",
+    clear_clock_size_help: "1 = обычный, 1.5 = на 50% больше, 2 = вдвое больше. Только время, без даты.",
     clear_clock_date_label: "Позиция даты",
     clear_clock_style_label: "Стиль часов",
     clear_clock_colors_title: "Пользовательские цвета (необязательно)",
@@ -4015,6 +4043,10 @@ const ET = {
     clear_clock_show_date: "Vis dato",
     clear_clock_12h: "12-timers format (AM/PM)",
     clear_clock_show_seconds: "Vis sekunder",
+    clear_forecast_show_date: "Vis dato i prognosen",
+    clear_forecast_show_rain: "Vis regn i prognosen",
+    clear_clock_size: "Urets størrelse",
+    clear_clock_size_help: "1 = normal, 1.5 = 50 % større, 2 = dobbelt. Kun klokkeslættet, ikke datoen.",
     clear_clock_date_label: "Datoposition",
     clear_clock_style_label: "Ur-stil",
     clear_clock_colors_title: "Brugerdefinerede farver (valgfrit)",
@@ -4394,6 +4426,10 @@ const ET = {
     clear_clock_show_date: "Zobrazit datum",
     clear_clock_12h: "12hodinový formát (AM/PM)",
     clear_clock_show_seconds: "Zobrazit sekundy",
+    clear_forecast_show_date: "Zobrazit datum v předpovědi",
+    clear_forecast_show_rain: "Zobrazit déšť v předpovědi",
+    clear_clock_size: "Velikost hodin",
+    clear_clock_size_help: "1 = normální, 1.5 = o 50 % větší, 2 = dvojnásobná. Pouze čas, ne datum.",
     clear_clock_date_label: "Pozice data",
     date_position_above: "⬆ Nad časem",
     date_position_below: "⬇ Pod časem",
@@ -4777,6 +4813,10 @@ const ET = {
     clear_clock_show_date: "Mostrar data",
     clear_clock_12h: "Formato 12 horas (AM/PM)",
     clear_clock_show_seconds: "Mostrar segundos",
+    clear_forecast_show_date: "Mostrar data na previsão",
+    clear_forecast_show_rain: "Mostrar chuva na previsão",
+    clear_clock_size: "Tamanho do relógio",
+    clear_clock_size_help: "1 = normal, 1.5 = 50% maior, 2 = o dobro. Apenas a hora, não a data.",
     clear_clock_date_label: "Posição da data",
     clear_clock_style_label: "Estilo do relógio",
     clear_clock_colors_title: "Cores personalizadas (opcional)",
@@ -5156,6 +5196,10 @@ const ET = {
     clear_clock_show_date: "Mostrar fecha",
     clear_clock_12h: "Formato 12 horas (AM/PM)",
     clear_clock_show_seconds: "Mostrar segundos",
+    clear_forecast_show_date: "Mostrar la fecha en el pronóstico",
+    clear_forecast_show_rain: "Mostrar la lluvia en el pronóstico",
+    clear_clock_size: "Tamaño del reloj",
+    clear_clock_size_help: "1 = normal, 1.5 = 50% más grande, 2 = el doble. Solo la hora, no la fecha.",
     clear_clock_date_label: "Posición de la fecha",
     clear_clock_style_label: "Estilo del reloj",
     clear_clock_colors_title: "Colores personalizados (opcional)",
@@ -5535,6 +5579,10 @@ const ET = {
     clear_clock_show_date: "Tarihi göster",
     clear_clock_12h: "12 saat formatı (AM/PM)",
     clear_clock_show_seconds: "Saniyeleri göster",
+    clear_forecast_show_date: "Tahminde tarihi göster",
+    clear_forecast_show_rain: "Tahminde yağmuru göster",
+    clear_clock_size: "Saat boyutu",
+    clear_clock_size_help: "1 = normal, 1.5 = %50 daha büyük, 2 = iki kat. Yalnızca saat, tarih değil.",
     clear_clock_date_label: "Tarih konumu",
     clear_clock_style_label: "Saat stili",
     clear_clock_colors_title: "Özel renkler (isteğe bağlı)",
@@ -5916,6 +5964,10 @@ const ET = {
     clear_clock_show_date: "Прикажи датум",
     clear_clock_12h: "12-часовни формат (AM/PM)",
     clear_clock_show_seconds: "Прикажи секунде",
+    clear_forecast_show_date: "Прикажи датум у прогнози",
+    clear_forecast_show_rain: "Прикажи кишу у прогнози",
+    clear_clock_size: "Величина сата",
+    clear_clock_size_help: "1 = нормално, 1.5 = 50% веће, 2 = двоструко. Само време, не и датум.",
     clear_clock_date_label: "Положај датума",
     clear_clock_style_label: "Стил сата",
     clear_clock_colors_title: "Прилагођене боје (опционо)",
@@ -6373,6 +6425,10 @@ const ET = {
     clear_clock_show_date: "Prikaži datum",
     clear_clock_12h: "12-časovni format (AM/PM)",
     clear_clock_show_seconds: "Prikaži sekunde",
+    clear_forecast_show_date: "Prikaži datum u prognozi",
+    clear_forecast_show_rain: "Prikaži kišu u prognozi",
+    clear_clock_size: "Veličina sata",
+    clear_clock_size_help: "1 = normalno, 1.5 = 50% veće, 2 = dvostruko. Samo vreme, ne i datum.",
     clear_clock_date_label: "Položaj datuma",
     clear_clock_style_label: "Stil sata",
     clear_clock_colors_title: "Prilagođene boje (opciono)",
@@ -7749,6 +7805,21 @@ class AlertTickerCardEditor extends LitElement {
               ></ha-switch>
             </div>
           </div>
+          <div class="form-row">
+            <ha-input
+              type="number"
+              min="1"
+              max="4"
+              step="0.1"
+              .label="${this._t("clear_clock_size")}"
+              .value="${cfg.clear_clock_size != null ? String(cfg.clear_clock_size) : '1'}"
+              @change="${(e) => {
+                const v = parseFloat(e.target.value);
+                this._fireConfig({ ...this._config, clear_clock_size: (isNaN(v) || v <= 0 || v === 1) ? undefined : Math.min(v, 4) });
+              }}"
+            ></ha-input>
+            <div class="helper-text">${this._t("clear_clock_size_help")}</div>
+          </div>
 
         ` : ''}
 
@@ -7850,6 +7921,28 @@ class AlertTickerCardEditor extends LitElement {
             ></ha-input>
           </div>
           <div class="helper-text">${this._t("weather_forecast_interval_help")}</div>
+        ` : ''}
+
+        <!-- Forecast rows (forecast / weather_forecast modes, #243) -->
+        ${(cfg.clear_display_mode === 'forecast' || cfg.clear_display_mode === 'weather_forecast') ? html`
+          <div class="form-row">
+            <div class="switch-row">
+              <span class="switch-label">${this._t("clear_forecast_show_date")}</span>
+              <ha-switch
+                .checked="${cfg.clear_forecast_show_date !== false}"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_forecast_show_date: e.target.checked ? undefined : false })}"
+              ></ha-switch>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="switch-row">
+              <span class="switch-label">${this._t("clear_forecast_show_rain")}</span>
+              <ha-switch
+                .checked="${cfg.clear_forecast_show_rain !== false}"
+                @change="${(e) => this._fireConfig({ ...this._config, clear_forecast_show_rain: e.target.checked ? undefined : false })}"
+              ></ha-switch>
+            </div>
+          </div>
         ` : ''}
 
         <!-- Show widget in alert cycle -->

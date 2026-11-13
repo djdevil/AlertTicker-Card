@@ -1347,6 +1347,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `clear_clock_show_date` | `boolean` | `true` | Show or hide the date in clock / weather+clock mode |
 | `clear_clock_show_seconds` | `boolean` | `true` | **New in 1.3.9.9.6** — hide seconds from the clock display for a cleaner `15:58` look instead of `15:58:47` |
 | `clear_clock_12h` | `boolean` | `false` | 12-hour clock (AM/PM) |
+| `clear_clock_size` | `number` | `1` | Clock size: `1` = normal, `1.5` = 50% larger, `2` = double. Scales the time only, not the date |
 | `clear_clock_date_position` | `string` | `below` | Date position relative to time: `above` or `below` |
 | `clear_weather_entity` | `string` | `null` | `weather.*` entity for weather/weather_clock modes |
 | `clear_badge_label` | `string` | `"Resolved"` | Badge text on the all-clear card |
@@ -1354,6 +1355,8 @@ The tab shows an **ON** badge when overlay mode is active.
 | `clear_icon_color` | `string` | — | All-clear icon color |
 | `clear_icon_size` | `string` | — | All-clear icon size (any CSS length) |
 | `clear_disable_animation` | `boolean` | `false` | Freeze the sun, clouds, stars and weather effects in the all-clear widget |
+| `clear_forecast_show_date` | `boolean` | `true` | Set `false` to hide the date row in the forecast |
+| `clear_forecast_show_rain` | `boolean` | `true` | Set `false` to hide the rain probability row in the forecast |
 | `weather_forecast_interval` | `number` | `5` | Seconds between current weather and forecast in `weather_forecast` mode |
 | `clear_tap_action` | `object` | — | Tap action for the all-clear card |
 | `clear_hold_action` | `object` | — | Hold action for the all-clear card |

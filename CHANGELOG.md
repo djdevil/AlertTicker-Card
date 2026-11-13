@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.24] - 2026-11-13
+
+### Fixed
+
+- **Forecast dates out of line** ([#243](https://github.com/djdevil/AlertTicker-Card/issues/243) reported by [@Gruesy42](https://github.com/Gruesy42)) — the rain bar only appears on days with at least 20% chance of rain, and the date was pushed to the bottom of each column, so on dry days it dropped into the rain bar's place. Dry days now keep an empty slot of the same height whenever at least one day shows rain, so all dates sit on one line; a forecast with no rain at all keeps its current, shorter height.
+
+### Added
+
+- **`clear_forecast_show_date`** and **`clear_forecast_show_rain`** ([#243](https://github.com/djdevil/AlertTicker-Card/issues/243)) — hide the date row and/or the rain row of the forecast, making it shorter (165 → 125 px with both hidden). With `weather_forecast` this also shrinks the empty space under the current-weather view, since both views share the height of the taller one.
+- **`clear_clock_size`** ([#243](https://github.com/djdevil/AlertTicker-Card/issues/243)) — scales the clock time (not the date) in the clock widget and next to the weather: `1` = normal, `2` = double. Works with every clock and weather style. In the editor below "Show seconds"; the forecast switches appear in forecast and weather + forecast modes. Translated in all 14 languages.
+
+---
+
 ## [1.3.23] - 2026-11-11
 
 ### Added

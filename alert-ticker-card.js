@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.23
+ * AlertTicker Card v1.3.24
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.23";
+const CARD_VERSION = "1.3.24";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -3247,6 +3247,13 @@ class AlertTickerCard extends LitElement {
       }
     };
 
+    // #243: optional date / rain rows. When at least one day shows rain, days without it
+    // get an empty slot of the same height so every date sits on the same line.
+    const showDate = this._config.clear_forecast_show_date !== false;
+    const showRain = this._config.clear_forecast_show_rain !== false;
+    const rainShown = (d) => d.precipitation_probability != null && Math.round(d.precipitation_probability) >= 20;
+    const anyRain = showRain && days.some(rainShown);
+
     const cols = days.map((day, idx) => {
       const isToday = idx === 0;
       const emoji = WEATHER_EMOJI[day.condition] || "🌡️";
@@ -3261,19 +3268,19 @@ class AlertTickerCard extends LitElement {
       } catch (_) {}
 
       return html`
-        <div class="atc-fw-day${isToday ? " atc-fw-day--today" : ""}">
+        <div class="atc-fw-day${isToday ? " atc-fw-day--today" : ""}${showDate && dateLabel ? "" : " atc-fw-day--nodate"}">
           <div class="atc-fw-dayname">${dayLabel}</div>
           <div class="atc-fw-emoji${isToday ? " atc-fw-emoji--today" : ""}">${emoji}</div>
           <div class="atc-fw-temps">
             ${hi != null ? html`<span class="atc-fw-hi" style="color:${tempColor(hi)}">${hi}°</span>` : ""}
             ${lo != null ? html`<span class="atc-fw-lo" style="color:${tempColor(lo)}">${lo}°</span>` : ""}
           </div>
-          ${dateLabel ? html`<div class="atc-fw-date">${dateLabel}</div>` : ""}
-          ${precip != null && precip >= 20 ? html`
+          ${showDate && dateLabel ? html`<div class="atc-fw-date">${dateLabel}</div>` : ""}
+          ${showRain && rainShown(day) ? html`
           <div class="atc-fw-precip">
             <div class="atc-fw-precip-bar"><div class="atc-fw-precip-fill" style="height:${precip}%"></div></div>
             <span class="atc-fw-precip-pct">${precip}%</span>
-          </div>` : ""}
+          </div>` : anyRain ? html`<div class="atc-fw-precip atc-fw-precip--empty"></div>` : ""}
         </div>`;
     });
 
@@ -3282,6 +3289,14 @@ class AlertTickerCard extends LitElement {
         <div class="atc-fw-bg-pulse"></div>
         <div class="atc-fw-grid">${cols}</div>
       </div>`;
+  }
+
+  /** clear_clock_size (#243): scales the clock time only (not the date), 1 = default size.
+   *  Multiplies the font-size of every clock style through --atc-clock-scale
+   *  (CSS zoom isn't applied reliably on WebKit). */
+  get _clockZoom() {
+    const z = parseFloat(this._config?.clear_clock_size);
+    return z > 0 && z !== 1 ? `--atc-clock-scale:${Math.min(z, 4)}` : "";
   }
 
   _renderClearWidget() {
@@ -3311,7 +3326,7 @@ class AlertTickerCard extends LitElement {
           <div class="atc-ck-glow"></div>
           <div class="atc-ck-content">
             ${showDate && datePos === "above" && this._clockDate ? html`<div class="atc-ck-date">${this._clockDate}</div>` : ""}
-            <div class="atc-ck-time">${this._clockTime || "00:00"}</div>
+            <div class="atc-ck-time" style="${this._clockZoom}">${this._clockTime || "00:00"}</div>
             ${showDate && datePos !== "above" && this._clockDate ? html`<div class="atc-ck-date">${this._clockDate}</div>` : ""}
           </div>
         </div>`;
@@ -3353,7 +3368,7 @@ class AlertTickerCard extends LitElement {
             ${(mode === "weather_clock" || mode === "weather_forecast") ? html`
             <div class="atc-cw-badge atc-cw-badge--clock">
               ${showDate && (this._config.clear_clock_date_position === "above") && this._clockDate ? html`<span class="atc-cw-clock-date">${this._clockDate}</span>` : ""}
-              <span class="atc-cw-clock">${this._clockTime || "00:00"}</span>
+              <span class="atc-cw-clock" style="${this._clockZoom}">${this._clockTime || "00:00"}</span>
               ${showDate && (this._config.clear_clock_date_position !== "above") && this._clockDate ? html`<span class="atc-cw-clock-date">${this._clockDate}</span>` : ""}
             </div>` : ""}
           </div>
@@ -11652,7 +11667,7 @@ class AlertTickerCard extends LitElement {
       }
       /* Time digits */
       .atc-ck-time {
-        font-size: 2.05rem;
+        font-size: calc(2.05rem * var(--atc-clock-scale, 1));
         font-weight: 700;
         font-variant-numeric: tabular-nums;
         letter-spacing: 0.12em;
@@ -11770,7 +11785,7 @@ class AlertTickerCard extends LitElement {
       .atc-cw-style--wallpanel .atc-cw-temp { font-size: 3rem; }
       .atc-cw-style--wallpanel .atc-cw-meta { font-size: 1rem; }
       .atc-cw-style--wallpanel .atc-cw-condition { font-size: 1rem; }
-      .atc-cw-style--wallpanel .atc-cw-clock { font-size: 1.55rem; }
+      .atc-cw-style--wallpanel .atc-cw-clock { font-size: calc(1.55rem * var(--atc-clock-scale, 1)); }
       .atc-cw-style--wallpanel .atc-cw-clock-date { font-size: 0.62rem; }
 
       /* ── WEATHER STYLE: frosted ──────────────────────────────────────── */
@@ -11817,7 +11832,7 @@ class AlertTickerCard extends LitElement {
         text-shadow: 0 1px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.7);
       }
       .atc-cw-style--minimal .atc-cw-clock {
-        font-size: 1.4rem;
+        font-size: calc(1.4rem * var(--atc-clock-scale, 1));
         text-shadow: 0 1px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.7);
       }
       .atc-cw-style--minimal .atc-cw-condition,
@@ -11854,7 +11869,7 @@ class AlertTickerCard extends LitElement {
         padding: 0;
       }
       .atc-cw-style--stage .atc-cw-clock {
-        font-size: 2.8rem;
+        font-size: calc(2.8rem * var(--atc-clock-scale, 1));
         font-weight: 200;
         letter-spacing: 0.20em;
         text-shadow:
@@ -11971,7 +11986,7 @@ class AlertTickerCard extends LitElement {
         text-shadow: 0 1px 12px rgba(0,0,0,0.7);
       }
       .atc-cw-style--split .atc-cw-clock {
-        font-size: 1.55rem;
+        font-size: calc(1.55rem * var(--atc-clock-scale, 1));
         font-weight: 300;
         letter-spacing: 0.10em;
         text-shadow: 0 1px 12px rgba(0,0,0,0.7);
@@ -12015,7 +12030,7 @@ class AlertTickerCard extends LitElement {
         flex-shrink: 0;
       }
       .atc-cw-style--cinematic .atc-cw-clock {
-        font-size: 1.15rem;
+        font-size: calc(1.15rem * var(--atc-clock-scale, 1));
         font-weight: 400;
         letter-spacing: 0.08em;
         text-shadow: 0 1px 6px rgba(0,0,0,0.95);
@@ -12149,7 +12164,7 @@ class AlertTickerCard extends LitElement {
         letter-spacing: 0.01em;
       }
       .atc-cw-clock {
-        font-size: 1.3rem;
+        font-size: calc(1.3rem * var(--atc-clock-scale, 1));
         font-weight: 700;
         font-variant-numeric: tabular-nums;
         letter-spacing: 0.06em;
@@ -12311,8 +12326,9 @@ class AlertTickerCard extends LitElement {
         gap: 3px;
         min-width: 0;
       }
-      /* Push date to bottom of column */
+      /* Push date to bottom of column (or the rain row when the date is hidden) */
       .atc-fw-date { margin-top: auto !important; }
+      .atc-fw-day--nodate .atc-fw-precip { margin-top: auto; }
       .atc-fw-day:last-child { border-right: none; }
       /* Today's column: elevated glass card */
       .atc-fw-day--today {
