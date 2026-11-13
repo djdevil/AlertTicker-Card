@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.25] - 2026-11-13
+
+### Fixed
+
+- **Forecast panel cut short in weather + forecast mode** (follow-up to [#243](https://github.com/djdevil/AlertTicker-Card/issues/243)) — with the date and rain rows hidden, the current-weather view became the taller of the two, and the forecast panel didn't stretch to the shared height, leaving an empty strip at the bottom of the card. The forecast panel now fills the full height, and when both rows are hidden the day columns are vertically centered.
+
+---
+
 ## [1.3.24] - 2026-11-13
 
 ### Fixed

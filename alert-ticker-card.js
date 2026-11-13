@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.24
+ * AlertTicker Card v1.3.25
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.24";
+const CARD_VERSION = "1.3.25";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -12329,6 +12329,8 @@ class AlertTickerCard extends LitElement {
       /* Push date to bottom of column (or the rain row when the date is hidden) */
       .atc-fw-date { margin-top: auto !important; }
       .atc-fw-day--nodate .atc-fw-precip { margin-top: auto; }
+      /* No date and no rain row: center the column when the panel is taller than its content */
+      .atc-fw-day--nodate { justify-content: center; }
       .atc-fw-day:last-child { border-right: none; }
       /* Today's column: elevated glass card */
       .atc-fw-day--today {
@@ -12475,7 +12477,8 @@ class AlertTickerCard extends LitElement {
       }
       /* Weather widget inside the slot must stretch to fill the full slot height
          so the animated weather background covers the same area as the forecast panel */
-      .atc-wf-slot > .atc-clear-weather {
+      .atc-wf-slot > .atc-clear-weather,
+      .atc-wf-slot > .atc-clear-forecast {
         flex: 1;
       }
       .atc-wf-slot--in {
