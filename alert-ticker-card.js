@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.25
+ * AlertTicker Card v1.3.26
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.25";
+const CARD_VERSION = "1.3.26";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -7264,7 +7264,9 @@ class AlertTickerCard extends LitElement {
         font-size: 0.9rem;
         opacity: 0.85;
       }
-      .atc-sv-right [class$="-right"] {
+      /* The right column only holds the 1/N counter on most themes, but on the timer
+         themes it holds the countdown itself, so it stays visible there (#244). */
+      .atc-sv-right [class$="-right"]:not(.cd-right):not(.hg2-right):not(.at-timer-pulse > .tp-right) {
         display: none;
       }
       .atc-filter-label {

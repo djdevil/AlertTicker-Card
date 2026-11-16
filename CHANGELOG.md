@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.26] - 2026-11-16
+
+### Fixed
+
+- **Countdown hidden on timer themes with `secondary_value_align: right`** ([#244](https://github.com/djdevil/AlertTicker-Card/issues/244) reported by [@shashankmittal](https://github.com/shashankmittal)) — right-aligned secondary values hide each theme's right column to make room on the title row. On most themes that column only holds the 1/N counter, but on `countdown`, `hourglass` and `timer_pulse` it holds the countdown itself, so the remaining time disappeared (only `timer_ring`, whose ring sits elsewhere, kept it). The timer themes now keep their right column.
+
+---
+
 ## [1.3.25] - 2026-11-13
 
 ### Fixed
