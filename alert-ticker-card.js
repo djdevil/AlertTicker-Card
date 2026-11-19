@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.27
+ * AlertTicker Card v1.3.28
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.27";
+const CARD_VERSION = "1.3.28";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -5902,13 +5902,20 @@ class AlertTickerCard extends LitElement {
     }
 
     const secondaryEl = this._renderSecondaryValue(alert);
-    // icon_image / use_entity_picture replace the drawn battery (#247)
-    const customPic = alert.icon_image ||
+    // A custom image or icon replaces the drawn battery (#247): icon_image, the entity
+    // picture, or an icon the user picked (anything other than the theme's default emoji,
+    // which the editor writes on its own). "Use HA icon" with no icon picked keeps the battery.
+    const picPath = alert.icon_image ||
       (alert.use_entity_picture && this._hass?.states[alert.entity]?.attributes?.entity_picture);
+    const pickedIcon = !!alert.icon && alert.icon !== (THEME_META.battery3d || {}).icon;
+    const customPic = picPath || pickedIcon;
+    // icon_size: images and mdi icons get it from _getIcon; an emoji needs it as font-size
+    const emojiSize = !picPath && pickedIcon && alert.icon_size && !/^[\w-]+:/.test(alert.icon)
+      ? `font-size:${alert.icon_size}` : "";
 
     return html`
       <div class="at-battery3d" style="--b3d-color:${color};--b3d-color-light:${colorLight};--b3d-level:${levelPct}%">
-        ${customPic ? html`<div class="b3d-img-icon">${this._getIcon(alert)}</div>` : html`
+        ${customPic ? html`<div class="b3d-img-icon" style="${emojiSize}">${this._getIcon(alert)}</div>` : html`
         <div class="b3d-icon">
           <div class="b3d-fill"></div>
           ${isCharging ? html`<div class="b3d-bolt">⚡</div>` : ""}
@@ -8900,7 +8907,12 @@ class AlertTickerCard extends LitElement {
         border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;
         position: relative;
       }
-      .b3d-img-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+      .b3d-img-icon {
+        flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+        font-size: 2.2rem; line-height: 1;
+      }
+      /* a picked icon follows the battery level color unless icon_color is set */
+      .b3d-img-icon .atc-ha-icon { color: var(--b3d-color, #4caf50); }
       .b3d-icon {
         position: relative; flex-shrink: 0;
         width: 56px; height: 28px;
@@ -11432,7 +11444,8 @@ class AlertTickerCard extends LitElement {
       .atc-has-accent .at-diamond,    .atc-has-accent .at-quantum,
       .atc-has-accent .at-countdown,  .atc-has-accent .at-hourglass,
       .atc-has-accent .at-timer-pulse,.atc-has-accent .at-timer-ring,
-      .atc-has-accent .at-storm,      .atc-has-accent .at-frost {
+      .atc-has-accent .at-storm,      .atc-has-accent .at-frost,
+      .atc-has-accent .at-battery3d {
         border-color: var(--atc-accent-color) !important;
       }
       .atc-has-accent .at-emergency [class$="-badge"],  .atc-has-accent .at-alarm [class$="-badge"],
@@ -11463,7 +11476,8 @@ class AlertTickerCard extends LitElement {
       .atc-has-accent .at-nebula [class$="-badge"],     .atc-has-accent .at-prism [class$="-badge"],
       .atc-has-accent .at-arcade [class$="-badge"],     .atc-has-accent .at-diamond [class$="-badge"],
       .atc-has-accent .at-quantum [class$="-badge"],    .atc-has-accent .at-storm [class$="-badge"],
-      .atc-has-accent .at-frost [class$="-badge"] {
+      .atc-has-accent .at-frost [class$="-badge"],
+      .atc-has-accent .at-battery3d [class$="-badge"] {
         color: var(--atc-accent-color) !important;
       }
 

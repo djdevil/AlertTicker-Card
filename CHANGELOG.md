@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.28] - 2026-11-19
+
+### Fixed
+
+- **`battery3d` ignored the picked icon, the icon size and the custom accent color** (follow-up to [#247](https://github.com/djdevil/AlertTicker-Card/issues/247)) — the theme always drew its own battery. An icon you pick (a Home Assistant `mdi:` icon or an emoji other than the default 🔋) now replaces the drawn battery, like a custom image does, and follows `icon_size` and `icon_color` (by default it takes the battery level color). The custom accent color (`color`) now colors the border and the badge: `battery3d` was the only theme missing from that rule. With "Use HA icon" on and no icon picked, the drawn battery stays, so alerts created from the Battery Monitor template look the same as before.
+
+---
+
 ## [1.3.27] - 2026-11-19
 
 ### Fixed

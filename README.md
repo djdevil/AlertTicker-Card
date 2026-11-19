@@ -441,7 +441,7 @@ alerts:
 | `radar` | 🎯 | Dark green card with circular sonar display, sweeping cone and concentric rings |
 | `temperature` | 🌡️ | Dark orange card with shaking thermometer and animated fill bar |
 | `battery` | 🔋 | Dark card with blinking battery drain animation |
-| `battery3d` | 🔋 | **New in 1.3.9.9.6** — CSS battery icon that fills based on the entity value, horizontal progress bar, dynamic colour (green > 60% / orange 21–60% / red ≤ 20%). Optional `charging_entity` shows ⚡ lightning bolt and switches to cyan while charging. `icon_image` / `use_entity_picture` replace the drawn battery with your image |
+| `battery3d` | 🔋 | **New in 1.3.9.9.6** — CSS battery icon that fills based on the entity value, horizontal progress bar, dynamic colour (green > 60% / orange 21–60% / red ≤ 20%). Optional `charging_entity` shows ⚡ lightning bolt and switches to cyan while charging. `icon_image`, `use_entity_picture` or an icon you pick (HA `mdi:` icon or emoji) replace the drawn battery, and follow `icon_size` / `icon_color` |
 | `door` | 🚪 | Dark card with animated `mdi:door-open` icon that pivots on its hinge (CSS perspective rotateY) |
 | `window` | 🪟 | Dark card with `mdi:window-open-variant` swinging on a top-pivot (rotateX) |
 | `smoke` | 🌫️ | Dark grey card with drifting smoke puff animation |
