@@ -441,7 +441,7 @@ alerts:
 | `radar` | 🎯 | Dark green card with circular sonar display, sweeping cone and concentric rings |
 | `temperature` | 🌡️ | Dark orange card with shaking thermometer and animated fill bar |
 | `battery` | 🔋 | Dark card with blinking battery drain animation |
-| `battery3d` | 🔋 | **New in 1.3.9.9.6** — CSS battery icon that fills based on the entity value, horizontal progress bar, dynamic colour (green > 60% / orange 21–60% / red ≤ 20%). Optional `charging_entity` shows ⚡ lightning bolt and switches to cyan while charging |
+| `battery3d` | 🔋 | **New in 1.3.9.9.6** — CSS battery icon that fills based on the entity value, horizontal progress bar, dynamic colour (green > 60% / orange 21–60% / red ≤ 20%). Optional `charging_entity` shows ⚡ lightning bolt and switches to cyan while charging. `icon_image` / `use_entity_picture` replace the drawn battery with your image |
 | `door` | 🚪 | Dark card with animated `mdi:door-open` icon that pivots on its hinge (CSS perspective rotateY) |
 | `window` | 🪟 | Dark card with `mdi:window-open-variant` swinging on a top-pivot (rotateX) |
 | `smoke` | 🌫️ | Dark grey card with drifting smoke puff animation |
@@ -796,6 +796,7 @@ How it works:
 - When the card's view is **currently visible**, the banner is suppressed (no redundant notification — the card itself already shows the alert).
 - When you navigate away to another view (or the card is off-screen), an independent watcher reads entity states from the always-present `<home-assistant>` element every 2 seconds and fires the banner automatically.
 - A 10-second deduplication window prevents the same alert from firing twice.
+- `on_change` alerts stay in the banner for `auto_dismiss_after` seconds. Without it they stay until closed, or for the overlay duration when `overlay_dismissible: false`.
 - The browser remembers the overlay settings of each card, so the banner also works right after a page reload on a view that doesn't contain the card. This copy is refreshed every time you open the card's view, and it expires if the view isn't opened for 30 days.
 - The banner is styled according to the alert category (Critical / Warning / Info / OK / Style / Timer) and dismisses automatically after `overlay_duration` seconds, or manually via the × button.
 

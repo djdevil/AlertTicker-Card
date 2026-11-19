@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.26
+ * AlertTicker Card Editor v1.3.27
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.26";
+const CARD_VERSION = "1.3.27";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -7972,12 +7972,13 @@ class AlertTickerCardEditor extends LitElement {
           ></ha-input>
         </div>
         <div class="form-row">
-          <ha-formfield .label="${this._t("use_ha_icon")}">
+          <div class="atc-ff">
             <ha-switch
               ?checked="${!!cfg.clear_use_ha_icon}"
               @change="${(e) => this._clearUseHaIconToggled(e.target.checked)}"
             ></ha-switch>
-          </ha-formfield>
+          <span class="atc-ff-label">${this._t("use_ha_icon")}</span>
+          </div>
           ${cfg.clear_use_ha_icon ? html`
             <ha-icon-picker
               .label="${this._t("clear_icon_label")}"
@@ -8580,25 +8581,28 @@ class AlertTickerCardEditor extends LitElement {
 
                 <!-- show_filter_name / show_filter_state toggles -->
                 ${(alert.entity_filter || alert.device_class) ? html`
-                  <ha-formfield .label="${this._t("show_filter_name")}">
+                  <div class="atc-ff">
                     <ha-switch
                       .checked="${alert.show_filter_name !== false}"
                       @change="${(e) => this._updateAlert(index, { show_filter_name: e.target.checked ? undefined : false })}"
                     ></ha-switch>
-                  </ha-formfield>
-                  <ha-formfield .label="${this._t("show_filter_state")}">
+                  <span class="atc-ff-label">${this._t("show_filter_name")}</span>
+                  </div>
+                  <div class="atc-ff">
                     <ha-switch
                       .checked="${!!alert.show_filter_state}"
                       @change="${(e) => this._updateAlert(index, { show_filter_state: e.target.checked ? true : undefined })}"
                     ></ha-switch>
-                  </ha-formfield>
+                  <span class="atc-ff-label">${this._t("show_filter_state")}</span>
+                  </div>
                   ${alert.theme === "battery" ? html`
-                    <ha-formfield .label="${this._t("battery_trim_name")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${!!alert.battery_trim_name}"
                         @change="${(e) => this._updateAlert(index, { battery_trim_name: e.target.checked ? true : undefined })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("battery_trim_name")}</span>
+                    </div>
                   ` : ""}
                 ` : ""}
                 ` : ""}
@@ -8607,12 +8611,13 @@ class AlertTickerCardEditor extends LitElement {
                 ${alert.theme === 'music' ? html`
                   <div class="section-divider">🎵 ${this._t("music_player_controls")}</div>
                   <div>
-                    <ha-formfield .label="${this._t("music_player_controls")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${!!alert.show_player_controls}"
                         @change="${(e) => this._updateAlert(index, { show_player_controls: e.target.checked || undefined })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("music_player_controls")}</span>
+                    </div>
                     <div class="helper-text">${this._t("music_player_controls_help")}</div>
                   </div>
                   ${alert.show_player_controls ? html`
@@ -8643,68 +8648,76 @@ class AlertTickerCardEditor extends LitElement {
                   ></ha-input>
                   <div class="section-divider">${this._t("music_compact_layout")}</div>
                   <div>
-                    <ha-formfield .label="${this._t("music_compact_layout")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${!!alert.music_compact_layout}"
                         @change="${(e) => this._updateAlert(index, { music_compact_layout: e.target.checked || undefined })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("music_compact_layout")}</span>
+                    </div>
                     ${alert.music_compact_layout ? html`
-                    <ha-formfield .label="${this._t("music_compact_show_badge")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${alert.music_compact_show_badge !== false}"
                         @change="${(e) => this._updateAlert(index, { music_compact_show_badge: e.target.checked ? undefined : false })}"
                       ></ha-switch>
-                    </ha-formfield>` : ""}
+                    <span class="atc-ff-label">${this._t("music_compact_show_badge")}</span>
+                    </div>` : ""}
                   </div>
                   <div class="section-divider">${this._t("music_player_controls")}</div>
                   <div>
-                    <ha-formfield .label="${this._t("music_show_art")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${alert.music_show_art !== false}"
                         @change="${(e) => this._updateAlert(index, { music_show_art: e.target.checked ? undefined : false })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("music_show_art")}</span>
+                    </div>
                   </div>
                   <div>
-                    <ha-formfield .label="${this._t("music_show_title")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${alert.music_show_title !== false}"
                         @change="${(e) => this._updateAlert(index, { music_show_title: e.target.checked ? undefined : false })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("music_show_title")}</span>
+                    </div>
                   </div>
                   <div>
-                    <ha-formfield .label="${this._t("music_show_artist")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${alert.music_show_artist !== false}"
                         @change="${(e) => this._updateAlert(index, { music_show_artist: e.target.checked ? undefined : false })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("music_show_artist")}</span>
+                    </div>
                   </div>
                   <div>
-                    <ha-formfield .label="${this._t("music_show_controls")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${alert.music_show_controls !== false}"
                         @change="${(e) => this._updateAlert(index, { music_show_controls: e.target.checked ? undefined : false })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("music_show_controls")}</span>
+                    </div>
                   </div>
                   <div>
-                    <ha-formfield .label="${this._t("music_show_power")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${!!alert.music_show_power}"
                         @change="${(e) => this._updateAlert(index, { music_show_power: e.target.checked || undefined })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("music_show_power")}</span>
+                    </div>
                   </div>
                   <div>
-                    <ha-formfield .label="${this._t("music_show_player_picker")}">
+                    <div class="atc-ff">
                       <ha-switch
                         .checked="${!!alert.music_show_player_picker}"
                         @change="${(e) => this._updateAlert(index, { music_show_player_picker: e.target.checked || undefined })}"
                       ></ha-switch>
-                    </ha-formfield>
+                    <span class="atc-ff-label">${this._t("music_show_player_picker")}</span>
+                    </div>
                   </div>
                 ` : ""}
 
@@ -8770,12 +8783,13 @@ class AlertTickerCardEditor extends LitElement {
 
                 <!-- on_change toggle — when active hides only the primary operator/state fields -->
                 <div>
-                  <ha-formfield .label="${this._t("on_change")}">
+                  <div class="atc-ff">
                     <ha-switch
                       .checked="${!!alert.on_change}"
                       @change="${(e) => this._updateAlert(index, { on_change: e.target.checked || undefined })}"
                     ></ha-switch>
-                  </ha-formfield>
+                  <span class="atc-ff-label">${this._t("on_change")}</span>
+                  </div>
                   <div class="helper-text">${this._t("on_change_help")}</div>
                 </div>
                 ${!alert.on_change ? html`
@@ -8939,18 +8953,20 @@ class AlertTickerCardEditor extends LitElement {
 
                 <!-- Icon override -->
                 <div>
-                  <ha-formfield .label="${this._t("use_ha_icon")}">
+                  <div class="atc-ff">
                     <ha-switch
                       .checked="${!!alert.use_ha_icon}"
                       @change="${(e) => this._alertHaIconToggled(e.target.checked, index)}"
                     ></ha-switch>
-                  </ha-formfield>
-                  <ha-formfield .label="${this._t("use_entity_picture")}">
+                  <span class="atc-ff-label">${this._t("use_ha_icon")}</span>
+                  </div>
+                  <div class="atc-ff">
                     <ha-switch
                       .checked="${!!alert.use_entity_picture}"
                       @change="${(e) => this._updateAlert(index, { use_entity_picture: e.target.checked || undefined })}"
                     ></ha-switch>
-                  </ha-formfield>
+                  <span class="atc-ff-label">${this._t("use_entity_picture")}</span>
+                  </div>
                   <ha-input
                     .label="${this._t("icon_image")}"
                     .value="${alert.icon_image || ""}"
@@ -9039,12 +9055,13 @@ class AlertTickerCardEditor extends LitElement {
 
                 <!-- Badge -->
                 <div>
-                  <ha-formfield .label="${this._t("show_badge")}">
+                  <div class="atc-ff">
                     <ha-switch
                       .checked="${alert.show_badge !== false}"
                       @change="${(e) => this._updateAlert(index, { show_badge: e.target.checked ? undefined : false })}"
                     ></ha-switch>
-                  </ha-formfield>
+                  <span class="atc-ff-label">${this._t("show_badge")}</span>
+                  </div>
                   ${alert.show_badge !== false ? html`
                     <ha-input
                       .label="${this._t("badge_label")}"
@@ -9076,12 +9093,13 @@ class AlertTickerCardEditor extends LitElement {
                     .value="${alert.secondary_attribute || ""}"
                     @change="${(e) => this._updateAlert(index, { secondary_attribute: e.target.value.trim() || undefined })}"
                   ></ha-input>
-                  <ha-formfield .label="${this._t("show_secondary_name")}">
+                  <div class="atc-ff">
                     <ha-switch
                       .checked="${!!alert.show_secondary_name}"
                       @change="${(e) => this._updateAlert(index, { show_secondary_name: e.target.checked ? true : undefined })}"
                     ></ha-switch>
-                  </ha-formfield>
+                  <span class="atc-ff-label">${this._t("show_secondary_name")}</span>
+                  </div>
                 ` : ""}
 
                 <!-- Secondary static text -->
@@ -9420,7 +9438,7 @@ class AlertTickerCardEditor extends LitElement {
                             ${this._haUsers.map(u => {
                               const checked = selectedNames.includes(u.name);
                               return html`
-                                <ha-formfield .label="${u.name}${u.is_admin ? " ★" : ""}">
+                                <div class="atc-ff">
                                   <ha-checkbox
                                     ?checked="${checked}"
                                     @change="${(e) => {
@@ -9430,7 +9448,8 @@ class AlertTickerCardEditor extends LitElement {
                                       this._updateAlert(index, { visible_to: names.length === 0 ? undefined : names.length === 1 ? names[0] : names });
                                     }}"
                                   ></ha-checkbox>
-                                </ha-formfield>
+                                <span class="atc-ff-label">${u.name}${u.is_admin ? " ★" : ""}</span>
+                                </div>
                               `;
                             })}
                           </div>
@@ -10745,6 +10764,19 @@ class AlertTickerCardEditor extends LitElement {
         color: var(--secondary-text-color, #888);
         border: 1px solid var(--divider-color, #e0e0e0);
         white-space: nowrap;
+      }
+      /* Control + label row. Replaces ha-formfield, which Home Assistant removed
+         from its frontend (2026.11), leaving the toggles without labels (#246). */
+      .atc-ff {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 40px;
+      }
+      .atc-ff-label {
+        font-size: 0.9rem;
+        line-height: 1.3;
+        color: var(--primary-text-color, #212121);
       }
       .alert-item.is-editing {
         border-color: var(--primary-color, #03a9f4);

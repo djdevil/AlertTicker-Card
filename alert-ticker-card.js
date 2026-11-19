@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.26
+ * AlertTicker Card v1.3.27
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.26";
+const CARD_VERSION = "1.3.27";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1445,7 +1445,13 @@ const _ATC_OVERLAY = (() => {
     return result;
   }
 
-  function _evalAlert(hass, a, prevMap) {
+  // on_change alerts (#245): a state change is only visible on one watcher tick, so the
+  // moment it happens is remembered here and the alert stays active from then on:
+  // for auto_dismiss_after seconds if set, otherwise for as long as the card would show it.
+  // A banner that can't be closed (overlay_dismissible: false) falls back to the overlay
+  // duration so it can't stay on screen forever.
+  const _ovChangeAt = new Map(); // "cardId:i" → ms
+  function _evalAlert(hass, a, prevMap, id, i, cfg) {
     if (a.enabled === false) return false; // #232
     if (!_evalVisibleTo(hass, a)) return false;
     if (!_evalTimeRange(a)) return false;
@@ -1455,7 +1461,22 @@ const _ATC_OVERLAY = (() => {
       const key = a.entity + (a.attribute || "");
       const cur  = _getVal(hass, a.entity, a.attribute);
       const prev = prevMap.get(key);
-      return cur != null && prev !== undefined && cur !== prev;
+      const changed = cur != null && prev !== undefined && cur !== prev;
+      if (id == null) return changed;
+      const ck = id + ":" + i;
+      if (changed) {
+        _ovChangeAt.set(ck, Date.now());
+        _bases.get(id)?.delete(i); // a new change shows the banner again
+      }
+      const at = _ovChangeAt.get(ck);
+      if (at == null) return false;
+      let ttl = Number(a.auto_dismiss_after) > 0 ? Number(a.auto_dismiss_after) : null;
+      if (ttl == null && cfg?.overlay_dismissible === false) {
+        const d = cfg.overlay_duration != null ? Number(cfg.overlay_duration) : 8;
+        ttl = d > 0 ? d : 8;
+      }
+      if (ttl != null && Date.now() - at >= ttl * 1000) { _ovChangeAt.delete(ck); return false; }
+      return true;
     }
     const actual = _getVal(hass, a.entity, a.attribute);
     const primaryOk = _matchOp(actual, a.operator || "=", a.state ?? "on");
@@ -1597,7 +1618,7 @@ const _ATC_OVERLAY = (() => {
         const curActive = new Set();
         reg.alerts.forEach((a, i) => {
           try {
-            if (!_evalAlert(hass, a, prevMap)) {
+            if (!_evalAlert(hass, a, prevMap, id, i, reg.config)) {
               // Condition false — cancel any pending trigger_delay
               const dk = id + ":" + i;
               if (_ovDelayTimers.has(dk)) { clearTimeout(_ovDelayTimers.get(dk)); _ovDelayTimers.delete(dk); }
@@ -1883,6 +1904,7 @@ const _ATC_OVERLAY = (() => {
   function _dropReg(id) {
     if (_currentWatcherAlert?.id === id || _rotation?.cardId === id) _hide();
     _regs.delete(id); _prevS.delete(id); _bases.delete(id); _filterNotified.delete(id);
+    for (const k of [..._ovChangeAt.keys()]) if (k.startsWith(id + ":")) _ovChangeAt.delete(k);
   }
 
   // The card editor's preview is a throw-away copy of the card, possibly with
@@ -5880,13 +5902,17 @@ class AlertTickerCard extends LitElement {
     }
 
     const secondaryEl = this._renderSecondaryValue(alert);
+    // icon_image / use_entity_picture replace the drawn battery (#247)
+    const customPic = alert.icon_image ||
+      (alert.use_entity_picture && this._hass?.states[alert.entity]?.attributes?.entity_picture);
 
     return html`
       <div class="at-battery3d" style="--b3d-color:${color};--b3d-color-light:${colorLight};--b3d-level:${levelPct}%">
+        ${customPic ? html`<div class="b3d-img-icon">${this._getIcon(alert)}</div>` : html`
         <div class="b3d-icon">
           <div class="b3d-fill"></div>
           ${isCharging ? html`<div class="b3d-bolt">⚡</div>` : ""}
-        </div>
+        </div>`}
         <div class="b3d-content">
           <div class="b3d-badge">${label}${isCharging ? html` <span class="b3d-charging">⚡ Charging</span>` : ""}</div>
           <div class="b3d-title">${this._resolveMessage(alert)}</div>
@@ -8874,6 +8900,7 @@ class AlertTickerCard extends LitElement {
         border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;
         position: relative;
       }
+      .b3d-img-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
       .b3d-icon {
         position: relative; flex-shrink: 0;
         width: 56px; height: 28px;

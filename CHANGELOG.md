@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.27] - 2026-11-19
+
+### Fixed
+
+- **Overlay banner of `on_change` alerts vanished after about a second** ([#245](https://github.com/djdevil/AlertTicker-Card/issues/245) reported by [@Keiishu](https://github.com/Keiishu)) — the overlay watcher only saw a state change on the one check where it happened, so on the next check (2 s later) it treated the alert as cleared and hid the banner, ignoring `auto_dismiss_after`. The moment of the change is now remembered: the banner stays for `auto_dismiss_after` seconds, a new change shows it again, and without `auto_dismiss_after` it stays until closed (or for the overlay duration when `overlay_dismissible: false`, so it can't get stuck on screen).
+- **Editor toggles without labels on Home Assistant 2026.11** ([#246](https://github.com/djdevil/AlertTicker-Card/issues/246) reported by [@shashankmittal](https://github.com/shashankmittal)) — Home Assistant removed the `ha-formfield` component the editor used to label 19 toggles and checkboxes (HA icon, entity picture, show badge, any state change, filter name/state, music player options, visible-to users…). They now use the editor's own label row.
+
+### Added
+
+- **Custom image on the `battery3d` theme** ([#247](https://github.com/djdevil/AlertTicker-Card/issues/247) asked by [@shashankmittal](https://github.com/shashankmittal)) — `icon_image` and `use_entity_picture` now replace the drawn battery with your image; the level, progress bar and colors stay.
+
+---
+
 ## [1.3.26] - 2026-11-16
 
 ### Fixed
