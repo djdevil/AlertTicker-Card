@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.30] - 2026-11-23
+
+### Fixed
+
+- **Compact layout broken on filter alerts** (follow-up to [#253](https://github.com/djdevil/AlertTicker-Card/issues/253)) — with `device_class` / `entity_filter` and an empty message, the entity name line wasn't placed: the icon column grew wide and the badge was pushed to the right. Extra lines (entity name, secondary value, battery3d bar) now get their own full-width row and an empty title no longer leaves a blank row.
+- **Compact: the right value was covered by the 💤 / history buttons** — the counter or level now keeps clear of the top-right corner.
+- **Compact on `battery3d`** — the drawn battery and the level shrink to icon size, so the card actually gets lower.
+
+---
+
 ## [1.3.29] - 2026-11-22
 
 ### Added

@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.29
+ * AlertTicker Card v1.3.30
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.29";
+const CARD_VERSION = "1.3.30";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -10426,7 +10426,8 @@ class AlertTickerCard extends LitElement {
         min-height: 0;
         box-sizing: border-box;
       }
-      /* compact (#253): badge on top next to the icon, message on its own full-width row */
+      /* compact (#253): badge on top next to the icon, message on its own full-width row.
+         The right column (counter, level) keeps clear of the hover buttons in the top-right corner. */
       :host(.atc-compact) .atc-inner-clip > .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) {
         display: grid !important;
         grid-template-columns: auto minmax(0, 1fr) auto;
@@ -10452,8 +10453,15 @@ class AlertTickerCard extends LitElement {
       }
       :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] > [class$="-badge"] { grid-area: badge; margin: 0 !important; justify-self: start; }
       :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] > [class$="-title"] { grid-area: title; }
-      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] > [class$="-progress"] { grid-column: 1 / -1; }
-      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-right"] { grid-area: right; flex-direction: row !important; }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] > [class$="-title"]:empty { display: none; }
+      /* extra content lines (filter name, secondary value, battery3d bar) get their own full-width row */
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] > :not([class$="-badge"]):not([class$="-title"]) { grid-column: 1 / -1; }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-right"] { grid-area: right; flex-direction: row !important; align-items: center !important; margin-right: 50px !important; }
+      /* battery3d: shrink the drawn battery to icon size */
+      :host(.atc-compact) .at-battery3d > .b3d-icon { width: 34px; height: 17px; padding: 1px; border-radius: 4px; }
+      :host(.atc-compact) .at-battery3d > .b3d-icon::after { right: -5px; top: 4px; width: 3px; height: 7px; }
+      :host(.atc-compact) .at-battery3d .b3d-bolt { font-size: 0.75rem; }
+      :host(.atc-compact) .at-battery3d .b3d-level { font-size: 1.2rem; }
       .atc-inner-clip > .at-fold-wrapper {
         flex: 1;
         min-height: 0;
