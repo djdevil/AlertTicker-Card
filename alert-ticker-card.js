@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.28
+ * AlertTicker Card v1.3.29
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.28";
+const CARD_VERSION = "1.3.29";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -853,6 +853,20 @@ function _atcLangKey(language) {
   return raw.startsWith("sr-latn") ? "sr-Latn" : raw.split("-")[0];
 }
 
+// Filter helpers: device_class accepts a string or a list (#250); label_filter_exclude
+// skips entities carrying any of the given labels (#249).
+function _atcAsList(v) { return v == null || v === "" ? [] : (Array.isArray(v) ? v : [v]); }
+function _atcDeviceClassOk(a, es) {
+  const dcs = _atcAsList(a.device_class);
+  return !dcs.length || dcs.includes(es?.attributes?.device_class);
+}
+function _atcLabelExcluded(hass, a, eid) {
+  const ex = _atcAsList(a.label_filter_exclude);
+  if (!ex.length) return false;
+  const labels = hass?.entities?.[eid]?.labels || [];
+  return ex.some(l => labels.includes(l));
+}
+
 function _ovFmtState(hass, es, attribute) {
   if (!es) return "";
   if (attribute) {
@@ -1387,7 +1401,8 @@ const _ATC_OVERLAY = (() => {
     const areaFilter  = a.area_filter  ? (Array.isArray(a.area_filter)  ? a.area_filter  : [a.area_filter])  : null;
     for (const [eid, es] of Object.entries(hass.states)) {
       if (excluded.has(eid)) continue;
-      if (a.device_class && es.attributes?.device_class !== a.device_class) continue;
+      if (!_atcDeviceClassOk(a, es)) continue;
+      if (_atcLabelExcluded(hass, a, eid)) continue;
       if (matchFn && !matchFn(eid) && !matchFn(es.attributes?.friendly_name || "")) continue;
       // Label filter — match against HA entity registry labels
       if (labelFilter) {
@@ -1426,7 +1441,8 @@ const _ATC_OVERLAY = (() => {
     const result = [];
     for (const [eid, es] of Object.entries(hass.states)) {
       if (excluded.has(eid)) continue;
-      if (a.device_class && es.attributes?.device_class !== a.device_class) continue;
+      if (!_atcDeviceClassOk(a, es)) continue;
+      if (_atcLabelExcluded(hass, a, eid)) continue;
       if (matchFn && !matchFn(eid) && !matchFn(es.attributes?.friendly_name || "")) continue;
       if (labelFilter) {
         const entityLabels = hass.entities?.[eid]?.labels || [];
@@ -2369,7 +2385,8 @@ class AlertTickerCard extends LitElement {
         const areaFilter  = alert.area_filter  ? (Array.isArray(alert.area_filter)  ? alert.area_filter  : [alert.area_filter])  : null;
         const matched = Object.entries(this._hass.states).filter(([entityId, state]) => {
           if (excluded.has(entityId)) return false;
-          if (alert.device_class && state.attributes.device_class !== alert.device_class) return false;
+          if (!_atcDeviceClassOk(alert, state)) return false;
+          if (_atcLabelExcluded(this._hass, alert, entityId)) return false;
           if (matchFn) {
             const friendlyName = state.attributes.friendly_name || "";
             if (!matchFn(entityId) && !matchFn(friendlyName)) return false;
@@ -4528,6 +4545,12 @@ class AlertTickerCard extends LitElement {
                   </button>
                 `
               )}
+              ${this._config.snooze_menu_dismiss ? html`
+                <button class="atc-snooze-option atc-snooze-dismiss" @click="${() => {
+                  this._snoozeMenuOpen = null;
+                  alert._members.forEach(m => this._dismissAlert(m));
+                }}">✕ ${this._t("dismiss")}</button>
+              ` : ""}
             </div>
           ` : ""}
         </div>
@@ -4563,6 +4586,12 @@ class AlertTickerCard extends LitElement {
                   </button>
                 `
               )}
+              ${this._config.snooze_menu_dismiss && alert.entity ? html`
+                <button class="atc-snooze-option atc-snooze-dismiss" @click="${() => {
+                  this._snoozeMenuOpen = null;
+                  this._dismissAlert(alert);
+                }}">✕ ${this._t("dismiss")}</button>
+              ` : ""}
             </div>
           ` : ""}
         </div>
@@ -5109,6 +5138,7 @@ class AlertTickerCard extends LitElement {
     }
     this.classList.toggle("atc-center-text", this._config?.text_align === "center");
     this.classList.toggle("atc-fill-height", !!this._config?.card_height_fill);
+    this.classList.toggle("atc-compact", !!this._config?.compact);
     this.shadowRoot?.querySelectorAll(".atc-ha-icon").forEach(el => {
       el.parentElement?.classList.add("atc-has-mdi-icon");
     });
@@ -10028,6 +10058,10 @@ class AlertTickerCard extends LitElement {
       .atc-snooze-option:hover {
         background: rgba(255, 255, 255, 0.15);
       }
+      .atc-snooze-dismiss {
+        margin-top: 3px;
+        box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.12);
+      }
 
       /* -----------------------------------------------------------------------
        * DISMISSED INDICATOR BAR (shown when some alerts are dismissed)
@@ -10392,6 +10426,34 @@ class AlertTickerCard extends LitElement {
         min-height: 0;
         box-sizing: border-box;
       }
+      /* compact (#253): badge on top next to the icon, message on its own full-width row */
+      :host(.atc-compact) .atc-inner-clip > .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas: "icon badge right" "title title title";
+        column-gap: 8px !important;
+        row-gap: 2px !important;
+        align-items: center !important;
+        padding: 8px 14px 10px !important;
+        min-height: 0 !important;
+      }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] { display: contents !important; }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-icon"],
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-icon-wrap"] {
+        grid-area: icon;
+        font-size: 18px !important;
+        --mdc-icon-size: 20px;
+        margin: 0 !important;
+      }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-icon-wrap"] {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+      }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] > [class$="-badge"] { grid-area: badge; margin: 0 !important; justify-self: start; }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] > [class$="-title"] { grid-area: title; }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-content"] > [class$="-progress"] { grid-column: 1 / -1; }
+      :host(.atc-compact) .at-fold-wrapper > div:not(.at-ticker):not(.atc-snoozed-bar):not(.atc-history-card):not(.at-music--player):not(.atc-clear-widget):not(.atc-wf-wrap):not(.atc-cam-bg-wrap):not(.at-matrix):not(.at-timer-ring) > [class$="-right"] { grid-area: right; flex-direction: row !important; }
       .atc-inner-clip > .at-fold-wrapper {
         flex: 1;
         min-height: 0;
@@ -10426,7 +10488,7 @@ class AlertTickerCard extends LitElement {
         align-items: center;
         justify-content: space-between;
         padding: 10px 14px 8px;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+        border-bottom: 1px solid var(--divider-color, rgba(255,255,255,0.08));
       }
       .atc-history-title {
         font-size: 0.78rem;
@@ -10444,20 +10506,20 @@ class AlertTickerCard extends LitElement {
       .atc-history-clear {
         font-size: 0.70rem;
         background: transparent;
-        border: 1px solid rgba(255,255,255,0.2);
-        color: rgba(255,255,255,0.5);
+        border: 1px solid var(--divider-color, rgba(255,255,255,0.2));
+        color: var(--secondary-text-color, rgba(255,255,255,0.5));
         border-radius: 10px;
         padding: 2px 8px;
         cursor: pointer;
       }
-      .atc-history-clear:hover { color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.4); }
+      .atc-history-clear:hover { color: var(--primary-text-color, rgba(255,255,255,0.85)); border-color: var(--secondary-text-color, rgba(255,255,255,0.4)); }
       .atc-history-close {
         font-size: 0.82rem;
         font-weight: 600;
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.22);
+        background: var(--secondary-background-color, rgba(255,255,255,0.1));
+        border: 1px solid var(--divider-color, rgba(255,255,255,0.22));
         border-radius: 6px;
-        color: rgba(255,255,255,0.85);
+        color: var(--primary-text-color, rgba(255,255,255,0.85));
         cursor: pointer;
         padding: 4px 10px;
         min-width: 36px;
@@ -10466,7 +10528,7 @@ class AlertTickerCard extends LitElement {
         line-height: 1.4;
       }
       .atc-history-close:hover,
-      .atc-history-close:active { background: rgba(255,255,255,0.18); color: #fff; }
+      .atc-history-close:active { background: var(--divider-color, rgba(255,255,255,0.18)); color: var(--primary-text-color, #fff); }
       .atc-history-list {
         max-height: 220px;
         overflow-y: auto;
@@ -11376,6 +11438,9 @@ class AlertTickerCard extends LitElement {
       .atc-ha-theme .atc-history-close:active {
         background: rgba(0,0,0,0.1) !important;
         color: var(--primary-text-color, rgba(0,0,0,0.9)) !important;
+      }
+      .atc-ha-theme .atc-snooze-dismiss {
+        box-shadow: 0 -1px 0 var(--divider-color, rgba(0,0,0,0.12));
       }
       /* Snooze dropdown menu */
       .atc-ha-theme .atc-snooze-menu {

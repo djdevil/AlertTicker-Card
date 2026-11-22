@@ -697,6 +697,16 @@ Instead of listing individual entities or writing a text filter, specify a HA de
 
 Supports the same `include`/`exclude` panel as `entity_filter` and all the same message placeholders (`{name}`, `{state}`, `{entity}`, `{device}`).
 
+`device_class` also takes a list, and `label_filter_exclude` skips entities by HA label:
+
+```yaml
+- device_class: [door, window]
+  state: "on"
+  message: "{name} is open"
+  theme: caution
+  label_filter_exclude: no_alert
+```
+
 ### Jinja2 in the `state` trigger field
 
 The trigger threshold itself can be a Jinja2 template — useful when the threshold is stored in a helper entity:
@@ -1364,6 +1374,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `clear_double_tap_action` | `object` | — | Double-tap action for the all-clear card |
 | `show_widget_in_cycle` | `boolean` | `false` | Insert the clear widget as a slide in the alert cycle |
 | `snooze_default_duration` | `number` | *(menu)* | Fixed snooze duration in hours (`0.5`, `1`, `4`, `8`, `24`). Omit for menu. |
+| `snooze_menu_dismiss` | `boolean` | `false` | Add a **Dismiss** item to the 💤 menu: hides the alert until its entity changes |
 | `show_snooze_bar` | `boolean` | `true` | Set `false` to hide the amber snooze reactivation bar and pill |
 | `large_buttons` | `boolean` | `false` | Always-visible pill-shaped 💤 and 📋 buttons |
 | `swipe_to_snooze` | `boolean` | `false` | Left-swipe gesture to snooze on touch devices |
@@ -1374,6 +1385,7 @@ The tab shows an **ON** badge when overlay mode is active.
 | `active_state_entity` | `string` | — | **Per-alert.** `input_boolean.*` entity to write `on`/`off` to when this specific alert becomes active or clears. Each alert can target a different boolean. Works only while the browser tab is open. |
 | `card_height` | `number` | *(auto)* | Fixed card height in px — prevents layout shifts when cycling |
 | `card_height_fill` | `boolean` | `false` | Stretch the alert block to the full `card_height`, so short alerts are the same size as long ones |
+| `compact` | `boolean` | `false` | Compact layout: small icon and badge on the top row, message across the full width below (handy in narrow columns) |
 | `font_scale` | `number` | `1` | **New in 1.3.9.9.7** — proportional zoom for HD / 4K / wall-panel displays. `1` = normal, `1.5` = 50% larger, `2` = double. May require bumping `grid_options.rows`. |
 | `card_border` | `boolean` | `false` | Show the standard HA border around the card at all times |
 | `severity_border` | `boolean` | `true` | Show the 1px severity-colored border around each alert block. Set `false` to keep badge/icon color coding without the border. Width themeable via `--atc-severity-border-width`. |
@@ -1410,8 +1422,9 @@ The tab shows an **ON** badge when overlay mode is active.
 | `entity_filter` | `string` | ✅* | Text filter — supports `*` wildcard (replaces `entity`) |
 | `entity_filter_exclude` | `list` | ❌ | Entity IDs to exclude from `entity_filter` or `device_class` match |
 | `label_filter` | `string\|list` | ✅* | Match entities with this HA label (combinable with the other filters) |
+| `label_filter_exclude` | `string\|list` | ❌ | Skip entities that carry any of these HA labels, even if they match the other filters |
 | `area_filter` | `string\|list` | ✅* | Match entities in this HA area (entity area first, then device area) |
-| `device_class` | `string` | ✅* | HA device class (e.g. `smoke`, `battery`, `motion`) — auto-discovers all matching entities |
+| `device_class` | `string\|list` | ✅* | HA device class (e.g. `smoke`, `battery`, `motion`) or a list of classes (e.g. `[door, window]`) — auto-discovers all matching entities |
 | `show_filter_name` | `boolean` | `true` | Set `false` to hide the entity friendly name below the message |
 | `attribute` | `string` | ❌ | Attribute to check instead of state — supports dot-notation (e.g. `activity.0.forecast`) |
 | `operator` | `string` | ❌ | `=` `!=` `>` `<` `>=` `<=` `contains` `not_contains` `older` `newer` (default: `=`) |

@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.29] - 2026-11-22
+
+### Added
+
+- **`label_filter_exclude`** ([#249](https://github.com/djdevil/AlertTicker-Card/issues/249) asked by [@pod-la](https://github.com/pod-la)) — skip every entity that carries one of these HA labels, even when it matches `entity_filter`, `device_class`, `label_filter` or `area_filter`. Accepts a label or a list; the editor has a new "Exclude HA labels" picker under the label filter.
+- **`device_class` accepts a list** ([#250](https://github.com/djdevil/AlertTicker-Card/issues/250) asked by [@tioan](https://github.com/tioan)) — e.g. `device_class: [door, window]` matches both classes in one alert, in the card and in the overlay. In the editor, each class you pick is added as a chip and can be removed with ✕. A single string works as before.
+- **"Dismiss" in the 💤 snooze menu** ([#252](https://github.com/djdevil/AlertTicker-Card/issues/252) asked by [@scstraus](https://github.com/scstraus)) — opt-in with `snooze_menu_dismiss: true`: adds a Dismiss item at the bottom of the snooze menu that hides the alert until its entity changes (on a group slide, every member).
+- **Compact layout** ([#253](https://github.com/djdevil/AlertTicker-Card/issues/253) asked by [@scstraus](https://github.com/scstraus)) — opt-in with `compact: true` (Layout tab): small icon and badge on the top row, the message across the full width below. Handy in narrow columns. The `matrix` and `timer_ring` themes keep their own layout.
+
+### Fixed
+
+- **History ✕ and Clear buttons invisible on light themes** ([#251](https://github.com/djdevil/AlertTicker-Card/issues/251) reported by [@scstraus](https://github.com/scstraus)) — they were white on white outside `ha_theme`; they now use the Home Assistant theme colors.
+
+---
+
 ## [1.3.28] - 2026-11-19
 
 ### Fixed

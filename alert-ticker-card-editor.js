@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.28
+ * AlertTicker Card Editor v1.3.29
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.28";
+const CARD_VERSION = "1.3.29";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1324,6 +1324,15 @@ const DEFAULT_MSG = {
 // ---------------------------------------------------------------------------
 // Editor translations
 // ---------------------------------------------------------------------------
+// device_class may be a string or a list (#250); label_filter_exclude skips labelled entities (#249)
+function _atcAsList(v) { return v == null || v === "" ? [] : (Array.isArray(v) ? v : [v]); }
+function _atcLabelExcluded(hass, alert, id) {
+  const ex = _atcAsList(alert.label_filter_exclude);
+  if (!ex.length) return false;
+  const labels = hass?.entities?.[id]?.labels || [];
+  return ex.some(l => labels.includes(l));
+}
+
 const ET = {
   it: {
     tab_general: "Generale",
@@ -1590,6 +1599,12 @@ const ET = {
     device_class_help: "es. smoke, battery, motion — crea un alert per ogni entità con questa device_class. Alternativo al filtro testo.",
     label_filter: "Filtro etichetta HA (opzionale)",
     label_filter_help: "Mostra alert solo per entità che hanno questa etichetta HA. Combinabile con filtro testo, device_class e area (logica AND).",
+    label_filter_exclude: "Escludi etichette HA (opzionale)",
+    label_filter_exclude_help: "Salta le entità che hanno una di queste etichette, anche se corrispondono agli altri filtri.",
+    compact: "Layout compatto",
+    compact_help: "Badge in alto accanto all'icona e messaggio su una riga intera: utile in colonne strette.",
+    snooze_menu_dismiss: "Aggiungi «Rimuovi» al menu 💤",
+    snooze_menu_dismiss_help: "Mostra una voce Rimuovi in fondo al menu snooze: nasconde l'avviso finché l'entità non cambia.",
     area_filter: "Filtro area HA (opzionale)",
     area_filter_help: "Mostra alert solo per entità nell'area selezionata. Controlla prima l'area dell'entità, poi quella del dispositivo.",
     alert_attribute: "Attributo (opzionale)",
@@ -1975,6 +1990,12 @@ const ET = {
     device_class_help: "e.g. smoke, battery, motion — creates one alert per entity with this device_class. Alternative to the text filter.",
     label_filter: "HA Label filter (optional)",
     label_filter_help: "Only match entities that have this HA label. Combinable with text filter, device_class and area (AND logic).",
+    label_filter_exclude: "Exclude HA labels (optional)",
+    label_filter_exclude_help: "Skip entities that carry any of these labels, even if they match the other filters.",
+    compact: "Compact layout",
+    compact_help: "Badge on top next to the icon and the message on its own full-width row — handy in narrow columns.",
+    snooze_menu_dismiss: "Add “Dismiss” to the 💤 menu",
+    snooze_menu_dismiss_help: "Shows a Dismiss item at the bottom of the snooze menu: hides the alert until the entity changes.",
     area_filter: "HA Area filter (optional)",
     area_filter_help: "Only match entities in the selected area. Checks entity area first, then falls back to device area.",
     alert_attribute: "Attribute (optional)",
@@ -2358,6 +2379,12 @@ const ET = {
     device_class_help: "ex. smoke, battery, motion — crée une alerte par entité avec cette device_class. Alternatif au filtre texte.",
     label_filter: "Filtre étiquette HA (optionnel)",
     label_filter_help: "Ne correspond qu'aux entités ayant cette étiquette HA. Combinable avec le filtre texte, device_class et area (logique ET).",
+    label_filter_exclude: "Exclure des étiquettes HA (optionnel)",
+    label_filter_exclude_help: "Ignore les entités portant l'une de ces étiquettes, même si elles correspondent aux autres filtres.",
+    compact: "Disposition compacte",
+    compact_help: "Badge en haut à côté de l'icône et message sur une ligne entière — pratique dans les colonnes étroites.",
+    snooze_menu_dismiss: "Ajouter « Effacer » au menu 💤",
+    snooze_menu_dismiss_help: "Affiche une entrée Effacer en bas du menu snooze : masque l'alerte jusqu'au changement de l'entité.",
     area_filter: "Filtre zone HA (optionnel)",
     area_filter_help: "Ne correspond qu'aux entités dans la zone sélectionnée. Vérifie d'abord la zone de l'entité, puis celle du dispositif.",
     alert_attribute: "Attribut (optionnel)",
@@ -2741,6 +2768,12 @@ const ET = {
     device_class_help: "z.B. smoke, battery, motion — erstellt eine Warnung pro Entität mit dieser device_class. Alternativ zum Textfilter.",
     label_filter: "HA-Bezeichnungsfilter (optional)",
     label_filter_help: "Nur Entitäten mit dieser HA-Bezeichnung werden einbezogen. Kombinierbar mit Textfilter, device_class und Bereich (UND-Logik).",
+    label_filter_exclude: "HA-Bezeichnungen ausschließen (optional)",
+    label_filter_exclude_help: "Überspringt Entitäten mit einer dieser Bezeichnungen, auch wenn sie die anderen Filter erfüllen.",
+    compact: "Kompaktes Layout",
+    compact_help: "Badge oben neben dem Symbol, Meldung in einer eigenen vollen Zeile — praktisch in schmalen Spalten.",
+    snooze_menu_dismiss: "„Verwerfen“ zum 💤-Menü hinzufügen",
+    snooze_menu_dismiss_help: "Zeigt unten im Schlummer-Menü einen Eintrag Verwerfen: blendet die Warnung aus, bis sich die Entität ändert.",
     area_filter: "HA-Bereichsfilter (optional)",
     area_filter_help: "Nur Entitäten im gewählten Bereich werden einbezogen. Prüft zuerst den Bereich der Entität, dann den des Geräts.",
     alert_attribute: "Attribut (optional)",
@@ -3124,6 +3157,12 @@ const ET = {
     device_class_help: "bijv. smoke, battery, motion — maakt één melding per entiteit met deze device_class. Alternatief voor het tekstfilter.",
     label_filter: "HA-labelfilter (optioneel)",
     label_filter_help: "Alleen entiteiten met dit HA-label worden meegenomen. Combineerbaar met tekstfilter, device_class en gebied (EN-logica).",
+    label_filter_exclude: "HA-labels uitsluiten (optioneel)",
+    label_filter_exclude_help: "Slaat entiteiten met een van deze labels over, ook als ze aan de andere filters voldoen.",
+    compact: "Compacte indeling",
+    compact_help: "Badge bovenaan naast het pictogram en het bericht op een eigen volle regel — handig in smalle kolommen.",
+    snooze_menu_dismiss: "“Negeren” toevoegen aan het 💤-menu",
+    snooze_menu_dismiss_help: "Toont onderaan het sluimermenu een item Negeren: verbergt de melding tot de entiteit verandert.",
     area_filter: "HA-gebiedfilter (optioneel)",
     area_filter_help: "Alleen entiteiten in het geselecteerde gebied worden meegenomen. Controleert eerst het gebied van de entiteit, dan dat van het apparaat.",
     alert_attribute: "Attribuut (optioneel)",
@@ -3507,6 +3546,12 @@ const ET = {
     device_class_help: "vd. smoke, battery, motion — tạo một cảnh báo cho mỗi thực thể có device_class này. Thay thế cho bộ lọc văn bản.",
     label_filter: "Bộ lọc nhãn HA (tùy chọn)",
     label_filter_help: "Chỉ khớp các thực thể có nhãn HA này. Kết hợp được với bộ lọc văn bản, device_class và khu vực (logic VÀ).",
+    label_filter_exclude: "Loại trừ nhãn HA (tùy chọn)",
+    label_filter_exclude_help: "Bỏ qua các thực thể có một trong các nhãn này, kể cả khi khớp các bộ lọc khác.",
+    compact: "Bố cục gọn",
+    compact_help: "Huy hiệu ở trên cạnh biểu tượng và thông báo nằm trên một dòng riêng — tiện cho cột hẹp.",
+    snooze_menu_dismiss: "Thêm “Bỏ qua” vào menu 💤",
+    snooze_menu_dismiss_help: "Hiện mục Bỏ qua ở cuối menu tạm hoãn: ẩn cảnh báo cho đến khi thực thể thay đổi.",
     area_filter: "Bộ lọc khu vực HA (tùy chọn)",
     area_filter_help: "Chỉ khớp các thực thể trong khu vực được chọn. Kiểm tra khu vực thực thể trước, sau đó khu vực thiết bị.",
     alert_attribute: "Thuộc tính (tùy chọn)",
@@ -3890,6 +3935,12 @@ const ET = {
     device_class_help: "например smoke, battery, motion — создаёт одно оповещение на объект с этим device_class. Альтернатива текстовому фильтру.",
     label_filter: "Фильтр по метке HA (необязательно)",
     label_filter_help: "Учитываются только объекты с этой меткой HA. Комбинируется с текстовым фильтром, device_class и зоной (логика И).",
+    label_filter_exclude: "Исключить метки HA (необязательно)",
+    label_filter_exclude_help: "Пропускает объекты с любой из этих меток, даже если они подходят под остальные фильтры.",
+    compact: "Компактный вид",
+    compact_help: "Значок сверху рядом с иконкой, сообщение на отдельной строке во всю ширину — удобно в узких колонках.",
+    snooze_menu_dismiss: "Добавить «Скрыть» в меню 💤",
+    snooze_menu_dismiss_help: "Показывает пункт Скрыть внизу меню откладывания: скрывает оповещение до изменения объекта.",
     area_filter: "Фильтр по зоне HA (необязательно)",
     area_filter_help: "Учитываются только объекты в выбранной зоне. Сначала проверяется зона объекта, затем зона устройства.",
     alert_attribute: "Атрибут (необязательно)",
@@ -4269,6 +4320,12 @@ const ET = {
     device_class_help: "fx smoke, battery, motion — opretter én advarsel pr. enhed med denne device_class. Alternativ til tekstfilteret.",
     label_filter: "HA‑mærkatfilter (valgfrit)",
     label_filter_help: "Kun entiteter med dette HA‑mærkat medtages. Kan kombineres med tekstfilter, device_class og område (OG‑logik).",
+    label_filter_exclude: "Udelad HA‑mærkater (valgfrit)",
+    label_filter_exclude_help: "Springer entiteter over, der har et af disse mærkater, selv om de matcher de andre filtre.",
+    compact: "Kompakt layout",
+    compact_help: "Badge øverst ved ikonet og beskeden på sin egen hele linje — praktisk i smalle kolonner.",
+    snooze_menu_dismiss: "Tilføj “Afvis” til 💤‑menuen",
+    snooze_menu_dismiss_help: "Viser et Afvis‑punkt nederst i slumremenuen: skjuler advarslen, indtil entiteten ændres.",
     area_filter: "HA‑områdefilter (valgfrit)",
     area_filter_help: "Kun entiteter i det valgte område medtages. Kontrollerer først entitetens område, derefter enhedens område.",
     alert_attribute: "Attribut (valgfri)",
@@ -4656,6 +4713,12 @@ const ET = {
     device_class_help: "např. smoke, battery, motion — vytvoří jedno upozornění pro každou entitu s touto device_class. Alternativa k textovému filtru.",
     label_filter: "Filtr štítků HA (volitelné)",
     label_filter_help: "Zahrnuty jsou pouze entity s tímto štítkem HA. Kombinovatelné s textovým filtrem, device_class a oblastí (logika A).",
+    label_filter_exclude: "Vyloučit štítky HA (volitelné)",
+    label_filter_exclude_help: "Přeskočí entity s některým z těchto štítků, i když odpovídají ostatním filtrům.",
+    compact: "Kompaktní rozložení",
+    compact_help: "Odznak nahoře vedle ikony a zpráva na vlastním celém řádku — vhodné pro úzké sloupce.",
+    snooze_menu_dismiss: "Přidat „Zavřít“ do menu 💤",
+    snooze_menu_dismiss_help: "Zobrazí položku Zavřít na konci menu odložení: skryje upozornění, dokud se entita nezmění.",
     area_filter: "Filtr oblasti HA (volitelné)",
     area_filter_help: "Zahrnuty jsou pouze entity ve vybrané oblasti. Nejprve se kontroluje oblast entity, poté oblast zařízení.",
     alert_attribute: "Atribut (volitelné)",
@@ -5043,6 +5106,12 @@ const ET = {
     device_class_help: "ex. smoke, battery, motion — cria um alerta para cada entidade com esta device_class. Alternativa ao filtro de texto.",
     label_filter: "Filtro de etiqueta HA (opcional)",
     label_filter_help: "Corresponde apenas a entidades que têm esta etiqueta HA. Combinável com filtro de texto, device_class e área (lógica AND).",
+    label_filter_exclude: "Excluir etiquetas HA (opcional)",
+    label_filter_exclude_help: "Ignora entidades que tenham alguma destas etiquetas, mesmo que correspondam aos outros filtros.",
+    compact: "Layout compacto",
+    compact_help: "Badge em cima ao lado do ícone e mensagem numa linha inteira — útil em colunas estreitas.",
+    snooze_menu_dismiss: "Adicionar “Dispensar” ao menu 💤",
+    snooze_menu_dismiss_help: "Mostra um item Dispensar no fim do menu de silenciar: oculta o alerta até a entidade mudar.",
     area_filter: "Filtro de área HA (opcional)",
     area_filter_help: "Corresponde apenas a entidades na área selecionada. Verifica a área da entidade primeiro, depois volta para a área do dispositivo.",
     alert_attribute: "Atributo (opcional)",
@@ -5426,6 +5495,12 @@ const ET = {
     device_class_help: "ej. smoke, battery, motion — crea una alerta por cada entidad con esta device_class. Alternativa al filtro de texto.",
     label_filter: "Filtro de etiqueta HA (opcional)",
     label_filter_help: "Solo entidades que tengan esta etiqueta HA. Combinable con filtro de texto, device_class y área (lógica AND).",
+    label_filter_exclude: "Excluir etiquetas HA (opcional)",
+    label_filter_exclude_help: "Omite las entidades que tengan alguna de estas etiquetas, aunque cumplan los demás filtros.",
+    compact: "Diseño compacto",
+    compact_help: "Insignia arriba junto al icono y mensaje en su propia línea completa — útil en columnas estrechas.",
+    snooze_menu_dismiss: "Añadir «Descartar» al menú 💤",
+    snooze_menu_dismiss_help: "Muestra una opción Descartar al final del menú de posponer: oculta la alerta hasta que cambie la entidad.",
     area_filter: "Filtro de área HA (opcional)",
     area_filter_help: "Solo entidades en el área seleccionada. Verifica primero el área de la entidad, luego la del dispositivo.",
     alert_attribute: "Atributo (opcional)",
@@ -5809,6 +5884,12 @@ const ET = {
     device_class_help: "örn. smoke, battery, motion — bu device_class'a sahip her varlık için bir uyarı oluşturur. Metin filtresine alternatif.",
     label_filter: "HA Etiket filtresi (isteğe bağlı)",
     label_filter_help: "Yalnızca bu HA etiketine sahip varlıklarla eşleş. Metin filtresi, device_class ve alan ile birleştirilebilir (VE mantığı).",
+    label_filter_exclude: "HA etiketlerini hariç tut (isteğe bağlı)",
+    label_filter_exclude_help: "Diğer filtrelerle eşleşse bile bu etiketlerden birine sahip varlıkları atlar.",
+    compact: "Kompakt düzen",
+    compact_help: "Rozet üstte simgenin yanında, mesaj tam genişlikte ayrı satırda — dar sütunlarda kullanışlı.",
+    snooze_menu_dismiss: "💤 menüsüne “Kapat” ekle",
+    snooze_menu_dismiss_help: "Erteleme menüsünün altında Kapat seçeneği gösterir: varlık değişene kadar uyarıyı gizler.",
     area_filter: "HA Alan filtresi (isteğe bağlı)",
     area_filter_help: "Yalnızca seçili alandaki varlıklarla eşleş. Önce varlık alanını kontrol eder, ardından cihaz alanına geri döner.",
     alert_attribute: "Nitelik (isteğe bağlı)",
@@ -6186,6 +6267,12 @@ const ET = {
     label_filter: "Филтер ХА ознаке (опционо)",
     label_filter_help:
       "Приказује упозорење само за ентитете који имају ову ХА ознаку. Може се комбиновати са текстуалним филтером, класом уређаја и просторијом (логика И).",
+    label_filter_exclude: "Искључи ХА ознаке (опционо)",
+    label_filter_exclude_help: "Прескаче ентитете који имају неку од ових ознака, чак и ако одговарају осталим филтерима.",
+    compact: "Компактан распоред",
+    compact_help: "Ознака горе поред иконе, а порука у свом пуном реду — згодно у уским колонама.",
+    snooze_menu_dismiss: "Додај „Одбаци“ у мени 💤",
+    snooze_menu_dismiss_help: "Приказује ставку Одбаци на дну менија одлагања: сакрива упозорење док се ентитет не промени.",
     area_filter: "Филтер ХА просторије (опционо)",
     area_filter_help:
       "Приказује упозорење само за ентитете у изабраној просторији. Прво проверава просторију ентитета, затим просторију уређаја.",
@@ -6647,6 +6734,12 @@ const ET = {
     label_filter: "Filter HA oznake (opciono)",
     label_filter_help:
       "Prikazuje upozorenje samo za entitete koji imaju ovu HA oznaku. Može se kombinovati sa tekstualnim filterom, device_class i prostorijom (logika AND).",
+    label_filter_exclude: "Isključi HA oznake (opciono)",
+    label_filter_exclude_help: "Preskače entitete koji imaju neku od ovih oznaka, čak i ako odgovaraju ostalim filterima.",
+    compact: "Kompaktan raspored",
+    compact_help: "Oznaka gore pored ikone, a poruka u svom punom redu — zgodno u uskim kolonama.",
+    snooze_menu_dismiss: "Dodaj „Odbaci“ u meni 💤",
+    snooze_menu_dismiss_help: "Prikazuje stavku Odbaci na dnu menija odlaganja: sakriva upozorenje dok se entitet ne promeni.",
     area_filter: "Filter HA prostorije (opciono)",
     area_filter_help:
       "Prikazuje upozorenje samo za entitete u izabranoj prostoriji. Prvo proverava prostoriju entiteta, zatim prostoriju uređaja.",
@@ -7435,6 +7528,16 @@ class AlertTickerCardEditor extends LitElement {
         ` : ""}
       </div>
       <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("compact")}</span>
+          <ha-switch
+            .checked="${!!cfg.compact}"
+            @change="${(e) => this._fireConfig({ ...this._config, compact: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+        <div class="helper-text">${this._t("compact_help")}</div>
+      </div>
+      <div class="form-row">
         <ha-input
           type="number"
           .label="${this._t("font_scale")}"
@@ -7587,6 +7690,17 @@ class AlertTickerCardEditor extends LitElement {
         </div>
         <div class="helper-text">${this._t("snooze_default_duration_help")}</div>
       </div>
+      ${!cfg.snooze_default_duration ? html`
+      <div class="form-row">
+        <div class="form-row-inline">
+          <span>${this._t("snooze_menu_dismiss")}</span>
+          <ha-switch
+            .checked="${!!cfg.snooze_menu_dismiss}"
+            @change="${(e) => this._fireConfig({ ...this._config, snooze_menu_dismiss: e.target.checked || undefined })}"
+          ></ha-switch>
+        </div>
+        <div class="helper-text">${this._t("snooze_menu_dismiss_help")}</div>
+      </div>` : ""}
       <div class="form-row">
         <div class="form-row-inline">
           <span>${this._t("swipe_to_snooze")}</span>
@@ -8216,7 +8330,7 @@ class AlertTickerCardEditor extends LitElement {
     const entityLabel = alert.entity_filter
       ? `[${this._t("entity_filter")}: "${alert.entity_filter}"]`
       : alert.device_class
-      ? `[${this._t("device_class")}: "${alert.device_class}"]`
+      ? `[${this._t("device_class")}: "${_atcAsList(alert.device_class).join(", ")}"]`
       : alert.entity || (this._lang === "it" ? "(non impostato)" : "(not set)");
     const msgSnippet = alert.message
       ? alert.message.length > 40
@@ -8344,7 +8458,7 @@ class AlertTickerCardEditor extends LitElement {
                       const next = new Set(this._alertModeFilter);
                       next.delete(index);
                       this._alertModeFilter = next;
-                      this._updateAlert(index, { entity_filter: undefined, device_class: undefined, label_filter: undefined, area_filter: undefined, entity_filter_exclude: undefined });
+                      this._updateAlert(index, { entity_filter: undefined, device_class: undefined, label_filter: undefined, label_filter_exclude: undefined, area_filter: undefined, entity_filter_exclude: undefined });
                     }}">${this._t("mode_entity")}</button>
                     <button class="alert-mode-btn ${mode === "filter" ? "active" : ""}" @click="${() => {
                       const next = new Set(this._alertModeFilter);
@@ -8402,6 +8516,7 @@ class AlertTickerCardEditor extends LitElement {
                       const areaFilter  = alert.area_filter  ? (Array.isArray(alert.area_filter)  ? alert.area_filter  : [alert.area_filter])  : null;
                       const allMatched = Object.entries(this._hass.states).filter(([id, s]) => {
                         if (!matchFn(id) && !matchFn(s.attributes.friendly_name || "")) return false;
+                        if (_atcLabelExcluded(this._hass, alert, id)) return false;
                         if (labelFilter) {
                           const entityLabels = this._hass.entities?.[id]?.labels || [];
                           if (!labelFilter.some(l => entityLabels.includes(l))) return false;
@@ -8460,29 +8575,42 @@ class AlertTickerCardEditor extends LitElement {
                 ${this._getAlertMode(index, alert) === "filter" && !alert.entity_filter ? html`<div>
                   <div class="native-select-wrap">
                     <label class="native-select-label">${this._t("device_class")}</label>
-                    <select class="native-select" @change="${(e) => {
-                      const v = e.target.value || undefined;
-                      if (v) {
-                        const next = new Set(this._filterPreviewOpen);
-                        next.add(`dc_${index}`);
-                        this._filterPreviewOpen = next;
-                      }
-                      this._updateAlert(index, { device_class: v, entity: v ? undefined : alert.entity });
+                    <select class="native-select" .value="${""}" @change="${(e) => {
+                      const v = e.target.value;
+                      e.target.value = "";
+                      if (!v) return;
+                      const cur = _atcAsList(alert.device_class);
+                      if (cur.includes(v)) return;
+                      const list = [...cur, v];
+                      const next = new Set(this._filterPreviewOpen);
+                      next.add(`dc_${index}`);
+                      this._filterPreviewOpen = next;
+                      this._updateAlert(index, { device_class: list.length === 1 ? list[0] : list, entity: undefined });
                     }}">
-                      <option value="" ?selected="${!alert.device_class}">—</option>
+                      <option value="" selected>${_atcAsList(alert.device_class).length ? "+" : "—"}</option>
                       ${this._hass ? [...new Set(Object.values(this._hass.states)
                           .map(s => s.attributes.device_class).filter(Boolean))].sort()
-                        .map(dc => html`<option value="${dc}" ?selected="${alert.device_class === dc}">${dc}</option>`)
+                        .filter(dc => !_atcAsList(alert.device_class).includes(dc))
+                        .map(dc => html`<option value="${dc}">${dc}</option>`)
                       : ""}
                     </select>
                   </div>
+                  ${_atcAsList(alert.device_class).length ? html`
+                    <div class="atc-dc-chips">
+                      ${_atcAsList(alert.device_class).map(dc => html`
+                        <span class="atc-dc-chip">${dc}<button title="✕" @click="${() => {
+                          const list = _atcAsList(alert.device_class).filter(x => x !== dc);
+                          this._updateAlert(index, { device_class: list.length === 0 ? undefined : (list.length === 1 ? list[0] : list) });
+                        }}">✕</button></span>`)}
+                    </div>` : ""}
                   <div class="helper-text">
                     ${alert.device_class && this._hass ? (() => {
                       const excluded = new Set(alert.entity_filter_exclude || []);
                       const labelFilter = alert.label_filter ? (Array.isArray(alert.label_filter) ? alert.label_filter : [alert.label_filter]) : null;
                       const areaFilter  = alert.area_filter  ? (Array.isArray(alert.area_filter)  ? alert.area_filter  : [alert.area_filter])  : null;
                       const allMatched = Object.entries(this._hass.states).filter(([id, s]) => {
-                        if (s.attributes.device_class !== alert.device_class) return false;
+                        if (!_atcAsList(alert.device_class).includes(s.attributes.device_class)) return false;
+                        if (_atcLabelExcluded(this._hass, alert, id)) return false;
                         if (labelFilter) {
                           const entityLabels = this._hass.entities?.[id]?.labels || [];
                           if (!labelFilter.some(l => entityLabels.includes(l))) return false;
@@ -8552,6 +8680,21 @@ class AlertTickerCardEditor extends LitElement {
                     }}"
                   ></ha-selector>
                   <div class="helper-text">${this._t("label_filter_help")}</div>
+                </div>
+
+                <!-- Label exclude filter (#249) -->
+                <div>
+                  <ha-selector
+                    .hass="${this._hass}"
+                    .selector="${{label: {multiple: true}}}"
+                    .value="${_atcAsList(alert.label_filter_exclude)}"
+                    .label="${this._t("label_filter_exclude")}"
+                    @value-changed="${(e) => {
+                      const v = e.detail.value;
+                      this._updateAlert(index, { label_filter_exclude: v?.length ? v : undefined });
+                    }}"
+                  ></ha-selector>
+                  <div class="helper-text">${this._t("label_filter_exclude_help")}</div>
                 </div>
 
                 <!-- Area filter -->
@@ -9953,7 +10096,9 @@ class AlertTickerCardEditor extends LitElement {
     const labelFilter = alert.label_filter ? (Array.isArray(alert.label_filter) ? alert.label_filter : [alert.label_filter]) : null;
     const areaFilter  = alert.area_filter  ? (Array.isArray(alert.area_filter)  ? alert.area_filter  : [alert.area_filter])  : null;
     return Object.entries(this._hass.states).filter(([id, s]) => {
-      if (alert.device_class && s.attributes?.device_class !== alert.device_class) return false;
+      const dcs = _atcAsList(alert.device_class);
+      if (dcs.length && !dcs.includes(s.attributes?.device_class)) return false;
+      if (_atcLabelExcluded(this._hass, alert, id)) return false;
       if (matchFn && !matchFn(id) && !matchFn(s.attributes?.friendly_name || "")) return false;
       if (labelFilter) {
         const labels = this._hass.entities?.[id]?.labels || [];
@@ -10928,6 +11073,17 @@ class AlertTickerCardEditor extends LitElement {
         background: var(--card-background-color, #fff);
         color: var(--primary-color, #03a9f4);
         box-shadow: 0 1px 4px rgba(0,0,0,0.13);
+      }
+      .atc-dc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+      .atc-dc-chip {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 2px 4px 2px 10px; border-radius: 12px; font-size: 0.82rem;
+        background: var(--secondary-background-color, #eee); color: var(--primary-text-color, #212121);
+        border: 1px solid var(--divider-color, rgba(0,0,0,0.12));
+      }
+      .atc-dc-chip button {
+        border: none; background: none; cursor: pointer; padding: 0 4px;
+        color: var(--secondary-text-color, #727272); font-size: 0.8rem; line-height: 1;
       }
       .filter-count-btn {
         display: inline-flex;
