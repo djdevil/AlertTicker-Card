@@ -806,6 +806,7 @@ How it works:
 - When the card's view is **currently visible**, the banner is suppressed (no redundant notification — the card itself already shows the alert).
 - When you navigate away to another view (or the card is off-screen), an independent watcher reads entity states from the always-present `<home-assistant>` element every 2 seconds and fires the banner automatically.
 - A 10-second deduplication window prevents the same alert from firing twice.
+- An alert you snoozed 💤 or dismissed on the card doesn't show up as a banner either, until the snooze ends or the entity changes.
 - `on_change` alerts stay in the banner for `auto_dismiss_after` seconds. Without it they stay until closed, or for the overlay duration when `overlay_dismissible: false`.
 - The browser remembers the overlay settings of each card, so the banner also works right after a page reload on a view that doesn't contain the card. This copy is refreshed every time you open the card's view, and it expires if the view isn't opened for 30 days.
 - The banner is styled according to the alert category (Critical / Warning / Info / OK / Style / Timer) and dismisses automatically after `overlay_duration` seconds, or manually via the × button.
@@ -1496,7 +1497,9 @@ The tab shows an **ON** badge when overlay mode is active.
 
 | Field | Description |
 |-------|-------------|
-| `action` | `call-service` · `navigate` · `more-info` · `toggle` · `url` · `fire-dom-event` · `assist` · `dismiss` · `none` |
+| `action` | `call-service` · `navigate` · `more-info` · `toggle` · `url` · `fire-dom-event` · `assist` · `dismiss` · `undismiss` · `dismiss-group` · `none` |
+
+`dismiss-group` is meant for `group_tap_action` / `group_hold_action`: it dismisses every alert in the group at once (until each entity changes).
 | `service` | HA service in `domain.service` format |
 | `target` | `{entity_id: "..."}` |
 | `service_data` | Extra service parameters (object) |

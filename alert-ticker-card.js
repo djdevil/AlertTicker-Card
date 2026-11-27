@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card v1.3.30
+ * AlertTicker Card v1.3.31
  * A Home Assistant custom Lovelace card to display alerts based on entity states.
  * Supports 50 visual themes with per-alert theme assignment, priority ordering,
  * fold animation cycling, snooze, numeric conditions, attribute triggers,
@@ -41,7 +41,7 @@ const css = LitElement.prototype.css ?? ((strings, ...values) => {
 // ---------------------------------------------------------------------------
 // Card version — declared early so getConfigElement() can reference it
 // ---------------------------------------------------------------------------
-const CARD_VERSION = "1.3.30";
+const CARD_VERSION = "1.3.31";
 
 // ---------------------------------------------------------------------------
 // Google Cast compatibility (#171)
@@ -1467,6 +1467,18 @@ const _ATC_OVERLAY = (() => {
   // A banner that can't be closed (overlay_dismissible: false) falls back to the overlay
   // duration so it can't stay on screen forever.
   const _ovChangeAt = new Map(); // "cardId:i" → ms
+  // #254: the banner honours the card's 💤 snooze and dismiss (same keys and storage
+  // as the card's _snoozeKey / atc-snooze / atc-dismissed, so groups and filters work too).
+  function _ovSuppressed(hass, a, eid) {
+    const key = `${eid}||${a.attribute || ""}||${a.operator || "="}||${JSON.stringify(a.state)}`;
+    try {
+      const sn = JSON.parse(localStorage.getItem("atc-snooze") || "{}");
+      if (sn[key] && sn[key] > Date.now()) return true;
+      const dm = JSON.parse(localStorage.getItem("atc-dismissed") || "{}");
+      if (dm[key] && dm[key] === hass.states[eid]?.last_changed) return true;
+    } catch (_) {}
+    return false;
+  }
   function _evalAlert(hass, a, prevMap, id, i, cfg) {
     if (a.enabled === false) return false; // #232
     if (!_evalVisibleTo(hass, a)) return false;
@@ -1634,7 +1646,7 @@ const _ATC_OVERLAY = (() => {
         const curActive = new Set();
         reg.alerts.forEach((a, i) => {
           try {
-            if (!_evalAlert(hass, a, prevMap, id, i, reg.config)) {
+            if (!_evalAlert(hass, a, prevMap, id, i, reg.config) || (a.entity && _ovSuppressed(hass, a, a.entity))) {
               // Condition false — cancel any pending trigger_delay
               const dk = id + ":" + i;
               if (_ovDelayTimers.has(dk)) { clearTimeout(_ovDelayTimers.get(dk)); _ovDelayTimers.delete(dk); }
@@ -1817,6 +1829,7 @@ const _ATC_OVERLAY = (() => {
             let firedFilter = false;
             for (const [eid, fes] of allMatches) {
               if (notifiedEids.has(eid)) continue;
+              if (_ovSuppressed(hass, a, eid)) continue;
               const key = id + ":" + eid + ":" + i;
               if (_isDupe(key)) { notifiedEids.add(eid); continue; }
               if (firedFilter) break; // one overlay per tick; remaining entities fire on next ticks
@@ -4766,6 +4779,13 @@ class AlertTickerCard extends LitElement {
       case "dismiss": {
         const target = this._activeAlerts && this._activeAlerts[this._currentIndex];
         if (target) this._dismissAlert(target);
+        break;
+      }
+      case "dismiss-group": {
+        // #255: dismiss every alert in the group at once (on a normal slide: that alert)
+        const target = this._activeAlerts && this._activeAlerts[this._currentIndex];
+        if (target?._isGroup) target._members.forEach(m => this._dismissAlert(m));
+        else if (target) this._dismissAlert(target);
         break;
       }
       case "undismiss": {

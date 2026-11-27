@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.31] - 2026-11-27
+
+### Added
+
+- **`dismiss-group` action** ([#255](https://github.com/djdevil/AlertTicker-Card/issues/255) asked by [@Gruesy42](https://github.com/Gruesy42)) — for `group_tap_action` / `group_hold_action`: dismisses every alert in the group at once, instead of expanding it and dismissing them one by one. In the editor it appears as "Dismiss entire group" in the group action menus.
+
+### Fixed
+
+- **The overlay banner ignored snooze and dismiss** ([#254](https://github.com/djdevil/AlertTicker-Card/issues/254) reported by [@ThomDyson](https://github.com/ThomDyson)) — an alert snoozed 💤 or dismissed on the card still popped up as a banner on other views. The banner now follows the card: it stays hidden until the snooze ends or the entity changes. Works for single alerts, groups and filter alerts (each matched entity separately).
+
+---
+
 ## [1.3.30] - 2026-11-23
 
 ### Fixed

@@ -1,5 +1,5 @@
 /**
- * AlertTicker Card Editor v1.3.30
+ * AlertTicker Card Editor v1.3.31
  * Visual editor for the AlertTicker Card custom Lovelace component.
  */
 
@@ -10,7 +10,7 @@ const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
 // Must match the version in alert-ticker-card.js
-const CARD_VERSION = "1.3.30";
+const CARD_VERSION = "1.3.31";
 
 // ---------------------------------------------------------------------------
 // Theme metadata — mirrors alert-ticker-card.js
@@ -1665,6 +1665,7 @@ const ET = {
     action_assist: "Assistente vocale",
     action_dismiss: "Chiudi definitivamente",
     action_undismiss: "Ripristina ignorati",
+    action_dismiss_group: "Chiudi tutto il gruppo",
     action_pipeline_id: "Pipeline (vuoto = predefinita)",
     action_pipeline_id_help: "ID del pipeline vocale da usare. Lascia vuoto per usare quello predefinito.",
     action_start_listening: "Avvia ascolto",
@@ -2056,6 +2057,7 @@ const ET = {
     action_assist: "Assist",
     action_dismiss: "Dismiss",
     action_undismiss: "Restore dismissed",
+    action_dismiss_group: "Dismiss entire group",
     action_pipeline_id: "Pipeline (empty = preferred)",
     action_pipeline_id_help: "Voice pipeline ID to use. Leave empty to use the preferred pipeline.",
     action_start_listening: "Start listening",
@@ -2445,6 +2447,7 @@ const ET = {
     action_assist: "Assistant vocal",
     action_dismiss: "Ignorer définitivement",
     action_undismiss: "Restaurer ignorées",
+    action_dismiss_group: "Effacer tout le groupe",
     action_pipeline_id: "Pipeline (vide = préféré)",
     action_pipeline_id_help: "ID du pipeline vocal à utiliser. Laisser vide pour utiliser le pipeline préféré.",
     action_start_listening: "Démarrer l'écoute",
@@ -2834,6 +2837,7 @@ const ET = {
     action_assist: "Assistent",
     action_dismiss: "Dauerhaft schließen",
     action_undismiss: "Ignorierte wiederherstellen",
+    action_dismiss_group: "Ganze Gruppe verwerfen",
     action_pipeline_id: "Pipeline (leer = bevorzugt)",
     action_pipeline_id_help: "ID der Sprach-Pipeline. Leer lassen für die bevorzugte Pipeline.",
     action_start_listening: "Zuhören starten",
@@ -3223,6 +3227,7 @@ const ET = {
     action_assist: "Assistent",
     action_dismiss: "Definitief sluiten",
     action_undismiss: "Genegeerde herstellen",
+    action_dismiss_group: "Hele groep negeren",
     action_pipeline_id: "Pipeline (leeg = voorkeur)",
     action_pipeline_id_help: "ID van de spraakpipeline. Leeg laten voor de standaard pipeline.",
     action_start_listening: "Begin met luisteren",
@@ -3612,6 +3617,7 @@ const ET = {
     action_assist: "Trợ lý giọng nói",
     action_dismiss: "Bỏ qua vĩnh viễn",
     action_undismiss: "Khôi phục bỏ qua",
+    action_dismiss_group: "Bỏ qua toàn bộ nhóm",
     action_pipeline_id: "Pipeline (trống = mặc định)",
     action_pipeline_id_help: "ID pipeline giọng nói. Để trống để dùng pipeline mặc định.",
     action_start_listening: "Bắt đầu nghe",
@@ -4001,6 +4007,7 @@ const ET = {
     action_assist: "Голосовой помощник",
     action_dismiss: "Закрыть навсегда",
     action_undismiss: "Восстановить отклонённые",
+    action_dismiss_group: "Скрыть всю группу",
     action_pipeline_id: "Pipeline (пусто = по умолчанию)",
     action_pipeline_id_help: "ID голосового pipeline. Оставьте пустым для использования pipeline по умолчанию.",
     action_start_listening: "Начать прослушивание",
@@ -4386,6 +4393,7 @@ const ET = {
     action_assist: "Assistent",
     action_dismiss: "Afvis permanent",
     action_undismiss: "Gendan afviste",
+    action_dismiss_group: "Afvis hele gruppen",
     action_pipeline_id: "Pipeline (tom = foretrukket)",
     action_pipeline_id_help: "ID på tale-pipeline. Lad feltet være tomt for at bruge den foretrukne pipeline.",
     action_start_listening: "Start lytning",
@@ -4779,6 +4787,7 @@ const ET = {
     action_assist: "Hlasový asistent",
     action_dismiss: "Trvale zavřít",
     action_undismiss: "Obnovit zamítnutá",
+    action_dismiss_group: "Zavřít celou skupinu",
     action_pipeline_id: "Pipeline (prázdné = výchozí)",
     action_pipeline_id_help: "ID hlasového pipeline. Nechte prázdné pro použití výchozího pipeline.",
     action_start_listening: "Začít naslouchat",
@@ -5172,6 +5181,7 @@ const ET = {
     action_assist: "Assistente de voz",
     action_dismiss: "Dispensar",
     action_undismiss: "Restaurar dispensados",
+    action_dismiss_group: "Dispensar todo o grupo",
     action_pipeline_id: "Pipeline (vazio = padrão)",
     action_pipeline_id_help: "ID do pipeline de voz. Deixe vazio para usar o pipeline padrão.",
     action_start_listening: "Iniciar escuta",
@@ -5561,6 +5571,7 @@ const ET = {
     action_assist: "Asistente de voz",
     action_dismiss: "Descartar",
     action_undismiss: "Restaurar descartadas",
+    action_dismiss_group: "Descartar todo el grupo",
     action_pipeline_id: "Pipeline (vacío = predeterminado)",
     action_pipeline_id_help: "ID del pipeline de voz. Dejar vacío para usar el predeterminado.",
     action_start_listening: "Iniciar escucha",
@@ -5950,6 +5961,7 @@ const ET = {
     action_assist: "Sesli asistan",
     action_dismiss: "Kalıcı olarak kapat",
     action_undismiss: "Reddedilenleri geri yükle",
+    action_dismiss_group: "Tüm grubu kapat",
     action_pipeline_id: "Pipeline (boş = tercih edilen)",
     action_pipeline_id_help: "Kullanılacak sesli pipeline ID'si. Tercih edilen pipeline için boş bırakın.",
     action_start_listening: "Dinlemeyi başlat",
@@ -6349,6 +6361,7 @@ const ET = {
     action_assist: "Гласовни асистент",
     action_dismiss: "Трајно затвори",
     action_undismiss: "Врати игнорисане",
+    action_dismiss_group: "Одбаци целу групу",
     action_pipeline_id: "Гласовни канал (празно = подразумевани)",
     action_pipeline_id_help:
       "ИД гласовног канала који се користи. Оставите празно за подразумевани.",
@@ -6816,6 +6829,7 @@ const ET = {
     action_assist: "Glasovni asistent",
     action_dismiss: "Trajno zatvori",
     action_undismiss: "Vrati ignorisane",
+    action_dismiss_group: "Odbaci celu grupu",
     action_pipeline_id: "Glasovni kanal (prazno = podrazumevani)",
     action_pipeline_id_help:
       "ID glasovnog kanala koji se koristi. Ostavite prazno za podrazumevani.",
@@ -10215,7 +10229,8 @@ class AlertTickerCardEditor extends LitElement {
         <select class="native-select"
           @change="${(e) => this._setActionConfig(index, key, "action", e.target.value)}"
         >
-          ${["none","call-service","navigate","more-info","url","assist","dismiss","undismiss"].map((t) => html`
+          ${["none","call-service","navigate","more-info","url","assist","dismiss","undismiss",
+             ...(key.startsWith("group_") ? ["dismiss-group"] : [])].map((t) => html`
             <option value="${t}" ?selected="${type === t}">
               ${this._t("action_" + t.replace("-","_")) || t}
             </option>
